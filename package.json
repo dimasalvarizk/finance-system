@@ -1,0 +1,17 @@
+{
+  "name": "finance-system-root",
+  "version": "1.0.0",
+  "description": "Root workspace for Finance System microservices and frontend",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend/auth-service && npm install --prefix backend/invoice-service && npm install --prefix backend/request-service && npm install --prefix backend/company-service && npm install --prefix backend/setting-service && npm install --prefix backend/api-gateway && npm install --prefix finance-frontend",
+    "build:backend": "npm install && npm install --prefix backend/auth-service && npm install --prefix backend/invoice-service && npm install --prefix backend/request-service && npm install --prefix backend/company-service && npm install --prefix backend/setting-service && npm install --prefix backend/api-gateway",
+    "backend": "concurrently -n \"auth,invoice,request,company,setting,gateway\" -c \"blue,green,magenta,cyan,red,yellow\" \"npm --prefix backend/auth-service run dev\" \"npm --prefix backend/invoice-service run dev\" \"npm --prefix backend/request-service run dev\" \"npm --prefix backend/company-service run dev\" \"npm --prefix backend/setting-service run dev\" \"npm --prefix backend/api-gateway run dev\"",
+    "start": "concurrently -n \"auth,invoice,request,company,setting,gateway\" -c \"blue,green,magenta,cyan,red,yellow\" \"npm --prefix backend/auth-service start\" \"npm --prefix backend/invoice-service start\" \"npm --prefix backend/request-service start\" \"npm --prefix backend/company-service start\" \"npm --prefix backend/setting-service start\" \"npm --prefix backend/api-gateway start\"",
+    "frontend": "npm --prefix finance-frontend run dev",
+    "dev": "concurrently -n \"backend,frontend\" -c \"cyan,blue\" \"npm run backend\" \"npm run frontend\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
