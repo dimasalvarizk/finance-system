@@ -1,6 +1,17 @@
 import { getAllRequestsDB, getRequestByInvoiceNoDB, createRequestDB, approveRequestDB, rejectRequestDB } from '../models/requestModel.js';
 import { getPool } from '../config/db.js';
 
+const getAuthBaseUrl = (req) => {
+  const isVercel = process.env.VERCEL === '1';
+  if (isVercel && req) {
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host;
+    return `${protocol}://${host}`;
+  }
+  return 'http://localhost:5001';
+};
+
+
 // Get all requests
 export const getRequests = async (req, res, next) => {
   try {
@@ -49,7 +60,7 @@ export const createRequest = async (req, res, next) => {
     try {
       const adminIds = ['usr_super_admin', 'usr_hesham', 'usr_khalid'];
       for (const adminId of adminIds) {
-        fetch('http://localhost:5001/api/auth/notifications', {
+        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -114,7 +125,7 @@ export const approveRequest = async (req, res, next) => {
         }
       }
 
-      fetch('http://localhost:5001/api/auth/notifications', {
+      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -173,7 +184,7 @@ export const rejectRequest = async (req, res, next) => {
         }
       }
 
-      fetch('http://localhost:5001/api/auth/notifications', {
+      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -255,7 +266,7 @@ export const sendInvoiceEmail = async (req, res, next) => {
     const [itemRows] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [invoice.id]);
     invoice.items = itemRows;
 
-    const response = await fetch('http://localhost:5001/api/auth/send-client-invoice', {
+    const response = await fetch(`${getAuthBaseUrl(req)}/api/auth/send-client-invoice`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

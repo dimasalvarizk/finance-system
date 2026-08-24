@@ -1,5 +1,15 @@
 import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB } from '../models/invoiceModel.js';
 
+const getAuthBaseUrl = (req) => {
+  const isVercel = process.env.VERCEL === '1';
+  if (isVercel && req) {
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host;
+    return `${protocol}://${host}`;
+  }
+  return 'http://localhost:5001';
+};
+
 // @desc    Get all invoices
 // @route   GET /api/invoices
 // @access  Public (or Protected)
@@ -58,7 +68,7 @@ export const createInvoice = async (req, res, next) => {
       const cleanAmount = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/[^0-9.-]/g, ''));
       const amountDisplay = isNaN(cleanAmount) ? String(amount) : cleanAmount.toLocaleString('en-US');
 
-      fetch('http://localhost:5001/api/auth/notifications', {
+      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -137,7 +147,7 @@ export const updateInvoiceStatus = async (req, res, next) => {
       }
 
       if (notifType) {
-        fetch('http://localhost:5001/api/auth/notifications', {
+        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
