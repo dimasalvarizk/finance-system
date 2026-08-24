@@ -11,7 +11,7 @@ import requestRoutes from '../backend/request-service/routes/requestRoutes.js';
 import settingRoutes from '../backend/setting-service/routes/settingRoutes.js';
 
 // Import Database connection functions
-import { connectDB as connectAuthDB } from '../backend/auth-service/config/db.js';
+import { connectDB as connectAuthDB, getPool as getAuthPool } from '../backend/auth-service/config/db.js';
 import { connectDB as connectInvoiceDB } from '../backend/invoice-service/config/db.js';
 import { connectDB as connectCompanyDB } from '../backend/company-service/config/db.js';
 import { connectDB as connectRequestDB } from '../backend/request-service/config/db.js';
@@ -66,6 +66,32 @@ app.get('/api', (req, res) => {
     message: 'Unified Finance System API Gateway is running on Vercel...',
     timestamp: new Date().toISOString()
   });
+});
+
+app.get('/api/db-check', async (req, res) => {
+  try {
+    const pool = getAuthPool();
+    const [tables] = await pool.query('SHOW TABLES');
+    const tableInfo = {};
+    for (const t of tables) {
+      const tableName = Object.values(t)[0];
+      try {
+        const [desc] = await pool.query(`DESCRIBE \`${tableName}\``);
+        tableInfo[tableName] = desc;
+      } catch (err) {
+        tableInfo[tableName] = { error: err.message };
+      }
+    }
+    res.status(200).json({
+      success: true,
+      tables: tableInfo
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
 });
 
 // Mount routes mirroring the API gateway paths
