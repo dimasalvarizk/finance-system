@@ -3,7 +3,7 @@ import path from 'path';
 import nodemailer from 'nodemailer';
 
 let transporter = null;
-const ETHEREAL_CACHE_PATH = path.join(process.cwd(), 'ethereal_account.json');
+const ETHEREAL_CACHE_PATH = path.join('/tmp', 'ethereal_account.json');
 
 const getUiType = (title) => {
   const t = title.toLowerCase();
