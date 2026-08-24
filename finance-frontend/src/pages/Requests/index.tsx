@@ -396,10 +396,10 @@ const Requests: React.FC = () => {
   const handleConfirmArchive = async () => {
     if (!selectedRequest) return;
     try {
-      await cancelInvoiceAPI(selectedRequest.invoiceNo);
+      await updateInvoiceStatusAPI(selectedRequest.invoiceNo, 'Archived');
       setShowArchiveConfirm(false);
       setShowArchiveSuccess(true);
-      setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, status: 'Cancelled' } : r));
+      setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, status: 'Archived' as any } : r));
     } catch (err: any) {
       console.error('Failed to archive request:', err);
       alert(err.response?.data?.message || 'Failed to archive request.');
