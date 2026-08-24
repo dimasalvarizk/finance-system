@@ -770,7 +770,32 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                     <div class="total-due-value">${amount}</div>
                   </div>
                 </div>
-                <div style="clear: both; height: 30px;"></div>
+                <div style="clear: both; height: 25px;"></div>
+
+                <!-- Payment Instructions -->
+                <div style="margin-bottom: 25px;">
+                  <div style="font-size: 11px; font-weight: bold; color: #0f172a; text-transform: uppercase; margin-bottom: 8px; font-family: sans-serif;">Payment Instructions</div>
+                  <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; font-family: sans-serif; font-size: 13px; color: #334155;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                      <tr style="height: 28px;">
+                        <td style="font-weight: 600; color: #64748b;">Bank Name:</td>
+                        <td style="text-align: right; font-weight: bold; color: #0f172a;">Danamon</td>
+                      </tr>
+                      <tr style="height: 28px;">
+                        <td style="font-weight: 600; color: #64748b;">Account Name:</td>
+                        <td style="text-align: right; font-weight: bold; color: #0f172a;">PT ODST Airlines Indo</td>
+                      </tr>
+                      <tr style="height: 28px;">
+                        <td style="font-weight: 600; color: #64748b;">IDR Account Number:</td>
+                        <td style="text-align: right; font-weight: bold; color: #2563eb; font-family: monospace;">102-8829-011</td>
+                      </tr>
+                      <tr style="height: 28px;">
+                        <td style="font-weight: 600; color: #64748b;">USD Account Number:</td>
+                        <td style="text-align: right; font-weight: bold; color: #2563eb; font-family: monospace;">102-8829-022</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
 
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
 
