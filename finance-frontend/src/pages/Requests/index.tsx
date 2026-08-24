@@ -457,6 +457,18 @@ const Requests: React.FC = () => {
             {status}
           </span>
         );
+      case "Cancelled":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#475569] border border-[#e2e8f0] font-sans">
+            Archived
+          </span>
+        );
+      case "Paid":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#e8f5e9] text-[#2e7d32] border border-[#c8e6c9] font-sans">
+            Paid
+          </span>
+        );
       default:
         return null;
     }

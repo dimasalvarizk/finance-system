@@ -1294,7 +1294,7 @@ const Invoices: React.FC = () => {
                     <option value="Pending">Pending</option>
                     <option value="Approved">Approved</option>
                     <option value="Rejected">Rejected</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option value="Cancelled">Archived</option>
                   </select>
 
                   {/* Date Filter Input */}
@@ -1482,7 +1482,7 @@ const Invoices: React.FC = () => {
                               <span
                                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)}`}
                               >
-                                {inv.status}
+                                {inv.status === 'Cancelled' ? 'Archived' : inv.status}
                               </span>
                             </td>
                             <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
