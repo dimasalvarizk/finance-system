@@ -160,7 +160,7 @@ export const approveRequestDB = async (id, userRole) => {
 
   // Sync to dst_invoices table in same database
   if (nextStatus === '3/3 Approved') {
-    await pool.query('UPDATE dst_invoices SET status = "Approved" WHERE invoiceNo = ?', [request.invoiceNo]);
+    await pool.query("UPDATE dst_invoices SET status = 'Approved' WHERE invoiceNo = ?", [request.invoiceNo]);
   } else {
     await pool.query('UPDATE dst_invoices SET status = ? WHERE invoiceNo = ?', [nextStatus, request.invoiceNo]);
   }
@@ -206,7 +206,7 @@ export const rejectRequestDB = async (id, userRole, userName, reason) => {
 
   const updateRequestQuery = `
     UPDATE dst_requests 
-    SET status = "Rejected", 
+    SET status = 'Rejected', 
         rejectionReason = ?, 
         rejectedBy = ?, 
         rejectedAt = ?, 
@@ -216,7 +216,7 @@ export const rejectRequestDB = async (id, userRole, userName, reason) => {
   await pool.query(updateRequestQuery, [reason || 'No reason provided', userName, timestamp, userRole, request.id]);
   
   // Sync to dst_invoices table
-  await pool.query('UPDATE dst_invoices SET status = "Rejected", rejectionReason = ? WHERE invoiceNo = ?', [reason || 'No reason provided', request.invoiceNo]);
+  await pool.query("UPDATE dst_invoices SET status = 'Rejected', rejectionReason = ? WHERE invoiceNo = ?", [reason || 'No reason provided', request.invoiceNo]);
   
   return { 
     success: true, 
