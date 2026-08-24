@@ -280,7 +280,8 @@ export const sendInvoiceEmail = async (req, res, next) => {
           serialNo: invoice.serialNo,
           dueDate: invoice.dueDate,
           date: invoice.date,
-          items: invoice.items
+          items: invoice.items,
+          taxRate: invoice.taxRate
         }
       })
     });

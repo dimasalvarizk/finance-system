@@ -486,7 +486,16 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       }
     }
 
-    const { invoiceNo, company, companyCode, amount, referenceNo, serialNo, dueDate, date, items } = invoiceDetails;
+    const { invoiceNo, company, companyCode, amount, referenceNo, serialNo, dueDate, date, items, taxRate } = invoiceDetails;
+    const rate = Number(taxRate) || 0;
+
+    let subtotalNum = 0;
+    if (items && Array.isArray(items)) {
+      subtotalNum = items.reduce((acc, item) => acc + (Number(item.qty) || 0) * (Number(item.price) || 0), 0);
+    }
+    const taxNum = subtotalNum * (rate / 100);
+    const subtotalFormatted = subtotalNum.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    const taxFormatted = taxNum.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
     const formatDate = (dateStr) => {
       if (!dateStr) return '';
@@ -764,10 +773,20 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                   </tbody>
                 </table>
 
-                <div class="total-box">
-                  <div class="total-due-row">
-                    <div class="total-due-label">Total Due</div>
-                    <div class="total-due-value">${amount}</div>
+                 <div class="total-box">
+                  ${rate > 0 ? `
+                  <div class="total-row" style="margin-bottom: 8px;">
+                    <div class="total-label" style="font-size: 13px; color: #64748b; font-weight: 600; display: inline-block; width: 120px;">Subtotal</div>
+                    <div class="total-value" style="font-size: 15px; color: #0f172a; font-weight: 700; display: inline-block; text-align: right; width: 120px; font-family: monospace;">${subtotalFormatted}</div>
+                  </div>
+                  <div class="total-row" style="margin-bottom: 8px;">
+                    <div class="total-label" style="font-size: 13px; color: #64748b; font-weight: 600; display: inline-block; width: 120px;">Tax (${rate}%)</div>
+                    <div class="total-value" style="font-size: 15px; color: #0f172a; font-weight: 700; display: inline-block; text-align: right; width: 120px; font-family: monospace;">${taxFormatted}</div>
+                  </div>
+                  ` : ''}
+                  <div class="total-due-row" style="background-color: #fffbeb; border: 1px dashed #fde68a; border-radius: 8px; padding: 10px; margin-top: 8px;">
+                    <div class="total-due-label" style="font-size: 14px; color: #b45309; font-weight: 700; display: inline-block; width: 110px;">Total Due</div>
+                    <div class="total-due-value" style="font-size: 16px; color: #b45309; font-weight: 800; display: inline-block; text-align: right; width: 110px; font-family: monospace;">${amount}</div>
                   </div>
                 </div>
                 <div style="clear: both; height: 25px;"></div>
