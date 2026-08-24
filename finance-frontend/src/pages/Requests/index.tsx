@@ -226,7 +226,7 @@ const Requests: React.FC = () => {
     let list = allRequests;
 
     if (activeTab === "pending") {
-      list = list.filter((r) => r.status !== "3/3 Approved" && r.status !== "Rejected" && r.status !== "Cancelled");
+      list = list.filter((r) => r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved");
     } else if (activeTab === "approved") {
       list = list.filter((r) => r.status === "3/3 Approved");
     } else if (activeTab === "rejected") {
@@ -262,7 +262,7 @@ const Requests: React.FC = () => {
   const counts = useMemo(() => {
     return {
       all: allRequests.length,
-      pending: allRequests.filter((r) => r.status !== "3/3 Approved" && r.status !== "Rejected" && r.status !== "Cancelled").length,
+      pending: allRequests.filter((r) => r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved").length,
       approved: allRequests.filter((r) => r.status === "3/3 Approved").length,
       rejected: allRequests.filter((r) => r.status === "Rejected").length,
     };
