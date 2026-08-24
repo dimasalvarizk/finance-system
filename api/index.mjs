@@ -10,10 +10,8 @@ import companyRoutes from '../backend/company-service/routes/companyRoutes.js';
 import requestRoutes from '../backend/request-service/routes/requestRoutes.js';
 import settingRoutes from '../backend/setting-service/routes/settingRoutes.js';
 
-import bcrypt from 'bcryptjs';
-
 // Import Database connection functions
-import { connectDB as connectAuthDB, getPool } from '../backend/auth-service/config/db.js';
+import { connectDB as connectAuthDB } from '../backend/auth-service/config/db.js';
 import { connectDB as connectInvoiceDB } from '../backend/invoice-service/config/db.js';
 import { connectDB as connectCompanyDB } from '../backend/company-service/config/db.js';
 import { connectDB as connectRequestDB } from '../backend/request-service/config/db.js';
@@ -76,28 +74,6 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/settings', settingRoutes);
-
-// Temporary helper route to reset all passwords to password123
-app.get('/api/reset-passwords', async (req, res) => {
-  try {
-    const pool = getPool();
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('password123', salt);
-    
-    await pool.query('UPDATE dst_users SET passwordHash = ?', [hashedPassword]);
-    
-    res.status(200).json({
-      success: true,
-      message: 'All user passwords have been successfully reset to password123'
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to reset passwords',
-      error: err.message
-    });
-  }
-});
 
 // Catch-all route for unknown API requests
 app.use('/api/*', (req, res) => {
