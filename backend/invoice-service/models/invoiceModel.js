@@ -139,14 +139,14 @@ export const cancelInvoiceDB = async (id) => {
     await connection.beginTransaction();
 
     // Update invoice status to Cancelled
-    const [result] = await connection.query('UPDATE dst_invoices SET status = "Cancelled" WHERE id = ? OR invoiceNo = ?', [id, id]);
+    const [result] = await connection.query("UPDATE dst_invoices SET status = 'Cancelled' WHERE id = ? OR invoiceNo = ?", [id, id]);
     
     // Get invoiceNo of this invoice
     const [invoices] = await connection.query('SELECT invoiceNo FROM dst_invoices WHERE id = ? OR invoiceNo = ?', [id, id]);
     if (invoices.length > 0) {
       const invNo = invoices[0].invoiceNo;
       // Update corresponding request status to Cancelled
-      await connection.query('UPDATE dst_requests SET status = "Cancelled" WHERE invoiceNo = ?', [invNo]);
+      await connection.query("UPDATE dst_requests SET status = 'Cancelled' WHERE invoiceNo = ?", [invNo]);
     }
 
     await connection.commit();

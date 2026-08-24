@@ -77,7 +77,7 @@ export const createRequestDB = async (reqData) => {
   const id = `req_${Date.now()}`;
 
   // Calculate reqNo based on highest current number
-  const [rows] = await pool.query('SELECT reqNo FROM dst_requests WHERE reqNo LIKE "REQ-2026-%"');
+  const [rows] = await pool.query('SELECT reqNo FROM dst_requests WHERE reqNo LIKE ?', ['REQ-2026-%']);
   let nextCounter = 9;
   if (rows.length > 0) {
     const counters = rows.map(r => {
