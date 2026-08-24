@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import nodemailer from 'nodemailer';
+import { getPool } from '../config/db.js';
 
 let transporter = null;
 const ETHEREAL_CACHE_PATH = path.join('/tmp', 'ethereal_account.json');
@@ -424,6 +425,30 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
 };
 
 export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
+  let companySettings = {
+    phone: '+62 856 9332 3122',
+    taxNumber: '0000-0000-0000',
+    defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
+    termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership."
+  };
+  try {
+    const pool = getPool();
+    const [settingsRows] = await pool.query('SELECT phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
+    if (settingsRows.length > 0) {
+      companySettings = {
+        phone: settingsRows[0].phone || companySettings.phone,
+        taxNumber: settingsRows[0].taxNumber || companySettings.taxNumber,
+        defaultNotes: settingsRows[0].defaultNotes || companySettings.defaultNotes,
+        termsAndConditions: settingsRows[0].termsAndConditions || companySettings.termsAndConditions
+      };
+    }
+  } catch (err) {
+    console.error('Failed to load company settings for invoice email:', err.message);
+  }
+
+  const htmlNotes = companySettings.defaultNotes.replace(/\n/g, '<br>');
+  const htmlTerms = companySettings.termsAndConditions.replace(/\n/g, '<br>');
+
   try {
     if (!transporter) {
       if (process.env.SMTP_HOST) {
@@ -709,6 +734,8 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                         <strong>ODST Group</strong><br>
                         CBC Office (Head Office)<br>
                         Jakarta, Indonesia<br>
+                        Phone: ${companySettings.phone}<br>
+                        Tax Number: ${companySettings.taxNumber}<br>
                         Email: info@odst.id
                       </div>
                     </td>
@@ -743,6 +770,23 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                     <div class="total-due-value">${amount}</div>
                   </div>
                 </div>
+                <div style="clear: both; height: 30px;"></div>
+
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: sans-serif;">
+                  <tr>
+                    <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                      <div style="font-size: 11px; font-weight: bold; color: #0f172a; text-transform: uppercase; margin-bottom: 8px;">Notes</div>
+                      <div style="font-size: 12px; color: #64748b; line-height: 1.5;">${htmlNotes}</div>
+                    </td>
+                    <td style="width: 50%; vertical-align: top;">
+                      <div style="font-size: 11px; font-weight: bold; color: #0f172a; text-transform: uppercase; margin-bottom: 8px;">Terms & Conditions</div>
+                      <div style="font-size: 12px; color: #64748b; line-height: 1.5;">${htmlTerms}</div>
+                    </td>
+                  </tr>
+                </table>
+
                 <div style="clear: both; height: 10px;"></div>
               </div>
               <div class="footer">
