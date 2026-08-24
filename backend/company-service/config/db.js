@@ -6,6 +6,7 @@ dotenv.config();
 let pool;
 
 export const connectDB = async () => {
+  if (pool) return pool;
   try {
     const host = process.env.DB_HOST || 'localhost';
     const user = process.env.DB_USER || 'root';
