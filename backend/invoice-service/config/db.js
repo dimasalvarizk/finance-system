@@ -36,12 +36,14 @@ export const connectDB = async () => {
       console.log(`Database '${database}' verified/created for invoice-service`);
     }
 
+    const isVercel = process.env.VERCEL === '1';
+
     // 2. Create the connection pool on the database
     pool = mysql.createPool({
       ...connectionOptions,
       database,
       waitForConnections: true,
-      connectionLimit: 10,
+      connectionLimit: isVercel ? 2 : 10,
       queueLimit: 0,
     });
 
@@ -51,10 +53,18 @@ export const connectDB = async () => {
     connection.release();
 
     // Initialize schema & seeds
-    await initializeDatabase();
+    if (!isVercel) {
+      await initializeDatabase();
+    } else {
+      console.log('Running on Vercel: Skipping schema initialization for invoice-service');
+    }
   } catch (error) {
     console.error('MySQL connection/initialization failed for invoice-service:', error.message);
-    process.exit(1);
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    } else {
+      throw error;
+    }
   }
 };
 
