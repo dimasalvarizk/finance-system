@@ -42,11 +42,23 @@ const CompanyInfoTab: React.FC = () => {
     fetchCompanySettings();
   }, []);
 
+  const syncLocalStorage = async () => {
+    try {
+      const latest = await getCompanySetting();
+      if (latest) {
+        localStorage.setItem('finance_company_settings', JSON.stringify(latest));
+      }
+    } catch (err) {
+      console.error('Failed to sync company settings to localStorage:', err);
+    }
+  };
+
   const handleSavePhone = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingPhone(true);
     try {
       await updateCompanySetting({ phone });
+      await syncLocalStorage();
       setPhoneFeedback('Contact information saved successfully!');
       setTimeout(() => setPhoneFeedback(null), 3000);
     } catch (err) {
@@ -62,6 +74,7 @@ const CompanyInfoTab: React.FC = () => {
     setSavingTax(true);
     try {
       await updateCompanySetting({ taxNumber });
+      await syncLocalStorage();
       setTaxFeedback('Tax information saved successfully!');
       setTimeout(() => setTaxFeedback(null), 3000);
     } catch (err) {
@@ -77,6 +90,7 @@ const CompanyInfoTab: React.FC = () => {
     setSavingNotes(true);
     try {
       await updateCompanySetting({ defaultNotes });
+      await syncLocalStorage();
       setNotesFeedback('Default notes saved successfully!');
       setTimeout(() => setNotesFeedback(null), 3000);
     } catch (err) {
@@ -92,6 +106,7 @@ const CompanyInfoTab: React.FC = () => {
     setSavingTerms(true);
     try {
       await updateCompanySetting({ termsAndConditions });
+      await syncLocalStorage();
       setTermsFeedback('Terms and conditions saved successfully!');
       setTimeout(() => setTermsFeedback(null), 3000);
     } catch (err) {

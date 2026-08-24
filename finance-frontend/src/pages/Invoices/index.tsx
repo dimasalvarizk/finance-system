@@ -160,7 +160,7 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
       name: localStorageCreator.name,
       id: localStorageCreator.employeeId || '260111',
       entity: localStorageCreator.branch || 'ODST Group',
-      phone: localStorageCreator.phone || companySettings.phone,
+      phone: companySettings.phone,
       email: localStorageCreator.email || 'info@odst.id',
       tax: companySettings.taxNumber,
     } : {
@@ -462,16 +462,17 @@ const Invoices: React.FC = () => {
   // Itemized Charges
   const [formItems, setFormItems] = useState<{ description: string; qty: number; price: number; isService?: boolean }[]>([]);
 
-  // Dynamically set Bill From fields from the logged-in user
+  // Dynamically set Bill From fields from the logged-in user and company settings
   useEffect(() => {
     if (user) {
       setFormEmpName(user.name || '');
       setFormEmpId(user.employeeId || '');
-      setFormCompNumber(user.phone || '');
+      setFormCompNumber(companySettings.phone || user.phone || '');
       setFormCompEmail(user.email || '');
       setFormEntity(user.branch || 'ODST Group');
+      setFormCompTax(companySettings.taxNumber || '0000-0000-0000');
     }
-  }, [user, isModalOpen]);
+  }, [user, isModalOpen, companySettings]);
 
   // Reset validation error state when modal opens
   useEffect(() => {
