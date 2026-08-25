@@ -75,7 +75,11 @@ export const getLocalCompanySettings = () => {
     phone: '+62 856 9332 3122',
     taxNumber: '0000-0000-0000',
     defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
-    termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership."
+    termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.",
+    bankName: 'Danamon',
+    accountName: 'PT ODST Airlines Indo',
+    idrAccountNumber: '102-8829-011',
+    usdAccountNumber: '102-8829-022'
   };
   if (saved) {
     try {
@@ -87,6 +91,10 @@ export const getLocalCompanySettings = () => {
           taxNumber: parsed.taxNumber || defaults.taxNumber,
           defaultNotes: parsed.defaultNotes || defaults.defaultNotes,
           termsAndConditions: parsed.termsAndConditions || defaults.termsAndConditions,
+          bankName: parsed.bankName || defaults.bankName,
+          accountName: parsed.accountName || defaults.accountName,
+          idrAccountNumber: parsed.idrAccountNumber || defaults.idrAccountNumber,
+          usdAccountNumber: parsed.usdAccountNumber || defaults.usdAccountNumber,
         };
       }
     } catch (e) {}
@@ -2216,31 +2224,36 @@ const Invoices: React.FC = () => {
                   <div className="border-t border-[#e2e8f0] mx-6" />
 
                   {/* Payment Instructions Section */}
-                  <div className="space-y-3 mt-6">
-                    <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-                      Payment Instructions
-                    </h4>
-                    <div className="bg-[#f8fafc] p-5 rounded-2xl border border-[#e2e8f0] font-sans">
-                      <div className="space-y-3 text-[13px] font-sans">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[#64748b] font-semibold">Bank Name:</span>
-                          <span className="font-bold text-[#0c0d0f]">Danamon</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[#64748b] font-semibold">Account Name:</span>
-                          <span className="font-bold text-[#0c0d0f]">PT ODST Airlines Indo</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[#64748b] font-semibold">IDR Account Number:</span>
-                          <span className="font-bold text-[#2563eb] font-inter">102-8829-011</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[#64748b] font-semibold">USD Account Number:</span>
-                          <span className="font-bold text-[#2563eb] font-inter">102-8829-022</span>
+                  {(() => {
+                    const settings = getLocalCompanySettings();
+                    return (
+                      <div className="space-y-3 mt-6">
+                        <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
+                          Payment Instructions
+                        </h4>
+                        <div className="bg-[#f8fafc] p-5 rounded-2xl border border-[#e2e8f0] font-sans">
+                          <div className="space-y-3 text-[13px] font-sans">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#64748b] font-semibold">Bank Name:</span>
+                              <span className="font-bold text-[#0c0d0f]">{settings.bankName}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#64748b] font-semibold">Account Name:</span>
+                              <span className="font-bold text-[#0c0d0f]">{settings.accountName}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#64748b] font-semibold">IDR Account Number:</span>
+                              <span className="font-bold text-[#2563eb] font-inter">{settings.idrAccountNumber}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#64748b] font-semibold">USD Account Number:</span>
+                              <span className="font-bold text-[#2563eb] font-inter">{settings.usdAccountNumber}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
                   {/* Divider */}
                   <div className="border-t border-[#e2e8f0] mx-6" />

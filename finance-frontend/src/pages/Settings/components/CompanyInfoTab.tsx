@@ -8,6 +8,12 @@ const CompanyInfoTab: React.FC = () => {
   const [taxNumber, setTaxNumber] = useState('');
   const [defaultNotes, setDefaultNotes] = useState('');
   const [termsAndConditions, setTermsAndConditions] = useState('');
+  
+  // Bank Info States
+  const [bankName, setBankName] = useState('');
+  const [accountName, setAccountName] = useState('');
+  const [idrAccountNumber, setIdrAccountNumber] = useState('');
+  const [usdAccountNumber, setUsdAccountNumber] = useState('');
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -18,6 +24,7 @@ const CompanyInfoTab: React.FC = () => {
   const [savingTax, setSavingTax] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [savingTerms, setSavingTerms] = useState(false);
+  const [savingBank, setSavingBank] = useState(false);
 
   // Feedback states
   const [companyNameFeedback, setCompanyNameFeedback] = useState<string | null>(null);
@@ -25,6 +32,7 @@ const CompanyInfoTab: React.FC = () => {
   const [taxFeedback, setTaxFeedback] = useState<string | null>(null);
   const [notesFeedback, setNotesFeedback] = useState<string | null>(null);
   const [termsFeedback, setTermsFeedback] = useState<string | null>(null);
+  const [bankFeedback, setBankFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCompanySettings = async () => {
@@ -36,6 +44,10 @@ const CompanyInfoTab: React.FC = () => {
           setTaxNumber(data.taxNumber || '');
           setDefaultNotes(data.defaultNotes || '');
           setTermsAndConditions(data.termsAndConditions || '');
+          setBankName(data.bankName || '');
+          setAccountName(data.accountName || '');
+          setIdrAccountNumber(data.idrAccountNumber || '');
+          setUsdAccountNumber(data.usdAccountNumber || '');
         }
       } catch (err) {
         console.error('Failed to load company settings:', err);
@@ -103,6 +115,27 @@ const CompanyInfoTab: React.FC = () => {
       alert('Failed to save tax settings');
     } finally {
       setSavingTax(false);
+    }
+  };
+
+  const handleSaveBank = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBank(true);
+    try {
+      await updateCompanySetting({ 
+        bankName, 
+        accountName, 
+        idrAccountNumber, 
+        usdAccountNumber 
+      });
+      await syncLocalStorage();
+      setBankFeedback('Bank information saved successfully!');
+      setTimeout(() => setBankFeedback(null), 3000);
+    } catch (err) {
+      console.error('Failed to save bank settings:', err);
+      alert('Failed to save bank settings');
+    } finally {
+      setSavingBank(false);
     }
   };
 
@@ -257,6 +290,76 @@ const CompanyInfoTab: React.FC = () => {
               <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
                 <Check className="w-4 h-4 stroke-[2.5px]" />
                 {taxFeedback}
+              </span>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* 2.5 Bank Info Card */}
+      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4 text-left">
+        <div className="space-y-1">
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Bank Info</h3>
+          <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
+            Add your company bank account details for invoices
+          </p>
+        </div>
+        <form onSubmit={handleSaveBank} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">Bank Name</label>
+              <input
+                type="text"
+                placeholder="Enter your bank name"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">Account Name</label>
+              <input
+                type="text"
+                placeholder="Enter account holder name"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">IDR Account Number</label>
+              <input
+                type="text"
+                placeholder="Enter IDR account number"
+                value={idrAccountNumber}
+                onChange={(e) => setIdrAccountNumber(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">USD Account Number</label>
+              <input
+                type="text"
+                placeholder="Enter USD account number"
+                value={usdAccountNumber}
+                onChange={(e) => setUsdAccountNumber(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={savingBank}
+              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingBank ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+            >
+              {savingBank ? 'Saving...' : 'Save'}
+            </button>
+            {bankFeedback && (
+              <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
+                <Check className="w-4 h-4 stroke-[2.5px]" />
+                {bankFeedback}
               </span>
             )}
           </div>

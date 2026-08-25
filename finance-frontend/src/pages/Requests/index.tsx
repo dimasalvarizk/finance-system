@@ -734,27 +734,32 @@ const Requests: React.FC = () => {
                     <div className="border-t border-[#e2e8f0]" />
 
                     {/* Payment Instructions */}
-                    <div className="space-y-3">
-                      <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">PAYMENT INSTRUCTIONS</h4>
-                      <div className="p-5 bg-[#f8fafc] rounded-2xl border border-[#e2e8f0] text-[12px] font-sans space-y-2.5">
-                        <div className="flex justify-between text-[#475569]">
-                          <span>Bank Name:</span>
-                          <span className="font-bold text-[#1e293b]">Danamon</span>
+                    {(() => {
+                      const settings = getLocalCompanySettings();
+                      return (
+                        <div className="space-y-3">
+                          <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">PAYMENT INSTRUCTIONS</h4>
+                          <div className="p-5 bg-[#f8fafc] rounded-2xl border border-[#e2e8f0] text-[12px] font-sans space-y-2.5">
+                            <div className="flex justify-between text-[#475569]">
+                              <span>Bank Name:</span>
+                              <span className="font-bold text-[#1e293b]">{settings.bankName}</span>
+                            </div>
+                            <div className="flex justify-between text-[#475569]">
+                              <span>Account Name:</span>
+                              <span className="font-bold text-[#1e293b]">{settings.accountName}</span>
+                            </div>
+                            <div className="flex justify-between text-[#475569]">
+                              <span>IDR Account Number:</span>
+                              <span className="font-bold text-[#2563eb] font-mono">{settings.idrAccountNumber}</span>
+                            </div>
+                            <div className="flex justify-between text-[#475569]">
+                              <span>USD Account Number:</span>
+                              <span className="font-bold text-[#2563eb] font-mono">{settings.usdAccountNumber}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-[#475569]">
-                          <span>Account Name:</span>
-                          <span className="font-bold text-[#1e293b]">PT ODST Airlines Indo</span>
-                        </div>
-                        <div className="flex justify-between text-[#475569]">
-                          <span>IDR Account Number:</span>
-                          <span className="font-bold text-[#2563eb] font-mono">102-8829-011</span>
-                        </div>
-                        <div className="flex justify-between text-[#475569]">
-                          <span>USD Account Number:</span>
-                          <span className="font-bold text-[#2563eb] font-mono">102-8829-022</span>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
 
                     {/* Notes and Terms */}

@@ -240,19 +240,19 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
               <div className="rounded-xl border border-slate-100 p-3 space-y-1.5" style={{ backgroundColor: 'rgba(248, 250, 252, 1)' }}>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500 font-sans">Bank Name:</span>
-                  <span className="font-bold text-slate-800 font-sans">Danamon</span>
+                  <span className="font-bold text-slate-800 font-sans">{companySettings.bankName}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500 font-sans">Account Name:</span>
-                  <span className="font-bold text-slate-800 font-sans">PT ODST Airlines Indo</span>
+                  <span className="font-bold text-slate-800 font-sans">{companySettings.accountName}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500 font-sans">IDR Account Number:</span>
-                  <span className="font-bold text-blue-600 font-sans">102-8829-011</span>
+                  <span className="font-bold text-blue-600 font-sans">{companySettings.idrAccountNumber}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500 font-sans">USD Account Number:</span>
-                  <span className="font-bold text-blue-600 font-sans">102-8829-022</span>
+                  <span className="font-bold text-blue-600 font-sans">{companySettings.usdAccountNumber}</span>
                 </div>
               </div>
             </div>

@@ -488,7 +488,7 @@ export const getCompanySetting = async (req, res, next) => {
   try {
     const pool = getPool();
     await ensureCompanyNameColumn(pool);
-    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
+    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber FROM dst_company_settings WHERE id = ?', ['current']);
     res.status(200).json({
       success: true,
       data: rows[0] || {
@@ -496,7 +496,11 @@ export const getCompanySetting = async (req, res, next) => {
         phone: '+62 856 9332 3122',
         taxNumber: '0000-0000-0000',
         defaultNotes: '',
-        termsAndConditions: ''
+        termsAndConditions: '',
+        bankName: 'Danamon',
+        accountName: 'PT ODST Airlines Indo',
+        idrAccountNumber: '102-8829-011',
+        usdAccountNumber: '102-8829-022'
       }
     });
   } catch (error) {
@@ -505,7 +509,7 @@ export const getCompanySetting = async (req, res, next) => {
 };
 
 export const updateCompanySetting = async (req, res, next) => {
-  const { companyName, phone, taxNumber, defaultNotes, termsAndConditions } = req.body;
+  const { companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber } = req.body;
   try {
     const pool = getPool();
     await ensureCompanyNameColumn(pool);
@@ -532,13 +536,29 @@ export const updateCompanySetting = async (req, res, next) => {
       updates.push('termsAndConditions = ?');
       params.push(termsAndConditions);
     }
+    if (bankName !== undefined) {
+      updates.push('bankName = ?');
+      params.push(bankName);
+    }
+    if (accountName !== undefined) {
+      updates.push('accountName = ?');
+      params.push(accountName);
+    }
+    if (idrAccountNumber !== undefined) {
+      updates.push('idrAccountNumber = ?');
+      params.push(idrAccountNumber);
+    }
+    if (usdAccountNumber !== undefined) {
+      updates.push('usdAccountNumber = ?');
+      params.push(usdAccountNumber);
+    }
     
     if (updates.length > 0) {
       params.push('current');
       await pool.query(`UPDATE dst_company_settings SET ${updates.join(', ')} WHERE id = ?`, params);
     }
     
-    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
+    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber FROM dst_company_settings WHERE id = ?', ['current']);
     res.status(200).json({
       success: true,
       data: rows[0]

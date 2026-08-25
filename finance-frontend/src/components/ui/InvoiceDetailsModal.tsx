@@ -363,19 +363,19 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
               <div className="space-y-3 text-[13px] font-sans">
                 <div className="flex justify-between items-center">
                   <span className="text-[#64748b] font-semibold">Bank Name:</span>
-                  <span className="font-bold text-[#0c0d0f]">Danamon</span>
+                  <span className="font-bold text-[#0c0d0f]">{companySettings.bankName}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#64748b] font-semibold">Account Name:</span>
-                  <span className="font-bold text-[#0c0d0f]">PT ODST Airlines Indo</span>
+                  <span className="font-bold text-[#0c0d0f]">{companySettings.accountName}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#64748b] font-semibold">IDR Account Number:</span>
-                  <span className="font-bold text-[#2563eb] font-inter">102-8829-011</span>
+                  <span className="font-bold text-[#2563eb] font-inter">{companySettings.idrAccountNumber}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#64748b] font-semibold">USD Account Number:</span>
-                  <span className="font-bold text-[#2563eb] font-inter">102-8829-022</span>
+                  <span className="font-bold text-[#2563eb] font-inter">{companySettings.usdAccountNumber}</span>
                 </div>
               </div>
             </div>

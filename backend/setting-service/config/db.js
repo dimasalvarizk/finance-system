@@ -239,6 +239,10 @@ const initializeDatabase = async () => {
         taxNumber VARCHAR(100) NOT NULL,
         defaultNotes TEXT,
         termsAndConditions TEXT,
+        bankName VARCHAR(255) DEFAULT 'Danamon',
+        accountName VARCHAR(255) DEFAULT 'PT ODST Airlines Indo',
+        idrAccountNumber VARCHAR(100) DEFAULT '102-8829-011',
+        usdAccountNumber VARCHAR(100) DEFAULT '102-8829-022',
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
@@ -254,6 +258,27 @@ const initializeDatabase = async () => {
         await pool.query("ALTER TABLE dst_company_settings ADD COLUMN companyName VARCHAR(255) DEFAULT 'ODST Group'");
       } catch (alterErr) {
         console.error('Failed to alter dst_company_settings table:', alterErr);
+      }
+    }
+
+    // Add bank fields if they don't exist
+    const bankFields = [
+      { name: 'bankName', type: "VARCHAR(255) DEFAULT 'Danamon'" },
+      { name: 'accountName', type: "VARCHAR(255) DEFAULT 'PT ODST Airlines Indo'" },
+      { name: 'idrAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-011'" },
+      { name: 'usdAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-022'" }
+    ];
+
+    for (const f of bankFields) {
+      try {
+        await pool.query(`SELECT ${f.name} FROM dst_company_settings LIMIT 1`);
+      } catch (err) {
+        console.log(`Adding ${f.name} column to dst_company_settings table...`);
+        try {
+          await pool.query(`ALTER TABLE dst_company_settings ADD COLUMN ${f.name} ${f.type}`);
+        } catch (alterErr) {
+          console.error(`Failed to add column ${f.name}:`, alterErr);
+        }
       }
     }
 
