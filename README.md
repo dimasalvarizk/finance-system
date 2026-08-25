@@ -66,6 +66,7 @@ Sistem menggunakan database relational **MySQL** dengan tabel berawalan `dst_`:
 | `dst_exchange_rates` | Menyimpan data nilai tukar mata uang terkini (USD/SAR/IDR). | `setting-service` |
 | `dst_exchange_rates_history` | Menyimpan riwayat perubahan nilai tukar harian (audit log). | `setting-service` |
 | `dst_services` | Menyimpan katalog jenis layanan standar (Visa, Transport, Handling). | `setting-service` |
+| `dst_company_settings` | Menyimpan konfigurasi profil / identitas perusahaan (nama perusahaan, kontak, NPWP, syarat & ketentuan) untuk kop faktur. | `setting-service` |
 
 ---
 
