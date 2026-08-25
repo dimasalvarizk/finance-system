@@ -47,6 +47,31 @@ Aplikasi antarmuka pengguna dibangun dengan:
 
 ---
 
+## ✨ Fitur Utama Sistem Keuangan (Pembaluan Terkini)
+
+Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong efisiensi tim internal dan keamanan data:
+
+1. **Multi-Currency & Konversi Kurs Otomatis (USD, SAR, IDR)**:
+   * Pengaturan harga standar pada katalog layanan kini dapat menggunakan mata uang non-USD (SAR atau Rupiah).
+   * Pada saat pembuatan invoice, item layanan tersebut dikonversi secara otomatis ke USD menggunakan data harian nilai tukar terkini di database (`dst_exchange_rates`), meminimalisir kesalahan perhitungan manual oleh staf.
+
+2. **Integrasi Rekening Bank Dinamis (Bank Info)**:
+   * Menu pengaturan **Bank Info** di halaman Settings memfasilitasi konfigurasi nomor rekening bank (Danamon/PT ODST) secara dinamis.
+   * Perubahan rekening di database secara otomatis memperbarui seluruh visual invoice klien: halaman invoice, modal detail, file cetakan PDF, menu persetujuan, dan notifikasi email SMTP klien.
+
+3. **Pemisahan Tanggal Transaksi & Pembatalan Otomatis (Auto-Cancel)**:
+   * Pemisahan tegas antara tanggal pembuatan (**Invoice Date**) dengan batas jatuh tempo (**Due Date**). Kedua tanggal ini ditampilkan lengkap di tabel Invoices, Dashboard, dan Requests.
+   * **Batal Otomatis**: Logika backend memantau secara real-time status pembayaran tagihan; setiap tagihan yang belum dibayar melewati batas *Due Date* akan otomatis diubah statusnya menjadi **`Cancelled`** di database.
+
+4. **Pembatasan Peran Akuntan (RBAC)**:
+   * Laporan performa kantor cabang (*Consolidated Branch Performance*) disembunyikan sepenuhnya dari role **Accountant** dan hanya dapat diakses oleh **Super Admin**, **Chief Accountant**, dan **Division Director**.
+   * Akuntan hanya diperbolehkan mengunduh laporan keuangan untuk kantor cabangnya sendiri.
+
+5. **Header Operating Branch Dinamis**:
+   * Header indikator cabang aktif bagi staf yang login sekarang secara dinamis membaca data master cabang di database (`dst_branches`) tanpa ada penyamaran hardcoded, menjamin kejelasan operasional internal.
+
+---
+
 ## 🗄️ Struktur Database (MySQL)
 
 Sistem menggunakan database relational **MySQL** dengan tabel berawalan `dst_`:
@@ -58,15 +83,15 @@ Sistem menggunakan database relational **MySQL** dengan tabel berawalan `dst_`:
 | `dst_login_logs` | Menyimpan catatan audit log masuk (IP, browser, status). | `auth-service` |
 | `dst_notifications` | Menyimpan pesan pemberitahuan in-app untuk pengguna. | `auth-service` |
 | `dst_companies` | Menyimpan daftar perusahaan klien/mitra pariwisata. | `company-service` |
-| `dst_invoices` | Menyimpan data header invoice (nomor, total biaya, rate konversi). | `invoice-service` |
+| `dst_invoices` | Menyimpan data header invoice (nomor, total biaya, rate konversi, tanggal pembuatan, jatuh tempo). | `invoice-service` |
 | `dst_invoice_items` | Menyimpan baris detail barang/layanan dalam setiap invoice (Relasi One-to-Many). | `invoice-service` |
 | `dst_requests` | Menyimpan status pengajuan persetujuan dan waktu tanda tangan tiap level. | `request-service` |
 | `dst_branches` | Menyimpan data kantor cabang operasional perusahaan di Indonesia. | `setting-service` |
 | `dst_notification_settings` | Menyimpan preferensi notifikasi tiap user (Email/In-App). | `setting-service` |
 | `dst_exchange_rates` | Menyimpan data nilai tukar mata uang terkini (USD/SAR/IDR). | `setting-service` |
 | `dst_exchange_rates_history` | Menyimpan riwayat perubahan nilai tukar harian (audit log). | `setting-service` |
-| `dst_services` | Menyimpan katalog jenis layanan standar (Visa, Transport, Handling). | `setting-service` |
-| `dst_company_settings` | Menyimpan konfigurasi profil / identitas perusahaan (nama perusahaan, kontak, NPWP, syarat & ketentuan) untuk kop faktur. | `setting-service` |
+| `dst_services` | Menyimpan katalog jenis layanan standar beserta mata uangnya (Visa, Transport, Handling - USD/SAR/IDR). | `setting-service` |
+| `dst_company_settings` | Menyimpan konfigurasi profil identitas perusahaan beserta data rekening bank dinamis (Nama Bank, Nomor Rekening IDR/USD, dll). | `setting-service` |
 
 ---
 
