@@ -445,9 +445,23 @@ export const updateTaxSetting = async (req, res, next) => {
 // ==========================================
 // 9. COMPANY SETTINGS (dst_company_settings)
 // ==========================================
+const ensureCompanyNameColumn = async (pool) => {
+  try {
+    await pool.query('SELECT companyName FROM dst_company_settings LIMIT 1');
+  } catch (err) {
+    console.log('Migrating: Adding companyName column to dst_company_settings table...');
+    try {
+      await pool.query("ALTER TABLE dst_company_settings ADD COLUMN companyName VARCHAR(255) DEFAULT 'ODST Group'");
+    } catch (alterErr) {
+      console.error('Failed to alter dst_company_settings table:', alterErr);
+    }
+  }
+};
+
 export const getCompanySetting = async (req, res, next) => {
   try {
     const pool = getPool();
+    await ensureCompanyNameColumn(pool);
     const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
     res.status(200).json({
       success: true,
@@ -468,6 +482,7 @@ export const updateCompanySetting = async (req, res, next) => {
   const { companyName, phone, taxNumber, defaultNotes, termsAndConditions } = req.body;
   try {
     const pool = getPool();
+    await ensureCompanyNameColumn(pool);
     const updates = [];
     const params = [];
     
