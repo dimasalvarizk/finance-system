@@ -60,7 +60,7 @@ export const createTeam = async (req, res, next) => {
 
 export const updateTeam = async (req, res, next) => {
   const { id } = req.params;
-  const { name, phone, role, branch, department, jobTitle } = req.body;
+  const { name, phone, role, branch, department, jobTitle, employeeId } = req.body;
   try {
     const pool = getPool();
     // Get old branch of the user first to check if the branch changed
@@ -69,11 +69,11 @@ export const updateTeam = async (req, res, next) => {
 
     const updateQuery = `
       UPDATE dst_users 
-      SET name = ?, phone = ?, role = ?, branch = ?, department = ?, jobTitle = ?
+      SET name = ?, phone = ?, role = ?, branch = ?, department = ?, jobTitle = ?, employeeId = ?
       WHERE id = ?
     `;
 
-    await pool.query(updateQuery, [name, phone, role, branch, department, jobTitle, id]);
+    await pool.query(updateQuery, [name, phone, role, branch, department, jobTitle, employeeId, id]);
 
     // Update branch teamCount in the database if branch changed
     if (branch !== oldBranch) {
@@ -88,7 +88,7 @@ export const updateTeam = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Team member updated successfully',
-      data: { id, name, phone, role, branch, department, jobTitle }
+      data: { id, name, phone, role, branch, department, jobTitle, employeeId }
     });
   } catch (error) {
     next(error);
