@@ -214,8 +214,8 @@ export const sendNotificationEmail = async (toEmail, toName, title, message) => 
                   </p>
                 </div>
                 
-                <div class="action-container">
-                  <a href="http://localhost:5173" class="action-button">Open Finance Portal</a>
+                <div class="action-container" style="text-align: center; margin-top: 25px; margin-bottom: 5px;">
+                  <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" class="action-button" style="display: inline-block; background-color: #007aff; color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 700; padding: 12px 28px; border-radius: 10px; text-align: center;">Open Finance Portal</a>
                 </div>
               </div>
               <div class="footer">
@@ -349,15 +349,19 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
               <div class="header">
                 <h1 class="header-logo">ODST <span>Finance Portal</span></h1>
               </div>
-              <div class="content">
-                <p class="greeting">Hello ${toName},</p>
-                <p class="instruction">
+              <div class="content" style="padding: 35px 40px;">
+                <p class="greeting" style="font-size: 15px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 18px;">Hello ${toName},</p>
+                <p class="instruction" style="font-size: 13.5px; color: #334155; line-height: 1.6; margin-bottom: 25px;">
                   We received a request to reset your password for the ODST Finance Portal.<br>
                   Please click the button below to reset your password. This link will expire in 30 minutes.
                 </p>
-                <div class="action-container">
-                  <a href="${resetUrl}" class="action-button">Reset Password</a>
+                <div class="action-container" style="text-align: center; margin-top: 25px; margin-bottom: 5px;">
+                  <a href="${resetUrl}" class="action-button" style="display: inline-block; background-color: #007aff; color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 700; padding: 12px 28px; border-radius: 10px; text-align: center;">Reset Password</a>
                 </div>
+                <p style="margin-top: 25px; font-size: 12px; color: #64748b; text-align: center; line-height: 1.5; word-break: break-all;">
+                  If the button above does not work, copy and paste this link into your browser:<br>
+                  <a href="${resetUrl}" style="color: #007aff; text-decoration: underline;">${resetUrl}</a>
+                </p>
               </div>
               <div class="footer">
                 <p class="footer-text">
