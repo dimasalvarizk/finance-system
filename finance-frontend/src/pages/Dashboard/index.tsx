@@ -262,7 +262,8 @@ const Dashboard: React.FC = () => {
       amount: inv.amount || '$0',
       status: status,
       statusColor: '',
-      date: inv.date || ''
+      date: inv.date || '',
+      dueDate: inv.dueDate || ''
     };
   });
 

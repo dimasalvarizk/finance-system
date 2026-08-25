@@ -8,6 +8,7 @@ interface Invoice {
   status: string;
   statusColor: string;
   date: string;
+  dueDate?: string;
 }
 
 interface InvoiceTableProps {
@@ -62,8 +63,11 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
                 <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
                   Status
                 </th>
+                <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
+                  Invoice Date
+                </th>
                 <th className="pl-4 pr-6 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Date
+                  Due Date
                 </th>
               </tr>
             </thead>
@@ -88,8 +92,26 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
                       {invoice.status}
                     </span>
                   </td>
-                  <td className="pl-4 pr-6 py-3.5 text-[13px] font-medium text-[#94a3b8] font-inter">
+                  <td className="px-4 py-3.5 text-[13px] font-medium text-[#94a3b8] font-inter">
                     {invoice.date}
+                  </td>
+                  <td className="pl-4 pr-6 py-3.5 text-[13px] font-medium text-[#94a3b8] font-inter">
+                    {(() => {
+                      if (invoice.dueDate) {
+                        if (invoice.dueDate.includes('-')) {
+                          const parts = invoice.dueDate.split('-');
+                          if (parts.length === 3) {
+                            const year = parseInt(parts[0]);
+                            const month = parseInt(parts[1]) - 1;
+                            const day = parseInt(parts[2]);
+                            const dObj = new Date(year, month, day);
+                            return dObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                          }
+                        }
+                        return invoice.dueDate;
+                      }
+                      return 'N/A';
+                    })()}
                   </td>
                 </tr>
               ))}
