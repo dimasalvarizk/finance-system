@@ -157,14 +157,14 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     billFrom: localStorageCreator ? {
       name: localStorageCreator.name,
       id: localStorageCreator.employeeId || '260111',
-      entity: localStorageCreator.branch || 'ODST Group',
+      entity: companySettings.companyName || 'ODST Group',
       phone: companySettings.phone,
       email: localStorageCreator.email || 'info@odst.id',
       tax: companySettings.taxNumber,
     } : {
       name: invoice.createdBy || 'Emad Moustafa',
       id: '260111',
-      entity: invoice.branch || 'ODST Group',
+      entity: companySettings.companyName || 'ODST Group',
       phone: companySettings.phone,
       email: 'info@odst.id',
       tax: companySettings.taxNumber,
@@ -395,7 +395,7 @@ const Invoices: React.FC = () => {
       setFormEmpId(user.employeeId || '');
       setFormCompNumber(companySettings.phone || user.phone || '');
       setFormCompEmail(user.email || '');
-      setFormEntity(companySettings.companyName || (user.branch === 'Graha Al Badegel' ? 'ODST Group' : (user.branch || 'ODST Group')));
+      setFormEntity(companySettings.companyName || 'ODST Group');
       setFormCompTax(companySettings.taxNumber || '0000-0000-0000');
     }
   }, [user, isModalOpen, companySettings]);

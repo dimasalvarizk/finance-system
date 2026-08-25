@@ -53,6 +53,10 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
 
+  const isAuthorizedForConsolidated = useMemo(() => {
+    return !!user && ['Super Admin', 'Chief Accountant', 'Division Director'].includes(user.role);
+  }, [user]);
+
   const formatBranchName = (name: string) => {
     return name === 'Graha Al Badegel' ? 'ODST Group' : name;
   };
@@ -586,7 +590,7 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   {/* Bottom Section: Consolidated Branch Performance */}
-                  {consolidatedBranches.length > 0 && (
+                  {isAuthorizedForConsolidated && consolidatedBranches.length > 0 && (
                     <div className="space-y-4 pt-8">
                       <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">
                         Consolidated Branch Performance
@@ -614,7 +618,7 @@ const Dashboard: React.FC = () => {
       </main>
 
       {/* Financial Report Modal */}
-      {selectedBranch && selectedBranchReport && (
+      {selectedBranch && selectedBranchReport && (isAuthorizedForConsolidated || selectedBranch === user?.branch) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-scale-up">
             {/* Header */}
