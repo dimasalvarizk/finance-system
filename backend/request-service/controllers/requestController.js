@@ -56,18 +56,18 @@ export const createRequest = async (req, res, next) => {
 
     const newRequest = await createRequestDB(payload);
 
-    // Trigger notification for new request to all admins
+    // Trigger notification for new request to Level 1 assignees (Super Admins)
     try {
-      const adminIds = ['usr_super_admin', 'usr_hesham', 'usr_khalid'];
+      const adminIds = ['usr_super_admin', 'usr_emad_moustafa'];
       for (const adminId of adminIds) {
         fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: adminId,
-            type: 'invoiceSubmitted',
-            title: 'New Invoice Request',
-            message: `A new invoice request ${invoiceNo} for ${company} (${amount}) has been submitted by ${requestedBy || 'Accountant'} for review.`
+            type: 'approvalRequestAssigned',
+            title: 'Approval request assigned',
+            message: `A new invoice request ${invoiceNo} for ${company} (${amount}) has been submitted by ${requestedBy || 'Accountant'} and is assigned to you for review.`
           })
         }).catch(err => console.error('Failed to trigger submission notification:', err.message));
       }
@@ -107,34 +107,81 @@ export const approveRequest = async (req, res, next) => {
       });
     }
 
-    // Trigger notification internally to auth-service
+    // Trigger notifications internally to auth-service
     try {
       const isFullyApproved = result.nextStatus === '3/3 Approved';
-      let notifType = isFullyApproved ? 'invoiceApproved' : 'approvalCompleted';
-      let notifTitle = isFullyApproved ? 'Invoice approved' : 'Approval request updated';
-      let notifMessage = isFullyApproved
-        ? `Invoice request ${id} has been fully approved by all 3 directors.`
-        : `Approval level for request ${id} updated by ${req.user?.name || 'Director'} (${userRole}) to ${result.nextStatus}.`;
-
       const pool = getPool();
-      let targetUserId = 'usr_super_admin';
+      
+      // 1. Resolve Creator/Requestor UserId
+      let creatorUserId = 'usr_super_admin';
       if (result.requestedBy) {
         const [userRows] = await pool.query('SELECT id FROM dst_users WHERE name = ?', [result.requestedBy]);
         if (userRows.length > 0) {
-          targetUserId = userRows[0].id;
+          creatorUserId = userRows[0].id;
         }
       }
 
-      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: targetUserId,
-          type: notifType,
-          title: notifTitle,
-          message: notifMessage
-        })
-      }).catch(err => console.error('Failed to trigger approval notification:', err.message));
+      // 2. Trigger notification to Creator if fully approved
+      if (isFullyApproved) {
+        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: creatorUserId,
+            type: 'invoiceApproved',
+            title: 'Invoice approved',
+            message: `Your invoice request ${id} has been fully approved by all 3 directors.`
+          })
+        }).catch(err => console.error('Failed to trigger creator approved notification:', err.message));
+      }
+
+      // 3. Trigger approvalRequestAssigned to next level assignee
+      let nextAssigneeId = null;
+      let nextAssigneeRole = '';
+      if (result.nextStatus === '1/3 Approved') {
+        nextAssigneeId = 'usr_hesham'; // Chief Accountant (Level 2)
+        nextAssigneeRole = 'Chief Accountant';
+      } else if (result.nextStatus === '2/3 Approved') {
+        nextAssigneeId = 'usr_khalid'; // Division Director (Level 3)
+        nextAssigneeRole = 'Division Director';
+      }
+
+      if (nextAssigneeId) {
+        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: nextAssigneeId,
+            type: 'approvalRequestAssigned',
+            title: 'Approval request assigned',
+            message: `A new invoice request ${id} has been assigned to you for ${nextAssigneeRole} approval.`
+          })
+        }).catch(err => console.error('Failed to trigger request assigned notification:', err.message));
+      }
+
+      // 4. Trigger approvalCompleted to previous level approvers (downstream team completed)
+      let downstreamNotifUsers = [];
+      let completionMsg = '';
+      if (result.nextStatus === '2/3 Approved') {
+        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa'];
+        completionMsg = `Invoice request ${id} has been approved by Chief Accountant (Level 2).`;
+      } else if (result.nextStatus === '3/3 Approved') {
+        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham'];
+        completionMsg = `Invoice request ${id} has been fully approved by all directors.`;
+      }
+
+      for (const userId of downstreamNotifUsers) {
+        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userId,
+            type: 'approvalCompleted',
+            title: 'Approval completed',
+            message: completionMsg
+          })
+        }).catch(err => console.error('Failed to trigger approval completed notification:', err.message));
+      }
     } catch (err) {
       console.error('Notification trigger error:', err.message);
     }

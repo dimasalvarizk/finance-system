@@ -61,7 +61,7 @@ export const login = async (req, res, next) => {
       // Record failed log
       const ip = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
       await recordLoginLog(email, ip, req.headers['user-agent'] || '', 'Failed');
-      triggerSecurityAlert(email, ip);
+      triggerSecurityAlert(email, ip, 'usr_super_admin');
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
@@ -74,7 +74,7 @@ export const login = async (req, res, next) => {
       // Record failed log
       const ip = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
       await recordLoginLog(email, ip, req.headers['user-agent'] || '', 'Failed');
-      triggerSecurityAlert(email, ip);
+      triggerSecurityAlert(email, ip, user.id);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
@@ -96,6 +96,19 @@ export const login = async (req, res, next) => {
       'INSERT INTO dst_sessions (id, userId, device, ip, location) VALUES (?, ?, ?, ?, ?)',
       [sessionId, user.id, device, ip, location]
     );
+
+    // Check last successful login IP for security alerts (IP Change check)
+    try {
+      const [lastLoginRows] = await pool.query(
+        'SELECT ip FROM dst_login_logs WHERE email = ? AND status = "Success" ORDER BY createdAt DESC LIMIT 1',
+        [email]
+      );
+      if (lastLoginRows.length > 0 && lastLoginRows[0].ip !== ip) {
+        triggerSecurityAlert(email, ip, user.id, lastLoginRows[0].ip);
+      }
+    } catch (ipErr) {
+      console.error('Failed to run successful login IP change check:', ipErr.message);
+    }
 
     // Record success log
     await recordLoginLog(email, ip, userAgentStr, 'Success');
@@ -496,10 +509,10 @@ const getRelativeTime = (date) => {
   return `${days} days ago`;
 };
 
-const triggerSecurityAlert = async (email, ip) => {
+const triggerSecurityAlert = async (email, ip, targetUserId = 'usr_super_admin', oldIp = null) => {
   try {
     const pool = getPool();
-    const [settingRows] = await pool.query('SELECT settings FROM dst_notification_settings WHERE userId = ?', ['usr_super_admin']);
+    const [settingRows] = await pool.query('SELECT settings FROM dst_notification_settings WHERE userId = ?', [targetUserId]);
     let inAppEnabled = true;
     let emailEnabled = true;
     if (settingRows.length > 0) {
@@ -511,19 +524,21 @@ const triggerSecurityAlert = async (email, ip) => {
     }
     
     const title = 'Security alerts';
-    const message = `Failed login attempt detected from IP ${ip} for email ${email}.`;
+    const message = oldIp 
+      ? `Successful login detected from IP ${ip} (which is different from your last session IP: ${oldIp}).`
+      : `Failed login attempt detected from IP ${ip} for email ${email}.`;
 
     if (emailEnabled) {
-      const [adminRows] = await pool.query('SELECT name, email FROM dst_users WHERE id = ?', ['usr_super_admin']);
-      if (adminRows.length > 0) {
-        sendNotificationEmail(adminRows[0].email, adminRows[0].name, title, message).catch(err => {});
+      const [userRows] = await pool.query('SELECT name, email FROM dst_users WHERE id = ?', [targetUserId]);
+      if (userRows.length > 0) {
+        sendNotificationEmail(userRows[0].email, userRows[0].name, title, message).catch(err => {});
       }
     }
 
     if (inAppEnabled) {
       await pool.query(
         'INSERT INTO dst_notifications (userId, type, title, message) VALUES (?, ?, ?, ?)',
-        ['usr_super_admin', 'securityAlerts', title, message]
+        [targetUserId, 'securityAlerts', title, message]
       );
     }
   } catch (err) {
@@ -596,43 +611,55 @@ export const createNotification = async (req, res, next) => {
 
     const pool = getPool();
     
-    // Check user preferences first
-    const [settingRows] = await pool.query('SELECT settings FROM dst_notification_settings WHERE userId = ?', [userId]);
-    
-    let inAppEnabled = true;
-    let emailEnabled = true;
-    if (settingRows.length > 0) {
-      const settings = JSON.parse(settingRows[0].settings);
-      if (settings[type] && settings[type].inApp !== undefined) {
-        inAppEnabled = settings[type].inApp;
-      }
-      if (settings[type] && settings[type].email !== undefined) {
-        emailEnabled = settings[type].email;
-      }
+    let targets = [];
+    if (userId === 'all') {
+      const [rows] = await pool.query('SELECT id, name, email FROM dst_users');
+      targets = rows;
+    } else if (userId === 'directors') {
+      const [rows] = await pool.query('SELECT id, name, email FROM dst_users WHERE role != "Accountant"');
+      targets = rows;
+    } else {
+      const [rows] = await pool.query('SELECT id, name, email FROM dst_users WHERE id = ?', [userId]);
+      targets = rows;
     }
 
-    // Process Email sending if enabled
-    if (emailEnabled) {
-      const [userRows] = await pool.query('SELECT name, email FROM dst_users WHERE id = ?', [userId]);
-      if (userRows.length > 0) {
-        const { name: userName, email: userEmail } = userRows[0];
-        sendNotificationEmail(userEmail, userName, title, message).catch(err => {
-          console.error('Failed to send notification email:', err.message);
+    if (targets.length === 0) {
+      return res.status(200).json({ success: true, message: 'No target users found, notification skipped.' });
+    }
+
+    for (const target of targets) {
+      // Check user preferences first
+      const [settingRows] = await pool.query('SELECT settings FROM dst_notification_settings WHERE userId = ?', [target.id]);
+      
+      let inAppEnabled = true;
+      let emailEnabled = true;
+      if (settingRows.length > 0) {
+        const settings = JSON.parse(settingRows[0].settings);
+        if (settings[type] && settings[type].inApp !== undefined) {
+          inAppEnabled = settings[type].inApp;
+        }
+        if (settings[type] && settings[type].email !== undefined) {
+          emailEnabled = settings[type].email;
+        }
+      }
+
+      // Process Email sending if enabled
+      if (emailEnabled) {
+        sendNotificationEmail(target.email, target.name, title, message).catch(err => {
+          console.error(`Failed to send notification email to ${target.email}:`, err.message);
         });
       }
+
+      if (inAppEnabled) {
+        // Insert notification
+        await pool.query(
+          'INSERT INTO dst_notifications (userId, type, title, message) VALUES (?, ?, ?, ?)',
+          [target.id, type, title, message]
+        );
+      }
     }
 
-    if (!inAppEnabled) {
-      return res.status(200).json({ success: true, message: 'Notification in-app ignored, email processed' });
-    }
-
-    // Insert notification
-    await pool.query(
-      'INSERT INTO dst_notifications (userId, type, title, message) VALUES (?, ?, ?, ?)',
-      [userId, type, title, message]
-    );
-
-    res.status(201).json({ success: true, message: 'Notification created successfully' });
+    res.status(201).json({ success: true, message: `Notification processed for ${targets.length} user(s)` });
   } catch (error) {
     next(error);
   }

@@ -8,7 +8,8 @@ import {
   getExchangeRates, updateExchangeRates, getExchangeRatesHistory,
   getServices, createService, updateService, deleteService,
   getTaxSetting, updateTaxSetting,
-  getCompanySetting, updateCompanySetting
+  getCompanySetting, updateCompanySetting,
+  triggerMaintenanceNotif
 } from '../controllers/settingController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -58,5 +59,8 @@ router.put('/tax', restrictTo('Super Admin', 'Chief Accountant', 'Division Direc
 // 9. Company Settings
 router.get('/company', getCompanySetting);
 router.put('/company', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), updateCompanySetting);
+
+// 10. System Maintenance Broadcast
+router.post('/maintenance', restrictTo('Super Admin'), triggerMaintenanceNotif);
 
 export default router;

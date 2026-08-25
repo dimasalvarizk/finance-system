@@ -6,6 +6,65 @@ import { getPool } from '../config/db.js';
 let transporter = null;
 const ETHEREAL_CACHE_PATH = path.join('/tmp', 'ethereal_account.json');
 
+const getTransporter = async () => {
+  if (transporter) return transporter;
+
+  if (process.env.SMTP_HOST) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: process.env.NODE_ENV === 'production'
+      }
+    });
+  } else {
+    let account = null;
+
+    if (fs.existsSync(ETHEREAL_CACHE_PATH)) {
+      try {
+        account = JSON.parse(fs.readFileSync(ETHEREAL_CACHE_PATH, 'utf-8'));
+        console.log(`Loaded cached Ethereal SMTP account: ${account.user}`);
+      } catch (err) {
+        console.error('Failed to read cached Ethereal account, generating a new one...');
+      }
+    }
+
+    if (!account) {
+      console.log('Generating new Ethereal SMTP test account for notifications...');
+      account = await nodemailer.createTestAccount();
+      try {
+        fs.writeFileSync(ETHEREAL_CACHE_PATH, JSON.stringify(account, null, 2), 'utf-8');
+        console.log(`Saved Ethereal SMTP account cache to ${ETHEREAL_CACHE_PATH}`);
+      } catch (err) {
+        console.error('Failed to save Ethereal account cache:', err.message);
+      }
+    }
+
+    transporter = nodemailer.createTransport({
+      host: account.smtp.host,
+      port: account.smtp.port,
+      secure: account.smtp.secure,
+      auth: {
+        user: account.user,
+        pass: account.pass
+      }
+    });
+
+    console.log(`--------------------------------------------------`);
+    console.log(`📬 Ethereal Inbox Dashboard:`);
+    console.log(`   Link: https://ethereal.email/login`);
+    console.log(`   User: ${account.user}`);
+    console.log(`   Pass: ${account.pass}`);
+    console.log(`--------------------------------------------------`);
+  }
+  return transporter;
+};
+
 const getUiType = (title) => {
   const t = title.toLowerCase();
   if (t.includes('approved') || t.includes('completed') || t.includes('received') || t.includes('payout')) {
@@ -19,60 +78,7 @@ const getUiType = (title) => {
 
 export const sendNotificationEmail = async (toEmail, toName, title, message) => {
   try {
-    if (!transporter) {
-      if (process.env.SMTP_HOST) {
-        transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        });
-      } else {
-        let account = null;
-
-        // Try to load cached account
-        if (fs.existsSync(ETHEREAL_CACHE_PATH)) {
-          try {
-            account = JSON.parse(fs.readFileSync(ETHEREAL_CACHE_PATH, 'utf-8'));
-            console.log(`Loaded cached Ethereal SMTP account: ${account.user}`);
-          } catch (err) {
-            console.error('Failed to read cached Ethereal account, generating a new one...');
-          }
-        }
-
-        if (!account) {
-          console.log('Generating new Ethereal SMTP test account for notifications...');
-          account = await nodemailer.createTestAccount();
-          try {
-            fs.writeFileSync(ETHEREAL_CACHE_PATH, JSON.stringify(account, null, 2), 'utf-8');
-            console.log(`Saved Ethereal SMTP account cache to ${ETHEREAL_CACHE_PATH}`);
-          } catch (err) {
-            console.error('Failed to save Ethereal account cache:', err.message);
-          }
-        }
-
-        transporter = nodemailer.createTransport({
-          host: account.smtp.host,
-          port: account.smtp.port,
-          secure: account.smtp.secure,
-          auth: {
-            user: account.user,
-            pass: account.pass
-          }
-        });
-
-        // Print Ethereal dashboard login instructions
-        console.log(`--------------------------------------------------`);
-        console.log(`📬 Ethereal Inbox Dashboard:`);
-        console.log(`   Link: https://ethereal.email/login`);
-        console.log(`   User: ${account.user}`);
-        console.log(`   Pass: ${account.pass}`);
-        console.log(`--------------------------------------------------`);
-      }
-    }
+    const transporter = await getTransporter();
 
     const uiType = getUiType(title);
 
@@ -241,51 +247,7 @@ export const sendNotificationEmail = async (toEmail, toName, title, message) => 
 
 export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
   try {
-    if (!transporter) {
-      if (process.env.SMTP_HOST) {
-        transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        });
-      } else {
-        let account = null;
-        if (fs.existsSync(ETHEREAL_CACHE_PATH)) {
-          try {
-            account = JSON.parse(fs.readFileSync(ETHEREAL_CACHE_PATH, 'utf-8'));
-          } catch (err) {
-            console.error('Failed to read cached Ethereal account, generating a new one...');
-          }
-        }
-        if (!account) {
-          account = await nodemailer.createTestAccount();
-          try {
-            fs.writeFileSync(ETHEREAL_CACHE_PATH, JSON.stringify(account, null, 2), 'utf-8');
-          } catch (err) {
-            console.error('Failed to save Ethereal account cache:', err.message);
-          }
-        }
-        transporter = nodemailer.createTransport({
-          host: account.smtp.host,
-          port: account.smtp.port,
-          secure: account.smtp.secure,
-          auth: {
-            user: account.user,
-            pass: account.pass
-          }
-        });
-        console.log(`--------------------------------------------------`);
-        console.log(`📬 Ethereal Inbox Dashboard:`);
-        console.log(`   Link: https://ethereal.email/login`);
-        console.log(`   User: ${account.user}`);
-        console.log(`   Pass: ${account.pass}`);
-        console.log(`--------------------------------------------------`);
-      }
-    }
+    const transporter = await getTransporter();
 
     const mailOptions = {
       from: '"Finance System" <noreply@finance-system.com>',
@@ -450,41 +412,7 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
   const htmlTerms = companySettings.termsAndConditions.replace(/\n/g, '<br>');
 
   try {
-    if (!transporter) {
-      if (process.env.SMTP_HOST) {
-        transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        });
-      } else {
-        let account = null;
-        if (fs.existsSync(ETHEREAL_CACHE_PATH)) {
-          try {
-            account = JSON.parse(fs.readFileSync(ETHEREAL_CACHE_PATH, 'utf-8'));
-          } catch (err) {}
-        }
-        if (!account) {
-          account = await nodemailer.createTestAccount();
-          try {
-            fs.writeFileSync(ETHEREAL_CACHE_PATH, JSON.stringify(account, null, 2), 'utf-8');
-          } catch (err) {}
-        }
-        transporter = nodemailer.createTransport({
-          host: account.smtp.host,
-          port: account.smtp.port,
-          secure: account.smtp.secure,
-          auth: {
-            user: account.user,
-            pass: account.pass
-          }
-        });
-      }
-    }
+    const transporter = await getTransporter();
 
     const { invoiceNo, company, companyCode, amount, referenceNo, serialNo, dueDate, date, items, taxRate } = invoiceDetails;
     const rate = Number(taxRate) || 0;

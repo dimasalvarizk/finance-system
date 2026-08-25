@@ -60,6 +60,7 @@ const CompanyInfoTab: React.FC = () => {
       await updateCompanySetting({ phone });
       await syncLocalStorage();
       setPhoneFeedback('Contact information saved successfully!');
+
       setTimeout(() => setPhoneFeedback(null), 3000);
     } catch (err) {
       console.error('Failed to save phone setting:', err);
@@ -127,7 +128,7 @@ const CompanyInfoTab: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      
+
       {/* 1. Contact Information Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
         <div className="space-y-1">
@@ -151,9 +152,8 @@ const CompanyInfoTab: React.FC = () => {
             <button
               type="submit"
               disabled={savingPhone}
-              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${
-                savingPhone ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingPhone ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               {savingPhone ? 'Saving...' : 'Save'}
             </button>
@@ -190,9 +190,8 @@ const CompanyInfoTab: React.FC = () => {
             <button
               type="submit"
               disabled={savingTax}
-              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${
-                savingTax ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingTax ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               {savingTax ? 'Saving...' : 'Save'}
             </button>
@@ -229,9 +228,8 @@ const CompanyInfoTab: React.FC = () => {
             <button
               type="submit"
               disabled={savingNotes}
-              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${
-                savingNotes ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingNotes ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               {savingNotes ? 'Saving...' : 'Save'}
             </button>
@@ -267,9 +265,8 @@ const CompanyInfoTab: React.FC = () => {
             <button
               type="submit"
               disabled={savingTerms}
-              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${
-                savingTerms ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingTerms ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               {savingTerms ? 'Saving...' : 'Save'}
             </button>

@@ -4,12 +4,15 @@ import dotenv from 'dotenv';
 import requestRoutes from './routes/requestRoutes.js';
 import { connectDB } from './config/db.js';
 import { errorHandler } from './utils/errorHandler.js';
+import { initOverdueCron } from './cron/overdueChecker.js';
 
 // Load environmental variables
 dotenv.config();
 
 // Connect DB and initialize table & seed
-connectDB();
+connectDB().then(() => {
+  initOverdueCron();
+});
 
 const app = express();
 

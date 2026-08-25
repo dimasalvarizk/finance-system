@@ -501,3 +501,37 @@ export const updateCompanySetting = async (req, res, next) => {
     next(error);
   }
 };
+
+export const triggerMaintenanceNotif = async (req, res, next) => {
+  const { scheduleTime, message } = req.body;
+  try {
+    if (!message) {
+      return res.status(400).json({ success: false, message: 'Message is required for system maintenance broadcast.' });
+    }
+
+    const gatewayUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:5001';
+    
+    const response = await fetch(`${gatewayUrl}/api/auth/notifications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: 'all',
+        type: 'systemMaintenance',
+        title: 'System maintenance scheduled',
+        message: scheduleTime 
+          ? `System maintenance scheduled at ${scheduleTime}. Message: ${message}` 
+          : `System maintenance notice: ${message}`
+      })
+    });
+    
+    const resData = await response.json();
+
+    res.status(200).json({
+      success: true,
+      message: 'System maintenance notification triggered successfully.',
+      details: resData
+    });
+  } catch (error) {
+    next(error);
+  }
+};

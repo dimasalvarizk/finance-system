@@ -1,4 +1,5 @@
 import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB } from '../models/invoiceModel.js';
+import { getPool } from '../config/db.js';
 
 const getAuthBaseUrl = (req) => {
   const isVercel = process.env.VERCEL === '1';
@@ -72,7 +73,7 @@ export const createInvoice = async (req, res, next) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'usr_super_admin',
+          userId: 'directors',
           type: 'newInvoiceSubmitted',
           title: 'New invoice approval request',
           message: `New invoice ${invoiceNo} ($${amountDisplay}) submitted by ${req.user ? req.user.name : 'Accountant'}.`
@@ -147,11 +148,26 @@ export const updateInvoiceStatus = async (req, res, next) => {
       }
 
       if (notifType) {
+        // Resolve Creator UserId
+        let targetUserId = 'usr_super_admin';
+        try {
+          const existing = await getInvoiceByIdDB(id);
+          if (existing && existing.createdBy) {
+            const pool = getPool();
+            const [userRows] = await pool.query('SELECT id FROM dst_users WHERE name = ?', [existing.createdBy]);
+            if (userRows.length > 0) {
+              targetUserId = userRows[0].id;
+            }
+          }
+        } catch (dbErr) {
+          console.error('Failed to resolve invoice creator userId:', dbErr.message);
+        }
+
         fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: 'usr_super_admin',
+            userId: targetUserId,
             type: notifType,
             title: notifTitle,
             message: notifMessage
