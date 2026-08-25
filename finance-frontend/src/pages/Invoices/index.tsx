@@ -104,10 +104,6 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
   const calculatedSubtotal = items.reduce((acc, item) => acc + (item.qty * item.price), 0);
   const subtotalFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(calculatedSubtotal);
 
-  // Try to find client details from defaults
-  const matchingKey = Object.keys(CLIENT_DEFAULTS).find(key => key.toLowerCase().includes(invoice.company.toLowerCase()) || key.toLowerCase().includes(invoice.companyCode.toLowerCase()));
-  const defaultClient = matchingKey ? CLIENT_DEFAULTS[matchingKey] : null;
-
   // Try to find client details from localStorage
   const savedCompStr = localStorage.getItem('finance_companies');
   let localStorageComp = null;
@@ -136,12 +132,12 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     tax: localStorageComp.taxNumber,
     address: localStorageComp.address.split(',')[0] || localStorageComp.address,
     cityCountry: localStorageComp.address.split(',').slice(1).join(',').trim() || localStorageComp.address,
-  } : (defaultClient ? defaultClient.billTo : {
+  } : {
     company: invoice.company,
-    tax: '0000-0000-0000',
-    address: 'Corporate Headquarters Office',
-    cityCountry: 'Global Office Treasury',
-  });
+    tax: 'N/A',
+    address: 'N/A',
+    cityCountry: 'N/A',
+  };
 
   return {
     dueDate: (() => {
@@ -154,7 +150,7 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
         }
         return invoice.dueDate;
       }
-      return defaultClient ? defaultClient.dueDate : '09/12/2026';
+      return 'N/A';
     })(),
     billFrom: localStorageCreator ? {
       name: localStorageCreator.name,
@@ -243,88 +239,7 @@ export const convertToISODate = (dateStr: string): string => {
   return dateStr;
 };
 
-interface ClientDefault {
-  companyName: string;
-  companyCode: string;
-  invoiceNo: string;
-  referenceNo: string;
-  serialNo: string;
-  dueDate: string;
-  billTo: {
-    company: string;
-    tax: string;
-    address: string;
-    cityCountry: string;
-  };
-  items: {
-    description: string;
-    qty: number;
-    price: number;
-  }[];
-}
-
-const CLIENT_DEFAULTS: Record<string, ClientDefault> = {
-  'Arie Tours - AIT': {
-    companyName: 'Arie Tours',
-    companyCode: 'AIT',
-    invoiceNo: 'AIT-2608-011',
-    referenceNo: 'REF-2608-091',
-    serialNo: 'SR-909281',
-    dueDate: '09/09/2026',
-    billTo: {
-      company: 'PT. Arie Tour',
-      tax: '0000-0000-0000',
-      address: 'Menara Kencana, Fl 18, JL. Sudirman No. 45',
-      cityCountry: 'Jakarta, Indonesia 10210',
-    },
-    items: [],
-  },
-  'Wayne Enterprises - WAYNE': {
-    companyName: 'Wayne Enterprises',
-    companyCode: 'WAYNE',
-    invoiceNo: 'WAYNE-2608-001',
-    referenceNo: 'REF-2608-092',
-    serialNo: 'SR-909282',
-    dueDate: '09/10/2026',
-    billTo: {
-      company: 'Wayne Enterprises Ltd',
-      tax: '1122-3344-5566',
-      address: '1007 Mountain Drive',
-      cityCountry: 'Gotham City, NJ 07001',
-    },
-    items: [],
-  },
-  'Stark Industries - STARK': {
-    companyName: 'Stark Industries',
-    companyCode: 'STARK',
-    invoiceNo: 'STARK-2608-001',
-    referenceNo: 'REF-2608-093',
-    serialNo: 'SR-909283',
-    dueDate: '09/11/2026',
-    billTo: {
-      company: 'Stark Industries Inc.',
-      tax: '9988-7766-5544',
-      address: '10880 Wilshire Blvd',
-      cityCountry: 'Los Angeles, CA 90024',
-    },
-    items: [],
-  },
-  'ACME Corporation - ACM': {
-    companyName: 'ACME Corporation',
-    companyCode: 'ACM',
-    invoiceNo: 'ACM-2608-001',
-    referenceNo: 'REF-2608-094',
-    serialNo: 'SR-909284',
-    dueDate: '09/12/2026',
-    billTo: {
-      company: 'ACME Corporation',
-      tax: '0000-0000-0000',
-      address: 'Corporate Headquarters Office',
-      cityCountry: 'Global Office Treasury',
-    },
-    items: [],
-  },
-};
+// Client Defaults removed, relying entirely on settings database entries.
 
 const compareDates = (dateAStr: string, dateBStr: string): boolean => {
   if (!dateAStr || !dateBStr) return false;
@@ -681,43 +596,30 @@ const Invoices: React.FC = () => {
     const key = `${comp.name} - ${comp.code}`;
     setSelectedClientKey(key);
     setIsClientDropdownOpen(false);
-    const defaults = CLIENT_DEFAULTS[key];
 
-    const dateToUse = defaults ? convertToISODate(defaults.dueDate) : (() => {
-      const today = new Date();
-      const futureDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-      const yyyy = futureDate.getFullYear();
-      const mm = String(futureDate.getMonth() + 1).padStart(2, '0');
-      const dd = String(futureDate.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    })();
+    const today = new Date();
+    const futureDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const yyyy = futureDate.getFullYear();
+    const mm = String(futureDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(futureDate.getDate()).padStart(2, '0');
+    const dateToUse = `${yyyy}-${mm}-${dd}`;
 
     setFormDate(dateToUse);
 
     const generatedNo = generateInvoiceNumber(comp.code, dateToUse, invoices);
     setFormInvoiceNo(generatedNo);
 
-    if (defaults) {
-      setFormRef(defaults.referenceNo);
-      setFormSerial(defaults.serialNo);
-      setFormItems(defaults.items.map(item => ({
-        ...item,
-        isService: availableServices.some(s => s.name === item.description)
-      })));
-    } else {
-      const randomRefSuffix = Math.floor(100 + Math.random() * 900);
-      const randomSerialSuffix = Math.floor(100000 + Math.random() * 900000);
+    const randomRefSuffix = Math.floor(100 + Math.random() * 900);
+    const randomSerialSuffix = Math.floor(100000 + Math.random() * 900000);
 
-      const dateObj = new Date(dateToUse);
-      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const dd = String(dateObj.getDate()).padStart(2, '0');
-      const mmdd = `${mm}${dd}`;
+    const dateObj = new Date(dateToUse);
+    const rMm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const rDd = String(dateObj.getDate()).padStart(2, '0');
+    const mmdd = `${rMm}${rDd}`;
 
-      setFormRef(`REF-${mmdd}-${randomRefSuffix}`);
-      setFormSerial(`SR-${randomSerialSuffix}`);
-
-      setFormItems([]);
-    }
+    setFormRef(`REF-${mmdd}-${randomRefSuffix}`);
+    setFormSerial(`SR-${randomSerialSuffix}`);
+    setFormItems([]);
   };
 
   const handleDateChange = (newDate: string) => {
@@ -869,12 +771,15 @@ const Invoices: React.FC = () => {
       return dbKey === currentKey || c.name.trim().toLowerCase() === selectedClientKey.split(' - ')[0].trim().toLowerCase();
     });
 
-    const defaults = CLIENT_DEFAULTS[selectedClientKey];
+    if (!selectedCompany) {
+      setFormError('Please select a valid partner company from the database.');
+      return;
+    }
 
     const newInvoice: Invoice = {
       invoiceNo: formInvoiceNo,
-      company: selectedCompany ? selectedCompany.name : (defaults ? defaults.companyName : selectedClientKey.split(' - ')[0]),
-      companyCode: selectedCompany ? selectedCompany.code : (defaults ? defaults.companyCode : (selectedClientKey.split(' - ')[1] || 'ACM')),
+      company: selectedCompany.name,
+      companyCode: selectedCompany.code,
       referenceNo: formRef,
       serialNo: formSerial,
       amount: formattedAmount,
@@ -1955,7 +1860,7 @@ const Invoices: React.FC = () => {
                           Client Company
                         </span>
                         <span className="font-bold text-[14px] text-[#0c0d0f]">
-                          {selectedCompanyObj?.name || CLIENT_DEFAULTS[selectedClientKey]?.billTo.company}
+                          {selectedCompanyObj?.name || 'N/A'}
                         </span>
                       </div>
                       {!editInvoiceId && (
@@ -1964,7 +1869,7 @@ const Invoices: React.FC = () => {
                             Company Tax Number
                           </span>
                           <span className="font-semibold text-[#1e293b]">
-                            {selectedCompanyObj?.taxNumber || CLIENT_DEFAULTS[selectedClientKey]?.billTo.tax}
+                            {selectedCompanyObj?.taxNumber || 'N/A'}
                           </span>
                         </div>
                       )}
@@ -1975,7 +1880,7 @@ const Invoices: React.FC = () => {
                         <span className="font-semibold text-[#1e293b] block">
                           {selectedCompanyObj?.address && selectedCompanyObj.address.includes(',')
                             ? selectedCompanyObj.address.split(',')[0]
-                            : (selectedCompanyObj?.address || CLIENT_DEFAULTS[selectedClientKey]?.billTo.address)}
+                            : (selectedCompanyObj?.address || 'N/A')}
                         </span>
                       </div>
                       {!editInvoiceId && (
@@ -1986,7 +1891,7 @@ const Invoices: React.FC = () => {
                           <span className="font-semibold text-[#1e293b]">
                             {selectedCompanyObj?.address && selectedCompanyObj.address.includes(',')
                               ? selectedCompanyObj.address.split(',').slice(1).join(',').trim()
-                              : (CLIENT_DEFAULTS[selectedClientKey]?.billTo.cityCountry || '')}
+                              : 'N/A'}
                           </span>
                         </div>
                       )}
