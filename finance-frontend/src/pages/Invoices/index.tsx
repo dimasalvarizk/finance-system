@@ -393,7 +393,7 @@ const Invoices: React.FC = () => {
       setFormEmpId(user.employeeId || '');
       setFormCompNumber(companySettings.phone || user.phone || '');
       setFormCompEmail(user.email || '');
-      setFormEntity(user.branch || 'ODST Group');
+      setFormEntity(user.branch === 'Graha Al Badegel' ? 'ODST Group' : (user.branch || 'ODST Group'));
       setFormCompTax(companySettings.taxNumber || '0000-0000-0000');
     }
   }, [user, isModalOpen, companySettings]);

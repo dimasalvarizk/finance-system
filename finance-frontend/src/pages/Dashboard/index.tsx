@@ -52,6 +52,10 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+
+  const formatBranchName = (name: string) => {
+    return name === 'Graha Al Badegel' ? 'ODST Group' : name;
+  };
   const [invoices, setInvoices] = useState<any[]>([]);
   const [dbBranches, setDbBranches] = useState<any[]>([]);
 
@@ -72,7 +76,7 @@ const Dashboard: React.FC = () => {
     const genDate = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
 
     return {
-      branchName: selectedBranch || (dbBranches[0]?.name || "Main Office"),
+      branchName: formatBranchName(selectedBranch || (dbBranches[0]?.name || "Main Office")),
       period: `Q${q} ${year}`,
       generatedDate: genDate,
       companyName: "DST",
@@ -277,7 +281,8 @@ const Dashboard: React.FC = () => {
     return list.map((name, idx) => {
       const stats = branchStats[name] || { revenue: 0 };
       return {
-        office: name,
+        office: formatBranchName(name),
+        officeKey: name,
         share: `Revenue Share: ${((stats.revenue / totalRevenueForShare) * 100).toFixed(0)}%`,
         amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(stats.revenue),
         dotColor: COLORS[idx % COLORS.length]
@@ -396,7 +401,6 @@ const Dashboard: React.FC = () => {
       },
       comparison: [
         { metric: 'Revenue', curr: fmt(currQRevenue), prev: fmt(prevQRevenue), change: growthStr },
-        { metric: 'Operating Expenses', curr: fmt(currQRevenue * 0.3), prev: fmt(prevQRevenue * 0.3), change: growthStr },
         { metric: 'Net Profit', curr: fmt(currQRevenue * 0.7), prev: fmt(prevQRevenue * 0.7), change: growthStr },
         { metric: 'Profit Margin', curr: currQRevenue > 0 ? '70.0%' : '0.0%', prev: prevQRevenue > 0 ? '70.0%' : '0.0%', change: (currQRevenue > 0 && prevQRevenue > 0) ? '+0.0%' : (currQRevenue > 0 ? '+70.0%' : '0.0%') },
       ],
@@ -592,8 +596,11 @@ const Dashboard: React.FC = () => {
                         {consolidatedBranches.map((branch, idx) => (
                           <BranchCard
                             key={idx}
-                            {...branch}
-                            onClick={() => setSelectedBranch(branch.office)}
+                            office={branch.office}
+                            share={branch.share}
+                            amount={branch.amount}
+                            dotColor={branch.dotColor}
+                            onClick={() => setSelectedBranch(branch.officeKey)}
                           />
                         ))}
                       </div>
@@ -614,7 +621,7 @@ const Dashboard: React.FC = () => {
             <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50">
               <div className="flex flex-col">
                 <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans">
-                  {selectedBranch} — Financial Report
+                  {formatBranchName(selectedBranch)} — Financial Report
                 </h3>
                 <span className="text-[12px] text-[#64748b] font-medium mt-0.5">
                   Q3 2024 Performance Summary
@@ -774,7 +781,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
                 <span className="text-[12px] text-[#64748b] font-semibold">
-                  Data consolidated for {selectedBranch}
+                  Data consolidated for {formatBranchName(selectedBranch)}
                 </span>
               </div>
               <div className="flex items-center space-x-3 self-end sm:self-auto">
@@ -872,10 +879,13 @@ const Dashboard: React.FC = () => {
       {/* Hidden Print Area for PDF Report */}
       {selectedBranch && selectedBranchReport && (
         <BranchFinancialReportPrint
-          selectedBranch={selectedBranch}
+          selectedBranch={formatBranchName(selectedBranch)}
           reportMeta={reportMeta}
           branchReport={selectedBranchReport}
-          consolidatedBranches={consolidatedBranches}
+          consolidatedBranches={consolidatedBranches.map(b => ({
+            ...b,
+            office: formatBranchName(b.officeKey)
+          }))}
         />
       )}
     </div>
