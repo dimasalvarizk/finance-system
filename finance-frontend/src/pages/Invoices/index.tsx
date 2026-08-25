@@ -863,12 +863,18 @@ const Invoices: React.FC = () => {
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };
     const formattedDate = dateObj.toLocaleDateString('en-US', options);
 
+    const selectedCompany = availableCompanies.find(c => {
+      const dbKey = `${c.name} - ${c.code}`.replace(/\s+/g, '').toLowerCase();
+      const currentKey = selectedClientKey.replace(/\s+/g, '').toLowerCase();
+      return dbKey === currentKey || c.name.trim().toLowerCase() === selectedClientKey.split(' - ')[0].trim().toLowerCase();
+    });
+
     const defaults = CLIENT_DEFAULTS[selectedClientKey];
 
     const newInvoice: Invoice = {
       invoiceNo: formInvoiceNo,
-      company: selectedCompanyObj ? selectedCompanyObj.name : (defaults ? defaults.companyName : selectedClientKey.split(' - ')[0]),
-      companyCode: selectedCompanyObj ? selectedCompanyObj.code : (defaults ? defaults.companyCode : (selectedClientKey.split(' - ')[1] || 'ACM')),
+      company: selectedCompany ? selectedCompany.name : (defaults ? defaults.companyName : selectedClientKey.split(' - ')[0]),
+      companyCode: selectedCompany ? selectedCompany.code : (defaults ? defaults.companyCode : (selectedClientKey.split(' - ')[1] || 'ACM')),
       referenceNo: formRef,
       serialNo: formSerial,
       amount: formattedAmount,
@@ -1100,7 +1106,11 @@ const Invoices: React.FC = () => {
 
 
 
-  const selectedCompanyObj = availableCompanies.find(c => `${c.name} - ${c.code}` === selectedClientKey);
+  const selectedCompanyObj = availableCompanies.find(c => {
+    const dbKey = `${c.name} - ${c.code}`.replace(/\s+/g, '').toLowerCase();
+    const currentKey = selectedClientKey.replace(/\s+/g, '').toLowerCase();
+    return dbKey === currentKey || c.name.trim().toLowerCase() === selectedClientKey.split(' - ')[0].trim().toLowerCase();
+  });
 
   return (
     <div className="flex min-h-screen w-full bg-[#f4f6fa] select-none font-inter">
