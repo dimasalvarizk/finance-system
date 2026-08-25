@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
   }, [user]);
 
   const formatBranchName = (name: string) => {
-    return name === 'Graha Al Badegel' ? 'ODST Group' : name;
+    return name;
   };
   const [invoices, setInvoices] = useState<any[]>([]);
   const [dbBranches, setDbBranches] = useState<any[]>([]);
