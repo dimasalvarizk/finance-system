@@ -384,6 +384,7 @@ const Invoices: React.FC = () => {
   const [formRef, setFormRef] = useState('');
   const [formSerial, setFormSerial] = useState('');
   const [formDate, setFormDate] = useState('');
+  const [formInvoiceDate, setFormInvoiceDate] = useState('');
 
   // Employee/Sender Fields (Bill From)
   const [formEmpName, setFormEmpName] = useState('');
@@ -436,6 +437,9 @@ const Invoices: React.FC = () => {
   }, [availableCompanies, editInvoiceId]);
 
   const handleOpenCreateModal = () => {
+    const today = new Date();
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };
+    setFormInvoiceDate(today.toLocaleDateString('en-US', options));
     setEditInvoiceId(null);
     setFormItems([]);
     setFormError('');
@@ -787,10 +791,10 @@ const Invoices: React.FC = () => {
       maximumFractionDigits: 2
     }).format(calculatedTotal);
 
-    // Format Date (e.g. "Oct 12, 2026")
-    const dateObj = new Date(formDate);
+    // Format Date for Invoice Date (today's date)
+    const today = new Date();
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };
-    const formattedDate = dateObj.toLocaleDateString('en-US', options);
+    const todayFormattedDate = today.toLocaleDateString('en-US', options);
 
     const selectedCompany = availableCompanies.find(c => {
       const dbKey = `${c.name} - ${c.code}`.replace(/\s+/g, '').toLowerCase();
@@ -810,7 +814,7 @@ const Invoices: React.FC = () => {
       referenceNo: formRef,
       serialNo: formSerial,
       amount: formattedAmount,
-      date: formattedDate,
+      date: editInvoiceId ? (formInvoiceDate || todayFormattedDate) : todayFormattedDate,
       status: 'Draft',
       usdToIdrRate: configuredRates.usdToIdr,
       sarToIdrRate: configuredRates.sarToIdr,
@@ -861,6 +865,7 @@ const Invoices: React.FC = () => {
     setFormRef(inv.referenceNo);
     setFormSerial(inv.serialNo);
     setFormDate(inv.dueDate ? convertToISODate(inv.dueDate) : convertToISODate(inv.date));
+    setFormInvoiceDate(inv.date);
     if (inv.items) {
       setFormItems(inv.items.map(item => ({
         description: item.description,

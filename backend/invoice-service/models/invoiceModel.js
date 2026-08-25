@@ -3,6 +3,21 @@ import { getPool } from '../config/db.js';
 // Get all invoices (optionally filtered by createdBy for Accountant)
 export const getAllInvoicesDB = async (createdByFilter = null) => {
   const pool = getPool();
+
+  // Auto-cancel invoices past due date
+  try {
+    const todayStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    await pool.query(`
+      UPDATE dst_invoices 
+      SET status = 'Cancelled' 
+      WHERE LOWER(status) NOT IN ('paid', 'cancelled', 'archived', 'rejected')
+        AND dueDate IS NOT NULL 
+        AND dueDate != '' 
+        AND dueDate < ?
+    `, [todayStr]);
+  } catch (err) {
+    console.error('Failed to auto-cancel overdue invoices:', err);
+  }
   
   let query = 'SELECT * FROM dst_invoices ORDER BY createdAt DESC';
   let queryParams = [];

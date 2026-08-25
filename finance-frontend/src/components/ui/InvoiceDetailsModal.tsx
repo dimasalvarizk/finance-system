@@ -105,11 +105,11 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
         <div id="invoice-details-modal-scroll-body" className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
 
           {/* Details Top Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {/* Invoice Number */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Reference Number
+                Invoice Number
               </label>
               <input
                 type="text"
@@ -139,6 +139,18 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 type="text"
                 readOnly
                 value={selectedInvoice.serialNo}
+                className="w-full px-3.5 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] focus:outline-none font-inter bg-[#f8fafc]"
+              />
+            </div>
+            {/* Invoice Date */}
+            <div>
+              <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
+                Invoice Date
+              </label>
+              <input
+                type="text"
+                readOnly
+                value={selectedInvoice.date}
                 className="w-full px-3.5 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] focus:outline-none font-inter bg-[#f8fafc]"
               />
             </div>
