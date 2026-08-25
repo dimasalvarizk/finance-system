@@ -347,11 +347,25 @@ export const getExchangeRatesHistory = async (req, res, next) => {
 };
 
 // ==========================================
+const ensureServiceCurrencyColumn = async (pool) => {
+  try {
+    await pool.query('SELECT currency FROM dst_services LIMIT 1');
+  } catch (err) {
+    console.log('Migrating: Adding currency column to dst_services table...');
+    try {
+      await pool.query("ALTER TABLE dst_services ADD COLUMN currency VARCHAR(10) DEFAULT 'USD'");
+    } catch (alterErr) {
+      console.error('Failed to alter dst_services table:', alterErr);
+    }
+  }
+};
+
 // 7. SERVICES (dst_services CRUD)
 // ==========================================
 export const getServices = async (req, res, next) => {
   try {
     const pool = getPool();
+    await ensureServiceCurrencyColumn(pool);
     const [rows] = await pool.query('SELECT * FROM dst_services ORDER BY name ASC');
     // Map numerical price to float
     const mapped = rows.map(r => ({ ...r, price: parseFloat(r.price) }));
@@ -362,18 +376,25 @@ export const getServices = async (req, res, next) => {
 };
 
 export const createService = async (req, res, next) => {
-  const { name, price, status } = req.body;
+  const { name, price, status, currency } = req.body;
   try {
     if (!name || price === undefined) {
       return res.status(400).json({ success: false, message: 'Service name and price are required' });
     }
     const pool = getPool();
+    await ensureServiceCurrencyColumn(pool);
     const [result] = await pool.query(
-      'INSERT INTO dst_services (name, price, status) VALUES (?, ?, ?)',
-      [name, parseFloat(price), status || 'Active']
+      'INSERT INTO dst_services (name, price, status, currency) VALUES (?, ?, ?, ?)',
+      [name, parseFloat(price), status || 'Active', currency || 'USD']
     );
 
-    const newService = { id: result.insertId.toString(), name, price: parseFloat(price), status: status || 'Active' };
+    const newService = { 
+      id: result.insertId.toString(), 
+      name, 
+      price: parseFloat(price), 
+      status: status || 'Active', 
+      currency: currency || 'USD' 
+    };
     res.status(201).json({ success: true, message: 'Service created successfully', data: newService });
   } catch (error) {
     next(error);
@@ -382,17 +403,22 @@ export const createService = async (req, res, next) => {
 
 export const updateService = async (req, res, next) => {
   const { id } = req.params;
-  const { name, price, status } = req.body;
+  const { name, price, status, currency } = req.body;
   try {
     const pool = getPool();
+    await ensureServiceCurrencyColumn(pool);
     const [result] = await pool.query(
-      'UPDATE dst_services SET name = ?, price = ?, status = ? WHERE id = ?',
-      [name, parseFloat(price), status, id]
+      'UPDATE dst_services SET name = ?, price = ?, status = ?, currency = ? WHERE id = ?',
+      [name, parseFloat(price), status, currency || 'USD', id]
     );
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: 'Service not found' });
     }
-    res.status(200).json({ success: true, message: 'Service updated successfully', data: { id, name, price: parseFloat(price), status } });
+    res.status(200).json({ 
+      success: true, 
+      message: 'Service updated successfully', 
+      data: { id, name, price: parseFloat(price), status, currency: currency || 'USD' } 
+    });
   } catch (error) {
     next(error);
   }

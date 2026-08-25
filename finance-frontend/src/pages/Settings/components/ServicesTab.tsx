@@ -7,6 +7,7 @@ export interface Service {
   name: string;
   price: number;
   status: 'Active' | 'Inactive';
+  currency?: string;
 }
 
 const ServicesTab: React.FC = () => {
@@ -29,6 +30,7 @@ const ServicesTab: React.FC = () => {
   const [nameInput, setNameInput] = useState('');
   const [priceInput, setPriceInput] = useState('');
   const [statusInput, setStatusInput] = useState<'Active' | 'Inactive'>('Active');
+  const [currencyInput, setCurrencyInput] = useState<string>('USD');
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -79,6 +81,7 @@ const ServicesTab: React.FC = () => {
     setNameInput('');
     setPriceInput('');
     setStatusInput('Active');
+    setCurrencyInput('USD');
     setShowValidation(false);
     setFormError('');
     setIsAddOpen(true);
@@ -103,7 +106,8 @@ const ServicesTab: React.FC = () => {
       const saved = await createService({
         name: nameInput.trim(),
         price: Number(priceInput),
-        status: statusInput
+        status: statusInput,
+        currency: currencyInput
       });
       setServices(prev => [...prev, saved]);
       setIsAddOpen(false);
@@ -121,6 +125,7 @@ const ServicesTab: React.FC = () => {
     setNameInput(service.name);
     setPriceInput(service.price.toString());
     setStatusInput(service.status);
+    setCurrencyInput(service.currency || 'USD');
     setShowValidation(false);
     setFormError('');
   };
@@ -138,7 +143,8 @@ const ServicesTab: React.FC = () => {
       const updated = await updateService(editingService.id, {
         name: nameInput.trim(),
         price: Number(priceInput),
-        status: statusInput
+        status: statusInput,
+        currency: currencyInput
       });
       setServices(prev => prev.map(s => s.id === editingService.id ? updated : s));
       setEditingService(null);
@@ -200,7 +206,7 @@ const ServicesTab: React.FC = () => {
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider w-[280px]">Service Name</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-left w-[160px]">Unit Price (USD)</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-left w-[160px]">Unit Price</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-left w-[120px]">Status</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -223,12 +229,14 @@ const ServicesTab: React.FC = () => {
               ) : services.map(service => (
                 <tr key={service.id} className="hover:bg-slate-50/50">
                   <td className="px-6 py-4 font-bold text-[#0c0d0f]">{service.name}</td>
-                  <td className="px-6 py-4 text-slate-600 text-left">
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD',
-                      minimumFractionDigits: 2
-                    }).format(service.price)}
+                  <td className="px-6 py-4 text-slate-600 text-left font-bold">
+                    {service.currency === 'RP' || service.currency === 'IDR' ? (
+                      `Rp ${service.price.toLocaleString('id-ID')}`
+                    ) : service.currency === 'SAR' ? (
+                      `${service.price.toLocaleString('en-US')} SAR`
+                    ) : (
+                      `$${service.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+                    )}
                   </td>
                   <td className="px-6 py-4 text-left">
                     <span className={`inline-block font-bold text-[10px] px-2.5 py-0.5 rounded-md ${service.status === 'Active' ? 'bg-[#ecfdf5] text-[#10b981]' : 'bg-[#f1f5f9] text-[#64748b]'
@@ -375,13 +383,10 @@ const ServicesTab: React.FC = () => {
                   )}
                 </div>
 
-                {/* Price (USD) */}
-                <div className="space-y-1.5 text-left">
-                  <label className="block text-[13px] font-bold text-[#334155]">Price (USD)</label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-[#64748b]">
-                      $
-                    </span>
+                {/* Price and Currency Row */}
+                <div className="grid grid-cols-3 gap-4 text-left">
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="block text-[13px] font-bold text-[#334155]">Price</label>
                     <input
                       type="number"
                       required
@@ -390,23 +395,35 @@ const ServicesTab: React.FC = () => {
                       placeholder="0.00"
                       value={priceInput}
                       onChange={(e) => setPriceInput(e.target.value)}
-                      className={`w-full pl-8 pr-3.5 py-2.5 border rounded-xl text-[13px] transition-all font-sans focus:outline-none ${
+                      className={`w-full px-3.5 py-2.5 border rounded-xl text-[13px] transition-all font-sans focus:outline-none ${
                         showValidation && (!priceInput || Number(priceInput) <= 0)
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
                           : 'border-[#e2e8f0] text-[#0c0d0f] bg-white focus:border-[#f59e0b] focus:ring-[#f59e0b]'
                       }`}
                     />
                   </div>
-                  {showValidation && (!priceInput || Number(priceInput) <= 0) ? (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Price must be greater than 0
-                    </span>
-                  ) : (
-                    <p className="text-[11px] text-[#64748b] font-normal leading-normal mt-1">
-                      Specify the default unit price charged to clients.
-                    </p>
-                  )}
+                  <div className="space-y-1.5">
+                    <label className="block text-[13px] font-bold text-[#334155]">Currency</label>
+                    <select
+                      value={currencyInput}
+                      onChange={(e) => setCurrencyInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-[#e2e8f0] text-[#0c0d0f] bg-white rounded-xl text-[13px] font-semibold focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all cursor-pointer"
+                    >
+                      <option value="USD">USD ($)</option>
+                      <option value="SAR">SAR (Riyal)</option>
+                      <option value="RP">RP (Rupiah)</option>
+                    </select>
+                  </div>
                 </div>
+                {showValidation && (!priceInput || Number(priceInput) <= 0) ? (
+                  <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans text-left">
+                    Price must be greater than 0
+                  </span>
+                ) : (
+                  <p className="text-[11px] text-[#64748b] font-normal leading-normal mt-1 text-left">
+                    Specify the default unit price charged to clients.
+                  </p>
+                )}
 
                 {/* Divider Line above Toggle */}
                 <div className="h-px bg-[#e2e8f0] w-full my-1" />
@@ -524,13 +541,10 @@ const ServicesTab: React.FC = () => {
                   )}
                 </div>
 
-                {/* Unit Price (USD) */}
-                <div className="space-y-1.5 text-left">
-                  <label className="block text-[13px] font-bold text-[#334155]">Unit Price (USD)</label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-[#64748b]">
-                      $
-                    </span>
+                {/* Price and Currency Row */}
+                <div className="grid grid-cols-3 gap-4 text-left">
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="block text-[13px] font-bold text-[#334155]">Unit Price</label>
                     <input
                       type="number"
                       required
@@ -538,19 +552,31 @@ const ServicesTab: React.FC = () => {
                       step="0.01"
                       value={priceInput}
                       onChange={(e) => setPriceInput(e.target.value)}
-                      className={`w-full pl-8 pr-3.5 py-2.5 border rounded-xl text-[13px] transition-all font-sans focus:outline-none ${
+                      className={`w-full px-3.5 py-2.5 border rounded-xl text-[13px] transition-all font-sans focus:outline-none ${
                         showValidation && (!priceInput || Number(priceInput) <= 0)
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
                           : 'border-[#e2e8f0] text-[#0c0d0f] bg-white focus:border-[#f59e0b] focus:ring-[#f59e0b]'
                       }`}
                     />
                   </div>
-                  {showValidation && (!priceInput || Number(priceInput) <= 0) && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Price must be greater than 0
-                    </span>
-                  )}
+                  <div className="space-y-1.5">
+                    <label className="block text-[13px] font-bold text-[#334155]">Currency</label>
+                    <select
+                      value={currencyInput}
+                      onChange={(e) => setCurrencyInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-[#e2e8f0] text-[#0c0d0f] bg-white rounded-xl text-[13px] font-semibold focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all cursor-pointer"
+                    >
+                      <option value="USD">USD ($)</option>
+                      <option value="SAR">SAR (Riyal)</option>
+                      <option value="RP">RP (Rupiah)</option>
+                    </select>
+                  </div>
                 </div>
+                {showValidation && (!priceInput || Number(priceInput) <= 0) && (
+                  <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans text-left">
+                    Price must be greater than 0
+                  </span>
+                )}
 
                 {/* Divider Line above Toggle */}
                 <div className="h-px bg-[#e2e8f0] w-full my-1" />

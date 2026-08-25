@@ -528,8 +528,8 @@ const Invoices: React.FC = () => {
   };
 
   // Load services and rates from settings API
-  const [availableServices, setAvailableServices] = useState<{ name: string; price: number }[]>([]);
-  const [configuredRates, setConfiguredRates] = useState<{ usdToIdr: number; sarToIdr: number }>({ usdToIdr: 16250, sarToIdr: 4333 });
+  const [availableServices, setAvailableServices] = useState<{ name: string; price: number; currency?: string }[]>([]);
+  const [configuredRates, setConfiguredRates] = useState<{ usdToIdr: number; sarToIdr: number; usdToSar: number }>({ usdToIdr: 16250, sarToIdr: 4333, usdToSar: 3.75 });
   const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
 
   useEffect(() => {
@@ -539,7 +539,8 @@ const Invoices: React.FC = () => {
         if (rates) {
           setConfiguredRates({
             usdToIdr: parseExchangeRate(rates.usdToIdr, true) || 16250,
-            sarToIdr: parseExchangeRate(rates.sarToIdr, true) || 4333
+            sarToIdr: parseExchangeRate(rates.sarToIdr, true) || 4333,
+            usdToSar: parseExchangeRate(rates.usdToSar, true) || 3.75
           });
         }
       } catch (err) {
@@ -553,7 +554,8 @@ const Invoices: React.FC = () => {
             .filter((s: any) => s.status === 'Active')
             .map((s: any) => ({
               name: s.name,
-              price: parseFloat(s.price) || 0
+              price: parseFloat(s.price) || 0,
+              currency: s.currency || 'USD'
             }));
           setAvailableServices(formatted);
         }
@@ -2073,12 +2075,21 @@ const Invoices: React.FC = () => {
                             key={index}
                             type="button"
                             onClick={() => {
+                              let finalPrice = service.price;
+                              if (service.currency === 'SAR') {
+                                const rate = configuredRates.usdToSar || 3.75;
+                                finalPrice = parseFloat((service.price / rate).toFixed(2));
+                              } else if (service.currency === 'IDR' || service.currency === 'RP') {
+                                const rate = configuredRates.usdToIdr || 16250;
+                                finalPrice = parseFloat((service.price / rate).toFixed(2));
+                              }
+
                               setFormItems([
                                 ...formItems,
                                 {
                                   description: service.name,
                                   qty: 1,
-                                  price: service.price,
+                                  price: finalPrice,
                                   isService: true
                                 },
                               ]);
@@ -2088,7 +2099,13 @@ const Invoices: React.FC = () => {
                           >
                             <span className="truncate pr-2">{service.name}</span>
                             <span className="font-bold text-[#0c0d0f] font-roboto flex-shrink-0">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(service.price)}
+                              {service.currency === 'RP' || service.currency === 'IDR' ? (
+                                `Rp ${service.price.toLocaleString('id-ID')}`
+                              ) : service.currency === 'SAR' ? (
+                                `${service.price.toLocaleString('en-US')} SAR`
+                              ) : (
+                                `$${service.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+                              )}
                             </span>
                           </button>
                         ))}

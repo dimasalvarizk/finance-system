@@ -109,12 +109,25 @@ const initializeDatabase = async () => {
         name VARCHAR(255) UNIQUE NOT NULL,
         price DECIMAL(15,2) NOT NULL,
         status VARCHAR(50) DEFAULT 'Active',
+        currency VARCHAR(10) DEFAULT 'USD',
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
     await pool.query(createServicesQuery);
     console.log("Table 'dst_services' is ready");
+
+    // Add currency column if it doesn't exist
+    try {
+      await pool.query('SELECT currency FROM dst_services LIMIT 1');
+    } catch (err) {
+      console.log('Adding currency column to dst_services table...');
+      try {
+        await pool.query("ALTER TABLE dst_services ADD COLUMN currency VARCHAR(10) DEFAULT 'USD'");
+      } catch (alterErr) {
+        console.error('Failed to alter dst_services table:', alterErr);
+      }
+    }
 
     // Seed default services if empty
     const [serviceRows] = await pool.query('SELECT COUNT(*) as count FROM dst_services');
