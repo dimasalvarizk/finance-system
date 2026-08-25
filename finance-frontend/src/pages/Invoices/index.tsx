@@ -867,8 +867,8 @@ const Invoices: React.FC = () => {
 
     const newInvoice: Invoice = {
       invoiceNo: formInvoiceNo,
-      company: defaults ? defaults.companyName : selectedClientKey.split(' - ')[0],
-      companyCode: defaults ? defaults.companyCode : (selectedClientKey.split(' - ')[1] || 'ACM'),
+      company: selectedCompanyObj ? selectedCompanyObj.name : (defaults ? defaults.companyName : selectedClientKey.split(' - ')[0]),
+      companyCode: selectedCompanyObj ? selectedCompanyObj.code : (defaults ? defaults.companyCode : (selectedClientKey.split(' - ')[1] || 'ACM')),
       referenceNo: formRef,
       serialNo: formSerial,
       amount: formattedAmount,
@@ -1945,7 +1945,7 @@ const Invoices: React.FC = () => {
                           Client Company
                         </span>
                         <span className="font-bold text-[14px] text-[#0c0d0f]">
-                          {CLIENT_DEFAULTS[selectedClientKey]?.billTo.company || selectedCompanyObj?.name}
+                          {selectedCompanyObj?.name || CLIENT_DEFAULTS[selectedClientKey]?.billTo.company}
                         </span>
                       </div>
                       {!editInvoiceId && (
@@ -1954,7 +1954,7 @@ const Invoices: React.FC = () => {
                             Company Tax Number
                           </span>
                           <span className="font-semibold text-[#1e293b]">
-                            {CLIENT_DEFAULTS[selectedClientKey]?.billTo.tax || selectedCompanyObj?.taxNumber}
+                            {selectedCompanyObj?.taxNumber || CLIENT_DEFAULTS[selectedClientKey]?.billTo.tax}
                           </span>
                         </div>
                       )}
@@ -1963,7 +1963,9 @@ const Invoices: React.FC = () => {
                           Street Address
                         </span>
                         <span className="font-semibold text-[#1e293b] block">
-                          {CLIENT_DEFAULTS[selectedClientKey]?.billTo.address || selectedCompanyObj?.address.split(',')[0]}
+                          {selectedCompanyObj?.address && selectedCompanyObj.address.includes(',')
+                            ? selectedCompanyObj.address.split(',')[0]
+                            : (selectedCompanyObj?.address || CLIENT_DEFAULTS[selectedClientKey]?.billTo.address)}
                         </span>
                       </div>
                       {!editInvoiceId && (
@@ -1972,7 +1974,9 @@ const Invoices: React.FC = () => {
                             City / Country
                           </span>
                           <span className="font-semibold text-[#1e293b]">
-                            {CLIENT_DEFAULTS[selectedClientKey]?.billTo.cityCountry || selectedCompanyObj?.address.split(',').slice(1).join(',').trim()}
+                            {selectedCompanyObj?.address && selectedCompanyObj.address.includes(',')
+                              ? selectedCompanyObj.address.split(',').slice(1).join(',').trim()
+                              : (CLIENT_DEFAULTS[selectedClientKey]?.billTo.cityCountry || '')}
                           </span>
                         </div>
                       )}
