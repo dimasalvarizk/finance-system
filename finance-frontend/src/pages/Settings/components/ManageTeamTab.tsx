@@ -106,6 +106,7 @@ const ManageTeamTab: React.FC = () => {
     let count = 0;
     if (!newMemberName.trim()) count += 1;
     if (!newMemberEmail.trim()) count += 1;
+    if (!newMemberBranch.trim()) count += 1;
     return count;
   };
 
@@ -211,7 +212,7 @@ const ManageTeamTab: React.FC = () => {
     setNewMemberPhone('');
     setNewMemberEmpId('');
     setNewMemberRole('Accountant');
-    setNewMemberBranch('');
+    setNewMemberBranch(availableBranches && availableBranches.length > 0 ? availableBranches[0].name : '');
     setNewMemberDept('');
     setNewMemberJobTitle('');
     setIsAddMemberOpen(false);
@@ -273,7 +274,13 @@ const ManageTeamTab: React.FC = () => {
             </span>
           </div>
           <button
-            onClick={() => setIsAddMemberOpen(true)}
+            onClick={() => {
+              if (availableBranches && availableBranches.length > 0) {
+                setNewMemberBranch(availableBranches[0].name);
+              }
+              setNewMemberRole('Accountant');
+              setIsAddMemberOpen(true);
+            }}
             className="px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[13px] font-bold flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer font-sans"
           >
             <Plus className="w-4 h-4" />
@@ -550,10 +557,19 @@ const ManageTeamTab: React.FC = () => {
                     <select
                       value={newMemberBranch}
                       onChange={(e) => setNewMemberBranch(e.target.value)}
-                      className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold bg-white text-[#0c0d0f] focus:outline-none focus:border-[#f59e0b] transition-all font-sans"
+                      className={`w-full px-3.5 py-2.5 border rounded-xl text-[13px] font-semibold bg-white text-[#0c0d0f] focus:outline-none transition-all font-sans ${
+                        showValidation && !newMemberBranch.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
+                          : 'border-[#e2e8f0] focus:border-[#f59e0b]'
+                      }`}
                     >
                       {renderBranchOptions()}
                     </select>
+                    {showValidation && !newMemberBranch.trim() && (
+                      <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
+                        Branch is required. Add in settings first.
+                      </span>
+                    )}
                   </div>
 
                   {/* Department */}
