@@ -1306,14 +1306,10 @@ const Companies: React.FC = () => {
             {/* Financial Contents */}
             <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
               {/* Stat Grid */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-inter">TOTAL REVENUE</span>
                   <div className="text-[20px] font-bold text-[#0c0d0f] font-inter mt-1.5">{"$" + reportData.summary.totalRevenue.toLocaleString()}</div>
-                </div>
-                <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-inter">TOTAL EXPENSES</span>
-                  <div className="text-[20px] font-bold text-[#0c0d0f] font-inter mt-1.5">{"$" + reportData.summary.totalExpenses.toLocaleString()}</div>
                 </div>
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-inter">NET PROFIT</span>
