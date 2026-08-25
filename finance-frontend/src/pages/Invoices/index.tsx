@@ -1767,7 +1767,7 @@ const Invoices: React.FC = () => {
                           <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5 font-inter">
                             Entity / Company
                           </span>
-                          <span className="font-bold text-[14px] text-[#0c0d0f]">
+                          <span className="font-bold text-[14px] text-[#0c0d0f] break-all block">
                             {formEntity || 'ODST Group'}
                           </span>
                         </div>
@@ -1775,7 +1775,7 @@ const Invoices: React.FC = () => {
                           <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5 font-inter">
                             Company Email
                           </span>
-                          <span className="font-bold text-[14px] text-[#0c0d0f]">
+                          <span className="font-bold text-[14px] text-[#0c0d0f] break-all block">
                             {formCompEmail || 'info@odst.id'}
                           </span>
                         </div>

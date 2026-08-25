@@ -118,7 +118,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                   <p className="text-[9px] font-medium text-slate-400 font-sans">
                     Company Email
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-800 font-bold font-sans">
+                  <p className="mt-0.5 text-xs text-slate-800 font-bold font-sans break-all">
                     {details.billFrom.email}
                   </p>
                 </div>
