@@ -396,18 +396,26 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     phone: '+62 856 9332 3122',
     taxNumber: '0000-0000-0000',
     defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
-    termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership."
+    termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.",
+    bankName: 'Danamon',
+    accountName: 'PT ODST Airlines Indo',
+    idrAccountNumber: '102-8829-011',
+    usdAccountNumber: '102-8829-022'
   };
   try {
     const pool = getPool();
-    const [settingsRows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
+    const [settingsRows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber FROM dst_company_settings WHERE id = ?', ['current']);
     if (settingsRows.length > 0) {
       companySettings = {
         companyName: settingsRows[0].companyName || companySettings.companyName,
         phone: settingsRows[0].phone || companySettings.phone,
         taxNumber: settingsRows[0].taxNumber || companySettings.taxNumber,
         defaultNotes: settingsRows[0].defaultNotes || companySettings.defaultNotes,
-        termsAndConditions: settingsRows[0].termsAndConditions || companySettings.termsAndConditions
+        termsAndConditions: settingsRows[0].termsAndConditions || companySettings.termsAndConditions,
+        bankName: settingsRows[0].bankName || companySettings.bankName,
+        accountName: settingsRows[0].accountName || companySettings.accountName,
+        idrAccountNumber: settingsRows[0].idrAccountNumber || companySettings.idrAccountNumber,
+        usdAccountNumber: settingsRows[0].usdAccountNumber || companySettings.usdAccountNumber
       };
     }
   } catch (err) {
@@ -732,19 +740,19 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                     <table style="width: 100%; border-collapse: collapse;">
                       <tr style="height: 28px;">
                         <td style="font-weight: 600; color: #64748b;">Bank Name:</td>
-                        <td style="text-align: right; font-weight: bold; color: #0f172a;">Danamon</td>
+                        <td style="text-align: right; font-weight: bold; color: #0f172a;">${companySettings.bankName}</td>
                       </tr>
                       <tr style="height: 28px;">
                         <td style="font-weight: 600; color: #64748b;">Account Name:</td>
-                        <td style="text-align: right; font-weight: bold; color: #0f172a;">PT ODST Airlines Indo</td>
+                        <td style="text-align: right; font-weight: bold; color: #0f172a;">${companySettings.accountName}</td>
                       </tr>
                       <tr style="height: 28px;">
                         <td style="font-weight: 600; color: #64748b;">IDR Account Number:</td>
-                        <td style="text-align: right; font-weight: bold; color: #2563eb; font-family: monospace;">102-8829-011</td>
+                        <td style="text-align: right; font-weight: bold; color: #2563eb; font-family: monospace;">${companySettings.idrAccountNumber}</td>
                       </tr>
                       <tr style="height: 28px;">
                         <td style="font-weight: 600; color: #64748b;">USD Account Number:</td>
-                        <td style="text-align: right; font-weight: bold; color: #2563eb; font-family: monospace;">102-8829-022</td>
+                        <td style="text-align: right; font-weight: bold; color: #2563eb; font-family: monospace;">${companySettings.usdAccountNumber}</td>
                       </tr>
                     </table>
                   </div>
