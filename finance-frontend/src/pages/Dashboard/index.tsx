@@ -165,7 +165,7 @@ const Dashboard: React.FC = () => {
         const amt = parseAmount(inv.amount);
         stats[branch].sent += 1;
         const status = String(inv.status || 'Pending').toLowerCase();
-        
+
         // 1. Revenue & Approvals
         if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
           stats[branch].approved += 1;
@@ -177,10 +177,10 @@ const Dashboard: React.FC = () => {
         }
 
         // 2. Outstanding Balance: only active unpaid invoices (excluding archived, cancelled, or rejected)
-        const isOutstanding = !status.includes('paid') && 
-                              status !== 'archived' && 
-                              status !== 'cancelled' && 
-                              status !== 'rejected';
+        const isOutstanding = !status.includes('paid') &&
+          status !== 'archived' &&
+          status !== 'cancelled' &&
+          status !== 'rejected';
         if (isOutstanding) {
           stats[branch].outstanding += amt;
         }
@@ -454,7 +454,7 @@ const Dashboard: React.FC = () => {
               </span>
             </div>
             <p className="text-[13px] text-[#64748b] font-medium font-sans">
-              ODST Finance Corporate Treasury Portal
+              ODST Group Finance System
             </p>
           </div>
 
@@ -572,8 +572,8 @@ const Dashboard: React.FC = () => {
                   {/* Middle Layout (Recent Invoices & Approval Queue) */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Recent Invoices Table */}
-                    <InvoiceTable 
-                      invoices={recentInvoices} 
+                    <InvoiceTable
+                      invoices={recentInvoices}
                       isFullWidth={user?.role === 'Accountant'}
                     />
 
