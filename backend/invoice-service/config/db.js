@@ -53,11 +53,7 @@ export const connectDB = async () => {
     connection.release();
 
     // Initialize schema & seeds
-    if (!isVercel) {
-      await initializeDatabase();
-    } else {
-      console.log('Running on Vercel: Skipping schema initialization for invoice-service');
-    }
+    await initializeDatabase();
   } catch (error) {
     console.error('MySQL connection/initialization failed for invoice-service:', error.message);
     if (process.env.VERCEL !== '1') {

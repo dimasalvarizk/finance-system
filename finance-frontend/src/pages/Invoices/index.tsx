@@ -427,6 +427,21 @@ const Invoices: React.FC = () => {
     }
   }, [availableCompanies, editInvoiceId]);
 
+  const handleOpenCreateModal = () => {
+    setEditInvoiceId(null);
+    setFormItems([]);
+    setFormError('');
+    setIsModalOpen(true);
+    if (availableCompanies.length > 0) {
+      handleClientChange(availableCompanies[0]);
+    } else {
+      setSelectedClientKey('Select client company...');
+      setFormInvoiceNo('');
+      setFormRef('');
+      setFormSerial('');
+    }
+  };
+
   const [formError, setFormError] = useState('');
   const [showValidation, setShowValidation] = useState(false);
   const [successModalStep, setSuccessModalStep] = useState<0 | 1 | 2>(0);
@@ -820,8 +835,10 @@ const Invoices: React.FC = () => {
           setSuccessModalStep(1);
         }
         await fetchInvoices();
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to save or update invoice via API:', err);
+        const errMsg = err.response?.data?.message || err.message || 'Failed to save or update invoice';
+        setFormError(errMsg);
       }
     };
     saveInvoice();
@@ -1043,15 +1060,7 @@ const Invoices: React.FC = () => {
             </div>
 
             <button
-              onClick={() => {
-                setEditInvoiceId(null);
-                setFormInvoiceNo('');
-                setFormRef('');
-                setFormSerial('');
-                setFormItems([]);
-                setFormError('');
-                setIsModalOpen(true);
-              }}
+              onClick={handleOpenCreateModal}
               className="flex items-center space-x-2 px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -1164,7 +1173,7 @@ const Invoices: React.FC = () => {
                   Generate your first invoice to get started. Make sure you have added at least one partner company.
                 </p>
                 <button
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={handleOpenCreateModal}
                   className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
                 >
                   Generate Invoice
