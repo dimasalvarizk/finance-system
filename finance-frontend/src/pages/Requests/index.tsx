@@ -7,7 +7,7 @@ import { type Invoice, getInvoiceDetails, getLocalCompanySettings } from "../Inv
 import ReservationConfirmationPrint from "../../components/ui/ReservationNumberPrint";
 import { Search, AlertCircle, Check, Clock, Lock, FileText, Printer, Download, CreditCard, Edit3, Archive } from "lucide-react";
 import { getRequests, approveRequest as approveRequestAPI, rejectRequest as rejectRequestAPI, sendInvoiceEmail } from "../../services/requestService";
-import { cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus as updateInvoiceStatusAPI, getCompanies } from "../../services/invoiceService";
+import { updateInvoiceStatus as updateInvoiceStatusAPI, getCompanies } from "../../services/invoiceService";
 import { useAuth } from "../../context/AuthContext";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
 import { getTeamMembers, getCompanySetting } from "../../services/settingService";
@@ -21,7 +21,7 @@ export interface InvoiceRequest {
   amount: string;
   requestedBy: string;
   submittedDate: string;
-  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "Rejected" | "Cancelled" | "Paid";
+  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "Rejected" | "Cancelled" | "Paid" | "Archived";
   branch?: string;
   rejectionReason?: string;
   level1ApprovedAt?: string | null;
@@ -458,6 +458,12 @@ const Requests: React.FC = () => {
           </span>
         );
       case "Cancelled":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#fef2f2] text-[#ef4444] border border-[#fecaca] font-sans">
+            Cancelled
+          </span>
+        );
+      case "Archived":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#475569] border border-[#e2e8f0] font-sans">
             Archived

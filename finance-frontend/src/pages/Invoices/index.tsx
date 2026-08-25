@@ -387,6 +387,7 @@ const Invoices: React.FC = () => {
     setError(null);
     try {
       const fetched = await getInvoices();
+      console.log('DEBUG: fetched invoices from API:', fetched);
       if (fetched) {
         setInvoices(fetched);
       }
@@ -431,12 +432,20 @@ const Invoices: React.FC = () => {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'Approved':
+      case '3/3 Approved':
         return 'bg-[#ecfdf5] text-[#10b981]';
       case 'Pending':
       case 'Pending Review':
+      case '0/3 Pending':
+      case '1/3 Approved':
+      case '2/3 Approved':
         return 'bg-[#fff7ed] text-[#f97316]';
       case 'Rejected':
+      case 'Cancelled':
         return 'bg-[#fef2f2] text-[#ef4444]';
+      case 'Archived':
+      case 'Paid':
+        return 'bg-[#f1f5f9] text-[#475569]';
       default:
         return 'bg-[#f1f5f9] text-[#475569]';
     }
@@ -1483,7 +1492,10 @@ const Invoices: React.FC = () => {
                               <span
                                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)}`}
                               >
-                                {inv.status}
+                                {(() => {
+                                  console.log('DEBUG: Rendering row', inv.invoiceNo, 'with status:', inv.status);
+                                  return inv.status;
+                                })()}
                               </span>
                             </td>
                             <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
