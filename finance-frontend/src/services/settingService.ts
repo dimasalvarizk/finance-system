@@ -122,7 +122,7 @@ export const getCompanySetting = async () => {
   const response = await settingAPI.get('/company');
   return response.data.data;
 };
-export const updateCompanySetting = async (data: { phone?: string; taxNumber?: string; defaultNotes?: string; termsAndConditions?: string }) => {
+export const updateCompanySetting = async (data: { companyName?: string; phone?: string; taxNumber?: string; defaultNotes?: string; termsAndConditions?: string }) => {
   const response = await settingAPI.put('/company', data);
   return response.data.data;
 };

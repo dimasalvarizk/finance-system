@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { getCompanySetting, updateCompanySetting } from '../../../services/settingService';
 
 const CompanyInfoTab: React.FC = () => {
+  const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
   const [taxNumber, setTaxNumber] = useState('');
   const [defaultNotes, setDefaultNotes] = useState('');
@@ -12,12 +13,14 @@ const CompanyInfoTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // Saving states
+  const [savingCompanyName, setSavingCompanyName] = useState(false);
   const [savingPhone, setSavingPhone] = useState(false);
   const [savingTax, setSavingTax] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [savingTerms, setSavingTerms] = useState(false);
 
   // Feedback states
+  const [companyNameFeedback, setCompanyNameFeedback] = useState<string | null>(null);
   const [phoneFeedback, setPhoneFeedback] = useState<string | null>(null);
   const [taxFeedback, setTaxFeedback] = useState<string | null>(null);
   const [notesFeedback, setNotesFeedback] = useState<string | null>(null);
@@ -28,6 +31,7 @@ const CompanyInfoTab: React.FC = () => {
       try {
         const data = await getCompanySetting();
         if (data) {
+          setCompanyName(data.companyName || '');
           setPhone(data.phone || '');
           setTaxNumber(data.taxNumber || '');
           setDefaultNotes(data.defaultNotes || '');
@@ -50,6 +54,22 @@ const CompanyInfoTab: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to sync company settings to localStorage:', err);
+    }
+  };
+
+  const handleSaveCompanyName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingCompanyName(true);
+    try {
+      await updateCompanySetting({ companyName });
+      await syncLocalStorage();
+      setCompanyNameFeedback('Company identity saved successfully!');
+      setTimeout(() => setCompanyNameFeedback(null), 3000);
+    } catch (err) {
+      console.error('Failed to save company name setting:', err);
+      alert('Failed to save company name settings');
+    } finally {
+      setSavingCompanyName(false);
     }
   };
 
@@ -128,6 +148,44 @@ const CompanyInfoTab: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl">
+
+      {/* 0. Company Identity Card */}
+      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Company Identity</h3>
+          <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
+            Update your company or entity name displayed on invoices
+          </p>
+        </div>
+        <form onSubmit={handleSaveCompanyName} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-[13px] font-bold text-[#334155] font-sans">Company Name</label>
+            <input
+              type="text"
+              placeholder="e.g. ODST Group"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
+            />
+          </div>
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={savingCompanyName}
+              className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingCompanyName ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+            >
+              {savingCompanyName ? 'Saving...' : 'Save'}
+            </button>
+            {companyNameFeedback && (
+              <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
+                <Check className="w-4 h-4 stroke-[2.5px]" />
+                {companyNameFeedback}
+              </span>
+            )}
+          </div>
+        </form>
+      </div>
 
       {/* 1. Contact Information Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">

@@ -221,6 +221,7 @@ const initializeDatabase = async () => {
     const createCompanySettingsQuery = `
       CREATE TABLE IF NOT EXISTS dst_company_settings (
         id VARCHAR(50) PRIMARY KEY,
+        companyName VARCHAR(255) DEFAULT 'ODST Group',
         phone VARCHAR(100) NOT NULL,
         taxNumber VARCHAR(100) NOT NULL,
         defaultNotes TEXT,
@@ -231,15 +232,28 @@ const initializeDatabase = async () => {
     await pool.query(createCompanySettingsQuery);
     console.log("Table 'dst_company_settings' is ready");
 
+    // Add companyName column if it doesn't exist
+    try {
+      await pool.query('SELECT companyName FROM dst_company_settings LIMIT 1');
+    } catch (err) {
+      console.log('Adding companyName column to dst_company_settings table...');
+      try {
+        await pool.query("ALTER TABLE dst_company_settings ADD COLUMN companyName VARCHAR(255) DEFAULT 'ODST Group'");
+      } catch (alterErr) {
+        console.error('Failed to alter dst_company_settings table:', alterErr);
+      }
+    }
+
     // Seed default company settings if empty
     const [companyRows] = await pool.query('SELECT COUNT(*) as count FROM dst_company_settings');
     if (companyRows[0].count === 0) {
       console.log('Seeding default company settings...');
       await pool.query(`
-        INSERT INTO dst_company_settings (id, phone, taxNumber, defaultNotes, termsAndConditions)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO dst_company_settings (id, companyName, phone, taxNumber, defaultNotes, termsAndConditions)
+        VALUES (?, ?, ?, ?, ?, ?)
       `, [
         'current',
+        'ODST Group',
         '+62 856 9332 3122',
         '0000-0000-0000',
         'Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.',

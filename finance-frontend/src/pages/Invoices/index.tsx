@@ -71,6 +71,7 @@ export interface InvoiceDetail {
 export const getLocalCompanySettings = () => {
   const saved = localStorage.getItem('finance_company_settings');
   const defaults = {
+    companyName: 'ODST Group',
     phone: '+62 856 9332 3122',
     taxNumber: '0000-0000-0000',
     defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
@@ -81,6 +82,7 @@ export const getLocalCompanySettings = () => {
       const parsed = JSON.parse(saved);
       if (parsed) {
         return {
+          companyName: parsed.companyName || defaults.companyName,
           phone: parsed.phone || defaults.phone,
           taxNumber: parsed.taxNumber || defaults.taxNumber,
           defaultNotes: parsed.defaultNotes || defaults.defaultNotes,
@@ -393,7 +395,7 @@ const Invoices: React.FC = () => {
       setFormEmpId(user.employeeId || '');
       setFormCompNumber(companySettings.phone || user.phone || '');
       setFormCompEmail(user.email || '');
-      setFormEntity(user.branch === 'Graha Al Badegel' ? 'ODST Group' : (user.branch || 'ODST Group'));
+      setFormEntity(companySettings.companyName || (user.branch === 'Graha Al Badegel' ? 'ODST Group' : (user.branch || 'ODST Group')));
       setFormCompTax(companySettings.taxNumber || '0000-0000-0000');
     }
   }, [user, isModalOpen, companySettings]);

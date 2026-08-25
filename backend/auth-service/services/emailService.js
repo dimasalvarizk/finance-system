@@ -388,6 +388,7 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
 
 export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
   let companySettings = {
+    companyName: 'ODST Group',
     phone: '+62 856 9332 3122',
     taxNumber: '0000-0000-0000',
     defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
@@ -395,9 +396,10 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
   };
   try {
     const pool = getPool();
-    const [settingsRows] = await pool.query('SELECT phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
+    const [settingsRows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
     if (settingsRows.length > 0) {
       companySettings = {
+        companyName: settingsRows[0].companyName || companySettings.companyName,
         phone: settingsRows[0].phone || companySettings.phone,
         taxNumber: settingsRows[0].taxNumber || companySettings.taxNumber,
         defaultNotes: settingsRows[0].defaultNotes || companySettings.defaultNotes,

@@ -448,10 +448,11 @@ export const updateTaxSetting = async (req, res, next) => {
 export const getCompanySetting = async (req, res, next) => {
   try {
     const pool = getPool();
-    const [rows] = await pool.query('SELECT phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
+    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
     res.status(200).json({
       success: true,
       data: rows[0] || {
+        companyName: 'ODST Group',
         phone: '+62 856 9332 3122',
         taxNumber: '0000-0000-0000',
         defaultNotes: '',
@@ -464,12 +465,16 @@ export const getCompanySetting = async (req, res, next) => {
 };
 
 export const updateCompanySetting = async (req, res, next) => {
-  const { phone, taxNumber, defaultNotes, termsAndConditions } = req.body;
+  const { companyName, phone, taxNumber, defaultNotes, termsAndConditions } = req.body;
   try {
     const pool = getPool();
     const updates = [];
     const params = [];
     
+    if (companyName !== undefined) {
+      updates.push('companyName = ?');
+      params.push(companyName);
+    }
     if (phone !== undefined) {
       updates.push('phone = ?');
       params.push(phone);
@@ -492,7 +497,7 @@ export const updateCompanySetting = async (req, res, next) => {
       await pool.query(`UPDATE dst_company_settings SET ${updates.join(', ')} WHERE id = ?`, params);
     }
     
-    const [rows] = await pool.query('SELECT phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
+    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions FROM dst_company_settings WHERE id = ?', ['current']);
     res.status(200).json({
       success: true,
       data: rows[0]
