@@ -573,9 +573,9 @@ const Requests: React.FC = () => {
                           </div>
 
                           {/* Metadata Grid */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Reference Number</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Invoice Number</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{displayInvoiceNo}</div>
                             </div>
                             <div>
@@ -585,6 +585,10 @@ const Requests: React.FC = () => {
                             <div>
                               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Serial Number</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{requestAsInvoice?.serialNo}</div>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Invoice Date</span>
+                              <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{requestAsInvoice?.date}</div>
                             </div>
                             <div>
                               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Due Date</span>
@@ -1331,7 +1335,10 @@ const Requests: React.FC = () => {
                           REQUESTED BY
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          SUBMITTED
+                          INVOICE DATE
+                        </th>
+                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                          DUE DATE
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
                           APPROVAL STATUS
@@ -1352,13 +1359,14 @@ const Requests: React.FC = () => {
                               <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded text-right"></div></td>
                               <td className="py-4 px-3"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
                               <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
+                              <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
                               <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
                               <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
                             </tr>
                           ))
                         : displayedRequests.length === 0
                         ? <tr>
-                            <td colSpan={9} className="py-16 text-center text-[#64748b] font-medium">
+                            <td colSpan={10} className="py-16 text-center text-[#64748b] font-medium">
                               <div className="flex flex-col items-center justify-center space-y-2">
                                 <FileText className="w-8 h-8 text-gray-300" />
                                 <span className="text-[14px] font-bold text-slate-600">No requests found</span>
@@ -1412,6 +1420,27 @@ const Requests: React.FC = () => {
                                 style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
                               >
                                 {req.submittedDate}
+                              </td>
+                              <td
+                                className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
+                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                              >
+                                {(() => {
+                                  if (req.dueDate) {
+                                    if (req.dueDate.includes('-')) {
+                                      const parts = req.dueDate.split('-');
+                                      if (parts.length === 3) {
+                                        const year = parseInt(parts[0]);
+                                        const month = parseInt(parts[1]) - 1;
+                                        const day = parseInt(parts[2]);
+                                        const dObj = new Date(year, month, day);
+                                        return dObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                                      }
+                                    }
+                                    return req.dueDate;
+                                  }
+                                  return 'N/A';
+                                })()}
                               </td>
                               <td
                                 className="py-3 px-3 text-left whitespace-nowrap"
