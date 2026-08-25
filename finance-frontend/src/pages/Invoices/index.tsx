@@ -1373,7 +1373,10 @@ const Invoices: React.FC = () => {
                           AMOUNT
                         </th>
                         <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
-                          DATE
+                          INVOICE DATE
+                        </th>
+                        <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
+                          DUE DATE
                         </th>
                         <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
                           STATUS
@@ -1428,6 +1431,24 @@ const Invoices: React.FC = () => {
                             </td>
                             <td className="px-6 py-3.5 text-[#64748b] font-inter">
                               {inv.date}
+                            </td>
+                            <td className="px-6 py-3.5 text-[#64748b] font-inter">
+                              {(() => {
+                                if (inv.dueDate) {
+                                  if (inv.dueDate.includes('-')) {
+                                    const parts = inv.dueDate.split('-');
+                                    if (parts.length === 3) {
+                                      const year = parseInt(parts[0]);
+                                      const month = parseInt(parts[1]) - 1;
+                                      const day = parseInt(parts[2]);
+                                      const dObj = new Date(year, month, day);
+                                      return dObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                                    }
+                                  }
+                                  return inv.dueDate;
+                                }
+                                return 'N/A';
+                              })()}
                             </td>
                             <td className="px-6 py-3.5">
                               <span

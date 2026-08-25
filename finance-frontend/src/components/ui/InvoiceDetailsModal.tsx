@@ -109,7 +109,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Invoice Number */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Invoice Number
+                Reference Number
               </label>
               <input
                 type="text"
@@ -472,9 +472,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
               type="button"
               onClick={handlePrintOrDownload}
               disabled={isVerifying}
-              className={`flex items-center space-x-1.5 px-4 py-2 border border-[#cbd5e1] rounded-xl text-[13px] font-semibold text-[#1e293b] hover:bg-gray-100 transition-all font-inter bg-white ${
-                isVerifying ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-              }`}
+              className={`flex items-center space-x-1.5 px-4 py-2 border border-[#cbd5e1] rounded-xl text-[13px] font-semibold text-[#1e293b] hover:bg-gray-100 transition-all font-inter bg-white ${isVerifying ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                }`}
             >
               <Printer className="w-4 h-4 text-[#475569]" />
               <span>{isVerifying ? 'Verifying...' : 'Print'}</span>
@@ -483,9 +482,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
               type="button"
               onClick={handlePrintOrDownload}
               disabled={isVerifying}
-              className={`flex items-center space-x-1.5 px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-xl shadow-sm transition-all font-inter ${
-                isVerifying ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-              }`}
+              className={`flex items-center space-x-1.5 px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-xl shadow-sm transition-all font-inter ${isVerifying ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                }`}
             >
               <Download className="w-4 h-4" />
               <span>{isVerifying ? 'Verifying...' : 'Download PDF'}</span>
