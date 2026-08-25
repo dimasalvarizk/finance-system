@@ -165,13 +165,23 @@ const Dashboard: React.FC = () => {
         const amt = parseAmount(inv.amount);
         stats[branch].sent += 1;
         const status = String(inv.status || 'Pending').toLowerCase();
+        
+        // 1. Revenue & Approvals
         if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
           stats[branch].approved += 1;
           stats[branch].revenue += amt;
         } else if (status === 'rejected') {
           stats[branch].overdue += 1;
-        } else {
+        } else if (status.includes('pending') || status === '1/3 approved' || status === '2/3 approved') {
           stats[branch].pending += 1;
+        }
+
+        // 2. Outstanding Balance: only active unpaid invoices (excluding archived, cancelled, or rejected)
+        const isOutstanding = !status.includes('paid') && 
+                              status !== 'archived' && 
+                              status !== 'cancelled' && 
+                              status !== 'rejected';
+        if (isOutstanding) {
           stats[branch].outstanding += amt;
         }
       });
