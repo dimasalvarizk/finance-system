@@ -28,7 +28,7 @@ const EditProfileTab: React.FC = () => {
       setEmployeeId(user.employeeId || 'EMP-101');
       setDepartment(user.department || 'Finance');
       setJobTitle(user.jobTitle || 'Finance Director');
-      setDefaultBranch(user.branch || '');
+      setDefaultBranch(user.branch === 'Graha Al Badegel' ? 'ODST Group' : (user.branch || ''));
       setAvatar(user.avatar || null);
     }
   }, [user]);
