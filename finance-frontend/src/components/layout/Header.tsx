@@ -3,6 +3,7 @@ import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut } 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../services/authService';
+import notificationSound from '../../assets/notification.mp3';
 
 interface NotificationItem {
   id: string;
@@ -26,10 +27,47 @@ const Header: React.FC = () => {
   const profileRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLButtonElement>(null);
 
+  const lastUnreadIds = useRef<Set<string>>(new Set());
+  const isFirstLoad = useRef(true);
+
+  const playSound = () => {
+    try {
+      const audio = new Audio(notificationSound);
+      audio.play().catch((err) => {
+        console.warn('Autoplay prevented playing notification sound:', err);
+      });
+    } catch (err) {
+      console.error('Failed to play sound:', err);
+    }
+  };
+
   const fetchNotifications = async () => {
     try {
       const data = await getNotifications();
-      setNotifications(data || []);
+      const currentNotifications: NotificationItem[] = data || [];
+      
+      const unread = currentNotifications.filter(n => n.unread);
+      const unreadIds = new Set(unread.map(n => n.id));
+
+      if (isFirstLoad.current) {
+        lastUnreadIds.current = unreadIds;
+        isFirstLoad.current = false;
+      } else {
+        let hasNewUnread = false;
+        for (const id of unreadIds) {
+          if (!lastUnreadIds.current.has(id)) {
+            hasNewUnread = true;
+            break;
+          }
+        }
+
+        if (hasNewUnread) {
+          playSound();
+        }
+        lastUnreadIds.current = unreadIds;
+      }
+
+      setNotifications(currentNotifications);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     }
@@ -103,6 +141,7 @@ const Header: React.FC = () => {
   const handleMarkAllRead = async () => {
     try {
       await markAllNotificationsAsRead();
+      lastUnreadIds.current = new Set();
       setNotifications(
         notifications.map((n) => ({
           ...n,
@@ -117,6 +156,7 @@ const Header: React.FC = () => {
   const handleMarkSingleRead = async (id: string) => {
     try {
       await markNotificationAsRead(id);
+      lastUnreadIds.current.delete(id);
       setNotifications(
         notifications.map((n) => (n.id === id ? { ...n, unread: false } : n))
       );
