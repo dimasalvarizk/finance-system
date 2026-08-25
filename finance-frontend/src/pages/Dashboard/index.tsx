@@ -164,11 +164,11 @@ const Dashboard: React.FC = () => {
 
         const amt = parseAmount(inv.amount);
         stats[branch].sent += 1;
-        const status = String(inv.status || 'Pending');
-        if (status === 'Approved' || status === '3/3 Approved' || status === 'Paid') {
+        const status = String(inv.status || 'Pending').toLowerCase();
+        if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
           stats[branch].approved += 1;
           stats[branch].revenue += amt;
-        } else if (status === 'Rejected') {
+        } else if (status === 'rejected') {
           stats[branch].overdue += 1;
         } else {
           stats[branch].pending += 1;
@@ -180,7 +180,11 @@ const Dashboard: React.FC = () => {
     return stats;
   }, [invoices, dbBranches]);
 
-  const pendingInvoices = Array.isArray(invoices) ? invoices.filter(inv => inv && (String(inv.status).includes('Pending') || inv.status === '1/3 Approved' || inv.status === '2/3 Approved')) : [];
+  const pendingInvoices = Array.isArray(invoices) ? invoices.filter(inv => {
+    if (!inv) return false;
+    const status = String(inv.status || '').toLowerCase();
+    return status.includes('pending') || status === '1/3 approved' || status === '2/3 approved';
+  }) : [];
 
   const totalRev = Object.values(branchStats).reduce((sum, b) => sum + b.revenue, 0);
   const totalInvoicesCount = Array.isArray(invoices) ? invoices.length : 0;
@@ -328,8 +332,8 @@ const Dashboard: React.FC = () => {
           const branch = getInvoiceBranch(inv, dbBranches);
           if (branch !== selectedBranch) return;
 
-          const status = String(inv.status || 'Pending');
-          if (status === 'Approved' || status === '3/3 Approved' || status === 'Paid') {
+          const status = String(inv.status || 'Pending').toLowerCase();
+          if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
             const invDate = new Date(inv.date);
             if (invDate.toLocaleString('en-US', { month: 'short' }) === tm.monthName && invDate.getFullYear() === tm.year) {
               amt += parseAmount(inv.amount);
@@ -368,8 +372,8 @@ const Dashboard: React.FC = () => {
         const branch = getInvoiceBranch(inv, dbBranches);
         if (branch !== selectedBranch) return;
 
-        const status = String(inv.status || 'Pending');
-        if (status === 'Approved' || status === '3/3 Approved' || status === 'Paid') {
+        const status = String(inv.status || 'Pending').toLowerCase();
+        if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
           const invDate = new Date(inv.date);
           const q = getQuarter(invDate);
           const y = invDate.getFullYear();
