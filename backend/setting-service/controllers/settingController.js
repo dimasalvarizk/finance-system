@@ -482,6 +482,27 @@ const ensureCompanyNameColumn = async (pool) => {
       console.error('Failed to alter dst_company_settings table:', alterErr);
     }
   }
+
+  // Ensure bank columns exist
+  const bankFields = [
+    { name: 'bankName', type: "VARCHAR(255) DEFAULT 'Danamon'" },
+    { name: 'accountName', type: "VARCHAR(255) DEFAULT 'PT ODST Airlines Indo'" },
+    { name: 'idrAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-011'" },
+    { name: 'usdAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-022'" }
+  ];
+
+  for (const f of bankFields) {
+    try {
+      await pool.query(`SELECT ${f.name} FROM dst_company_settings LIMIT 1`);
+    } catch (err) {
+      console.log(`Migrating: Adding ${f.name} column to dst_company_settings table...`);
+      try {
+        await pool.query(`ALTER TABLE dst_company_settings ADD COLUMN ${f.name} ${f.type}`);
+      } catch (alterErr) {
+        console.error(`Failed to add column ${f.name}:`, alterErr);
+      }
+    }
+  }
 };
 
 export const getCompanySetting = async (req, res, next) => {
