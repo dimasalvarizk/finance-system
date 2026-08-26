@@ -82,6 +82,7 @@ services:
       dockerfile: Dockerfile
       args:
         - 'VITE_SETTING_API_URL=https://api.odstfin.io'
+    command: ["nginx", "-g", "daemon off;"]
     restart: always
 
   # --- INI TAMBAHAN DATABASE INTERNALNYA ---
