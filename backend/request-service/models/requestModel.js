@@ -23,7 +23,7 @@ export const getAllRequestsDB = async () => {
   
   // Enrich requests with details from dst_invoices and dst_invoice_items
   for (const req of requests) {
-    const [invRows] = await pool.query('SELECT referenceNo, serialNo, dueDate, usdToIdrRate, sarToIdrRate, id, branch, taxRate FROM dst_invoices WHERE invoiceNo = ?', [req.invoiceNo]);
+    const [invRows] = await pool.query('SELECT referenceNo, serialNo, dueDate, usdToIdrRate, sarToIdrRate, id, branch, taxRate, paymentAttachment FROM dst_invoices WHERE invoiceNo = ?', [req.invoiceNo]);
     if (invRows.length > 0) {
       const inv = invRows[0];
       req.referenceNo = inv.referenceNo;
@@ -33,6 +33,7 @@ export const getAllRequestsDB = async () => {
       req.sarToIdrRate = inv.sarToIdrRate;
       req.branch = inv.branch;
       req.taxRate = inv.taxRate;
+      req.paymentAttachment = inv.paymentAttachment;
 
       const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
       req.items = items;
@@ -51,7 +52,7 @@ export const getRequestByInvoiceNoDB = async (invoiceNo) => {
   const req = rows[0];
   if (!req) return null;
 
-  const [invRows] = await pool.query('SELECT referenceNo, serialNo, dueDate, usdToIdrRate, sarToIdrRate, id, branch, taxRate FROM dst_invoices WHERE invoiceNo = ?', [req.invoiceNo]);
+  const [invRows] = await pool.query('SELECT referenceNo, serialNo, dueDate, usdToIdrRate, sarToIdrRate, id, branch, taxRate, paymentAttachment FROM dst_invoices WHERE invoiceNo = ?', [req.invoiceNo]);
   if (invRows.length > 0) {
     const inv = invRows[0];
     req.referenceNo = inv.referenceNo;
@@ -61,6 +62,7 @@ export const getRequestByInvoiceNoDB = async (invoiceNo) => {
     req.sarToIdrRate = inv.sarToIdrRate;
     req.branch = inv.branch;
     req.taxRate = inv.taxRate;
+    req.paymentAttachment = inv.paymentAttachment;
 
     const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
     req.items = items;

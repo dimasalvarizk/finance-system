@@ -7,7 +7,7 @@ import { type Invoice, getInvoiceDetails, getLocalCompanySettings } from "../Inv
 import ReservationConfirmationPrint from "../../components/ui/ReservationNumberPrint";
 import { Search, AlertCircle, Check, Clock, Lock, FileText, Printer, Download, CreditCard, Edit3, Archive } from "lucide-react";
 import { getRequests, approveRequest as approveRequestAPI, rejectRequest as rejectRequestAPI, sendInvoiceEmail, saveRequestNote } from "../../services/requestService";
-import { updateInvoiceStatus as updateInvoiceStatusAPI, getCompanies } from "../../services/invoiceService";
+import { updateInvoiceStatus as updateInvoiceStatusAPI, getCompanies, uploadPaymentProof } from "../../services/invoiceService";
 import { useAuth } from "../../context/AuthContext";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
 import { getTeamMembers, getCompanySetting } from "../../services/settingService";
@@ -46,6 +46,7 @@ export interface InvoiceRequest {
     qty: number;
     price: number;
   }>;
+  paymentAttachment?: string;
 }
 
 // Mock requests are not needed since we fetch from database.
@@ -188,6 +189,42 @@ const Requests: React.FC = () => {
   const [isPaid, setIsPaid] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [showArchiveSuccess, setShowArchiveSuccess] = useState(false);
+  const [viewingProofBase64, setViewingProofBase64] = useState<string | null>(null);
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const max_width = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > max_width) {
+            height = Math.round((height * max_width) / width);
+            width = max_width;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedBase64);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
   
   // Custom states for Send Invoice email feature
   const [showSendInvoiceModal, setShowSendInvoiceModal] = useState(false);
@@ -1179,6 +1216,84 @@ const Requests: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Payment Proof Card (shown when status is Paid) */}
+                  {(selectedRequest.status === "Paid" || isPaid) && (
+                    <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
+                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo</h3>
+                      {selectedRequest.paymentAttachment ? (
+                        <div className="space-y-3">
+                          <div
+                            className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50 cursor-pointer shadow-sm"
+                            onClick={() => setViewingProofBase64(selectedRequest.paymentAttachment!)}
+                          >
+                            <img
+                              src={selectedRequest.paymentAttachment}
+                              alt="Payment Proof"
+                              className="w-full h-auto max-h-[250px] object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                            />
+                            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-semibold text-[13px] gap-2">
+                              <span>🔍 Click to View Full Size</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
+                            <label className="px-3 py-1.5 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
+                              Change Photo
+                              <input
+                                type="file"
+                                onChange={async (e) => {
+                                  if (!e.target.files || e.target.files.length === 0) return;
+                                  const file = e.target.files[0];
+                                  try {
+                                    const base64Data = await compressImage(file);
+                                    await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
+                                    
+                                    // Update state
+                                    setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
+                                    setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
+                                  } catch (err: any) {
+                                    console.error('Failed to upload proof from requests:', err);
+                                    alert(err.response?.data?.message || 'Failed to upload payment proof.');
+                                  }
+                                }}
+                                accept="image/*"
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-[12px] font-sans">
+                          <p>No payment proof photo uploaded yet.</p>
+                          <div className="mt-3">
+                            <label className="px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
+                              Upload Proof
+                              <input
+                                type="file"
+                                onChange={async (e) => {
+                                  if (!e.target.files || e.target.files.length === 0) return;
+                                  const file = e.target.files[0];
+                                  try {
+                                    const base64Data = await compressImage(file);
+                                    await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
+                                    
+                                    // Update state
+                                    setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
+                                    setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
+                                  } catch (err: any) {
+                                    console.error('Failed to upload proof from requests:', err);
+                                    alert(err.response?.data?.message || 'Failed to upload payment proof.');
+                                  }
+                                }}
+                                accept="image/*"
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Your Decision / Available Operations Card */}
                   {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
@@ -1729,6 +1844,44 @@ const Requests: React.FC = () => {
         selectedInvoice={selectedInvoice}
         onClose={() => setSelectedInvoice(null)}
       />
+
+      {/* Payment Proof Viewer Modal */}
+      {viewingProofBase64 && (
+        <div
+          className="fixed inset-0 bg-[#0c0d0f]/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 animate-fade-in"
+          onClick={() => setViewingProofBase64(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo</h3>
+              <button
+                onClick={() => setViewingProofBase64(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-[18px] transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 bg-slate-50 flex items-center justify-center overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
+              <img
+                src={viewingProofBase64}
+                alt="Payment Proof Full Size"
+                className="max-w-full h-auto rounded-lg shadow-sm"
+              />
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setViewingProofBase64(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[12px] rounded-lg transition-all font-sans cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Modal */}
       {showPaymentConfirm && (
