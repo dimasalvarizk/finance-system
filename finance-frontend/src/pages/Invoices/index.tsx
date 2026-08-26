@@ -322,61 +322,88 @@ const Invoices: React.FC = () => {
     }
   };
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          const MAX_WIDTH = 1280;
+          const MAX_HEIGHT = 1280;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedBase64);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0 || !uploadingInvoiceNo) return;
     const file = e.target.files[0];
     
-    // Read file as base64
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Data = reader.result as string;
-      try {
-        setIsUploadingProof(true);
-        await uploadPaymentProof(uploadingInvoiceNo, base64Data);
-        setIsUploadingProof(false);
-        
-        setConfirmModal({
-          isOpen: true,
-          title: 'Upload Successful',
-          message: `The payment proof transfer photo for Invoice ${uploadingInvoiceNo} has been uploaded successfully.`,
-          type: 'success',
-          showCancel: false,
-          confirmText: 'Done',
-          onConfirm: () => {}
-        });
-
-        // Update state locally
-        setInvoices(prev => prev.map(inv => inv.invoiceNo === uploadingInvoiceNo ? { ...inv, paymentAttachment: base64Data } : inv));
-      } catch (err: any) {
-        setIsUploadingProof(false);
-        console.error('Failed to upload proof:', err);
-        setConfirmModal({
-          isOpen: true,
-          title: 'Upload Failed',
-          message: err.response?.data?.message || 'The file could not be uploaded. It might exceed size constraints.',
-          type: 'danger',
-          showCancel: false,
-          confirmText: 'Dismiss',
-          onConfirm: () => {}
-        });
-      } finally {
-        setUploadingInvoiceNo(null);
-      }
-    };
-    reader.onerror = (error) => {
-      console.error('File reading error:', error);
+    try {
+      setIsUploadingProof(true);
+      const base64Data = await compressImage(file);
+      
+      await uploadPaymentProof(uploadingInvoiceNo, base64Data);
+      setIsUploadingProof(false);
+      
       setConfirmModal({
         isOpen: true,
-        title: 'Error Reading File',
-        message: 'Could not parse the selected file for upload.',
+        title: 'Upload Successful',
+        message: `The payment proof transfer photo for Invoice ${uploadingInvoiceNo} has been uploaded successfully.`,
+        type: 'success',
+        showCancel: false,
+        confirmText: 'Done',
+        onConfirm: () => {}
+      });
+
+      // Update state locally
+      setInvoices(prev => prev.map(inv => inv.invoiceNo === uploadingInvoiceNo ? { ...inv, paymentAttachment: base64Data } : inv));
+    } catch (err: any) {
+      setIsUploadingProof(false);
+      console.error('Failed to upload proof:', err);
+      setConfirmModal({
+        isOpen: true,
+        title: 'Upload Failed',
+        message: err.response?.data?.message || 'The file could not be uploaded. It might exceed size constraints.',
         type: 'danger',
         showCancel: false,
         confirmText: 'Dismiss',
         onConfirm: () => {}
       });
+    } finally {
       setUploadingInvoiceNo(null);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleViewPaymentProof = (inv: Invoice) => {
