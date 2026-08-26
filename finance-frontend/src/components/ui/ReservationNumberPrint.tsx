@@ -162,6 +162,16 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     {details.billTo.tax}
                   </p>
                 </div>
+                {details.billTo.agent && (
+                  <div className="col-span-2">
+                    <p className="text-[9px] font-medium text-slate-400 font-sans">
+                      Agent
+                    </p>
+                    <p className="mt-0.5 text-xs text-amber-600 font-bold font-sans">
+                      {details.billTo.agent}
+                    </p>
+                  </div>
+                )}
                 <div className="col-span-2">
                   <p className="text-[9px] font-medium text-slate-400 font-sans">
                     Street Address

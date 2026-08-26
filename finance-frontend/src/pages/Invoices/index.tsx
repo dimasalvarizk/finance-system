@@ -54,6 +54,7 @@ export interface InvoiceDetail {
     tax: string;
     address: string;
     cityCountry: string;
+    agent?: string;
   };
   items: {
     description: string;
@@ -143,11 +144,13 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     tax: localStorageComp.taxNumber,
     address: localStorageComp.address.split(',')[0] || localStorageComp.address,
     cityCountry: localStorageComp.address.split(',').slice(1).join(',').trim() || localStorageComp.address,
+    agent: localStorageComp.agent,
   } : {
     company: invoice.company,
     tax: 'N/A',
     address: 'N/A',
     cityCountry: 'N/A',
+    agent: undefined,
   };
 
   return {

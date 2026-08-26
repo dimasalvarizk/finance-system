@@ -139,7 +139,7 @@ const Companies: React.FC = () => {
   const [newCompPostal, setNewCompPostal] = useState("");
   const [newCompCountry, setNewCompCountry] = useState("United States");
   const [newCompTax, setNewCompTax] = useState("");
-  const [newCompAgent, setNewCompAgent] = useState("Hasoob Technology");
+  const [newCompAgent, setNewCompAgent] = useState("Hasoob Technology Trading - 2067");
   const [formError, setFormError] = useState("");
   const [showValidation, setShowValidation] = useState(false);
 
@@ -425,7 +425,7 @@ const Companies: React.FC = () => {
     setNewCompPostal("");
     setNewCompCountry("United States");
     setNewCompTax("");
-    setNewCompAgent("Hasoob Technology");
+    setNewCompAgent("Hasoob Technology Trading - 2067");
     setFormError("");
     setShowValidation(false);
     setCurrentPage(1);
@@ -1022,8 +1022,8 @@ const Companies: React.FC = () => {
                     onChange={(e) => setNewCompAgent(e.target.value)}
                     className="w-full h-[40px] px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white cursor-pointer font-sans"
                   >
-                    <option value="Hasoob Technology">Hasoob Technology</option>
-                    <option value="ODST Travel & Tourizm">ODST Travel & Tourizm</option>
+                    <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
+                    <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
                   </select>
                 </div>
               </div>
@@ -1130,7 +1130,7 @@ const Companies: React.FC = () => {
                   setEditPhone(selectedCompany.phone);
                   setEditAddress(selectedCompany.address);
                   setEditTaxId(selectedCompany.taxNumber);
-                  setEditAgent(selectedCompany.agent || "Hasoob Technology");
+                  setEditAgent(selectedCompany.agent || "Hasoob Technology Trading - 2067");
                   setIsDetailsModalOpen(false);
                   setIsEditModalOpen(true);
                 }}
@@ -1286,8 +1286,8 @@ const Companies: React.FC = () => {
                     onChange={(e) => setEditAgent(e.target.value)}
                     className="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] bg-white cursor-pointer font-sans"
                   >
-                    <option value="Hasoob Technology">Hasoob Technology</option>
-                    <option value="ODST Travel & Tourizm">ODST Travel & Tourizm</option>
+                    <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
+                    <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
                   </select>
                 </div>
               </div>
