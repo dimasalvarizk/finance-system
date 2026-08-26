@@ -226,7 +226,7 @@ const Requests: React.FC = () => {
       dueDate: selectedRequest.dueDate,
       usdToIdrRate: selectedRequest.usdToIdrRate,
       sarToIdrRate: selectedRequest.sarToIdrRate,
-      status: (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "Approved" : "Pending",
+      status: (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? "Approved" : "Pending",
       items: selectedRequest.items || [],
       createdBy: selectedRequest.requestedBy,
       branch: selectedRequest.branch,
@@ -252,7 +252,7 @@ const Requests: React.FC = () => {
     if (activeTab === "pending") {
       list = list.filter((r) => r.status === "0/4 Pending" || r.status === "1/4 Approved" || r.status === "2/4 Approved" || r.status === "3/4 Approved" || r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved");
     } else if (activeTab === "approved") {
-      list = list.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved");
+      list = list.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved" || r.status === "Paid");
     } else if (activeTab === "rejected") {
       list = list.filter((r) => r.status === "Rejected");
     }
@@ -287,7 +287,7 @@ const Requests: React.FC = () => {
     return {
       all: allRequests.length,
       pending: allRequests.filter((r) => r.status === "0/4 Pending" || r.status === "1/4 Approved" || r.status === "2/4 Approved" || r.status === "3/4 Approved" || r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved").length,
-      approved: allRequests.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved").length,
+      approved: allRequests.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved" || r.status === "Paid").length,
       rejected: allRequests.filter((r) => r.status === "Rejected").length,
     };
   }, [allRequests]);
@@ -581,7 +581,7 @@ const Requests: React.FC = () => {
           {selectedRequest ? (
             <div className="space-y-6">
               {/* Top Alerts */}
-              {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") && (
+              {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") && (
                 <div className="bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-4 flex items-center gap-3 text-[#065f46] text-[13px] font-medium font-sans">
                   <div className="w-5 h-5 bg-[#10b981] rounded-full flex items-center justify-center text-white text-[10px] font-bold">✓</div>
                   <span>This invoice has been fully approved and is ready for payment. All necessary signatures have been consolidated.</span>
@@ -605,7 +605,7 @@ const Requests: React.FC = () => {
                     <span>Request {selectedRequest.reqNo}</span>
                   </div>
                   <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight font-sans">
-                    {selectedRequest.status === "Rejected" ? "Rejected Invoice Details" : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "Fully Approved Invoice Details" : `Review Request - ${selectedRequest.company}`}
+                    {selectedRequest.status === "Rejected" ? "Rejected Invoice Details" : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? "Fully Approved Invoice Details" : `Review Request - ${selectedRequest.company}`}
                   </h1>
                 </div>
                 <button
@@ -872,13 +872,13 @@ const Requests: React.FC = () => {
                   {/* Print and Download PDF Buttons (Locked until all 3 directors approve) */}
                   <div className="flex items-center gap-3">
                     <button
-                      disabled={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved"}
+                      disabled={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid"}
                       onClick={() => {
-                        if (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") {
+                        if (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") {
                           window.print();
                         }
                       }}
-                      className={`px-4 py-2 border rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
+                      className={`px-4 py-2 border rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid")
                           ? "border-[#cbd5e1] text-[#334155] hover:bg-slate-50 cursor-pointer"
                           : "border-slate-200 text-slate-300 bg-slate-50 cursor-not-allowed opacity-50"
                         }`}
@@ -887,18 +887,18 @@ const Requests: React.FC = () => {
                       <span>Print</span>
                     </button>
                     <button
-                      disabled={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved"}
+                      disabled={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid"}
                       onClick={() => {
-                        if (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") {
+                        if (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") {
                           window.print();
                         }
                       }}
-                      className={`px-4 py-2 rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
+                      className={`px-4 py-2 rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid")
                           ? "bg-[#f59e0b] hover:bg-[#d97706] cursor-pointer"
                           : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-60"
                         }`}
                     >
-                      {selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && <Lock className="w-3.5 h-3.5" />}
+                      {selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && <Lock className="w-3.5 h-3.5" />}
                       <span>Download PDF</span>
                     </button>
                   </div>
@@ -910,7 +910,7 @@ const Requests: React.FC = () => {
                   {/* Approval Workflow Card */}
                   <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-6">
                     <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">
-                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "Approval Workflow Status" : "Approval Workflow"}
+                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? "Approval Workflow Status" : "Approval Workflow"}
                     </h3>
 
                     <div className="space-y-6 pt-1">
@@ -1025,7 +1025,7 @@ const Requests: React.FC = () => {
 
                       {/* Level 3: Madinah Branch Accountant */}
                       <div className="flex items-start gap-4">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid")
                             ? "bg-[#10b981]"
                             : selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt
                               ? "bg-[#ef4444]"
@@ -1033,10 +1033,10 @@ const Requests: React.FC = () => {
                                 ? "bg-[#f59e0b]"
                                 : "bg-slate-200 text-slate-400"
                           }`}
-                          style={selectedRequest.status !== "3/4 Approved" && selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "2/4 Approved" && selectedRequest.status !== "2/3 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
+                          style={selectedRequest.status !== "3/4 Approved" && selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "2/4 Approved" && selectedRequest.status !== "2/3 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
-                          ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                          ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                             <Check className="w-5 h-5" />
                           ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                             <Clock className="w-5 h-5" />
@@ -1049,7 +1049,7 @@ const Requests: React.FC = () => {
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 3</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
-                            ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                            ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
                             ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
@@ -1064,7 +1064,7 @@ const Requests: React.FC = () => {
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
                               Rejected: {selectedRequest.rejectedAt || 'Oct 13, 2026 at 10:00 AM'}
                             </p>
-                          ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                          ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level3ApprovedAt || 'Oct 13, 2026 at 10:00 AM'}
                             </p>
@@ -1085,7 +1085,7 @@ const Requests: React.FC = () => {
 
                       {/* Level 4: Umrah Division Director */}
                       <div className="flex items-start gap-4">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid")
                             ? "bg-[#10b981]"
                             : selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt
                               ? "bg-[#ef4444]"
@@ -1093,10 +1093,10 @@ const Requests: React.FC = () => {
                                 ? "bg-[#f59e0b]"
                                 : "bg-slate-200 text-slate-400"
                           }`}
-                          style={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "3/4 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
+                          style={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "3/4 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
-                          ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                          ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                             <Check className="w-5 h-5" />
                           ) : selectedRequest.status === "3/4 Approved" ? (
                             <Clock className="w-5 h-5" />
@@ -1109,7 +1109,7 @@ const Requests: React.FC = () => {
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 4</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
-                            ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                            ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
                             ) : selectedRequest.status === "3/4 Approved" ? (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
@@ -1117,14 +1117,14 @@ const Requests: React.FC = () => {
                               <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
                             )}
                           </div>
-                          <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "text-[#0c0d0f]" : "text-[#475569]"
+                          <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? "text-[#0c0d0f]" : "text-[#475569]"
                             }`}>Mr. Khalid Idriss</h4>
                           <p className="text-[12px] text-slate-400 font-sans">Umrah Division Director</p>
                           {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
                               Rejected: {selectedRequest.rejectedAt || 'Oct 14, 2026 at 11:00 AM'}
                             </p>
-                          ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                          ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level4ApprovedAt || 'Oct 14, 2026 at 11:00 AM'}
                             </p>
@@ -1146,7 +1146,7 @@ const Requests: React.FC = () => {
 
                     {/* Summary Bottom info */}
                     <div className="border-t border-[#e2e8f0]/60 pt-4 text-[12px] text-[#475569] font-medium font-sans">
-                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                         <div>
                           <p className="font-bold text-[#10b981]">Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Ready for payment execution.</p>
@@ -1180,7 +1180,7 @@ const Requests: React.FC = () => {
                   </div>
 
                   {/* Your Decision / Available Operations Card */}
-                  {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                  {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                       <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Available Operations</h3>
                       {user?.role !== 'Accountant' && (
