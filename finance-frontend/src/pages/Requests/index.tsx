@@ -21,7 +21,7 @@ export interface InvoiceRequest {
   amount: string;
   requestedBy: string;
   submittedDate: string;
-  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "0/4 Pending" | "1/4" | "1/4 Approved" | "2/4" | "2/4 Approved" | "3/4" | "3/4 Approved" | "4/4 Approved" | "Approved" | "Rejected" | "Cancelled" | "Paid" | "Archived";
+  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "0/4 Pending" | "1/4" | "1/4 Approved" | "2/4" | "2/4 Approved" | "3/4" | "3/4 Approved" | "4/4 Approved" | "Approved" | "Awaiting Payment Approval" | "Rejected" | "Cancelled" | "Paid" | "Archived";
   branch?: string;
   rejectionReason?: string;
   level1ApprovedAt?: string | null;
@@ -287,9 +287,9 @@ const Requests: React.FC = () => {
     let list = allRequests;
 
     if (activeTab === "pending") {
-      list = list.filter((r) => r.status === "0/4 Pending" || r.status === "1/4 Approved" || r.status === "2/4 Approved" || r.status === "3/4 Approved" || r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved");
+      list = list.filter((r) => r.status === "0/4 Pending" || r.status === "1/4" || r.status === "1/4 Approved" || r.status === "2/4" || r.status === "2/4 Approved" || r.status === "3/4" || r.status === "3/4 Approved" || r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved");
     } else if (activeTab === "approved") {
-      list = list.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved" || r.status === "Paid");
+      list = list.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved" || r.status === "Paid" || r.status === "Awaiting Payment Approval");
     } else if (activeTab === "rejected") {
       list = list.filter((r) => r.status === "Rejected");
     }
@@ -503,10 +503,41 @@ const Requests: React.FC = () => {
       setIsPaid(true);
       setShowPaymentConfirm(false);
       setShowPaymentSuccess(true);
+      setSelectedRequest(prev => prev ? { ...prev, status: 'Paid' as any } : null);
       setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, status: 'Paid' as any } : r));
     } catch (err: any) {
       console.error('Failed to mark invoice as paid:', err);
       alert(err.response?.data?.message || 'Failed to mark invoice as paid.');
+    }
+  };
+
+  const handleRequestPaymentApproval = async () => {
+    if (!selectedRequest) return;
+    if (!selectedRequest.paymentAttachment) {
+      alert("Please upload the payment proof document first.");
+      return;
+    }
+    try {
+      await updateInvoiceStatusAPI(selectedRequest.invoiceNo, 'Awaiting Payment Approval');
+      setSelectedRequest(prev => prev ? { ...prev, status: 'Awaiting Payment Approval' as any } : null);
+      setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, status: 'Awaiting Payment Approval' as any } : r));
+      alert("Payment proof submitted successfully. Awaiting Mr. Emad Moustafa's approval.");
+    } catch (err: any) {
+      console.error('Failed to submit payment approval request:', err);
+      alert(err.response?.data?.message || 'Failed to submit payment approval request.');
+    }
+  };
+
+  const handleRejectPayment = async () => {
+    if (!selectedRequest) return;
+    try {
+      await updateInvoiceStatusAPI(selectedRequest.invoiceNo, '4/4 Approved');
+      setSelectedRequest(prev => prev ? { ...prev, status: '4/4 Approved' as any } : null);
+      setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, status: '4/4 Approved' as any } : r));
+      alert("Payment proof has been rejected. The request is returned to 4/4 Approved status.");
+    } catch (err: any) {
+      console.error('Failed to reject payment:', err);
+      alert(err.response?.data?.message || 'Failed to reject payment.');
     }
   };
 
@@ -1216,8 +1247,8 @@ const Requests: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Payment Proof Card (shown if attachment exists OR status is Paid) */}
-                  {(selectedRequest.paymentAttachment || selectedRequest.status === "Paid" || isPaid) && (
+                  {/* Payment Proof Card (shown if attachment exists OR status is Paid / Approved) */}
+                  {(selectedRequest.paymentAttachment || selectedRequest.status === "Paid" || isPaid || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "Awaiting Payment Approval") && (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                       <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo</h3>
                       {selectedRequest.paymentAttachment ? (
@@ -1325,21 +1356,57 @@ const Requests: React.FC = () => {
                   )}
 
                   {/* Your Decision / Available Operations Card */}
-                  {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
+                  {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Awaiting Payment Approval") ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                       <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Available Operations</h3>
-                      {user?.role !== 'Accountant' && (
-                        <button
-                          onClick={() => setShowPaymentConfirm(true)}
-                          disabled={isPaid}
-                          className={`w-full py-3 text-white rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all ${isPaid
-                            ? "bg-slate-200 cursor-not-allowed opacity-60 text-slate-400"
-                            : "bg-[#f59e0b] hover:bg-[#d97706]"
-                            }`}
-                        >
-                          <CreditCard className="w-4 h-4" />
-                          {isPaid ? "Marked as Paid" : "Mark as Paid"}
-                        </button>
+                      
+                      {selectedRequest.status === "Awaiting Payment Approval" ? (
+                        user?.role === 'Super Admin' ? (
+                          <div className="space-y-3">
+                            <p className="text-[13px] text-[#475569] font-sans text-left leading-relaxed">
+                              Mr. Emad, please review the uploaded payment proof below. If the proof is correct, approve the payment.
+                            </p>
+                            <div className="grid grid-cols-2 gap-4 pt-1">
+                              <button
+                                onClick={() => handleRejectPayment()}
+                                className="py-3 bg-red-100 hover:bg-red-200 text-[#b91c1c] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
+                              >
+                                Reject Payment
+                              </button>
+                              <button
+                                onClick={() => handleConfirmPayment()}
+                                className="py-3 bg-[#10b981] text-white hover:bg-[#059669] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
+                              >
+                                Approve Payment
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-[12.5px] font-medium text-slate-500 font-sans flex items-start gap-2.5 text-left">
+                            <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                            <span>Payment proof uploaded and submitted. Awaiting approval from Mr. Emad Moustafa.</span>
+                          </div>
+                        )
+                      ) : (
+                        user?.role !== 'Accountant' && (
+                          <button
+                            onClick={() => {
+                              if (!selectedRequest.paymentAttachment) {
+                                alert("Please upload the payment proof first before submitting.");
+                              } else {
+                                handleRequestPaymentApproval();
+                              }
+                            }}
+                            disabled={isPaid}
+                            className={`w-full py-3 text-white rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all ${isPaid
+                              ? "bg-slate-200 cursor-not-allowed opacity-60 text-slate-400"
+                              : "bg-[#f59e0b] hover:bg-[#d97706]"
+                              }`}
+                          >
+                            <CreditCard className="w-4 h-4" />
+                            {isPaid ? "Marked as Paid" : "Submit Payment for Approval"}
+                          </button>
+                        )
                       )}
                       
                       <button

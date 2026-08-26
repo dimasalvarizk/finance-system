@@ -536,7 +536,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             <span className="text-[12px] text-[#94a3b8] font-medium font-sans">
               System status: <span className="font-bold text-[#64748b]">{selectedInvoice.status}</span>
             </span>
-            {selectedInvoice.status === 'Paid' && (
+            {(selectedInvoice.status === 'Paid' || selectedInvoice.status === 'Awaiting Payment Approval') && (
               localPaymentAttachment ? (
                 <button
                   type="button"
