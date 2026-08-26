@@ -3,8 +3,8 @@ version: '3.8'
 services:
   api-gateway:
     build:
-      context: .
-      dockerfile: backend/api-gateway/Dockerfile
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
     ports:
       - '5000:5000'
     environment:
@@ -25,8 +25,8 @@ services:
 
   auth-service:
     build:
-      context: .
-      dockerfile: backend/auth-service/Dockerfile
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
     env_file:
       - ./backend/auth-service/.env
     environment:
@@ -36,8 +36,8 @@ services:
 
   invoice-service:
     build:
-      context: .
-      dockerfile: backend/invoice-service/Dockerfile
+      context: ./backend/invoice-service
+      dockerfile: Dockerfile
     env_file:
       - ./backend/invoice-service/.env
     environment:
@@ -47,8 +47,8 @@ services:
 
   request-service:
     build:
-      context: .
-      dockerfile: backend/request-service/Dockerfile
+      context: ./backend/request-service
+      dockerfile: Dockerfile
     env_file:
       - ./backend/request-service/.env
     environment:
@@ -58,8 +58,8 @@ services:
 
   company-service:
     build:
-      context: .
-      dockerfile: backend/company-service/Dockerfile
+      context: ./backend/company-service
+      dockerfile: Dockerfile
     env_file:
       - ./backend/company-service/.env
     environment:
@@ -69,8 +69,8 @@ services:
 
   setting-service:
     build:
-      context: .
-      dockerfile: backend/setting-service/Dockerfile
+      context: ./backend/setting-service
+      dockerfile: Dockerfile
     env_file:
       - ./backend/setting-service/.env
     environment:
@@ -80,8 +80,8 @@ services:
 
   finance-frontend:
     build:
-      context: .
-      dockerfile: finance-frontend/Dockerfile
+      context: ./finance-frontend
+      dockerfile: Dockerfile
       args:
         - 'VITE_SETTING_API_URL=https://api.odstfin.io'
     ports:
