@@ -6,15 +6,15 @@ services:
       context: .
       dockerfile: backend/api-gateway/Dockerfile
     ports:
-      - "5000:5000"
+      - '5000:5000'
     environment:
       - PORT=5000
       - NODE_ENV=production
-      - AUTH_SERVICE_URL=http://auth-service:5001
-      - INVOICE_SERVICE_URL=http://invoice-service:5002
-      - REQUEST_SERVICE_URL=http://request-service:5003
-      - COMPANY_SERVICE_URL=http://company-service:5004
-      - SETTING_SERVICE_URL=http://setting-service:5005
+      - 'AUTH_SERVICE_URL=http://auth-service:5001'
+      - 'INVOICE_SERVICE_URL=http://invoice-service:5002'
+      - 'REQUEST_SERVICE_URL=http://request-service:5003'
+      - 'COMPANY_SERVICE_URL=http://company-service:5004'
+      - 'SETTING_SERVICE_URL=http://setting-service:5005'
     depends_on:
       - auth-service
       - invoice-service
@@ -83,7 +83,23 @@ services:
       context: .
       dockerfile: finance-frontend/Dockerfile
       args:
-        - VITE_SETTING_API_URL=https://api.odstfin.io
+        - 'VITE_SETTING_API_URL=https://api.odstfin.io'
     ports:
-      - "80:80"
+      - '80:80'
     restart: always
+
+  # --- INI TAMBAHAN DATABASE INTERNALNYA ---
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_rahasia
+      MYSQL_DATABASE: finance_db
+      MYSQL_USER: dst_user
+      MYSQL_PASSWORD: dst_password_rahasia
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+
+# --- INI PENYIMPANAN DATABASENYA ---
+volumes:
+  db_data:
