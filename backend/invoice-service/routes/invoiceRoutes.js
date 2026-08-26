@@ -18,8 +18,8 @@ router.delete('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Direc
 router.put('/:id', updateInvoice);
 router.put('/:id/cancel', cancelInvoice);
 
-// Only Super Admin, Chief Accountant, Division Director, and Accountant can update invoice statuses
-router.put('/:id/status', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant'), updateInvoiceStatus);
+// Only Super Admin, Chief Accountant, Division Director, Accountant, and Madinah Branch Accountant can update invoice statuses
+router.put('/:id/status', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), updateInvoiceStatus);
 
 // Upload payment proof for paid invoices
 router.put('/:id/payment-proof', uploadPaymentProof);
