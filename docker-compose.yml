@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: backend/api-gateway/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - INVOICE_SERVICE_URL=http://invoice-service:5002
+      - REQUEST_SERVICE_URL=http://request-service:5003
+      - COMPANY_SERVICE_URL=http://company-service:5004
+      - SETTING_SERVICE_URL=http://setting-service:5005
+    depends_on:
+      - auth-service
+      - invoice-service
+      - request-service
+      - company-service
+      - setting-service
+    restart: always
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: backend/auth-service/Dockerfile
+    env_file:
+      - ./backend/auth-service/.env
+    environment:
+      - PORT=5001
+      - NODE_ENV=production
+    restart: always
+
+  invoice-service:
+    build:
+      context: .
+      dockerfile: backend/invoice-service/Dockerfile
+    env_file:
+      - ./backend/invoice-service/.env
+    environment:
+      - PORT=5002
+      - NODE_ENV=production
+    restart: always
+
+  request-service:
+    build:
+      context: .
+      dockerfile: backend/request-service/Dockerfile
+    env_file:
+      - ./backend/request-service/.env
+    environment:
+      - PORT=5003
+      - NODE_ENV=production
+    restart: always
+
+  company-service:
+    build:
+      context: .
+      dockerfile: backend/company-service/Dockerfile
+    env_file:
+      - ./backend/company-service/.env
+    environment:
+      - PORT=5004
+      - NODE_ENV=production
+    restart: always
+
+  setting-service:
+    build:
+      context: .
+      dockerfile: backend/setting-service/Dockerfile
+    env_file:
+      - ./backend/setting-service/.env
+    environment:
+      - PORT=5005
+      - NODE_ENV=production
+    restart: always
+
+  finance-frontend:
+    build:
+      context: .
+      dockerfile: finance-frontend/Dockerfile
+      args:
+        - VITE_SETTING_API_URL=https://api.odstfin.io
+    ports:
+      - "80:80"
+    restart: always
