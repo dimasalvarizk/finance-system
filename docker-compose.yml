@@ -5,8 +5,6 @@ services:
     build:
       context: ./backend/api-gateway
       dockerfile: Dockerfile
-    ports:
-      - '5000:5000'
     environment:
       - PORT=5000
       - NODE_ENV=production
@@ -84,8 +82,6 @@ services:
       dockerfile: Dockerfile
       args:
         - 'VITE_SETTING_API_URL=https://api.odstfin.io'
-    ports:
-      - '3000:80'
     restart: always
 
   # --- INI TAMBAHAN DATABASE INTERNALNYA ---
