@@ -43,32 +43,31 @@ Aplikasi antarmuka pengguna dibangun dengan:
 *   **Tailwind CSS** untuk desain tata letak UI yang modern dan responsif.
 *   **React Router Dom** untuk navigasi halaman tanpa reload.
 *   **Axios** untuk integrasi panggilan API terpusat.
-*   **Lucide React** sebagai pustaka ikon visual premium.
-
----
-
-## ✨ Fitur Utama Sistem Keuangan (Pembaluan Terkini)
+*   **Lucide React** sebagai pustaka ikon visual premium.## ✨ Fitur Utama Sistem Keuangan (Pembaruan Terkini)
 
 Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong efisiensi tim internal dan keamanan data:
 
-1. **Multi-Currency & Konversi Kurs Otomatis (USD, SAR, IDR)**:
+1. **User-Facing Rename to "Confirmations"**:
+   * Seluruh teks antarmuka pengguna (UI), tabel ledger, kolom pencarian, tombol, laporan, dan dokumen cetakan yang sebelumnya bertuliskan **"Invoice"** kini telah diperbarui secara global menjadi **"Confirmation"** / **"Confirmations"** untuk menyelaraskan dengan kebutuhan operasional perusahaan.
+
+2. **Sistem Persetujuan Mandiri 4-Level & Logika OR**:
+   * Alur persetujuan diperluas menjadi **4 Level**: `0/4 Pending -> 1/4 -> 2/4 -> 3/4 -> 4/4 Approved`.
+   * Khusus pada **Level 3**, sistem menggunakan logika **OR (ATAU)**. Persetujuan dapat dilakukan oleh Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani. Persetujuan salah satu dari mereka langsung meloloskan request ke Level 4 (Mr. Khalid Idriss).
+
+3. **Log Catatan Persetujuan & Unggah Bukti**:
+   * Setiap approver dapat menambahkan alasan/catatan keputusan saat menyetujui, yang akan tersimpan dalam kolom `levelXNote` di database.
+   * Dilengkapi fitur unggah bukti transfer pembayaran dengan kompresi gambar otomatis di sisi klien sebelum diunggah ke backend.
+
+4. **Kemitraan Klien & Manajemen Agent**:
+   * Formulir pendaftaran/edit perusahaan dilengkapi pilihan **Agent** resmi: `Hasoob Technology Trading - 2067` dan `ODST Travel and Tourism - 2114`.
+   * Informasi Agent yang dipilih ditampilkan secara dinamis di dalam kotak **"BILL TO"** pada halaman rincian konfirmasi dan cetakan PDF.
+
+5. **Multi-Currency & Konversi Kurs Otomatis (USD, SAR, IDR)**:
    * Pengaturan harga standar pada katalog layanan kini dapat menggunakan mata uang non-USD (SAR atau Rupiah).
-   * Pada saat pembuatan invoice, item layanan tersebut dikonversi secara otomatis ke USD menggunakan data harian nilai tukar terkini di database (`dst_exchange_rates`), meminimalisir kesalahan perhitungan manual oleh staf.
+   * Konversi otomatis ke USD didasarkan pada nilai tukar harian terkini di database (`dst_exchange_rates`).
 
-2. **Integrasi Rekening Bank Dinamis (Bank Info)**:
-   * Menu pengaturan **Bank Info** di halaman Settings memfasilitasi konfigurasi nomor rekening bank (Danamon/PT ODST) secara dinamis.
-   * Perubahan rekening di database secara otomatis memperbarui seluruh visual invoice klien: halaman invoice, modal detail, file cetakan PDF, menu persetujuan, dan notifikasi email SMTP klien.
-
-3. **Pemisahan Tanggal Transaksi & Pembatalan Otomatis (Auto-Cancel)**:
-   * Pemisahan tegas antara tanggal pembuatan (**Invoice Date**) dengan batas jatuh tempo (**Due Date**). Kedua tanggal ini ditampilkan lengkap di tabel Invoices, Dashboard, dan Requests.
-   * **Batal Otomatis**: Logika backend memantau secara real-time status pembayaran tagihan; setiap tagihan yang belum dibayar melewati batas *Due Date* akan otomatis diubah statusnya menjadi **`Cancelled`** di database.
-
-4. **Pembatasan Peran Akuntan (RBAC)**:
-   * Laporan performa kantor cabang (*Consolidated Branch Performance*) disembunyikan sepenuhnya dari role **Accountant** dan hanya dapat diakses oleh **Super Admin**, **Chief Accountant**, dan **Division Director**.
-   * Akuntan hanya diperbolehkan mengunduh laporan keuangan untuk kantor cabangnya sendiri.
-
-5. **Header Operating Branch Dinamis**:
-   * Header indikator cabang aktif bagi staf yang login sekarang secara dinamis membaca data master cabang di database (`dst_branches`) tanpa ada penyamaran hardcoded, menjamin kejelasan operasional internal.
+6. **Batal Otomatis (Auto-Cancel)**:
+   * Logika backend memantau secara real-time status pembayaran tagihan; setiap tagihan yang belum dibayar melewati batas *Due Date* akan otomatis diubah statusnya menjadi **`Cancelled`** di database.
 
 ---
 
@@ -78,14 +77,14 @@ Sistem menggunakan database relational **MySQL** dengan tabel berawalan `dst_`:
 
 | Nama Tabel | Deskripsi Data | Layanan Pengelola |
 | :--- | :--- | :--- |
-| `dst_users` | Menyimpan kredensial pengguna, peran, kantor cabang, dan data profil. | `auth-service` / `setting-service` |
+| `dst_users` | Menyimpan kredensial pengguna, peran (seperti `Level_3_Approver`), kantor cabang, dan data profil. | `auth-service` / `setting-service` |
 | `dst_sessions` | Menyimpan riwayat sesi perangkat aktif pengguna saat ini. | `auth-service` / `setting-service` |
 | `dst_login_logs` | Menyimpan catatan audit log masuk (IP, browser, status). | `auth-service` |
 | `dst_notifications` | Menyimpan pesan pemberitahuan in-app untuk pengguna. | `auth-service` |
-| `dst_companies` | Menyimpan daftar perusahaan klien/mitra pariwisata. | `company-service` |
-| `dst_invoices` | Menyimpan data header invoice (nomor, total biaya, rate konversi, tanggal pembuatan, jatuh tempo). | `invoice-service` |
-| `dst_invoice_items` | Menyimpan baris detail barang/layanan dalam setiap invoice (Relasi One-to-Many). | `invoice-service` |
-| `dst_requests` | Menyimpan status pengajuan persetujuan dan waktu tanda tangan tiap level. | `request-service` |
+| `dst_companies` | Menyimpan daftar perusahaan klien beserta kolom `agent`. | `company-service` |
+| `dst_invoices` | Menyimpan data header konfirmasi (nomor, total biaya, rate konversi, tanggal pembuatan, jatuh tempo, bukti bayar). | `invoice-service` |
+| `dst_invoice_items` | Menyimpan baris detail barang/layanan dalam setiap konfirmasi (Relasi One-to-Many). | `invoice-service` |
+| `dst_requests` | Menyimpan status pengajuan persetujuan 4 level (`level1Note` - `level4Note` dan waktu ttd). | `request-service` |
 | `dst_branches` | Menyimpan data kantor cabang operasional perusahaan di Indonesia. | `setting-service` |
 | `dst_notification_settings` | Menyimpan preferensi notifikasi tiap user (Email/In-App). | `setting-service` |
 | `dst_exchange_rates` | Menyimpan data nilai tukar mata uang terkini (USD/SAR/IDR). | `setting-service` |
@@ -104,58 +103,56 @@ sequenceDiagram
     autonumber
     actor Accountant as Accountant (Ahmad)
     actor FD as Finance Director (Mr. Emad)
-    actor CA as Chief Accountant (Mr. Hesham)
-    actor DD as Division Director (Mr. Khalid)
+    actor CA as Chief Accountant (Mr. Hesham Mokhtar)
+    actor L3 as Level 3 Approver (Mr. Karim OR Mr. Raed)
+    actor DD as Division Director (Mr. Khalid Idriss)
 
-    Accountant->>Invoice Service: 1. Buat Invoice Baru
-    Invoice Service->>Request Service: 2. Daftarkan Request Baru (Status: 0/3 Pending)
+    Accountant->>Invoice Service: 1. Buat Konfirmasi Baru
+    Invoice Service->>Request Service: 2. Daftarkan Request Baru (Status: 0/4 Pending)
     
     Note over FD: Level 1 Approval
-    FD->>Request Service: 3. Approve Level 1 (Hanya Super Admin)
-    Request Service-->>Invoice Service: Update Status: 1/3 Approved
+    FD->>Request Service: 3. Approve Level 1 (Mr. Emad Moustafa)
+    Request Service-->>Invoice Service: Update Status: 1/4 Approved
 
     Note over CA: Level 2 Approval
-    CA->>Request Service: 4. Approve Level 2 (Chief Accountant / Super Admin)
-    Request Service-->>Invoice Service: Update Status: 2/3 Approved
+    CA->>Request Service: 4. Approve Level 2 (Mr. Hesham Mokhtar)
+    Request Service-->>Invoice Service: Update Status: 2/4 Approved
 
-    Note over DD: Level 3 Approval
-    DD->>Request Service: 5. Approve Level 3 (Division Director / Super Admin)
-    Request Service-->>Invoice Service: Update Status: 3/3 Approved (Fully Approved)
+    Note over L3: Level 3 Approval (OR Logic)
+    L3->>Request Service: 5. Approve Level 3 (Mr. Karim Gharba ATAU Mr. Raed AlBadrani)
+    Request Service-->>Invoice Service: Update Status: 3/4 Approved
+
+    Note over DD: Level 4 Approval
+    DD->>Request Service: 6. Approve Level 4 (Mr. Khalid Idriss)
+    Request Service-->>Invoice Service: Update Status: 4/4 Approved (Fully Approved)
     
     Note over Accountant: Selesai / Pembayaran
-    Request Service->>Invoice Service: 6. Kunci Invoice & Ubah Status menjadi "Approved"
-    Accountant->>Invoice Service: 7. Unduh/Cetak PDF & Eksekusi Transfer Bank Danamon
+    Request Service->>Invoice Service: 7. Kunci Konfirmasi & Ubah Status menjadi "Approved"
+    Accountant->>Invoice Service: 8. Unduh/Cetak PDF & Eksekusi Transfer Bank Danamon
 ```
 
 ### 1. Otentikasi dan Matriks Peran Pengguna
 Pengguna harus masuk dengan salah satu peran (role) yang menentukan wewenang mereka dalam sistem persetujuan:
-*   **Super Admin** (Direktur Keuangan / *Finance Director* - **Mr. Emad Moustafa**): Memiliki wewenang penuh atas konfigurasi sistem serta dapat memberikan persetujuan pada Level 1, 2, maupun 3.
-*   **Chief Accountant** (Kepala Akuntan - **Mr. Hesham Ahmed**): Bertanggung jawab atas verifikasi kepatuhan keuangan pada Level 2.
-*   **Division Director** (Direktur Divisi Umrah - **Mr. Khalid Idriss**): Bertanggung jawab atas persetujuan akhir operasional pada Level 3.
-*   **Accountant** (Staf Akuntan - **Ahmad Saleh**): Membuat invoice, mendaftarkan request, memantau persetujuan, dan melakukan eksekusi pembayaran.
+*   **Super Admin** (Direktur Keuangan / *Finance Director* - **Mr. Emad Moustafa**): Memiliki wewenang penuh atas konfigurasi sistem serta dapat memberikan persetujuan pada Level 1, 2, 3, maupun 4.
+*   **Chief Accountant** (Kepala Akuntan - **Mr. Hesham Mokhtar**): Bertanggung jawab atas verifikasi kepatuhan keuangan pada Level 2.
+*   **Level 3 Approver** (**Mr. Karim Gharba** & **Mr. Raed AlBadrani**): Bertanggung jawab atas verifikasi Level 3. Karim memiliki permission khusus `manage_companies`.
+*   **Division Director** (Direktur Divisi Umrah - **Mr. Khalid Idriss**): Bertanggung jawab atas persetujuan akhir operasional pada Level 4.
+*   **Accountant** (Staf Akuntan - **Ahmad Saleh**): Membuat konfirmasi, memantau persetujuan, dan mengunggah bukti pembayaran.
 
-### 2. Siklus Pembuatan Invoice & Persetujuan Multi-Tahap (3-Level Approval System)
-1.  **Penginputan**: Staf Akuntan menginput invoice baru atas transaksi belanja operasional atau pariwisata (misal: pengadaan Visa Umrah, pemesanan hotel, atau sewa bus). Saat pembuatan invoice, staf juga memilih nilai tukar harian (USD/SAR ke IDR).
-2.  **Pengajuan**: Sistem membuat draft invoice dan secara otomatis mengajukan permintaan persetujuan (`dst_requests`) dengan status awal **`0/3 Pending`**.
-3.  **Proses Persetujuan Tingkat 1 (Level 1)**:
-    *   *Penanggung Jawab*: Harus disetujui oleh **Super Admin** (Mr. Emad Moustafa).
-    *   *Hasil*: Jika disetujui, status berubah menjadi **`1/3 Approved`** dan mencatat waktu `level1ApprovedAt`.
-4.  **Proses Persetujuan Tingkat 2 (Level 2)**:
-    *   *Penanggung Jawab*: Harus disetujui oleh **Chief Accountant** (Mr. Hesham) atau Super Admin.
-    *   *Hasil*: Jika disetujui, status berubah menjadi **`2/3 Approved`** dan mencatat waktu `level2ApprovedAt`.
-5.  **Proses Persetujuan Tingkat 3 (Level 3)**:
-    *   *Penanggung Jawab*: Harus disetujui oleh **Division Director** (Mr. Khalid Idriss) atau Super Admin.
-    *   *Hasil*: Jika disetujui, status berubah menjadi **`3/3 Approved`** (Fully Approved) dan mencatat waktu `level3ApprovedAt`.
-6.  **Pemberatan Keputusan (Rejection)**:
-    *   Setiap pengambil keputusan (Super Admin, Chief Accountant, atau Division Director) dapat menolak (*Reject*) pengajuan.
-    *   Staf Accountant **tidak diizinkan** menolak pengajuan.
-    *   Jika ditolak, status request dan invoice langsung terkunci menjadi **`Rejected`** dan alur dihentikan.
+### 2. Siklus Persetujuan Multi-Tahap (4-Level Approval System)
+1.  **Penginputan**: Staf Akuntan menginput konfirmasi baru atas transaksi belanja operasional atau pariwisata.
+2.  **Pengajuan**: Sistem membuat draft konfirmasi dengan status awal **`0/4 Pending`**.
+3.  **Proses Persetujuan Tingkat 1 (Level 1)**: Disetujui oleh **Super Admin** (Mr. Emad Moustafa). Status -> **`1/4 Approved`**.
+4.  **Proses Persetujuan Tingkat 2 (Level 2)**: Disetujui oleh **Chief Accountant** (Mr. Hesham Mokhtar) atau Super Admin. Status -> **`2/4 Approved`**.
+5.  **Proses Persetujuan Tingkat 3 (Level 3)**: Disetujui oleh salah satu **Level 3 Approver** (Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani) atau Super Admin. Status -> **`3/4 Approved`**.
+6.  **Proses Persetujuan Tingkat 4 (Level 4)**: Disetujui oleh **Division Director** (Mr. Khalid Idriss) atau Super Admin. Status -> **`4/4 Approved`** (Fully Approved).
+7.  **Pemberatan Keputusan (Rejection)**: Staf Accountant **tidak diizinkan** menolak pengajuan. Jika salah satu approver memilih *Reject*, status langsung dikunci menjadi **`Rejected`** dan alur dihentikan.
 
 ### 3. Eksekusi Pembayaran & Cetak Faktur
-*   Sebelum invoice berstatus **`3/3 Approved`**, fitur **Cetak (Print)** dan **Unduh PDF (Download PDF)** dalam keadaan terkunci (locked).
-*   Setelah status mencapai **`3/3 Approved`**, tombol cetak dan unduh akan aktif secara otomatis.
-*   Akuntan dapat mengunduh invoice resmi yang menyertakan metadata tanda tangan digital (waktu persetujuan dari masing-masing level) serta instruksi transfer pembayaran ke Bank Danamon PT ODST Airlines Indo.
-*   Setelah pembayaran didepositkan, status dapat ditandai sebagai *Paid* (Terbayar).
+*   Sebelum konfirmasi berstatus **`4/4 Approved`**, fitur **Cetak (Print)** dan **Unduh PDF** dalam keadaan terkunci (locked).
+*   Setelah status mencapai **`4/4 Approved`**, tombol cetak dan unduh aktif secara otomatis.
+*   Akuntan dapat mengunduh dokumen resmi yang menyertakan metadata tanda tangan digital (waktu persetujuan dari masing-masing level) serta instruksi transfer pembayaran ke Bank Danamon PT ODST Airlines Indo.
+*   Setelah pembayaran dilakukan, akuntan mengunggah bukti bayar untuk mengubah status menjadi *Paid*.
 
 ---
 
@@ -163,41 +160,31 @@ Pengguna harus masuk dengan salah satu peran (role) yang menentukan wewenang mer
 
 ### Prasyarat
 *   **Node.js** (Minimal v18+)
-*   **MySQL Server** (Pastikan service MySQL berjalan di localhost)
+*   **MySQL Server**
+*   **Docker & Docker Compose** (Opsional, untuk deployment mudah)
 
-### 1. Instalasi Dependensi
-Anda dapat menginstal dependensi untuk root workspace, seluruh 6 microservices backend, dan React frontend sekaligus menggunakan script otomatis yang sudah disediakan di file root `package.json`:
+### Opsi 1: Menjalankan Aplikasi di Lingkungan Pengembangan Lokal (Local Dev Mode)
+1. **Instalasi Dependensi**:
+   Jalankan perintah berikut di root folder proyek:
+   ```bash
+   npm run install:all
+   ```
+2. **Konfigurasi Lingkungan (.env)**:
+   Buat file `.env` di masing-masing folder microservice (`backend/auth-service/`, dll) dan `finance-frontend/`.
+3. **Jalankan Aplikasi secara Bersamaan**:
+   ```bash
+   npm run dev
+   ```
+   Akses antarmuka sistem keuangan di alamat: **`http://localhost:5173`**.
 
-Jalankan perintah berikut di root folder proyek:
-```bash
-npm run install:all
-```
-
-### 2. Konfigurasi Lingkungan (.env)
-Pastikan setiap folder layanan di bawah `backend/` dan folder `finance-frontend/` sudah memiliki file `.env` yang terkonfigurasi dengan benar:
-
-*   **Database Config (Backend Services)**:
-    Sesuaikan variabel `DB_HOST`, `DB_USER`, `DB_PASSWORD`, dan `DB_NAME` (secara default akan membuat database `finance_db` secara otomatis saat service pertama kali dijalankan).
-*   **Gateway URL (Frontend & Gateway)**:
-    Pastikan service gateway mengarah ke port microservice yang tepat, dan frontend mengarah ke port gateway (`http://localhost:5000`).
-
-### 3. Menjalankan Aplikasi di Lingkungan Pengembangan (Development Mode)
-Untuk menjalankan seluruh microservices backend dan frontend secara bersamaan dengan satu perintah saja, jalankan script berikut di terminal root folder:
-
-```bash
-npm run dev
-```
-
-Script ini menggunakan library `concurrently` untuk mengorkestrasi jalannya layanan-layanan berikut secara paralel:
-1.  **Auth Service** (Port 5001)
-2.  **Invoice Service** (Port 5002)
-3.  **Request Service** (Port 5003)
-4.  **Company Service** (Port 5004)
-5.  **Setting Service** (Port 5005)
-6.  **API Gateway** (Port 5000)
-7.  **React Frontend** (Port 5173)
-
-Setelah berjalan, Anda dapat mengakses antarmuka pengguna sistem keuangan di alamat: **`http://localhost:5173`**.
+### Opsi 2: Menjalankan / Mendeploy Aplikasi Menggunakan Docker Compose (Terpadu)
+Aplikasi ini sudah dilengkapi dengan Dockerfiles untuk setiap service dan satu file `docker-compose.yml` utama di root.
+1. **Lengkapi File `.env`** pada masing-masing folder microservice.
+2. **Jalankan Aplikasi**:
+   ```bash
+   docker compose up --build -d
+   ```
+   *(Untuk detail deployment menggunakan Docker Compose di VPS Hostinger dan Coolify Panel, silakan baca [vps_coolify_deployment_guide.md](file:///d:/Manazil%20AL.Mukhtara%20Group/FinanceSystem/vps_coolify_deployment_guide.md)).*
 
 ---
 *Dokumentasi ini dibuat untuk mempermudah onboarding pengembang dan memberikan gambaran menyeluruh terhadap sistem keuangan Manazil AL.Mukhtara Group.*
