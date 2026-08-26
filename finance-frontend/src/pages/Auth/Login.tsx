@@ -264,56 +264,6 @@ const Login: React.FC = () => {
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
-              <div className="border-t border-[#e2e8f0] mt-4 w-full" />
-              <div className="pt-4 flex flex-col space-y-2 text-left">
-                <span className="text-[11px] font-bold text-[#75777c] uppercase tracking-wider block">Testing Shortcuts</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('admin@odst.id');
-                      setPassword('password123');
-                    }}
-                    className="px-2.5 py-1.5 border border-[#e2e4e8] hover:border-[#007aff] hover:bg-blue-50/20 text-[#1c1e21] rounded-[6px] text-[11px] font-medium transition-all text-left font-sans truncate cursor-pointer"
-                    title="Super Admin / Mr. Emad Moustafa"
-                  >
-                    👑 Finance Director
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('hesham.mokhtar@mukhtaraair.com');
-                      setPassword('password123');
-                    }}
-                    className="px-2.5 py-1.5 border border-[#e2e4e8] hover:border-[#007aff] hover:bg-blue-50/20 text-[#1c1e21] rounded-[6px] text-[11px] font-medium transition-all text-left font-sans truncate cursor-pointer"
-                    title="Chief Accountant / Mr. Hesham Mokhtar"
-                  >
-                    💼 Chief Accountant
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('kareem.abdou@mukhtaraair.com');
-                      setPassword('password123');
-                    }}
-                    className="px-2.5 py-1.5 border border-[#e2e4e8] hover:border-[#007aff] hover:bg-blue-50/20 text-[#1c1e21] rounded-[6px] text-[11px] font-medium transition-all text-left font-sans truncate cursor-pointer"
-                    title="Madinah Branch Accountant / Mr. Kareem Abdou"
-                  >
-                    🕌 Madinah Accountant
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('khalid@odst.id');
-                      setPassword('password123');
-                    }}
-                    className="px-2.5 py-1.5 border border-[#e2e4e8] hover:border-[#007aff] hover:bg-blue-50/20 text-[#1c1e21] rounded-[6px] text-[11px] font-medium transition-all text-left font-sans truncate cursor-pointer"
-                    title="Division Director / Mr. Khalid Idriss"
-                  >
-                    📈 Umrah Director
-                  </button>
-                </div>
-              </div>
             </div>
           </form>
         ) : forgotSuccess ? (
