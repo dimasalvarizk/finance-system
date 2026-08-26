@@ -5,7 +5,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import StatCard from '../../components/ui/StatCard';
-import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Eye, Edit3, XCircle, Trash2, Upload } from 'lucide-react';
+import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
 import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof } from '../../services/invoiceService';
@@ -1517,13 +1517,6 @@ const Invoices: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                              <button
-                                onClick={() => setSelectedInvoice(inv)}
-                                title="View Details"
-                                className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-700 transition-all cursor-pointer"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
                               {inv.status === 'Paid' ? (
                                 inv.paymentAttachment ? (
                                   <button
