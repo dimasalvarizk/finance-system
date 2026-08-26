@@ -63,7 +63,7 @@ const ExchangeRateTab: React.FC = () => {
       {/* Title Header */}
       <div className="space-y-1">
         <h2 className="text-[18px] font-bold text-[#0c0d0f] font-sans">Daily Exchange Rate</h2>
-        <p className="text-[11px] text-[#64748b] font-normal font-sans">Manually update exchange rates daily for invoice calculations</p>
+        <p className="text-[11px] text-[#64748b] font-normal font-sans">Manually update exchange rates daily for confirmation calculations</p>
       </div>
 
       {feedback && (

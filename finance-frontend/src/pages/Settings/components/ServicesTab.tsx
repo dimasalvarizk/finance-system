@@ -274,7 +274,7 @@ const ServicesTab: React.FC = () => {
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 flex flex-col w-full text-left space-y-4">
         <div className="space-y-1">
           <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Tax / VAT Configuration</h3>
-          <p className="text-[12px] text-slate-400 font-medium font-sans">Set the default tax or VAT percentage applied to Invoices</p>
+          <p className="text-[12px] text-slate-400 font-medium font-sans">Set the default tax or VAT percentage applied to Confirmations</p>
         </div>
 
         {taxFeedback && (
@@ -437,7 +437,7 @@ const ServicesTab: React.FC = () => {
                     <span className="text-[11px] text-[#64748b] font-normal leading-normal max-w-sm">
                       {statusInput === 'Active'
                         ? 'Enable to make this service orderable immediately'
-                        : 'Hide this service from active invoices and selection catalogs'}
+                        : 'Hide this service from active confirmations and selection catalogs'}
                     </span>
                   </div>
                   <button
@@ -590,7 +590,7 @@ const ServicesTab: React.FC = () => {
                     <span className="text-[11px] text-[#64748b] font-normal leading-normal max-w-sm">
                       {statusInput === 'Active'
                         ? 'Enable to make this service orderable immediately'
-                        : 'Hide this service from active invoices and selection catalogs'}
+                        : 'Hide this service from active confirmations and selection catalogs'}
                     </span>
                   </div>
                   <button

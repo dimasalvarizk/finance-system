@@ -1414,7 +1414,7 @@ const Requests: React.FC = () => {
                         className="w-full py-2.5 bg-white border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm"
                       >
                         <FileText className="w-4 h-4 text-[#64748b]" />
-                        <span>Send Invoice</span>
+                        <span>Send Confirmation</span>
                       </button>
 
                       <div className="grid grid-cols-2 gap-3 pt-1">
@@ -1423,7 +1423,7 @@ const Requests: React.FC = () => {
                           className="py-2 px-3 bg-white border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-xl text-[12px] font-bold text-center cursor-pointer transition-all font-sans flex items-center justify-center gap-1.5 shadow-sm"
                         >
                           <Printer className="w-4 h-4 text-[#64748b]" />
-                          <span>Print Invoice</span>
+                          <span>Print Confirmation</span>
                         </button>
                         <button
                           onClick={() => window.print()}
@@ -1452,7 +1452,7 @@ const Requests: React.FC = () => {
                         className="w-full py-3 bg-[#f8fafc] hover:bg-slate-100/80 text-[#64748b] hover:text-[#475569] rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all border border-[#e2e8f0]"
                       >
                         <Archive className="w-4 h-4 text-[#94a3b8]" />
-                        <span>Archive Invoice</span>
+                        <span>Archive Confirmation</span>
                       </button>
                     </div>
                   ) : (

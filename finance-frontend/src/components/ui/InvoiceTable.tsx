@@ -36,13 +36,13 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
         {/* Header Section */}
         <div className="px-6 flex justify-between items-center mb-6">
           <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">
-            Recent Invoices
+            Recent Confirmations
           </h3>
           <Link
             to="/invoices"
             className="text-[13px] font-semibold text-[#007aff] hover:underline font-sans"
           >
-            See All Invoices
+            See All Confirmations
           </Link>
         </div>
 
@@ -64,7 +64,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
                   Status
                 </th>
                 <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Invoice Date
+                  Confirmation Date
                 </th>
                 <th className="pl-4 pr-6 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
                   Due Date

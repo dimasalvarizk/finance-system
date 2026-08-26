@@ -177,7 +177,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Invoice Number */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Reference Number
+                Confirmation Number
               </label>
               <input
                 type="text"

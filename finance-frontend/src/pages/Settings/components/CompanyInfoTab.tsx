@@ -187,7 +187,7 @@ const CompanyInfoTab: React.FC = () => {
         <div className="space-y-1">
           <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Company Identity</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Update your company or entity name displayed on invoices
+            Update your company or entity name displayed on confirmations
           </p>
         </div>
         <form onSubmit={handleSaveCompanyName} className="space-y-4">
@@ -263,7 +263,7 @@ const CompanyInfoTab: React.FC = () => {
         <div className="space-y-1">
           <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Tax Information</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Set your company tax identification number for invoices
+            Set your company tax identification number for confirmations
           </p>
         </div>
         <form onSubmit={handleSaveTax} className="space-y-4">
@@ -301,7 +301,7 @@ const CompanyInfoTab: React.FC = () => {
         <div className="space-y-1">
           <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Bank Info</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Add your company bank account details for invoices
+            Add your company bank account details for confirmations
           </p>
         </div>
         <form onSubmit={handleSaveBank} className="space-y-4">
@@ -371,7 +371,7 @@ const CompanyInfoTab: React.FC = () => {
         <div className="space-y-1">
           <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Notes</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Add default notes that will appear on your invoices
+            Add default notes that will appear on your confirmations
           </p>
         </div>
         <form onSubmit={handleSaveNotes} className="space-y-4">
@@ -379,7 +379,7 @@ const CompanyInfoTab: React.FC = () => {
             <label className="block text-[13px] font-bold text-[#334155] font-sans">Default Notes</label>
             <textarea
               rows={3}
-              placeholder="Enter default notes for invoices..."
+              placeholder="Enter default notes for confirmations..."
               value={defaultNotes}
               onChange={(e) => setDefaultNotes(e.target.value)}
               className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc] resize-none"
@@ -409,7 +409,7 @@ const CompanyInfoTab: React.FC = () => {
         <div className="space-y-1">
           <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Terms & Conditions</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Define the default terms and conditions included on invoices
+            Define the default terms and conditions included on confirmations
           </p>
         </div>
         <form onSubmit={handleSaveTerms} className="space-y-4">

@@ -391,7 +391,7 @@ const Invoices: React.FC = () => {
       setConfirmModal({
         isOpen: true,
         title: 'Upload Successful',
-        message: `The payment proof transfer photo for Invoice ${uploadingInvoiceNo} has been uploaded successfully.`,
+        message: `The payment proof transfer photo for Confirmation ${uploadingInvoiceNo} has been uploaded successfully.`,
         type: 'success',
         showCancel: false,
         confirmText: 'Done',
@@ -1042,21 +1042,21 @@ const Invoices: React.FC = () => {
 
   const handleBulkDelete = () => {
     triggerConfirm(
-      'Delete Selected Invoices',
-      `Are you sure you want to permanently delete the ${selectedInvoiceIds.length} selected invoices? This action cannot be undone.`,
+      'Delete Selected Confirmations',
+      `Are you sure you want to permanently delete the ${selectedInvoiceIds.length} selected confirmations? This action cannot be undone.`,
       async () => {
         try {
           await deleteInvoicesAPI(selectedInvoiceIds);
-          triggerAlert('Success', 'Selected invoices deleted successfully.', 'success');
+          triggerAlert('Success', 'Selected confirmations deleted successfully.', 'success');
           setSelectedInvoiceIds([]);
           await fetchInvoices();
         } catch (err) {
-          console.error('Failed to delete selected invoices:', err);
-          triggerAlert('Error', 'Failed to delete selected invoices.', 'info');
+          console.error('Failed to delete selected confirmations:', err);
+          triggerAlert('Error', 'Failed to delete selected confirmations.', 'info');
         }
       },
       'danger',
-      'Delete Invoices',
+      'Delete Confirmations',
       'Cancel'
     );
   };
@@ -1065,7 +1065,7 @@ const Invoices: React.FC = () => {
     const selectedInvoices = invoices.filter(inv => selectedInvoiceIds.includes(inv.invoiceNo));
     if (selectedInvoices.length === 0) return;
 
-    const headers = ['Invoice No', 'Company', 'Reference No', 'Amount', 'Date', 'Status'];
+    const headers = ['Confirmation No', 'Company', 'Reference No', 'Amount', 'Date', 'Status'];
     const rows = selectedInvoices.map(inv => [
       inv.invoiceNo,
       inv.company,
@@ -1259,7 +1259,7 @@ const Invoices: React.FC = () => {
 
             {error ? (
               <NetworkErrorState
-                message="We could not load your invoices. Please check your connection and try again."
+                message="We could not load your confirmations. Please check your connection and try again."
                 onRetry={fetchInvoices}
               />
             ) : loading ? (
@@ -1271,7 +1271,7 @@ const Invoices: React.FC = () => {
                       <th className="px-4 py-3 text-center w-12">
                         <input type="checkbox" disabled className="rounded border-gray-300 w-4 h-4" />
                       </th>
-                      {['INVOICE #', 'COMPANY', 'COMPANY CODE', 'REFERENCE #', 'SERIAL #', 'AMOUNT', 'DATE', 'STATUS', 'ACTIONS'].map((h) => (
+                      {['CONFIRMATION #', 'COMPANY', 'COMPANY CODE', 'REFERENCE #', 'SERIAL #', 'AMOUNT', 'DATE', 'STATUS', 'ACTIONS'].map((h) => (
                         <th key={h} className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
                           {h}
                         </th>
@@ -1303,16 +1303,16 @@ const Invoices: React.FC = () => {
                   <FileText className="w-6 h-6 text-[#94a3b8]" />
                 </div>
                 <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
-                  No invoices yet
+                  No confirmations yet
                 </h4>
                 <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed">
-                  Generate your first invoice to get started. Make sure you have added at least one partner company.
+                  Generate your first confirmation to get started. Make sure you have added at least one partner company.
                 </p>
                 <button
                   onClick={handleOpenCreateModal}
                   className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
                 >
-                  Generate Invoice
+                  Generate Confirmation
                 </button>
               </div>
             ) : (
@@ -1324,7 +1324,7 @@ const Invoices: React.FC = () => {
                   <div className="relative w-64">
                     <input
                       type="text"
-                      placeholder="Search Invoice / Ref #"
+                      placeholder="Search Confirmation / Ref #"
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -1728,11 +1728,11 @@ const Invoices: React.FC = () => {
                 </div>
                 <div className="flex flex-col">
                   <h3 className="text-[17px] font-bold text-[#0c0d0f] tracking-tight">
-                    {editInvoiceId ? 'Edit Invoice' : 'Generate New Invoice'}
+                    {editInvoiceId ? 'Edit Confirmation' : 'Generate New Confirmation'}
                   </h3>
                   {editInvoiceId && (
                     <span className="text-[12px] text-[#64748b] font-medium font-sans">
-                      Modify invoice details before resubmission
+                      Modify confirmation details before resubmission
                     </span>
                   )}
                 </div>
@@ -1824,7 +1824,7 @@ const Invoices: React.FC = () => {
                 {/* Invoice Number */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-sans">
-                    Reference Number
+                    Confirmation Number
                   </label>
                   <input
                     type="text"
@@ -2469,7 +2469,7 @@ const Invoices: React.FC = () => {
                       : 'bg-[#f59e0b] hover:bg-[#d97706] text-white shadow-sm'
                       }`}
                   >
-                    {editInvoiceId ? 'Save & Resubmit' : 'Generate Invoice'}
+                    {editInvoiceId ? 'Save & Resubmit' : 'Generate Confirmation'}
                   </button>
                 </div>
               </div>
@@ -2499,10 +2499,10 @@ const Invoices: React.FC = () => {
               <Check className="w-6 h-6 stroke-[3px]" />
             </div>
             <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-2.5 font-sans leading-tight">
-              Invoice Generated Successfully
+              Confirmation Generated Successfully
             </h3>
             <p className="text-[13px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
-              Your invoice has been generated. Would you like to send a request to get approval for payment?
+              Your confirmation has been generated. Would you like to send a request to get approval for payment?
             </p>
             <div className="flex space-x-3 w-full">
               <button

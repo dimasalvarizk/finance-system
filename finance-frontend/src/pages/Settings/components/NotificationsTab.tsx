@@ -100,7 +100,7 @@ const NotificationsTab: React.FC = () => {
 
       {/* SECTION 1: INVOICE NOTIFICATIONS */}
       <div className="space-y-3">
-        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">Invoice Notifications</h3>
+        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">Confirmation Notifications</h3>
         <div className="bg-white rounded-t-none rounded-b-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-[13px] font-sans">
@@ -113,9 +113,9 @@ const NotificationsTab: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[#e2e8f0]">
                 {[
-                  { key: 'newInvoiceSubmitted' as const, title: 'New invoice submitted', desc: 'Notify when a branch team submits a new invoice.' },
-                  { key: 'invoiceApproved' as const, title: 'Invoice approved', desc: 'Notify when an invoice has passed final review and is cleared.' },
-                  { key: 'invoiceRejected' as const, title: 'Invoice rejected', desc: 'Notify if an invoice is rejected or returned for corrections.' },
+                  { key: 'newInvoiceSubmitted' as const, title: 'New confirmation submitted', desc: 'Notify when a branch team submits a new confirmation.' },
+                  { key: 'invoiceApproved' as const, title: 'Confirmation approved', desc: 'Notify when a confirmation has passed final review and is cleared.' },
+                  { key: 'invoiceRejected' as const, title: 'Confirmation rejected', desc: 'Notify if a confirmation is rejected or returned for corrections.' },
                   { key: 'paymentReceived' as const, title: 'Payment received', desc: 'Receive confirmation when payment transitions succeed.' },
                 ].map(item => (
                   <tr key={item.key} className="hover:bg-slate-50/50">

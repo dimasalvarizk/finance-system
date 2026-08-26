@@ -398,8 +398,8 @@ const ManageTeamTab: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-[#e2e8f0] font-medium text-slate-700">
               {[
-                { name: 'Create Invoices', sa: true, ca: true, dd: true, ac: true },
-                { name: 'Approve Invoices', sa: true, ca: true, dd: true, ac: false },
+                { name: 'Create Confirmations', sa: true, ca: true, dd: true, ac: true },
+                { name: 'Approve Confirmations', sa: true, ca: true, dd: true, ac: false },
                 { name: 'Manage Companies', sa: true, ca: true, dd: true, ac: false },
                 { name: 'View Reports', sa: true, ca: true, dd: true, ac: true },
                 { name: 'Manage Team', sa: true, ca: false, dd: false, ac: false },

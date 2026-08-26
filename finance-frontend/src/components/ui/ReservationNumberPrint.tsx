@@ -259,7 +259,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
 
             <div>
               <h2 className="text-[10px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
-                INVOICE SUMMARY
+                CONFIRMATION SUMMARY
               </h2>
               <div className="rounded-xl border border-slate-100 p-3 space-y-1.5" style={{ backgroundColor: 'rgba(248, 250, 252, 1)' }}>
                 <div className="flex items-center justify-between text-xs">
