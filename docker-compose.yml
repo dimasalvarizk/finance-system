@@ -85,7 +85,7 @@ services:
       args:
         - 'VITE_SETTING_API_URL=https://api.odstfin.io'
     ports:
-      - '80:80'
+      - '3000:80'
     restart: always
 
   # --- INI TAMBAHAN DATABASE INTERNALNYA ---
