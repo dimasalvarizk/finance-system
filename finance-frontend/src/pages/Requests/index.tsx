@@ -1223,28 +1223,47 @@ const Requests: React.FC = () => {
                       {selectedRequest.paymentAttachment ? (
                         <div className="space-y-3">
                           <div
-                            className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50 cursor-pointer shadow-sm"
+                            className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50 cursor-pointer shadow-sm animate-fade-in"
                             onClick={() => setViewingProofBase64(selectedRequest.paymentAttachment!)}
                           >
-                            <img
-                              src={selectedRequest.paymentAttachment}
-                              alt="Payment Proof"
-                              className="w-full h-auto max-h-[250px] object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                            />
+                            {selectedRequest.paymentAttachment.startsWith('data:application/pdf') ? (
+                              <div className="w-full py-8 flex flex-col items-center justify-center bg-slate-50 gap-2 transition-transform duration-200 group-hover:scale-[1.02]">
+                                <FileText className="w-16 h-16 text-red-500" />
+                                <span className="text-[13px] font-bold text-slate-700">Payment Proof PDF</span>
+                                <span className="text-[11px] text-slate-400">Click to View PDF Document</span>
+                              </div>
+                            ) : (
+                              <img
+                                src={selectedRequest.paymentAttachment}
+                                alt="Payment Proof"
+                                className="w-full h-auto max-h-[250px] object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                              />
+                            )}
                             <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-semibold text-[13px] gap-2">
                               <span>🔍 Click to View Full Size</span>
                             </div>
                           </div>
                           <div className="flex justify-end">
                             <label className="px-3 py-1.5 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
-                              Change Photo
+                              Change Document
                               <input
                                 type="file"
                                 onChange={async (e) => {
                                   if (!e.target.files || e.target.files.length === 0) return;
                                   const file = e.target.files[0];
+                                  const isPDF = file.type === 'application/pdf';
                                   try {
-                                    const base64Data = await compressImage(file);
+                                    let base64Data = '';
+                                    if (isPDF) {
+                                      base64Data = await new Promise<string>((resolve, reject) => {
+                                        const reader = new FileReader();
+                                        reader.readAsDataURL(file);
+                                        reader.onload = () => resolve(reader.result as string);
+                                        reader.onerror = (err) => reject(err);
+                                      });
+                                    } else {
+                                      base64Data = await compressImage(file);
+                                    }
                                     await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
                                     
                                     // Update state
@@ -1255,7 +1274,7 @@ const Requests: React.FC = () => {
                                     alert(err.response?.data?.message || 'Failed to upload payment proof.');
                                   }
                                 }}
-                                accept="image/*"
+                                accept="image/*,application/pdf"
                                 className="hidden"
                               />
                             </label>
@@ -1263,17 +1282,28 @@ const Requests: React.FC = () => {
                         </div>
                       ) : (
                         <div className="text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-[12px] font-sans">
-                          <p>No payment proof photo uploaded yet.</p>
+                          <p>No payment proof document uploaded yet.</p>
                           <div className="mt-3">
                             <label className="px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
-                              Upload Proof
+                              Upload Proof (PDF/Image)
                               <input
                                 type="file"
                                 onChange={async (e) => {
                                   if (!e.target.files || e.target.files.length === 0) return;
                                   const file = e.target.files[0];
+                                  const isPDF = file.type === 'application/pdf';
                                   try {
-                                    const base64Data = await compressImage(file);
+                                    let base64Data = '';
+                                    if (isPDF) {
+                                      base64Data = await new Promise<string>((resolve, reject) => {
+                                        const reader = new FileReader();
+                                        reader.readAsDataURL(file);
+                                        reader.onload = () => resolve(reader.result as string);
+                                        reader.onerror = (err) => reject(err);
+                                      });
+                                    } else {
+                                      base64Data = await compressImage(file);
+                                    }
                                     await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
                                     
                                     // Update state
@@ -1284,7 +1314,7 @@ const Requests: React.FC = () => {
                                     alert(err.response?.data?.message || 'Failed to upload payment proof.');
                                   }
                                 }}
-                                accept="image/*"
+                                accept="image/*,application/pdf"
                                 className="hidden"
                               />
                             </label>
@@ -1852,11 +1882,11 @@ const Requests: React.FC = () => {
           onClick={() => setViewingProofBase64(null)}
         >
           <div
-            className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-up"
+            className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-up"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo</h3>
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo / PDF</h3>
               <button
                 onClick={() => setViewingProofBase64(null)}
                 className="text-slate-400 hover:text-slate-600 font-bold text-[18px] transition-colors"
@@ -1864,14 +1894,39 @@ const Requests: React.FC = () => {
                 ✕
               </button>
             </div>
-            <div className="p-6 bg-slate-50 flex items-center justify-center overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
-              <img
-                src={viewingProofBase64}
-                alt="Payment Proof Full Size"
-                className="max-w-full h-auto rounded-lg shadow-sm"
-              />
+            <div className="p-4 bg-slate-50 flex items-center justify-center overflow-y-auto w-full" style={{ maxHeight: 'calc(90vh - 120px)' }}>
+              {viewingProofBase64.startsWith('data:application/pdf') ? (
+                <iframe
+                  src={viewingProofBase64}
+                  title="Payment Proof PDF"
+                  className="w-full h-[60vh] border border-slate-200 rounded-lg shadow-sm"
+                />
+              ) : (
+                <img
+                  src={viewingProofBase64}
+                  alt="Payment Proof Full Size"
+                  className="max-w-full h-auto rounded-lg shadow-sm"
+                />
+              )}
             </div>
-            <div className="px-6 py-4 border-t border-slate-100 flex justify-end">
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center bg-white">
+              {viewingProofBase64.startsWith('data:application/pdf') ? (
+                <a
+                  href={viewingProofBase64}
+                  download={`payment-proof-${selectedRequest?.invoiceNo || 'document'}.pdf`}
+                  className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans"
+                >
+                  Download PDF
+                </a>
+              ) : (
+                <a
+                  href={viewingProofBase64}
+                  download={`payment-proof-${selectedRequest?.invoiceNo || 'document'}.jpg`}
+                  className="px-4 py-2 bg-[#007aff] hover:bg-[#006ee0] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans"
+                >
+                  Download Image
+                </a>
+              )}
               <button
                 onClick={() => setViewingProofBase64(null)}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[12px] rounded-lg transition-all font-sans cursor-pointer"
