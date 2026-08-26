@@ -356,3 +356,23 @@ export const sendInvoiceEmail = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update request note for active level
+// @route   PUT /api/requests/:id/note
+// @access  Protected
+export const updateRequestNote = async (req, res, next) => {
+  const { id } = req.params;
+  const { note } = req.body;
+  const userRole = req.user.role;
+
+  try {
+    const { updateRequestNoteDB } = await import('../models/requestModel.js');
+    const result = await updateRequestNoteDB(id, userRole, note);
+    if (!result.success) {
+      return res.status(result.code || 400).json(result);
+    }
+    res.status(200).json({ success: true, message: 'Note saved successfully' });
+  } catch (error) {
+    next(error);
+  }
+};

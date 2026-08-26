@@ -253,3 +253,28 @@ export const rejectRequestDB = async (id, userRole, userName, reason) => {
     requestedBy: request.requestedBy
   };
 };
+
+export const updateRequestNoteDB = async (id, userRole, note) => {
+  const pool = getPool();
+  const [rows] = await pool.query('SELECT * FROM dst_requests WHERE id = ? OR reqNo = ? OR invoiceNo = ?', [id, id, id]);
+  const request = rows[0];
+  if (!request) return { success: false, code: 404, message: 'Request not found' };
+
+  let noteField = '';
+  if (request.status === '0/4 Pending' || request.status === '0/3 Pending') {
+    noteField = 'level1Note';
+  } else if (request.status === '1/4 Approved' || request.status === '1/3 Approved') {
+    noteField = 'level2Note';
+  } else if (request.status === '2/4 Approved' || request.status === '2/3 Approved') {
+    noteField = 'level3Note';
+  } else if (request.status === '3/4 Approved') {
+    noteField = 'level4Note';
+  }
+
+  if (!noteField) {
+    return { success: false, code: 400, message: 'Cannot add notes to a completed or rejected request.' };
+  }
+
+  await pool.query(`UPDATE dst_requests SET ${noteField} = ? WHERE id = ?`, [note, request.id]);
+  return { success: true };
+};

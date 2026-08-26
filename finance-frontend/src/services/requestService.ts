@@ -37,6 +37,11 @@ export const rejectRequest = async (id: string, reason?: string) => {
   return response.data.data;
 };
 
+export const saveRequestNote = async (id: string, note: string) => {
+  const response = await requestAPI.put(`/${id}/note`, { note });
+  return response.data;
+};
+
 export const checkDownloadPermission = async (idOrInvoiceNo: string) => {
   try {
     const response = await requestAPI.get(`/${idOrInvoiceNo}/download-check`);

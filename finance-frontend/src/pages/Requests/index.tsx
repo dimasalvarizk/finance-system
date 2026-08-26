@@ -6,7 +6,7 @@ import InvoiceDetailsModal from "../../components/ui/InvoiceDetailsModal";
 import { type Invoice, getInvoiceDetails, getLocalCompanySettings } from "../Invoices";
 import ReservationConfirmationPrint from "../../components/ui/ReservationNumberPrint";
 import { Search, AlertCircle, Check, Clock, Lock, FileText, Printer, Download, CreditCard, Edit3, Archive } from "lucide-react";
-import { getRequests, approveRequest as approveRequestAPI, rejectRequest as rejectRequestAPI, sendInvoiceEmail } from "../../services/requestService";
+import { getRequests, approveRequest as approveRequestAPI, rejectRequest as rejectRequestAPI, sendInvoiceEmail, saveRequestNote } from "../../services/requestService";
 import { updateInvoiceStatus as updateInvoiceStatusAPI, getCompanies } from "../../services/invoiceService";
 import { useAuth } from "../../context/AuthContext";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
@@ -165,6 +165,24 @@ const Requests: React.FC = () => {
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  useEffect(() => {
+    if (selectedRequest) {
+      let currentNote = '';
+      if (selectedRequest.status === '0/4 Pending' || selectedRequest.status === '0/3 Pending') {
+        currentNote = selectedRequest.level1Note || '';
+      } else if (selectedRequest.status === '1/4 Approved' || selectedRequest.status === '1/3 Approved') {
+        currentNote = selectedRequest.level2Note || '';
+      } else if (selectedRequest.status === '2/4 Approved' || selectedRequest.status === '2/3 Approved') {
+        currentNote = selectedRequest.level3Note || '';
+      } else if (selectedRequest.status === '3/4 Approved') {
+        currentNote = selectedRequest.level4Note || '';
+      }
+      setApprovalNoteInput(currentNote);
+    } else {
+      setApprovalNoteInput('');
+    }
+  }, [selectedRequest]);
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
@@ -376,6 +394,43 @@ const Requests: React.FC = () => {
       }
     };
     saveStatus();
+  };
+
+  const handleSaveNoteClick = async () => {
+    if (!selectedRequest) return;
+    if (!approvalNoteInput.trim()) {
+      alert('Please enter a note before saving.');
+      return;
+    }
+    try {
+      setLoading(true);
+      await saveRequestNote(selectedRequest.id || selectedRequest.invoiceNo, approvalNoteInput);
+      alert('Note saved successfully!');
+      
+      // Update state locally
+      setAllRequests(prev => prev.map(r => (r.id === selectedRequest.id || r.invoiceNo === selectedRequest.invoiceNo) ? {
+        ...r,
+        level1Note: r.status === '0/4 Pending' || r.status === '0/3 Pending' ? approvalNoteInput : r.level1Note,
+        level2Note: r.status === '1/4 Approved' || r.status === '1/3 Approved' ? approvalNoteInput : r.level2Note,
+        level3Note: r.status === '2/4 Approved' || r.status === '2/3 Approved' ? approvalNoteInput : r.level3Note,
+        level4Note: r.status === '3/4 Approved' ? approvalNoteInput : r.level4Note,
+      } : r));
+      setSelectedRequest(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          level1Note: prev.status === '0/4 Pending' || prev.status === '0/3 Pending' ? approvalNoteInput : prev.level1Note,
+          level2Note: prev.status === '1/4 Approved' || prev.status === '1/3 Approved' ? approvalNoteInput : prev.level2Note,
+          level3Note: prev.status === '2/4 Approved' || prev.status === '2/3 Approved' ? approvalNoteInput : prev.level3Note,
+          level4Note: prev.status === '3/4 Approved' ? approvalNoteInput : prev.level4Note,
+        };
+      });
+    } catch (err: any) {
+      console.error('Failed to save note:', err);
+      alert(err.response?.data?.message || 'Failed to save note.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRejectClick = () => {
@@ -1189,35 +1244,49 @@ const Requests: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
-                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">
-                        Your Decision (Level {getApprovalPermission(selectedRequest.status, user?.role).level})
-                      </h3>
-                      <p className="text-[13px] text-[#475569] font-sans leading-relaxed">
-                        {(selectedRequest.status === "0/4 Pending" || selectedRequest.status === "0/3 Pending") && "As the Finance Director, please confirm verification of the Requested Invoice."}
-                        {(selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") && "As the Chief Accountant, please confirm verification of the Requested Invoice."}
-                        {(selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") && "As the Madinah Branch Accountant, please confirm verification of the Requested Invoice."}
-                        {selectedRequest.status === "3/4 Approved" && "As the Umrah Division Director, please confirm verification of the Requested Invoice."}
-                      </p>
+                    <div className="space-y-4">
+                      {/* Warning Blue Info Card */}
+                      <div className="bg-[#e0f2fe]/60 border border-[#bae6fd] rounded-2xl p-4 flex items-start gap-2.5 text-[#0369a1] text-[12.5px] font-sans">
+                        <span className="text-[14px] mt-0.5">ℹ️</span>
+                        <span className="text-left leading-normal font-medium">Please review all details carefully before making your decision. This action cannot be undone.</span>
+                      </div>
 
-                      {!getApprovalPermission(selectedRequest.status, user?.role).canApprove ? (
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] font-medium text-slate-500 font-sans flex items-center gap-2">
-                          <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                          <span>{getApprovalPermission(selectedRequest.status, user?.role).message}</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="space-y-1 text-left">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Approval Note (Optional)</label>
-                            <textarea
-                              value={approvalNoteInput}
-                              onChange={(e) => setApprovalNoteInput(e.target.value)}
-                              placeholder="Write a note to forward..."
-                              className="w-full px-3.5 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-sans focus:outline-none focus:ring-1 focus:ring-[#f59e0b] focus:border-[#f59e0b] resize-none"
-                              rows={3}
-                            />
+                      {/* Independent Note Input Card */}
+                      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4 text-left">
+                        <h3 className="text-[14px] font-bold text-[#0c0d0f] font-sans">Note</h3>
+                        <textarea
+                          value={approvalNoteInput}
+                          onChange={(e) => setApprovalNoteInput(e.target.value)}
+                          placeholder="Write a note for reference..."
+                          className="w-full px-3.5 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-sans focus:outline-none focus:ring-1 focus:ring-[#f59e0b] focus:border-[#f59e0b] resize-none"
+                          rows={4}
+                        />
+                        <button
+                          onClick={handleSaveNoteClick}
+                          className="w-full py-2.5 bg-[#55b986] hover:bg-[#43a072] text-white font-bold rounded-xl text-[13px] transition-all cursor-pointer font-sans text-center shadow-sm"
+                        >
+                          Save Note
+                        </button>
+                      </div>
+
+                      {/* Your Decision Card */}
+                      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
+                        <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">
+                          Your Decision (Level {getApprovalPermission(selectedRequest.status, user?.role).level})
+                        </h3>
+                        <p className="text-[13px] text-[#475569] font-sans leading-relaxed">
+                          {(selectedRequest.status === "0/4 Pending" || selectedRequest.status === "0/3 Pending") && "As the Finance Director, please confirm verification of the Requested Invoice."}
+                          {(selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") && "As the Chief Accountant, please confirm verification of the Requested Invoice."}
+                          {(selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") && "As the Madinah Branch Accountant, please confirm verification of the Requested Invoice."}
+                          {selectedRequest.status === "3/4 Approved" && "As the Umrah Division Director, please confirm verification of the Requested Invoice."}
+                        </p>
+
+                        {!getApprovalPermission(selectedRequest.status, user?.role).canApprove ? (
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] font-medium text-slate-500 font-sans flex items-center gap-2">
+                            <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                            <span>{getApprovalPermission(selectedRequest.status, user?.role).message}</span>
                           </div>
-
+                        ) : (
                           <div className="grid grid-cols-2 gap-4 pt-1">
                             <button
                               onClick={() => handleRejectClick()}
@@ -1232,8 +1301,8 @@ const Requests: React.FC = () => {
                               Approve & Forward
                             </button>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
