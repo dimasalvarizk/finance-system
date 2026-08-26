@@ -12,7 +12,7 @@ router.get('/', getInvoices);
 router.post('/', createInvoice);
 
 // Admin-only route for deleting multiple invoices
-router.delete('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), deleteInvoices);
+router.delete('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteInvoices);
 
 // Edit and Cancel invoice routes
 router.put('/:id', updateInvoice);

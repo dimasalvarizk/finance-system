@@ -1428,7 +1428,7 @@ const Invoices: React.FC = () => {
                       >
                         Void
                       </button>
-                      {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director') && (
+                      {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director' || user?.role === 'Madinah Branch Accountant') && (
                         <button
                           onClick={handleBulkDelete}
                           className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-[12px] font-bold hover:bg-red-700 transition-all cursor-pointer shadow-sm font-sans"
@@ -1607,7 +1607,7 @@ const Invoices: React.FC = () => {
                                       <XCircle className="w-4 h-4" />
                                     </button>
                                   )}
-                                  {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director') && (
+                                  {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director' || user?.role === 'Madinah Branch Accountant') && (
                                     <button
                                       onClick={() => handleDeleteSingleInvoice(inv.invoiceNo)}
                                       title="Delete Invoice"

@@ -27,9 +27,9 @@ router.delete('/team/:id', restrictTo('Super Admin'), deleteTeam);
 
 // 2. Branches
 router.get('/branches', getBranches);
-router.post('/branches', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), createBranch);
-router.put('/branches/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), updateBranch);
-router.delete('/branches/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), deleteBranch);
+router.post('/branches', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), createBranch);
+router.put('/branches/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateBranch);
+router.delete('/branches/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteBranch);
 
 // 3. Notification Preferences
 router.get('/notifications', getNotif);
@@ -44,21 +44,21 @@ router.put('/security/password', updatePassword);
 // 6. Daily Exchange Rates
 router.get('/exchange-rates', getExchangeRates);
 router.get('/exchange-rates/history', getExchangeRatesHistory);
-router.put('/exchange-rates', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), updateExchangeRates);
+router.put('/exchange-rates', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateExchangeRates);
 
 // 7. Services
 router.get('/services', getServices);
-router.post('/services', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), createService);
-router.put('/services/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), updateService);
-router.delete('/services/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), deleteService);
+router.post('/services', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), createService);
+router.put('/services/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateService);
+router.delete('/services/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteService);
 
 // 8. Tax Settings
 router.get('/tax', getTaxSetting);
-router.put('/tax', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), updateTaxSetting);
+router.put('/tax', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateTaxSetting);
 
 // 9. Company Settings
 router.get('/company', getCompanySetting);
-router.put('/company', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), updateCompanySetting);
+router.put('/company', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateCompanySetting);
 
 // 10. System Maintenance Broadcast
 router.post('/maintenance', restrictTo('Super Admin'), triggerMaintenanceNotif);

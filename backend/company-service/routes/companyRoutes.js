@@ -11,9 +11,9 @@ router.use(protect);
 router.get('/', getCompanies);
 router.get('/:code', getCompanyByCode);
 
-// Modifying companies is restricted to Super Admin, Chief Accountant, and Division Director
-router.post('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), createCompany);
-router.put('/:code', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), updateCompany);
-router.delete('/:code', restrictTo('Super Admin', 'Chief Accountant', 'Division Director'), deleteCompany);
+// Modifying companies is restricted to Super Admin, Chief Accountant, Division Director, and Madinah Branch Accountant
+router.post('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), createCompany);
+router.put('/:code', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateCompany);
+router.delete('/:code', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteCompany);
 
 export default router;
