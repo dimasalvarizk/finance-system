@@ -311,6 +311,7 @@ const Invoices: React.FC = () => {
   // File Upload State & Reference for Payment Proof
   const [uploadingInvoiceNo, setUploadingInvoiceNo] = useState<string | null>(null);
   const [viewingProofBase64, setViewingProofBase64] = useState<string | null>(null);
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleTriggerUploadProof = (inv: Invoice) => {
@@ -330,23 +331,49 @@ const Invoices: React.FC = () => {
     reader.onload = async () => {
       const base64Data = reader.result as string;
       try {
-        setLoading(true);
+        setIsUploadingProof(true);
         await uploadPaymentProof(uploadingInvoiceNo, base64Data);
-        alert('Payment proof uploaded successfully!');
+        setIsUploadingProof(false);
         
+        setConfirmModal({
+          isOpen: true,
+          title: 'Upload Successful',
+          message: `The payment proof transfer photo for Invoice ${uploadingInvoiceNo} has been uploaded successfully.`,
+          type: 'success',
+          showCancel: false,
+          confirmText: 'Done',
+          onConfirm: () => {}
+        });
+
         // Update state locally
         setInvoices(prev => prev.map(inv => inv.invoiceNo === uploadingInvoiceNo ? { ...inv, paymentAttachment: base64Data } : inv));
       } catch (err: any) {
+        setIsUploadingProof(false);
         console.error('Failed to upload proof:', err);
-        alert(err.response?.data?.message || 'Failed to upload proof');
+        setConfirmModal({
+          isOpen: true,
+          title: 'Upload Failed',
+          message: err.response?.data?.message || 'The file could not be uploaded. It might exceed size constraints.',
+          type: 'danger',
+          showCancel: false,
+          confirmText: 'Dismiss',
+          onConfirm: () => {}
+        });
       } finally {
-        setLoading(false);
         setUploadingInvoiceNo(null);
       }
     };
     reader.onerror = (error) => {
       console.error('File reading error:', error);
-      alert('Failed to read file');
+      setConfirmModal({
+        isOpen: true,
+        title: 'Error Reading File',
+        message: 'Could not parse the selected file for upload.',
+        type: 'danger',
+        showCancel: false,
+        confirmText: 'Dismiss',
+        onConfirm: () => {}
+      });
       setUploadingInvoiceNo(null);
     };
     reader.readAsDataURL(file);
@@ -521,7 +548,7 @@ const Invoices: React.FC = () => {
     title: string;
     message: string;
     confirmText: string;
-    cancelText: string;
+    cancelText?: string;
     onConfirm: () => void;
     type: 'danger' | 'warning' | 'success' | 'info';
     showCancel: boolean;
@@ -2579,6 +2606,21 @@ const Invoices: React.FC = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Uploading Proof Spinner Overlay */}
+      {isUploadingProof && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-sm w-full p-8 flex flex-col items-center animate-scale-up font-sans">
+            <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
+            <h3 className="text-[16px] font-bold text-[#0c0d0f] tracking-tight mb-2">
+              Uploading Payment Proof
+            </h3>
+            <p className="text-[12.5px] text-[#64748b] font-medium text-center leading-relaxed">
+              Converting image and uploading to server. Please wait...
+            </p>
           </div>
         </div>
       )}
