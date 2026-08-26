@@ -1,4 +1,4 @@
-import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB } from '../models/invoiceModel.js';
+import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB } from '../models/invoiceModel.js';
 import { getPool } from '../config/db.js';
 
 const getAuthBaseUrl = (req) => {
@@ -291,6 +291,33 @@ export const updateInvoice = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Invoice updated and workflow reset successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Upload payment proof
+// @route   PUT /api/invoices/:id/payment-proof
+// @access  Protected
+export const uploadPaymentProof = async (req, res, next) => {
+  const { id } = req.params;
+  const { paymentAttachment } = req.body;
+
+  try {
+    if (!paymentAttachment) {
+      return res.status(400).json({ success: false, message: 'paymentAttachment base64 data is required' });
+    }
+
+    const success = await savePaymentProofDB(id, paymentAttachment);
+
+    if (!success) {
+      return res.status(404).json({ success: false, message: 'Invoice not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment proof uploaded successfully'
     });
   } catch (error) {
     next(error);

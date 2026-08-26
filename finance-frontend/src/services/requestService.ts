@@ -27,8 +27,8 @@ export const createRequest = async (requestData: any) => {
   return response.data.data;
 };
 
-export const approveRequest = async (id: string) => {
-  const response = await requestAPI.put(`/${id}/approve`);
+export const approveRequest = async (id: string, note?: string) => {
+  const response = await requestAPI.put(`/${id}/approve`, { note });
   return response.data.data;
 };
 

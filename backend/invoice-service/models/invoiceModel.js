@@ -184,7 +184,7 @@ export const updateInvoiceDB = async (id, data) => {
     // 1. Update invoice in dst_invoices
     const updateQuery = `
       UPDATE dst_invoices 
-      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = '0/3 Pending', usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?
+      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = '0/4 Pending', usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?
       WHERE id = ? OR invoiceNo = ?
     `;
     await connection.query(updateQuery, [
@@ -225,7 +225,7 @@ export const updateInvoiceDB = async (id, data) => {
     // 3. Reset associated request in dst_requests
     const resetRequestQuery = `
       UPDATE dst_requests 
-      SET status = '0/3 Pending', amount = ?, company = ?, companyCode = ?, level1ApprovedAt = NULL, level2ApprovedAt = NULL, level3ApprovedAt = NULL, rejectionReason = NULL
+      SET status = '0/4 Pending', amount = ?, company = ?, companyCode = ?, level1ApprovedAt = NULL, level2ApprovedAt = NULL, level3ApprovedAt = NULL, level4ApprovedAt = NULL, level1Note = NULL, level2Note = NULL, level3Note = NULL, level4Note = NULL, rejectionReason = NULL
       WHERE invoiceNo = ?
     `;
     await connection.query(resetRequestQuery, [data.amount, data.company, data.companyCode, invoiceNo]);
@@ -244,4 +244,10 @@ export const getInvoiceByIdDB = async (id) => {
   const pool = getPool();
   const [rows] = await pool.query('SELECT * FROM dst_invoices WHERE id = ? OR invoiceNo = ?', [id, id]);
   return rows[0] || null;
+};
+
+export const savePaymentProofDB = async (invoiceNo, base64Data) => {
+  const pool = getPool();
+  const [result] = await pool.query('UPDATE dst_invoices SET paymentAttachment = ? WHERE invoiceNo = ? OR id = ?', [base64Data, invoiceNo, invoiceNo]);
+  return result.affectedRows > 0;
 };

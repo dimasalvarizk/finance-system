@@ -71,3 +71,8 @@ export const deleteInvoices = async (ids: string[]) => {
   const response = await invoiceAPI.delete('/', { data: { ids } });
   return response.data;
 };
+
+export const uploadPaymentProof = async (idOrInvoiceNo: string, base64Data: string) => {
+  const response = await invoiceAPI.put(`/${idOrInvoiceNo}/payment-proof`, { paymentAttachment: base64Data });
+  return response.data;
+};

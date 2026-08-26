@@ -136,6 +136,18 @@ const initializeDatabase = async () => {
         console.error('Failed to add taxRate column to dst_invoices:', alterErr.message);
       }
     }
+
+    // Alter table to add paymentAttachment if it does not exist
+    try {
+      await pool.query('SELECT paymentAttachment FROM dst_invoices LIMIT 1');
+    } catch (err) {
+      console.log('Adding paymentAttachment column to dst_invoices...');
+      try {
+        await pool.query('ALTER TABLE dst_invoices ADD COLUMN paymentAttachment LONGTEXT DEFAULT NULL');
+      } catch (alterErr) {
+        console.error('Failed to add paymentAttachment column to dst_invoices:', alterErr.message);
+      }
+    }
   } catch (error) {
     console.error('Database schema failed for invoice-service:', error.message);
   }

@@ -21,12 +21,17 @@ export interface InvoiceRequest {
   amount: string;
   requestedBy: string;
   submittedDate: string;
-  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "Rejected" | "Cancelled" | "Paid" | "Archived";
+  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "0/4 Pending" | "1/4 Approved" | "2/4 Approved" | "3/4 Approved" | "4/4 Approved" | "Approved" | "Rejected" | "Cancelled" | "Paid" | "Archived";
   branch?: string;
   rejectionReason?: string;
   level1ApprovedAt?: string | null;
   level2ApprovedAt?: string | null;
   level3ApprovedAt?: string | null;
+  level4ApprovedAt?: string | null;
+  level1Note?: string | null;
+  level2Note?: string | null;
+  level3Note?: string | null;
+  level4Note?: string | null;
   rejectedBy?: string | null;
   rejectedAt?: string | null;
   rejectedRole?: string | null;
@@ -123,6 +128,7 @@ const Requests: React.FC = () => {
   const [filterDate, setFilterDate] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReasonInput, setRejectionReasonInput] = useState("");
+  const [approvalNoteInput, setApprovalNoteInput] = useState("");
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -202,7 +208,7 @@ const Requests: React.FC = () => {
       dueDate: selectedRequest.dueDate,
       usdToIdrRate: selectedRequest.usdToIdrRate,
       sarToIdrRate: selectedRequest.sarToIdrRate,
-      status: selectedRequest.status === "3/3 Approved" ? "Approved" : "Pending",
+      status: (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "Approved" : "Pending",
       items: selectedRequest.items || [],
       createdBy: selectedRequest.requestedBy,
       branch: selectedRequest.branch,
@@ -226,9 +232,9 @@ const Requests: React.FC = () => {
     let list = allRequests;
 
     if (activeTab === "pending") {
-      list = list.filter((r) => r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved");
+      list = list.filter((r) => r.status === "0/4 Pending" || r.status === "1/4 Approved" || r.status === "2/4 Approved" || r.status === "3/4 Approved" || r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved");
     } else if (activeTab === "approved") {
-      list = list.filter((r) => r.status === "3/3 Approved");
+      list = list.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved");
     } else if (activeTab === "rejected") {
       list = list.filter((r) => r.status === "Rejected");
     }
@@ -262,8 +268,8 @@ const Requests: React.FC = () => {
   const counts = useMemo(() => {
     return {
       all: allRequests.length,
-      pending: allRequests.filter((r) => r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved").length,
-      approved: allRequests.filter((r) => r.status === "3/3 Approved").length,
+      pending: allRequests.filter((r) => r.status === "0/4 Pending" || r.status === "1/4 Approved" || r.status === "2/4 Approved" || r.status === "3/4 Approved" || r.status === "0/3 Pending" || r.status === "1/3 Approved" || r.status === "2/3 Approved").length,
+      approved: allRequests.filter((r) => r.status === "4/4 Approved" || r.status === "3/3 Approved" || r.status === "Approved").length,
       rejected: allRequests.filter((r) => r.status === "Rejected").length,
     };
   }, [allRequests]);
@@ -295,7 +301,7 @@ const Requests: React.FC = () => {
   const getApprovalPermission = (status: string, role?: string) => {
     if (!role) return { canApprove: false, level: 0, requiredRole: 'Super Admin', message: 'You must be logged in to approve.' };
 
-    if (status === '0/3 Pending') {
+    if (status === '0/4 Pending' || status === '0/3 Pending') {
       return {
         canApprove: role === 'Super Admin',
         level: 1,
@@ -303,20 +309,28 @@ const Requests: React.FC = () => {
         message: 'Only Mr. Emad Moustafa (Finance Director) can approve Level 1.'
       };
     }
-    if (status === '1/3 Approved') {
+    if (status === '1/4 Approved' || status === '1/3 Approved') {
       return {
-        canApprove: role === 'Chief Accountant',
+        canApprove: role === 'Chief Accountant' || role === 'Super Admin',
         level: 2,
         requiredRole: 'Chief Accountant',
         message: 'Only Chief Accountant (Mr. Hesham Mokhtar) can approve Level 2.'
       };
     }
-    if (status === '2/3 Approved') {
+    if (status === '2/4 Approved' || status === '2/3 Approved') {
       return {
-        canApprove: role === 'Division Director',
+        canApprove: role === 'Madinah Branch Accountant' || role === 'Super Admin',
         level: 3,
+        requiredRole: 'Madinah Branch Accountant',
+        message: 'Only Madinah Branch Accountant (Mr. Kareem Abdou) can approve Level 3.'
+      };
+    }
+    if (status === '3/4 Approved') {
+      return {
+        canApprove: role === 'Division Director' || role === 'Super Admin',
+        level: 4,
         requiredRole: 'Division Director',
-        message: 'Only Division Director (Mr. Khalid Idriss) can approve Level 3.'
+        message: 'Only Division Director (Mr. Khalid Idriss) can approve Level 4.'
       };
     }
     return { canApprove: false, level: 0, requiredRole: '', message: 'Workflow complete or rejected.' };
@@ -327,24 +341,35 @@ const Requests: React.FC = () => {
 
     const saveStatus = async () => {
       try {
-        const result = await approveRequestAPI(selectedRequest.id || selectedRequest.invoiceNo);
+        const result = await approveRequestAPI(selectedRequest.id || selectedRequest.invoiceNo, approvalNoteInput);
         setAllRequests(prev => prev.map(r => (r.id === selectedRequest.id || r.invoiceNo === selectedRequest.invoiceNo) ? {
           ...r,
           status: result.nextStatus,
-          level1ApprovedAt: result.nextStatus !== '0/3 Pending' ? (r.level1ApprovedAt || result.timestamp) : r.level1ApprovedAt,
-          level2ApprovedAt: (result.nextStatus === '2/3 Approved' || result.nextStatus === '3/3 Approved') ? (r.level2ApprovedAt || result.timestamp) : r.level2ApprovedAt,
-          level3ApprovedAt: result.nextStatus === '3/3 Approved' ? (r.level3ApprovedAt || result.timestamp) : r.level3ApprovedAt,
+          level1ApprovedAt: result.nextStatus !== '0/4 Pending' ? (r.level1ApprovedAt || result.timestamp) : r.level1ApprovedAt,
+          level2ApprovedAt: (result.nextStatus === '2/4 Approved' || result.nextStatus === '3/4 Approved' || result.nextStatus === '4/4 Approved') ? (r.level2ApprovedAt || result.timestamp) : r.level2ApprovedAt,
+          level3ApprovedAt: (result.nextStatus === '3/4 Approved' || result.nextStatus === '4/4 Approved') ? (r.level3ApprovedAt || result.timestamp) : r.level3ApprovedAt,
+          level4ApprovedAt: result.nextStatus === '4/4 Approved' ? (r.level4ApprovedAt || result.timestamp) : r.level4ApprovedAt,
+          level1Note: r.status === '0/4 Pending' || r.status === '0/3 Pending' ? (approvalNoteInput || r.level1Note) : r.level1Note,
+          level2Note: r.status === '1/4 Approved' || r.status === '1/3 Approved' ? (approvalNoteInput || r.level2Note) : r.level2Note,
+          level3Note: r.status === '2/4 Approved' || r.status === '2/3 Approved' ? (approvalNoteInput || r.level3Note) : r.level3Note,
+          level4Note: r.status === '3/4 Approved' ? (approvalNoteInput || r.level4Note) : r.level4Note,
         } : r));
         setSelectedRequest(prev => {
           if (!prev) return null;
           return {
             ...prev,
             status: result.nextStatus,
-            level1ApprovedAt: result.nextStatus !== '0/3 Pending' ? (prev.level1ApprovedAt || result.timestamp) : prev.level1ApprovedAt,
-            level2ApprovedAt: (result.nextStatus === '2/3 Approved' || result.nextStatus === '3/3 Approved') ? (prev.level2ApprovedAt || result.timestamp) : prev.level2ApprovedAt,
-            level3ApprovedAt: result.nextStatus === '3/3 Approved' ? (prev.level3ApprovedAt || result.timestamp) : prev.level3ApprovedAt,
+            level1ApprovedAt: result.nextStatus !== '0/4 Pending' ? (prev.level1ApprovedAt || result.timestamp) : prev.level1ApprovedAt,
+            level2ApprovedAt: (result.nextStatus === '2/4 Approved' || result.nextStatus === '3/4 Approved' || result.nextStatus === '4/4 Approved') ? (prev.level2ApprovedAt || result.timestamp) : prev.level2ApprovedAt,
+            level3ApprovedAt: (result.nextStatus === '3/4 Approved' || result.nextStatus === '4/4 Approved') ? (prev.level3ApprovedAt || result.timestamp) : prev.level3ApprovedAt,
+            level4ApprovedAt: result.nextStatus === '4/4 Approved' ? (prev.level4ApprovedAt || result.timestamp) : prev.level4ApprovedAt,
+            level1Note: prev.status === '0/4 Pending' || prev.status === '0/3 Pending' ? (approvalNoteInput || prev.level1Note) : prev.level1Note,
+            level2Note: prev.status === '1/4 Approved' || prev.status === '1/3 Approved' ? (approvalNoteInput || prev.level2Note) : prev.level2Note,
+            level3Note: prev.status === '2/4 Approved' || prev.status === '2/3 Approved' ? (approvalNoteInput || prev.level3Note) : prev.level3Note,
+            level4Note: prev.status === '3/4 Approved' ? (approvalNoteInput || prev.level4Note) : prev.level4Note,
           };
         });
+        setApprovalNoteInput(''); // Clear input on success
       } catch (err: any) {
         console.error('Failed to update request status on API:', err);
         alert(err.response?.data?.message || 'Failed to approve request.');
@@ -432,12 +457,16 @@ const Requests: React.FC = () => {
 
   const getStatusBadge = (status: InvoiceRequest["status"]) => {
     switch (status) {
+      case "0/4 Pending":
       case "0/3 Pending":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#64748b] border border-[#e2e8f0] font-sans">
             {status}
           </span>
         );
+      case "1/4 Approved":
+      case "2/4 Approved":
+      case "3/4 Approved":
       case "1/3 Approved":
       case "2/3 Approved":
         return (
@@ -445,6 +474,7 @@ const Requests: React.FC = () => {
             {status}
           </span>
         );
+      case "4/4 Approved":
       case "3/3 Approved":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#ecfdf5] text-[#10b981] border border-[#a7f3d0] font-sans">
@@ -496,7 +526,7 @@ const Requests: React.FC = () => {
           {selectedRequest ? (
             <div className="space-y-6">
               {/* Top Alerts */}
-              {selectedRequest.status === "3/3 Approved" && (
+              {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") && (
                 <div className="bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-4 flex items-center gap-3 text-[#065f46] text-[13px] font-medium font-sans">
                   <div className="w-5 h-5 bg-[#10b981] rounded-full flex items-center justify-center text-white text-[10px] font-bold">✓</div>
                   <span>This invoice has been fully approved and is ready for payment. All necessary signatures have been consolidated.</span>
@@ -506,7 +536,7 @@ const Requests: React.FC = () => {
                 <div className="bg-[#fef2f2] border border-[#fecaca] rounded-xl p-4 flex items-center gap-3 text-[#ef4444] text-[13px] font-medium font-sans shadow-sm">
                   <div className="w-5 h-5 bg-[#ef4444] rounded-full flex items-center justify-center text-white text-[10px] font-bold">✕</div>
                   <span>
-                    This invoice has been rejected by {selectedRequest.rejectedBy || 'Mr. Hesham'} on {selectedRequest.rejectedAt ? selectedRequest.rejectedAt.split(' at ')[0] : 'Oct 12, 2026'}.
+                    This invoice has been rejected by {selectedRequest.rejectedBy || 'Mr. Hesham Mokhtar'} on {selectedRequest.rejectedAt ? selectedRequest.rejectedAt.split(' at ')[0] : 'Oct 12, 2026'}.
                   </span>
                 </div>
               )}
@@ -520,7 +550,7 @@ const Requests: React.FC = () => {
                     <span>Request {selectedRequest.reqNo}</span>
                   </div>
                   <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight font-sans">
-                    {selectedRequest.status === "Rejected" ? "Rejected Invoice Details" : selectedRequest.status === "3/3 Approved" ? "Fully Approved Invoice Details" : `Review Request - ${selectedRequest.company}`}
+                    {selectedRequest.status === "Rejected" ? "Rejected Invoice Details" : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "Fully Approved Invoice Details" : `Review Request - ${selectedRequest.company}`}
                   </h1>
                 </div>
                 <button
@@ -787,13 +817,13 @@ const Requests: React.FC = () => {
                   {/* Print and Download PDF Buttons (Locked until all 3 directors approve) */}
                   <div className="flex items-center gap-3">
                     <button
-                      disabled={selectedRequest.status !== "3/3 Approved"}
+                      disabled={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved"}
                       onClick={() => {
-                        if (selectedRequest.status === "3/3 Approved") {
+                        if (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") {
                           window.print();
                         }
                       }}
-                      className={`px-4 py-2 border rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all ${selectedRequest.status === "3/3 Approved"
+                      className={`px-4 py-2 border rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
                           ? "border-[#cbd5e1] text-[#334155] hover:bg-slate-50 cursor-pointer"
                           : "border-slate-200 text-slate-300 bg-slate-50 cursor-not-allowed opacity-50"
                         }`}
@@ -802,18 +832,18 @@ const Requests: React.FC = () => {
                       <span>Print</span>
                     </button>
                     <button
-                      disabled={selectedRequest.status !== "3/3 Approved"}
+                      disabled={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved"}
                       onClick={() => {
-                        if (selectedRequest.status === "3/3 Approved") {
+                        if (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") {
                           window.print();
                         }
                       }}
-                      className={`px-4 py-2 rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all text-white ${selectedRequest.status === "3/3 Approved"
+                      className={`px-4 py-2 rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
                           ? "bg-[#f59e0b] hover:bg-[#d97706] cursor-pointer"
                           : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-60"
                         }`}
                     >
-                      {selectedRequest.status !== "3/3 Approved" && <Lock className="w-3.5 h-3.5" />}
+                      {selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && <Lock className="w-3.5 h-3.5" />}
                       <span>Download PDF</span>
                     </button>
                   </div>
@@ -825,13 +855,13 @@ const Requests: React.FC = () => {
                   {/* Approval Workflow Card */}
                   <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-6">
                     <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">
-                      {selectedRequest.status === "3/3 Approved" ? "Approval Workflow Status" : "Approval Workflow"}
+                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "Approval Workflow Status" : "Approval Workflow"}
                     </h3>
 
                     <div className="space-y-6 pt-1">
                       {/* Level 1: Finance Director */}
                       <div className="flex items-start gap-4">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected")
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected")
                             ? "bg-[#10b981]"
                             : selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt
                               ? "bg-[#ef4444]"
@@ -839,18 +869,18 @@ const Requests: React.FC = () => {
                           }`}>
                           {selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
-                          ) : (selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
+                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
                             <Check className="w-5 h-5" />
                           ) : (
                             <Clock className="w-5 h-5" />
                           )}
                         </div>
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 1</span>
                             {selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt ? (
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
-                            ) : (selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
+                            ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
                             ) : (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
@@ -862,7 +892,7 @@ const Requests: React.FC = () => {
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
                               Rejected: {selectedRequest.rejectedAt || 'Oct 12, 2026 at 09:15 AM'}
                             </p>
-                          ) : (selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
+                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level1ApprovedAt || 'Oct 12, 2026 at 09:15 AM'}
                             </p>
@@ -871,114 +901,189 @@ const Requests: React.FC = () => {
                               {user?.role === 'Super Admin' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
                             </p>
                           )}
+                          {selectedRequest.level1Note && (
+                            <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
+                              Note: "{selectedRequest.level1Note}"
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       {/* Level 2: Chief Accountant */}
                       <div className="flex items-start gap-4">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "2/3 Approved" || selectedRequest.status === "3/3 Approved")
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected")
                             ? "bg-[#10b981]"
                             : selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt
                               ? "bg-[#ef4444]"
-                              : selectedRequest.status === "1/3 Approved"
+                              : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved")
                                 ? "bg-[#f59e0b]"
                                 : "bg-slate-200 text-slate-400"
                           }`}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
-                          ) : (selectedRequest.status === "2/3 Approved" || selectedRequest.status === "3/3 Approved") ? (
+                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
                             <Check className="w-5 h-5" />
-                          ) : selectedRequest.status === "1/3 Approved" ? (
+                          ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                             <Clock className="w-5 h-5" />
                           ) : (
                             <Lock className="w-[18px] h-[18px] stroke-[2.2px]" />
                           )}
                         </div>
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 2</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
-                            ) : (selectedRequest.status === "2/3 Approved" || selectedRequest.status === "3/3 Approved") ? (
+                            ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
-                            ) : selectedRequest.status === "1/3 Approved" ? (
+                            ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
                             ) : (
                               <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
                             )}
                           </div>
-                          <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? "text-[#0c0d0f]" : "text-[#64748b]"
-                            }`}>Mr. Hesham</h4>
+                          <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? "text-[#0c0d0f]" : "text-[#64748b]"
+                            }`}>Mr. Hesham Mokhtar</h4>
                           <p className="text-[12px] text-slate-400 font-sans">Chief Accountant</p>
                           {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
                               Rejected: {selectedRequest.rejectedAt || 'Oct 12, 2026 at 02:30 PM'}
                             </p>
-                          ) : (selectedRequest.status === "2/3 Approved" || selectedRequest.status === "3/3 Approved") ? (
+                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level2ApprovedAt || 'Oct 12, 2026 at 02:30 PM'}
                             </p>
-                          ) : selectedRequest.status === "1/3 Approved" ? (
+                          ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
                               {user?.role === 'Chief Accountant' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
                             </p>
                           ) : (
                             <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 1 approval</p>
                           )}
+                          {selectedRequest.level2Note && (
+                            <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
+                              Note: "{selectedRequest.level2Note}"
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Level 3: Umrah Division Director */}
+                      {/* Level 3: Madinah Branch Accountant */}
                       <div className="flex items-start gap-4">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${selectedRequest.status === "3/3 Approved"
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
                             ? "bg-[#10b981]"
                             : selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt
                               ? "bg-[#ef4444]"
-                              : selectedRequest.status === "2/3 Approved"
+                              : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved")
                                 ? "bg-[#f59e0b]"
                                 : "bg-slate-200 text-slate-400"
                           }`}
-                          style={selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "2/3 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
+                          style={selectedRequest.status !== "3/4 Approved" && selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "2/4 Approved" && selectedRequest.status !== "2/3 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
-                          ) : selectedRequest.status === "3/3 Approved" ? (
+                          ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
                             <Check className="w-5 h-5" />
-                          ) : selectedRequest.status === "2/3 Approved" ? (
+                          ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                             <Clock className="w-5 h-5" />
                           ) : (
                             <Lock className="w-[18px] h-[18px] stroke-[2.2px]" />
                           )}
                         </div>
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 3</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
-                            ) : selectedRequest.status === "3/3 Approved" ? (
+                            ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
-                            ) : selectedRequest.status === "2/3 Approved" ? (
+                            ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
                             ) : (
                               <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
                             )}
                           </div>
-                          <h4 className={`text-[14px] font-bold leading-snug ${selectedRequest.status === "3/3 Approved" ? "text-[#0c0d0f]" : "text-[#475569]"
-                            }`}>Mr. Khalid Idriss</h4>
-                          <p className="text-[12px] text-slate-400 font-sans">Umrah Division Director</p>
+                          <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? "text-[#0c0d0f]" : "text-[#64748b]"
+                            }`}>Mr. Kareem Abdou</h4>
+                          <p className="text-[12px] text-slate-400 font-sans">Madinah Branch Accountant</p>
                           {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
                               Rejected: {selectedRequest.rejectedAt || 'Oct 13, 2026 at 10:00 AM'}
                             </p>
-                          ) : selectedRequest.status === "3/3 Approved" ? (
+                          ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level3ApprovedAt || 'Oct 13, 2026 at 10:00 AM'}
                             </p>
-                          ) : selectedRequest.status === "2/3 Approved" ? (
+                          ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
+                            <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
+                              {user?.role === 'Madinah Branch Accountant' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
+                            </p>
+                          ) : (
+                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 2 approval</p>
+                          )}
+                          {selectedRequest.level3Note && (
+                            <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
+                              Note: "{selectedRequest.level3Note}"
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Level 4: Umrah Division Director */}
+                      <div className="flex items-start gap-4">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved")
+                            ? "bg-[#10b981]"
+                            : selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt
+                              ? "bg-[#ef4444]"
+                              : selectedRequest.status === "3/4 Approved"
+                                ? "bg-[#f59e0b]"
+                                : "bg-slate-200 text-slate-400"
+                          }`}
+                          style={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "3/4 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
+                          {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
+                            <span className="text-[11px] font-extrabold">✕</span>
+                          ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                            <Check className="w-5 h-5" />
+                          ) : selectedRequest.status === "3/4 Approved" ? (
+                            <Clock className="w-5 h-5" />
+                          ) : (
+                            <Lock className="w-[18px] h-[18px] stroke-[2.2px]" />
+                          )}
+                        </div>
+                        <div className="space-y-0.5 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 4</span>
+                            {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
+                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
+                            ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
+                            ) : selectedRequest.status === "3/4 Approved" ? (
+                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
+                            ) : (
+                              <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
+                            )}
+                          </div>
+                          <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? "text-[#0c0d0f]" : "text-[#475569]"
+                            }`}>Mr. Khalid Idriss</h4>
+                          <p className="text-[12px] text-slate-400 font-sans">Umrah Division Director</p>
+                          {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
+                            <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
+                              Rejected: {selectedRequest.rejectedAt || 'Oct 14, 2026 at 11:00 AM'}
+                            </p>
+                          ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
+                            <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
+                              Approved: {selectedRequest.level4ApprovedAt || 'Oct 14, 2026 at 11:00 AM'}
+                            </p>
+                          ) : selectedRequest.status === "3/4 Approved" ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
                               {user?.role === 'Division Director' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
                             </p>
                           ) : (
-                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 2 approval</p>
+                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 3 approval</p>
+                          )}
+                          {selectedRequest.level4Note && (
+                            <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
+                              Note: "{selectedRequest.level4Note}"
+                            </div>
                           )}
                         </div>
                       </div>
@@ -986,28 +1091,33 @@ const Requests: React.FC = () => {
 
                     {/* Summary Bottom info */}
                     <div className="border-t border-[#e2e8f0]/60 pt-4 text-[12px] text-[#475569] font-medium font-sans">
-                      {selectedRequest.status === "3/3 Approved" ? (
+                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
                         <div>
-                          <p className="font-bold text-[#10b981]">3 of 3 Approvals Complete</p>
+                          <p className="font-bold text-[#10b981]">Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Ready for payment execution.</p>
                         </div>
                       ) : selectedRequest.status === "Rejected" ? (
                         <div>
                           <p className="font-bold text-[#ef4444]">Request Rejected</p>
                         </div>
-                      ) : (selectedRequest.status === "2/3 Approved") ? (
+                      ) : (selectedRequest.status === "3/4 Approved") ? (
                         <div>
-                          <p className="font-bold text-[#d97706]">2 of 3 Approvals Complete</p>
+                          <p className="font-bold text-[#d97706]">3 of 4 Approvals Complete</p>
+                          <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 4 action before proceeding.</p>
+                        </div>
+                      ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
+                        <div>
+                          <p className="font-bold text-[#d97706]">2 of 4 Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 3 action before proceeding.</p>
                         </div>
-                      ) : (selectedRequest.status === "1/3 Approved") ? (
+                      ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                         <div>
-                          <p className="font-bold text-[#d97706]">1 of 3 Approvals Complete</p>
+                          <p className="font-bold text-[#d97706]">1 of 4 Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 2 action before proceeding.</p>
                         </div>
                       ) : (
                         <div>
-                          <p className="font-bold text-[#d97706]">0 of 3 Approvals Complete</p>
+                          <p className="font-bold text-[#d97706]">0 of 4 Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 1 action before proceeding.</p>
                         </div>
                       )}
@@ -1015,7 +1125,7 @@ const Requests: React.FC = () => {
                   </div>
 
                   {/* Your Decision / Available Operations Card */}
-                  {selectedRequest.status === "3/3 Approved" ? (
+                  {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved") ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                       <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Available Operations</h3>
                       {user?.role !== 'Accountant' && (
@@ -1084,9 +1194,10 @@ const Requests: React.FC = () => {
                         Your Decision (Level {getApprovalPermission(selectedRequest.status, user?.role).level})
                       </h3>
                       <p className="text-[13px] text-[#475569] font-sans leading-relaxed">
-                        {selectedRequest.status === "0/3 Pending" && "As the Finance Director, please confirm verification of the Requested Invoice."}
-                        {selectedRequest.status === "1/3 Approved" && "As the Chief Accountant, please confirm verification of the Requested Invoice."}
-                        {selectedRequest.status === "2/3 Approved" && "As the Umrah Division Director, please confirm verification of the Requested Invoice."}
+                        {(selectedRequest.status === "0/4 Pending" || selectedRequest.status === "0/3 Pending") && "As the Finance Director, please confirm verification of the Requested Invoice."}
+                        {(selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") && "As the Chief Accountant, please confirm verification of the Requested Invoice."}
+                        {(selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") && "As the Madinah Branch Accountant, please confirm verification of the Requested Invoice."}
+                        {selectedRequest.status === "3/4 Approved" && "As the Umrah Division Director, please confirm verification of the Requested Invoice."}
                       </p>
 
                       {!getApprovalPermission(selectedRequest.status, user?.role).canApprove ? (
@@ -1095,19 +1206,32 @@ const Requests: React.FC = () => {
                           <span>{getApprovalPermission(selectedRequest.status, user?.role).message}</span>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 gap-4 pt-2">
-                          <button
-                            onClick={() => handleRejectClick()}
-                            className="py-3 hover:bg-red-200/40 rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans bg-[#fee2e2] text-[#b91c1c]"
-                          >
-                            Reject Request
-                          </button>
-                          <button
-                            onClick={() => handleApprove()}
-                            className="py-3 bg-[#10b981] text-white hover:bg-[#059669] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
-                          >
-                            Approve & Forward
-                          </button>
+                        <div className="space-y-4">
+                          <div className="space-y-1 text-left">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Approval Note (Optional)</label>
+                            <textarea
+                              value={approvalNoteInput}
+                              onChange={(e) => setApprovalNoteInput(e.target.value)}
+                              placeholder="Write a note to forward..."
+                              className="w-full px-3.5 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-sans focus:outline-none focus:ring-1 focus:ring-[#f59e0b] focus:border-[#f59e0b] resize-none"
+                              rows={3}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 pt-1">
+                            <button
+                              onClick={() => handleRejectClick()}
+                              className="py-3 hover:bg-red-200/40 rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans bg-[#fee2e2] text-[#b91c1c]"
+                            >
+                              Reject Request
+                            </button>
+                            <button
+                              onClick={() => handleApprove()}
+                              className="py-3 bg-[#10b981] text-white hover:bg-[#059669] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
+                            >
+                              Approve & Forward
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>

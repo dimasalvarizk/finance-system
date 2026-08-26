@@ -139,6 +139,33 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Alter table to add level4ApprovedAt if it does not exist
+    try {
+      await pool.query('SELECT level4ApprovedAt FROM dst_requests LIMIT 1');
+    } catch (err) {
+      console.log('Adding level4ApprovedAt column to dst_requests...');
+      try {
+        await pool.query('ALTER TABLE dst_requests ADD COLUMN level4ApprovedAt VARCHAR(100) DEFAULT NULL');
+      } catch (alterErr) {
+        console.error('Failed to add level4ApprovedAt column:', alterErr.message);
+      }
+    }
+
+    // Alter table to add note columns if they do not exist
+    const noteColumns = ['level1Note', 'level2Note', 'level3Note', 'level4Note'];
+    for (const col of noteColumns) {
+      try {
+        await pool.query(`SELECT ${col} FROM dst_requests LIMIT 1`);
+      } catch (err) {
+        console.log(`Adding ${col} column to dst_requests...`);
+        try {
+          await pool.query(`ALTER TABLE dst_requests ADD COLUMN ${col} TEXT DEFAULT NULL`);
+        } catch (alterErr) {
+          console.error(`Failed to add ${col} column:`, alterErr.message);
+        }
+      }
+    }
+
     // Seeding disabled by request
     return;
 

@@ -51,7 +51,7 @@ export const createRequest = async (req, res, next) => {
       amount,
       requestedBy,
       submittedDate,
-      status: '0/3 Pending' // New requests start at Level 1 (0/3 Approved)
+      status: '0/4 Pending' // New requests start at Level 1 (0/4 Approved)
     };
 
     const newRequest = await createRequestDB(payload);
@@ -88,17 +88,18 @@ export const createRequest = async (req, res, next) => {
 // Approve request level (signed by logged in user)
 export const approveRequest = async (req, res, next) => {
   const { id } = req.params;
+  const { note } = req.body;
   const userRole = req.user.role;
 
   try {
     const fs = await import('fs');
-    fs.appendFileSync('debug_approval.log', `[${new Date().toISOString()}] Approve requested: id=${id}, user=${JSON.stringify(req.user)}, role=${userRole}\n`);
+    fs.appendFileSync('debug_approval.log', `[${new Date().toISOString()}] Approve requested: id=${id}, user=${JSON.stringify(req.user)}, role=${userRole}, note=${note}\n`);
   } catch (e) {
     console.error('Logging failed:', e);
   }
 
   try {
-    const result = await approveRequestDB(id, userRole);
+    const result = await approveRequestDB(id, userRole, note);
 
     if (!result.success) {
       return res.status(result.code || 400).json({
@@ -109,7 +110,7 @@ export const approveRequest = async (req, res, next) => {
 
     // Trigger notifications internally to auth-service
     try {
-      const isFullyApproved = result.nextStatus === '3/3 Approved';
+      const isFullyApproved = result.nextStatus === '4/4 Approved';
       const pool = getPool();
       
       // 1. Resolve Creator/Requestor UserId
@@ -130,7 +131,7 @@ export const approveRequest = async (req, res, next) => {
             userId: creatorUserId,
             type: 'invoiceApproved',
             title: 'Invoice approved',
-            message: `Your invoice request ${id} has been fully approved by all 3 directors.`
+            message: `Your invoice request ${id} has been fully approved by all accountants and directors.`
           })
         }).catch(err => console.error('Failed to trigger creator approved notification:', err.message));
       }
@@ -138,11 +139,14 @@ export const approveRequest = async (req, res, next) => {
       // 3. Trigger approvalRequestAssigned to next level assignee
       let nextAssigneeId = null;
       let nextAssigneeRole = '';
-      if (result.nextStatus === '1/3 Approved') {
+      if (result.nextStatus === '1/4 Approved') {
         nextAssigneeId = 'usr_hesham'; // Chief Accountant (Level 2)
         nextAssigneeRole = 'Chief Accountant';
-      } else if (result.nextStatus === '2/3 Approved') {
-        nextAssigneeId = 'usr_khalid'; // Division Director (Level 3)
+      } else if (result.nextStatus === '2/4 Approved') {
+        nextAssigneeId = 'usr_kareem'; // Madinah Branch Accountant (Level 3)
+        nextAssigneeRole = 'Madinah Branch Accountant';
+      } else if (result.nextStatus === '3/4 Approved') {
+        nextAssigneeId = 'usr_khalid'; // Division Director (Level 4)
         nextAssigneeRole = 'Division Director';
       }
 
@@ -162,12 +166,15 @@ export const approveRequest = async (req, res, next) => {
       // 4. Trigger approvalCompleted to previous level approvers (downstream team completed)
       let downstreamNotifUsers = [];
       let completionMsg = '';
-      if (result.nextStatus === '2/3 Approved') {
+      if (result.nextStatus === '2/4 Approved') {
         downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa'];
         completionMsg = `Invoice request ${id} has been approved by Chief Accountant (Level 2).`;
-      } else if (result.nextStatus === '3/3 Approved') {
+      } else if (result.nextStatus === '3/4 Approved') {
         downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham'];
-        completionMsg = `Invoice request ${id} has been fully approved by all directors.`;
+        completionMsg = `Invoice request ${id} has been approved by Madinah Branch Accountant (Level 3).`;
+      } else if (result.nextStatus === '4/4 Approved') {
+        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham', 'usr_kareem'];
+        completionMsg = `Invoice request ${id} has been fully approved by all directors and accountants.`;
       }
 
       for (const userId of downstreamNotifUsers) {
@@ -269,11 +276,11 @@ export const checkDownloadPermission = async (req, res, next) => {
       });
     }
 
-    if (request.status !== '3/3 Approved' && request.status !== 'Approved') {
+    if (request.status !== '4/4 Approved' && request.status !== 'Approved') {
       return res.status(403).json({
         success: false,
         allowed: false,
-        message: 'Access Denied: Invoice must be fully approved by all 3 directors (Finance Director, Chief Accountant, and Division Director) before printing or downloading.'
+        message: 'Access Denied: Invoice must be fully approved by all accountants and directors before printing or downloading.'
       });
     }
 

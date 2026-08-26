@@ -5,10 +5,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import StatCard from '../../components/ui/StatCard';
-import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Eye, Edit3, XCircle, Trash2 } from 'lucide-react';
+import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Eye, Edit3, XCircle, Trash2, Upload } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
-import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI } from '../../services/invoiceService';
+import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof } from '../../services/invoiceService';
 import { createRequest } from '../../services/requestService';
 import { getExchangeRates, getServices, getTeamMembers, getTaxSetting, getCompanySetting } from '../../services/settingService';
 import { useAuth } from '../../context/AuthContext';
@@ -34,6 +34,7 @@ export interface Invoice {
   createdBy?: string;
   branch?: string;
   taxRate?: number;
+  paymentAttachment?: string;
 }
 
 
@@ -307,6 +308,56 @@ const Invoices: React.FC = () => {
   const [editInvoiceId, setEditInvoiceId] = useState<string | null>(null);
   const [globalTaxRate, setGlobalTaxRate] = useState<number>(0);
 
+  // File Upload State & Reference for Payment Proof
+  const [uploadingInvoiceNo, setUploadingInvoiceNo] = useState<string | null>(null);
+  const [viewingProofBase64, setViewingProofBase64] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleTriggerUploadProof = (inv: Invoice) => {
+    setUploadingInvoiceNo(inv.invoiceNo);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !uploadingInvoiceNo) return;
+    const file = e.target.files[0];
+    
+    // Read file as base64
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Data = reader.result as string;
+      try {
+        setLoading(true);
+        await uploadPaymentProof(uploadingInvoiceNo, base64Data);
+        alert('Payment proof uploaded successfully!');
+        
+        // Update state locally
+        setInvoices(prev => prev.map(inv => inv.invoiceNo === uploadingInvoiceNo ? { ...inv, paymentAttachment: base64Data } : inv));
+      } catch (err: any) {
+        console.error('Failed to upload proof:', err);
+        alert(err.response?.data?.message || 'Failed to upload proof');
+      } finally {
+        setLoading(false);
+        setUploadingInvoiceNo(null);
+      }
+    };
+    reader.onerror = (error) => {
+      console.error('File reading error:', error);
+      alert('Failed to read file');
+      setUploadingInvoiceNo(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleViewPaymentProof = (inv: Invoice) => {
+    if (inv.paymentAttachment) {
+      setViewingProofBase64(inv.paymentAttachment);
+    }
+  };
+
   const fetchInvoices = async () => {
     setLoading(true);
     setError(null);
@@ -358,12 +409,17 @@ const Invoices: React.FC = () => {
     switch (status) {
       case 'Approved':
       case '3/3 Approved':
+      case '4/4 Approved':
         return 'bg-[#ecfdf5] text-[#10b981]';
       case 'Pending':
       case 'Pending Review':
       case '0/3 Pending':
       case '1/3 Approved':
       case '2/3 Approved':
+      case '0/4 Pending':
+      case '1/4 Approved':
+      case '2/4 Approved':
+      case '3/4 Approved':
         return 'bg-[#fff7ed] text-[#f97316]';
       case 'Rejected':
       case 'Cancelled':
@@ -724,7 +780,7 @@ const Invoices: React.FC = () => {
       let matchesStatus = true;
       if (filterStatus) {
         if (filterStatus === 'Pending') {
-          matchesStatus = inv.status.includes('Pending') || inv.status === '1/3 Approved' || inv.status === '2/3 Approved' || inv.status === 'Pending Review' || inv.status === '0/3 Pending';
+          matchesStatus = inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review';
         } else {
           matchesStatus = inv.status === filterStatus;
         }
@@ -755,8 +811,8 @@ const Invoices: React.FC = () => {
   }, [filteredInvoices, totalPages, currentPage]);
 
   // Stats calculation
-  const approvedCount = invoices.filter(inv => inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === 'Paid').length;
-  const pendingCount = invoices.filter(inv => inv.status.includes('Pending') || inv.status === '1/3 Approved' || inv.status === '2/3 Approved' || inv.status === 'Pending Review').length;
+  const approvedCount = invoices.filter(inv => inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid').length;
+  const pendingCount = invoices.filter(inv => inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review').length;
   const rejectedCount = invoices.filter(inv => inv.status === 'Rejected').length;
 
   const dynamicApproved = approvedCount;
@@ -988,7 +1044,7 @@ const Invoices: React.FC = () => {
           submittedDate: inv.date || new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
         });
 
-        await updateInvoiceStatus(inv.invoiceNo, '0/3 Pending');
+        await updateInvoiceStatus(inv.invoiceNo, '0/4 Pending');
       }));
 
       triggerAlert('Success', `Sent ${selectedDraftInvoices.length} invoice(s) for approval.`, 'success');
@@ -1012,7 +1068,7 @@ const Invoices: React.FC = () => {
         submittedDate: justCreatedInvoice.date || new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
       });
 
-      await updateInvoiceStatus(justCreatedInvoice.invoiceNo, '0/3 Pending');
+      await updateInvoiceStatus(justCreatedInvoice.invoiceNo, '0/4 Pending');
       setSuccessModalStep(2);
       setJustCreatedInvoice(null);
       await fetchInvoices();
@@ -1468,30 +1524,52 @@ const Invoices: React.FC = () => {
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              <button
-                                onClick={() => handleEditInvoiceClick(inv)}
-                                title="Edit Invoice"
-                                className="p-1 hover:bg-slate-100 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              {inv.status !== 'Cancelled' && inv.status !== 'Archived' && inv.status !== 'Paid' && (
-                                <button
-                                  onClick={() => handleCancelSingleInvoice(inv.invoiceNo)}
-                                  title="Cancel Invoice"
-                                  className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                </button>
-                              )}
-                              {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director') && (
-                                <button
-                                  onClick={() => handleDeleteSingleInvoice(inv.invoiceNo)}
-                                  title="Delete Invoice"
-                                  className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                              {inv.status === 'Paid' ? (
+                                inv.paymentAttachment ? (
+                                  <button
+                                    onClick={() => handleViewPaymentProof(inv)}
+                                    title="View Payment Proof"
+                                    className="p-1 hover:bg-green-50 rounded text-green-600 hover:text-green-800 transition-all cursor-pointer flex items-center justify-center font-bold text-[14px]"
+                                  >
+                                    ✅
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleTriggerUploadProof(inv)}
+                                    title="Upload Payment Proof"
+                                    className="p-1 hover:bg-blue-50 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
+                                  >
+                                    <Upload className="w-4 h-4" />
+                                  </button>
+                                )
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handleEditInvoiceClick(inv)}
+                                    title="Edit Invoice"
+                                    className="p-1 hover:bg-slate-100 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </button>
+                                  {inv.status !== 'Cancelled' && inv.status !== 'Archived' && (
+                                    <button
+                                      onClick={() => handleCancelSingleInvoice(inv.invoiceNo)}
+                                      title="Cancel Invoice"
+                                      className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                    >
+                                      <XCircle className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                  {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director') && (
+                                    <button
+                                      onClick={() => handleDeleteSingleInvoice(inv.invoiceNo)}
+                                      title="Delete Invoice"
+                                      className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </>
                               )}
                             </td>
                           </tr>
@@ -2466,6 +2544,46 @@ const Invoices: React.FC = () => {
                   }`}
               >
                 {confirmModal.confirmText || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Hidden file input for payment proof */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        style={{ display: 'none' }}
+      />
+
+      {/* Payment Proof Viewer Modal */}
+      {viewingProofBase64 && (
+        <div className="fixed inset-0 bg-[#0c0d0f]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setViewingProofBase64(null)}>
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-lg border border-slate-200 overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo</h3>
+              <button
+                onClick={() => setViewingProofBase64(null)}
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 overflow-auto max-h-[70vh] flex items-center justify-center bg-slate-50">
+              <img
+                src={viewingProofBase64}
+                alt="Payment proof"
+                className="max-w-full h-auto rounded-lg shadow-sm border border-slate-200"
+              />
+            </div>
+            <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setViewingProofBase64(null)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] cursor-pointer transition-all"
+              >
+                Close
               </button>
             </div>
           </div>

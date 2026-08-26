@@ -1,5 +1,5 @@
 import express from 'express';
-import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice } from '../controllers/invoiceController.js';
+import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof } from '../controllers/invoiceController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -20,5 +20,8 @@ router.put('/:id/cancel', cancelInvoice);
 
 // Only Super Admin, Chief Accountant, Division Director, and Accountant can update invoice statuses
 router.put('/:id/status', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant'), updateInvoiceStatus);
+
+// Upload payment proof for paid invoices
+router.put('/:id/payment-proof', uploadPaymentProof);
 
 export default router;

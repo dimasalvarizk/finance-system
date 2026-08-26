@@ -224,6 +224,19 @@ const initializeDatabase = async () => {
           jobTitle: 'Senior Accountant',
           status: 'Active',
           lastActive: '3 days ago'
+        },
+        {
+          id: 'usr_kareem',
+          email: 'kareem.abdou@mukhtaraair.com',
+          name: 'Kareem Abdou',
+          role: 'Madinah Branch Accountant',
+          branch: 'Graha Al Badegel',
+          phone: '+62 812-7777-8888',
+          employeeId: 'EMP-105',
+          department: 'Finance',
+          jobTitle: 'Madinah Branch Accountant',
+          status: 'Active',
+          lastActive: 'Just now'
         }
       ];
 

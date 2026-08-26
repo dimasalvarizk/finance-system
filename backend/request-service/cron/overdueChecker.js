@@ -12,7 +12,7 @@ export const checkOverdueRequests = async () => {
     const [overdueRequests] = await pool.query(
       `SELECT id, invoiceNo, dueDate, status, requestedBy 
        FROM dst_requests 
-       WHERE status IN ('0/3 Pending', '1/3 Approved', '2/3 Approved')`
+       WHERE status IN ('0/4 Pending', '1/4 Approved', '2/4 Approved', '3/4 Approved', '0/3 Pending', '1/3 Approved', '2/3 Approved')`
     );
 
     if (overdueRequests.length === 0) {
@@ -33,11 +33,13 @@ export const checkOverdueRequests = async () => {
 
       // Determine assignees based on current status
       let assignees = [];
-      if (req.status === '0/3 Pending') {
+      if (req.status === '0/4 Pending' || req.status === '0/3 Pending') {
         assignees = ['usr_super_admin', 'usr_emad_moustafa'];
-      } else if (req.status === '1/3 Approved') {
+      } else if (req.status === '1/4 Approved' || req.status === '1/3 Approved') {
         assignees = ['usr_hesham'];
-      } else if (req.status === '2/3 Approved') {
+      } else if (req.status === '2/4 Approved' || req.status === '2/3 Approved') {
+        assignees = ['usr_kareem'];
+      } else if (req.status === '3/4 Approved') {
         assignees = ['usr_khalid'];
       }
 
