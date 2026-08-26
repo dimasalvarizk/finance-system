@@ -32,7 +32,7 @@ export const getCompanyByCode = async (req, res, next) => {
 };
 
 export const createCompany = async (req, res, next) => {
-  const { code, name, phone, address, taxNumber } = req.body;
+  const { code, name, phone, address, taxNumber, agent } = req.body;
   try {
     if (!code || !name) {
       return res.status(400).json({
@@ -50,7 +50,7 @@ export const createCompany = async (req, res, next) => {
       });
     }
 
-    const payload = { code, name, phone, address, taxNumber };
+    const payload = { code, name, phone, address, taxNumber, agent };
     const newCompany = await createCompanyDB(payload);
 
     res.status(201).json({
@@ -65,7 +65,7 @@ export const createCompany = async (req, res, next) => {
 
 export const updateCompany = async (req, res, next) => {
   const { code } = req.params;
-  const { name, phone, address, taxNumber } = req.body;
+  const { name, phone, address, taxNumber, agent } = req.body;
   try {
     const exists = await getCompanyByCodeDB(code);
     if (!exists) {
@@ -75,7 +75,7 @@ export const updateCompany = async (req, res, next) => {
       });
     }
 
-    const payload = { name, phone, address, taxNumber };
+    const payload = { name, phone, address, taxNumber, agent };
     const updated = await updateCompanyDB(code, payload);
 
     res.status(200).json({

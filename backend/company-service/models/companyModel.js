@@ -15,15 +15,16 @@ export const getCompanyByCodeDB = async (code) => {
 export const createCompanyDB = async (companyData) => {
   const pool = getPool();
   const insertQuery = `
-    INSERT INTO dst_companies (code, name, phone, address, taxNumber)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO dst_companies (code, name, phone, address, taxNumber, agent)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
   await pool.query(insertQuery, [
     companyData.code.toUpperCase(),
     companyData.name,
     companyData.phone,
     companyData.address,
-    companyData.taxNumber
+    companyData.taxNumber,
+    companyData.agent || null
   ]);
   return companyData;
 };
@@ -32,7 +33,7 @@ export const updateCompanyDB = async (code, companyData) => {
   const pool = getPool();
   const updateQuery = `
     UPDATE dst_companies 
-    SET name = ?, phone = ?, address = ?, taxNumber = ? 
+    SET name = ?, phone = ?, address = ?, taxNumber = ?, agent = ? 
     WHERE code = ?
   `;
   await pool.query(updateQuery, [
@@ -40,6 +41,7 @@ export const updateCompanyDB = async (code, companyData) => {
     companyData.phone,
     companyData.address,
     companyData.taxNumber,
+    companyData.agent || null,
     code.toUpperCase()
   ]);
   return { code, ...companyData };

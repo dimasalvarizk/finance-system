@@ -1188,10 +1188,10 @@ const Invoices: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex flex-col space-y-1">
               <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
-                Invoices
+                Confirmations
               </h1>
               <p className="text-[13px] text-[#64748b] font-medium font-sans">
-                ODST Corporate Invoicing & Treasury Ledger
+                ODST Corporate Confirmations & Treasury Ledger
               </p>
             </div>
 
@@ -1200,14 +1200,14 @@ const Invoices: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span>Generate Invoice</span>
+              <span>Generate Confirmation</span>
             </button>
           </div>
 
           {/* Metric Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
-              title="Total Invoices"
+              title="Total Confirmations"
               value={`${dynamicTotal} Sent`}
               subtext="Aggregated monthly ledger volume"
               badgeText="All Branches"
@@ -1215,21 +1215,21 @@ const Invoices: React.FC = () => {
             />
             <StatCard
               title="Approved"
-              value={`${dynamicApproved} Invoices`}
+              value={`${dynamicApproved} Confirmations`}
               subtext="Successfully processed & settled"
               badgeText={`${successRate}% success`}
               badgeColorClass="bg-[#ecfdf5] text-[#10b981]"
             />
             <StatCard
               title="Pending Review"
-              value={`${dynamicPending} Invoices`}
+              value={`${dynamicPending} Confirmations`}
               subtext="Pending Finance Director verification"
               badgeText="Awaiting Clearance"
               badgeColorClass="bg-[#fff7ed] text-[#f97316]"
             />
             <StatCard
               title="Overdue Balance"
-              value={`${dynamicOverdue} Invoices`}
+              value={`${dynamicOverdue} Confirmations`}
               subtext="Outstanding balance past collection limits"
               badgeText="Action Required"
               badgeColorClass="bg-[#fef2f2] text-[#ef4444]"
@@ -1241,13 +1241,13 @@ const Invoices: React.FC = () => {
             {/* Table Header Section */}
             <div className="px-6 py-6 flex items-center justify-between border-b border-[#e2e8f0]">
               <h3 className="text-[15px] font-bold text-[#0c0d0f] font-sans">
-                Recent Approved Invoices
+                Recent Approved Confirmations
               </h3>
-              {invoices.length === 0 && !loading && (
+              {invoices.length > 0 && !loading && (
                 <div className="relative w-60 animate-fade-in">
                   <input
                     type="text"
-                    placeholder="Search Client / Inv #"
+                    placeholder="Search Client / Conf #"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-9 pr-3 py-1.5 border border-[#cbd5e1] rounded-xl text-[12px] font-semibold text-[#1e293b] placeholder-gray-400 focus:outline-none focus:border-[#2563eb] bg-white transition-all font-sans"
@@ -1475,8 +1475,8 @@ const Invoices: React.FC = () => {
                             className="rounded border-gray-300 text-amber-500 focus:ring-amber-500 w-4 h-4 cursor-pointer"
                           />
                         </th>
-                        <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
-                          INVOICE #
+                         <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
+                          CONFIRMATION #
                         </th>
                         <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
                           COMPANY
@@ -1494,7 +1494,7 @@ const Invoices: React.FC = () => {
                           AMOUNT
                         </th>
                         <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
-                          INVOICE DATE
+                          CONFIRMATION DATE
                         </th>
                         <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
                           DUE DATE

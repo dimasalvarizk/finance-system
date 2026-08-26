@@ -21,7 +21,7 @@ export interface InvoiceRequest {
   amount: string;
   requestedBy: string;
   submittedDate: string;
-  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "0/4 Pending" | "1/4 Approved" | "2/4 Approved" | "3/4 Approved" | "4/4 Approved" | "Approved" | "Rejected" | "Cancelled" | "Paid" | "Archived";
+  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "0/4 Pending" | "1/4" | "1/4 Approved" | "2/4" | "2/4 Approved" | "3/4" | "3/4 Approved" | "4/4 Approved" | "Approved" | "Rejected" | "Cancelled" | "Paid" | "Archived";
   branch?: string;
   rejectionReason?: string;
   level1ApprovedAt?: string | null;
@@ -364,7 +364,7 @@ const Requests: React.FC = () => {
         message: 'Only Mr. Emad Moustafa (Finance Director) can approve Level 1.'
       };
     }
-    if (status === '1/4 Approved' || status === '1/3 Approved') {
+    if (status === '1/4' || status === '1/4 Approved' || status === '1/3 Approved') {
       return {
         canApprove: role === 'Chief Accountant' || role === 'Super Admin',
         level: 2,
@@ -372,15 +372,15 @@ const Requests: React.FC = () => {
         message: 'Only Chief Accountant (Mr. Hesham Mokhtar) can approve Level 2.'
       };
     }
-    if (status === '2/4 Approved' || status === '2/3 Approved') {
+    if (status === '2/4' || status === '2/4 Approved' || status === '2/3 Approved') {
       return {
-        canApprove: role === 'Madinah Branch Accountant' || role === 'Super Admin',
+        canApprove: role === 'Level_3_Approver' || role === 'Super Admin' || role === 'Madinah Branch Accountant',
         level: 3,
-        requiredRole: 'Madinah Branch Accountant',
-        message: 'Only Madinah Branch Accountant (Mr. Kareem Abdou) can approve Level 3.'
+        requiredRole: 'Level_3_Approver',
+        message: 'Only Level 3 Approvers (Mr. Karim Gharba & Mr. Raed AlBadrani) can approve Level 3.'
       };
     }
-    if (status === '3/4 Approved') {
+    if (status === '3/4' || status === '3/4 Approved') {
       return {
         canApprove: role === 'Division Director' || role === 'Super Admin',
         level: 4,
@@ -637,12 +637,12 @@ const Requests: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-1.5 text-[12px] text-slate-400 font-medium">
-                    <span className="text-[#f59e0b] hover:underline cursor-pointer" onClick={() => setSelectedRequest(null)}>Invoice Requests</span>
+                    <span className="text-[#f59e0b] hover:underline cursor-pointer" onClick={() => setSelectedRequest(null)}>Confirmation Requests</span>
                     <span>/</span>
                     <span>Request {selectedRequest.reqNo}</span>
                   </div>
-                  <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight font-sans">
-                    {selectedRequest.status === "Rejected" ? "Rejected Invoice Details" : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? "Fully Approved Invoice Details" : `Review Request - ${selectedRequest.company}`}
+                  <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight font-sans text-left">
+                    {selectedRequest.status === "Rejected" ? "Rejected Confirmation Details" : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? "Fully Approved Confirmation Details" : `Review Request - ${selectedRequest.company}`}
                   </h1>
                 </div>
                 <button
@@ -684,7 +684,7 @@ const Requests: React.FC = () => {
                                 <FileText className="w-5 h-5" style={{ color: "rgba(245, 158, 11, 1)" }} />
                               </div>
                               <div>
-                                <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Invoice Details</h3>
+                                <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Confirmation Details</h3>
                                 <p className="text-[12px] text-slate-400 font-medium font-sans">Review billing details</p>
                               </div>
                             </div>
@@ -697,7 +697,7 @@ const Requests: React.FC = () => {
                           {/* Metadata Grid */}
                           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Invoice Number</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmation Number</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{displayInvoiceNo}</div>
                             </div>
                             <div>
@@ -709,7 +709,7 @@ const Requests: React.FC = () => {
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{requestAsInvoice?.serialNo}</div>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Invoice Date</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmation Date</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{requestAsInvoice?.date}</div>
                             </div>
                             <div>
@@ -1003,19 +1003,19 @@ const Requests: React.FC = () => {
 
                       {/* Level 2: Chief Accountant */}
                       <div className="flex items-start gap-4">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected")
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected")
                             ? "bg-[#10b981]"
                             : selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt
                               ? "bg-[#ef4444]"
-                              : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved")
+                              : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved")
                                 ? "bg-[#f59e0b]"
                                 : "bg-slate-200 text-slate-400"
                           }`}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
-                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
+                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
                             <Check className="w-5 h-5" />
-                          ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
+                          ) : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                             <Clock className="w-5 h-5" />
                           ) : (
                             <Lock className="w-[18px] h-[18px] stroke-[2.2px]" />
@@ -1026,9 +1026,9 @@ const Requests: React.FC = () => {
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 2</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
-                            ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
+                            ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
-                            ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
+                            ) : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
                             ) : (
                               <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
@@ -1041,11 +1041,11 @@ const Requests: React.FC = () => {
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
                               Rejected: {selectedRequest.rejectedAt || 'Oct 12, 2026 at 02:30 PM'}
                             </p>
-                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
+                          ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level2ApprovedAt || 'Oct 12, 2026 at 02:30 PM'}
                             </p>
-                          ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
+                          ) : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
                               {user?.role === 'Chief Accountant' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
                             </p>
@@ -1088,15 +1088,15 @@ const Requests: React.FC = () => {
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
                             ) : (selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
-                            ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
+                            ) : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
                             ) : (
                               <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
                             )}
                           </div>
                           <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? "text-[#0c0d0f]" : "text-[#64748b]"
-                            }`}>Mr. Kareem Abdou</h4>
-                          <p className="text-[12px] text-slate-400 font-sans">Madinah Branch Accountant</p>
+                            }`}>Mr. Karim Gharba & Mr. Raed AlBadrani</h4>
+                          <p className="text-[12px] text-slate-400 font-sans">Level 3 Approvers</p>
                           {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
                               Rejected: {selectedRequest.rejectedAt || 'Oct 13, 2026 at 10:00 AM'}
@@ -1105,9 +1105,9 @@ const Requests: React.FC = () => {
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level3ApprovedAt || 'Oct 13, 2026 at 10:00 AM'}
                             </p>
-                          ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
+                          ) : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
-                              {user?.role === 'Madinah Branch Accountant' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
+                              {user?.role === 'Level_3_Approver' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
                             </p>
                           ) : (
                             <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 2 approval</p>
@@ -1126,16 +1126,16 @@ const Requests: React.FC = () => {
                             ? "bg-[#10b981]"
                             : selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt
                               ? "bg-[#ef4444]"
-                              : selectedRequest.status === "3/4 Approved"
+                              : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved")
                                 ? "bg-[#f59e0b]"
                                 : "bg-slate-200 text-slate-400"
                           }`}
-                          style={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "3/4 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
+                          style={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "3/4" && selectedRequest.status !== "3/4 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
                           ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                             <Check className="w-5 h-5" />
-                          ) : selectedRequest.status === "3/4 Approved" ? (
+                          ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") ? (
                             <Clock className="w-5 h-5" />
                           ) : (
                             <Lock className="w-[18px] h-[18px] stroke-[2.2px]" />
@@ -1148,7 +1148,7 @@ const Requests: React.FC = () => {
                               <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
                             ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid") ? (
                               <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
-                            ) : selectedRequest.status === "3/4 Approved" ? (
+                            ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") ? (
                               <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
                             ) : (
                               <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
@@ -1165,7 +1165,7 @@ const Requests: React.FC = () => {
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
                               Approved: {selectedRequest.level4ApprovedAt || 'Oct 14, 2026 at 11:00 AM'}
                             </p>
-                          ) : selectedRequest.status === "3/4 Approved" ? (
+                          ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
                               {user?.role === 'Division Director' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
                             </p>
@@ -1192,17 +1192,17 @@ const Requests: React.FC = () => {
                         <div>
                           <p className="font-bold text-[#ef4444]">Request Rejected</p>
                         </div>
-                      ) : (selectedRequest.status === "3/4 Approved") ? (
+                      ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") ? (
                         <div>
                           <p className="font-bold text-[#d97706]">3 of 4 Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 4 action before proceeding.</p>
                         </div>
-                      ) : (selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
+                      ) : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                         <div>
                           <p className="font-bold text-[#d97706]">2 of 4 Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 3 action before proceeding.</p>
                         </div>
-                      ) : (selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
+                      ) : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                         <div>
                           <p className="font-bold text-[#d97706]">1 of 4 Approvals Complete</p>
                           <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 2 action before proceeding.</p>
@@ -1216,8 +1216,8 @@ const Requests: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Payment Proof Card (shown when status is Paid) */}
-                  {(selectedRequest.status === "Paid" || isPaid) && (
+                  {/* Payment Proof Card (shown if attachment exists OR status is Paid) */}
+                  {(selectedRequest.paymentAttachment || selectedRequest.status === "Paid" || isPaid) && (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                       <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo</h3>
                       {selectedRequest.paymentAttachment ? (
@@ -1396,55 +1396,56 @@ const Requests: React.FC = () => {
                         <span className="text-left leading-normal font-medium">Please review all details carefully before making your decision. This action cannot be undone.</span>
                       </div>
 
-                      {/* Independent Note Input Card */}
-                      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4 text-left">
-                        <h3 className="text-[14px] font-bold text-[#0c0d0f] font-sans">Note</h3>
-                        <textarea
-                          value={approvalNoteInput}
-                          onChange={(e) => setApprovalNoteInput(e.target.value)}
-                          placeholder="Write a note for reference..."
-                          className="w-full px-3.5 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-sans focus:outline-none focus:ring-1 focus:ring-[#f59e0b] focus:border-[#f59e0b] resize-none"
-                          rows={4}
-                        />
-                        <button
-                          onClick={handleSaveNoteClick}
-                          className="w-full py-2.5 bg-[#55b986] hover:bg-[#43a072] text-white font-bold rounded-xl text-[13px] transition-all cursor-pointer font-sans text-center shadow-sm"
-                        >
-                          Save Note
-                        </button>
-                      </div>
-
                       {/* Your Decision Card */}
                       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                         <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">
                           Your Decision (Level {getApprovalPermission(selectedRequest.status, user?.role).level})
                         </h3>
-                        <p className="text-[13px] text-[#475569] font-sans leading-relaxed">
-                          {(selectedRequest.status === "0/4 Pending" || selectedRequest.status === "0/3 Pending") && "As the Finance Director, please confirm verification of the Requested Invoice."}
-                          {(selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") && "As the Chief Accountant, please confirm verification of the Requested Invoice."}
-                          {(selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") && "As the Madinah Branch Accountant, please confirm verification of the Requested Invoice."}
-                          {selectedRequest.status === "3/4 Approved" && "As the Umrah Division Director, please confirm verification of the Requested Invoice."}
+                        <p className="text-[13px] text-[#475569] font-sans leading-relaxed text-left">
+                          {(selectedRequest.status === "0/4 Pending" || selectedRequest.status === "0/3 Pending") && "As the Finance Director, please confirm verification of the Requested Confirmation."}
+                          {(selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") && "As the Chief Accountant, please confirm verification of the Requested Confirmation."}
+                          {(selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") && "As the Level 3 Approver, please confirm verification of the Requested Confirmation."}
+                          {(selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") && "As the Umrah Division Director, please confirm verification of the Requested Confirmation."}
                         </p>
 
                         {!getApprovalPermission(selectedRequest.status, user?.role).canApprove ? (
-                          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] font-medium text-slate-500 font-sans flex items-center gap-2">
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] font-medium text-slate-500 font-sans flex items-center gap-2 text-left">
                             <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                             <span>{getApprovalPermission(selectedRequest.status, user?.role).message}</span>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-2 gap-4 pt-1">
-                            <button
-                              onClick={() => handleRejectClick()}
-                              className="py-3 hover:bg-red-200/40 rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans bg-[#fee2e2] text-[#b91c1c]"
-                            >
-                              Reject Request
-                            </button>
-                            <button
-                              onClick={() => handleApprove()}
-                              className="py-3 bg-[#10b981] text-white hover:bg-[#059669] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
-                            >
-                              Approve & Forward
-                            </button>
+                          <div className="space-y-4">
+                            {/* Note field with green Save Note button inside Decision block */}
+                            <div className="space-y-2 text-left">
+                              <label className="text-[13px] font-bold text-[#0c0d0f] font-sans block">Note</label>
+                              <textarea
+                                value={approvalNoteInput}
+                                onChange={(e) => setApprovalNoteInput(e.target.value)}
+                                placeholder="Write a note for reference..."
+                                className="w-full px-3.5 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-sans focus:outline-none focus:ring-1 focus:ring-[#f59e0b] focus:border-[#f59e0b] resize-none"
+                                rows={4}
+                              />
+                              <button
+                                onClick={handleSaveNoteClick}
+                                className="w-full py-2 bg-[#55b986] hover:bg-[#43a072] text-white font-bold rounded-xl text-[12px] transition-all cursor-pointer font-sans text-center shadow-sm"
+                              >
+                                Save Note
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 pt-1">
+                              <button
+                                onClick={() => handleRejectClick()}
+                                className="py-3 hover:bg-red-200/40 rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans bg-[#fee2e2] text-[#b91c1c]"
+                              >
+                                Reject Request
+                              </button>
+                              <button
+                                onClick={() => handleApprove()}
+                                className="py-3 bg-[#10b981] text-white hover:bg-[#059669] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
+                              >
+                                Approve & Forward
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1458,10 +1459,10 @@ const Requests: React.FC = () => {
               {/* Welcome Title */}
               <div className="flex flex-col space-y-1">
                 <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
-                  Invoice Requests
+                  Confirmation Requests
                 </h1>
                 <p className="text-[13px] text-[#64748b] font-medium font-sans">
-                  Review and approve pending invoice requests from corporate treasury branches
+                  Review and approve pending confirmation requests from corporate treasury branches
                 </p>
               </div>
 
@@ -1547,7 +1548,7 @@ const Requests: React.FC = () => {
                     {/* Card Header & Search & Filters */}
                 <div className="p-5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-wrap items-center gap-4">
                   <h2 className="text-[16px] font-bold text-[#0c0d0f] font-inter whitespace-nowrap">
-                    All Invoice Requests Listing
+                    All Confirmation Requests Listing
                   </h2>
                   
                   {/* Search Bar Input */}
@@ -1634,17 +1635,17 @@ const Requests: React.FC = () => {
                     </h4>
                     {/* Description */}
                     <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
-                      {activeTab === "pending" && "When invoices are submitted for approval, they will appear here."}
-                      {activeTab === "approved" && "Once requests are approved by all 3 directors, they will appear here."}
-                      {activeTab === "rejected" && "Any rejected invoice requests will appear here."}
-                      {activeTab === "all" && "Try adjusting your filters or search terms, or create a new invoice."}
+                      {activeTab === "pending" && "When confirmations are submitted for approval, they will appear here."}
+                      {activeTab === "approved" && "Once requests are approved by all 4 levels, they will appear here."}
+                      {activeTab === "rejected" && "Any rejected confirmation requests will appear here."}
+                      {activeTab === "all" && "Try adjusting your filters or search terms, or create a new confirmation."}
                     </p>
                     {/* Go to Invoices Button */}
                     <button
                       onClick={() => navigate("/invoices")}
                       className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-lg shadow-sm transition-all cursor-pointer font-sans"
                     >
-                      Go to Invoices
+                      Go to Confirmations
                     </button>
                   </div>
                 ) : (
@@ -1658,7 +1659,7 @@ const Requests: React.FC = () => {
                           REQUEST #
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          INVOICE #
+                          CONFIRMATION #
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
                           COMPANY
@@ -1980,7 +1981,7 @@ const Requests: React.FC = () => {
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Invoice Marked as Paid!</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Confirmation Marked as Paid!</h3>
               <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
                 The transaction has been successfully recorded.
               </p>
@@ -2038,9 +2039,9 @@ const Requests: React.FC = () => {
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Invoice Request Archived!</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Confirmation Request Archived!</h3>
               <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
-                The invoice request has been successfully archived.
+                The confirmation request has been successfully archived.
               </p>
             </div>
             <button
@@ -2108,7 +2109,7 @@ const Requests: React.FC = () => {
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
               <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#f59e0b]" />
-                <span>Send Invoice to Client</span>
+                <span>Send Confirmation to Client</span>
               </h3>
               <button
                 onClick={() => setShowSendInvoiceModal(false)}
@@ -2120,7 +2121,7 @@ const Requests: React.FC = () => {
             
             <div className="space-y-3 font-sans">
               <p className="text-[13px] text-slate-500 leading-relaxed">
-                This will automatically generate a beautifully styled HTML invoice document and send it directly to the customer's billing email.
+                This will automatically generate a beautifully styled HTML confirmation document and send it directly to the customer's billing email.
               </p>
               
               <div className="space-y-1">
@@ -2181,9 +2182,9 @@ const Requests: React.FC = () => {
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Invoice Sent!</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Confirmation Sent!</h3>
               <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
-                The invoice email has been successfully sent to <strong>{clientEmailInput}</strong>.
+                The confirmation email has been successfully sent to <strong>{clientEmailInput}</strong>.
               </p>
             </div>
             <button

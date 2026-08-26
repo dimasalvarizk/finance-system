@@ -84,6 +84,19 @@ const initializeDatabase = async () => {
     `;
     await pool.query(createCompaniesTableQuery);
     console.log("Table 'dst_companies' is verified/ready in company-service");
+
+    // Alter table to add agent if it does not exist
+    try {
+      await pool.query('SELECT agent FROM dst_companies LIMIT 1');
+    } catch (err) {
+      console.log('Adding agent column to dst_companies...');
+      try {
+        await pool.query('ALTER TABLE dst_companies ADD COLUMN agent VARCHAR(100) DEFAULT NULL');
+      } catch (alterErr) {
+        console.error('Failed to add agent column:', alterErr.message);
+      }
+    }
+
     // Seeding disabled by request
     return;
 

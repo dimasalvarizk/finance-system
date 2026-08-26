@@ -14,7 +14,7 @@ export const protect = async (req, res, next) => {
       // Fetch user from shared database dst_users table
       const pool = getPool();
       const [rows] = await pool.query(
-        'SELECT id, email, name, role FROM dst_users WHERE id = ?',
+        'SELECT id, email, name, role, permissions FROM dst_users WHERE id = ?',
         [decoded.id]
       );
       const user = rows[0];
@@ -48,7 +48,9 @@ export const protect = async (req, res, next) => {
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    const hasPermission = req.user && req.user.permissions && req.user.permissions.split(',').map(p => p.trim()).includes('manage_companies');
+    const hasRole = req.user && roles.includes(req.user.role);
+    if (!hasRole && !hasPermission) {
       return res.status(403).json({
         success: false,
         message: `Access Denied: Your role (${req.user?.role || 'Guest'}) is not authorized to access this resource.`,

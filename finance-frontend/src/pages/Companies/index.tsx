@@ -80,6 +80,7 @@ export interface Company {
   phone: string;
   address: string;
   taxNumber: string;
+  agent?: string;
 }
 
 const Companies: React.FC = () => {
@@ -138,6 +139,7 @@ const Companies: React.FC = () => {
   const [newCompPostal, setNewCompPostal] = useState("");
   const [newCompCountry, setNewCompCountry] = useState("United States");
   const [newCompTax, setNewCompTax] = useState("");
+  const [newCompAgent, setNewCompAgent] = useState("Hasoob Technology");
   const [formError, setFormError] = useState("");
   const [showValidation, setShowValidation] = useState(false);
 
@@ -151,6 +153,7 @@ const Companies: React.FC = () => {
   const [editPhone, setEditPhone] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [editTaxId, setEditTaxId] = useState("");
+  const [editAgent, setEditAgent] = useState("");
 
   // Delete States
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -394,7 +397,8 @@ const Companies: React.FC = () => {
       code: newCompCode.toUpperCase(),
       phone: newCompPhone,
       address: `${newCompStreet}, ${newCompCity}, ${newCompPostal}, ${newCompCountry}`,
-      taxNumber: newCompTax
+      taxNumber: newCompTax,
+      agent: newCompAgent
     };
 
     try {
@@ -421,6 +425,7 @@ const Companies: React.FC = () => {
     setNewCompPostal("");
     setNewCompCountry("United States");
     setNewCompTax("");
+    setNewCompAgent("Hasoob Technology");
     setFormError("");
     setShowValidation(false);
     setCurrentPage(1);
@@ -460,7 +465,8 @@ const Companies: React.FC = () => {
       code: editCode.toUpperCase(),
       phone: editPhone,
       address: editAddress,
-      taxNumber: editTaxId
+      taxNumber: editTaxId,
+      agent: editAgent
     };
 
     try {
@@ -1006,6 +1012,20 @@ const Companies: React.FC = () => {
                     )}
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
+                    Agent
+                  </label>
+                  <select
+                    value={newCompAgent}
+                    onChange={(e) => setNewCompAgent(e.target.value)}
+                    className="w-full h-[40px] px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white cursor-pointer font-sans"
+                  >
+                    <option value="Hasoob Technology">Hasoob Technology</option>
+                    <option value="ODST Travel & Tourizm">ODST Travel & Tourizm</option>
+                  </select>
+                </div>
               </div>
 
               {/* Footer Actions */}
@@ -1079,6 +1099,11 @@ const Companies: React.FC = () => {
                 <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">TAX ID</span>
                 <span className="font-medium text-[#1e293b] text-[14px] font-inter font-mono">{selectedCompany.taxNumber}</span>
               </div>
+
+              <div>
+                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">AGENT</span>
+                <span className="font-medium text-[#1e293b] text-[14px] font-inter">{selectedCompany.agent || "N/A"}</span>
+              </div>
             </div>
 
             <div className="px-6 py-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end gap-3">
@@ -1105,6 +1130,7 @@ const Companies: React.FC = () => {
                   setEditPhone(selectedCompany.phone);
                   setEditAddress(selectedCompany.address);
                   setEditTaxId(selectedCompany.taxNumber);
+                  setEditAgent(selectedCompany.agent || "Hasoob Technology");
                   setIsDetailsModalOpen(false);
                   setIsEditModalOpen(true);
                 }}
@@ -1251,6 +1277,18 @@ const Companies: React.FC = () => {
                       Tax ID is required
                     </span>
                   )}
+                </div>
+
+                <div>
+                  <label className="text-slate-500 block text-[12px] font-medium mb-1.5 font-inter">Agent</label>
+                  <select
+                    value={editAgent}
+                    onChange={(e) => setEditAgent(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] bg-white cursor-pointer font-sans"
+                  >
+                    <option value="Hasoob Technology">Hasoob Technology</option>
+                    <option value="ODST Travel & Tourizm">ODST Travel & Tourizm</option>
+                  </select>
                 </div>
               </div>
 

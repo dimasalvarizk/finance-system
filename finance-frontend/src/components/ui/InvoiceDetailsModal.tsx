@@ -2,6 +2,7 @@ import React from 'react';
 import { X, FileText, Printer, Download, Lock, Eye } from 'lucide-react';
 import { type Invoice, getInvoiceDetails, calculateConvertedTotals, getLocalCompanySettings } from '../../pages/Invoices';
 import { checkDownloadPermission } from '../../services/requestService';
+import { uploadPaymentProof } from '../../services/invoiceService';
 
 interface Props {
   selectedInvoice: Invoice | null;
@@ -15,6 +16,72 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
 
   if (!selectedInvoice) return null;
 
+  const [localPaymentAttachment, setLocalPaymentAttachment] = React.useState<string | null>(selectedInvoice.paymentAttachment || null);
+
+  React.useEffect(() => {
+    setLocalPaymentAttachment(selectedInvoice.paymentAttachment || null);
+  }, [selectedInvoice]);
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const max_width = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > max_width) {
+            height = Math.round((height * max_width) / width);
+            width = max_width;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedBase64);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const isPDF = file.type === 'application/pdf';
+    try {
+      let base64Data = '';
+      if (isPDF) {
+        base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (err) => reject(err);
+        });
+      } else {
+        base64Data = await compressImage(file);
+      }
+      await uploadPaymentProof(selectedInvoice.invoiceNo, base64Data);
+      setLocalPaymentAttachment(base64Data);
+      selectedInvoice.paymentAttachment = base64Data;
+    } catch (err: any) {
+      console.error('Failed to upload proof from modal:', err);
+      alert(err.response?.data?.message || 'Failed to upload payment proof.');
+    }
+  };
+
   const details = getInvoiceDetails(selectedInvoice);
   const companySettings = getLocalCompanySettings();
 
@@ -26,7 +93,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
       if (res && res.allowed) {
         window.print();
       } else {
-        setErrorMessage(res.message || 'Access Denied: This invoice is not fully approved yet.');
+        setErrorMessage(res.message || 'Access Denied: This confirmation is not fully approved yet.');
       }
     } catch (err: any) {
       console.error('Permission check failed:', err);
@@ -86,7 +153,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             </div>
             <div className="flex flex-col">
               <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">
-                Invoice Details
+                Confirmation Details
               </h3>
               <span className="text-[12px] text-[#64748b] font-medium mt-0.5">
                 Review billing details
@@ -143,10 +210,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 className="w-full px-3.5 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] focus:outline-none font-inter bg-[#f8fafc]"
               />
             </div>
-            {/* Invoice Date */}
+            {/* Confirmation Date */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Invoice Date
+                Confirmation Date
               </label>
               <input
                 type="text"
@@ -469,15 +536,27 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             <span className="text-[12px] text-[#94a3b8] font-medium font-sans">
               System status: <span className="font-bold text-[#64748b]">{selectedInvoice.status}</span>
             </span>
-            {selectedInvoice.status === 'Paid' && selectedInvoice.paymentAttachment && (
-              <button
-                type="button"
-                onClick={() => setViewingProof(selectedInvoice.paymentAttachment!)}
-                className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 font-bold rounded-lg text-[11px] font-sans transition-all cursor-pointer shadow-sm"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>View Payment Proof</span>
-              </button>
+            {selectedInvoice.status === 'Paid' && (
+              localPaymentAttachment ? (
+                <button
+                  type="button"
+                  onClick={() => setViewingProof(localPaymentAttachment)}
+                  className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 font-bold rounded-lg text-[11px] font-sans transition-all cursor-pointer shadow-sm"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>View Payment Proof</span>
+                </button>
+              ) : (
+                <label className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f59e0b] border border-[#d97706] text-white hover:bg-[#d97706] font-bold rounded-lg text-[11px] font-sans transition-all cursor-pointer shadow-sm">
+                  <span>Upload Proof</span>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleUploadProof}
+                    className="hidden"
+                  />
+                </label>
+              )
             )}
           </div>
           <div className="flex space-x-3">

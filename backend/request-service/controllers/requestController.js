@@ -139,41 +139,44 @@ export const approveRequest = async (req, res, next) => {
       // 3. Trigger approvalRequestAssigned to next level assignee
       let nextAssigneeId = null;
       let nextAssigneeRole = '';
-      if (result.nextStatus === '1/4 Approved') {
+      if (result.nextStatus === '1/4' || result.nextStatus === '1/4 Approved') {
         nextAssigneeId = 'usr_hesham'; // Chief Accountant (Level 2)
         nextAssigneeRole = 'Chief Accountant';
-      } else if (result.nextStatus === '2/4 Approved') {
-        nextAssigneeId = 'usr_kareem'; // Madinah Branch Accountant (Level 3)
-        nextAssigneeRole = 'Madinah Branch Accountant';
-      } else if (result.nextStatus === '3/4 Approved') {
+      } else if (result.nextStatus === '2/4' || result.nextStatus === '2/4 Approved') {
+        nextAssigneeId = ['usr_kareem', 'usr_raed']; // Level 3 Approvers (Karim & Raed)
+        nextAssigneeRole = 'Level 3 Approver';
+      } else if (result.nextStatus === '3/4' || result.nextStatus === '3/4 Approved') {
         nextAssigneeId = 'usr_khalid'; // Division Director (Level 4)
         nextAssigneeRole = 'Division Director';
       }
 
       if (nextAssigneeId) {
-        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: nextAssigneeId,
-            type: 'approvalRequestAssigned',
-            title: 'Approval request assigned',
-            message: `A new invoice request ${id} has been assigned to you for ${nextAssigneeRole} approval.`
-          })
-        }).catch(err => console.error('Failed to trigger request assigned notification:', err.message));
+        const assignees = Array.isArray(nextAssigneeId) ? nextAssigneeId : [nextAssigneeId];
+        for (const assigneeId of assignees) {
+          fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: assigneeId,
+              type: 'approvalRequestAssigned',
+              title: 'Approval request assigned',
+              message: `A new invoice request ${id} has been assigned to you for ${nextAssigneeRole} approval.`
+            })
+          }).catch(err => console.error('Failed to trigger request assigned notification:', err.message));
+        }
       }
 
       // 4. Trigger approvalCompleted to previous level approvers (downstream team completed)
       let downstreamNotifUsers = [];
       let completionMsg = '';
-      if (result.nextStatus === '2/4 Approved') {
+      if (result.nextStatus === '2/4' || result.nextStatus === '2/4 Approved') {
         downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa'];
         completionMsg = `Invoice request ${id} has been approved by Chief Accountant (Level 2).`;
-      } else if (result.nextStatus === '3/4 Approved') {
+      } else if (result.nextStatus === '3/4' || result.nextStatus === '3/4 Approved') {
         downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham'];
-        completionMsg = `Invoice request ${id} has been approved by Madinah Branch Accountant (Level 3).`;
+        completionMsg = `Invoice request ${id} has been approved by Level 3 Approver.`;
       } else if (result.nextStatus === '4/4 Approved') {
-        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham', 'usr_kareem'];
+        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham', 'usr_kareem', 'usr_raed'];
         completionMsg = `Invoice request ${id} has been fully approved by all directors and accountants.`;
       }
 

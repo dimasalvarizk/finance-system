@@ -59,6 +59,7 @@ export const protect = async (req, res, next) => {
       sessionId: decoded.sessionId || null,
       status: user.status,
       lastActive: user.lastActive,
+      permissions: user.permissions,
     };
 
     next();

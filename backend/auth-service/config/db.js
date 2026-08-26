@@ -105,6 +105,64 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Alter table to add permissions if it does not exist
+    try {
+      await pool.query('SELECT permissions FROM dst_users LIMIT 1');
+    } catch (err) {
+      console.log('Adding permissions column to dst_users...');
+      try {
+        await pool.query('ALTER TABLE dst_users ADD COLUMN permissions TEXT DEFAULT NULL');
+      } catch (alterErr) {
+        console.error('Failed to add permissions column:', alterErr.message);
+      }
+    }
+
+    // Dynamic Updates for Level 2/3 users
+    try {
+      await pool.query(`
+        UPDATE dst_users 
+        SET name = 'Mr. Hesham Mokhtar' 
+        WHERE id = 'usr_hesham'
+      `);
+
+      // Karim Gharba
+      const [karimExists] = await pool.query("SELECT id FROM dst_users WHERE id = 'usr_kareem'");
+      if (karimExists.length > 0) {
+        await pool.query(`
+          UPDATE dst_users 
+          SET email = 'Karimgharba5@gmail.com', name = 'Mr. Karim Gharba', role = 'Level_3_Approver', permissions = 'manage_companies'
+          WHERE id = 'usr_kareem'
+        `);
+      } else {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('password123', salt);
+        await pool.query(`
+          INSERT INTO dst_users (id, email, passwordHash, name, role, branch, phone, employeeId, department, jobTitle, status, permissions)
+          VALUES ('usr_kareem', 'Karimgharba5@gmail.com', ?, 'Mr. Karim Gharba', 'Level_3_Approver', 'Graha Al Badegel', '+62 812-7777-8888', 'EMP-105', 'Finance', 'Level 3 Approver', 'Active', 'manage_companies')
+        `, [hashedPassword]);
+      }
+
+      // Raed AlBadrani
+      const [raedExists] = await pool.query("SELECT id FROM dst_users WHERE id = 'usr_raed'");
+      if (raedExists.length > 0) {
+        await pool.query(`
+          UPDATE dst_users 
+          SET email = 'raed.albadrani@mukhtaraair.com', name = 'Mr. Raed AlBadrani', role = 'Level_3_Approver'
+          WHERE id = 'usr_raed'
+        `);
+      } else {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('password123', salt);
+        await pool.query(`
+          INSERT INTO dst_users (id, email, passwordHash, name, role, branch, phone, employeeId, department, jobTitle, status)
+          VALUES ('usr_raed', 'raed.albadrani@mukhtaraair.com', ?, 'Mr. Raed AlBadrani', 'Level_3_Approver', 'Graha Al Badegel', '+62 812-7777-9999', 'EMP-106', 'Finance', 'Level 3 Approver', 'Active')
+        `, [hashedPassword]);
+      }
+      console.log('User roles & names updated successfully');
+    } catch (dbErr) {
+      console.error('Failed to run dynamic updates for user accounts:', dbErr.message);
+    }
+
     // Create dst_sessions table
     const createSessionsTableQuery = `
       CREATE TABLE IF NOT EXISTS dst_sessions (
@@ -171,7 +229,8 @@ const initializeDatabase = async () => {
           department: 'Finance',
           jobTitle: 'Finance Director',
           status: 'Active',
-          lastActive: 'Just now'
+          lastActive: 'Just now',
+          permissions: null
         },
         {
           id: 'usr_emad_moustafa',
@@ -184,12 +243,13 @@ const initializeDatabase = async () => {
           department: 'Finance',
           jobTitle: 'Main Admin',
           status: 'Active',
-          lastActive: 'Just now'
+          lastActive: 'Just now',
+          permissions: null
         },
         {
           id: 'usr_hesham',
           email: 'hesham.mokhtar@mukhtaraair.com',
-          name: 'Hesham Mokhtar',
+          name: 'Mr. Hesham Mokhtar',
           role: 'Chief Accountant',
           branch: 'CBC Office (Head Office)',
           phone: '+62 812-1111-2222',
@@ -197,7 +257,8 @@ const initializeDatabase = async () => {
           department: 'Finance',
           jobTitle: 'Chief Accountant',
           status: 'Active',
-          lastActive: '2 hrs ago'
+          lastActive: '2 hrs ago',
+          permissions: null
         },
         {
           id: 'usr_khalid',
@@ -210,7 +271,8 @@ const initializeDatabase = async () => {
           department: 'Finance',
           jobTitle: 'Umrah Division Director',
           status: 'Active',
-          lastActive: 'Yesterday'
+          lastActive: 'Yesterday',
+          permissions: null
         },
         {
           id: 'usr_ahmad',
@@ -223,26 +285,42 @@ const initializeDatabase = async () => {
           department: 'Finance',
           jobTitle: 'Senior Accountant',
           status: 'Active',
-          lastActive: '3 days ago'
+          lastActive: '3 days ago',
+          permissions: null
         },
         {
           id: 'usr_kareem',
-          email: 'kareem.abdou@mukhtaraair.com',
-          name: 'Kareem Abdou',
-          role: 'Madinah Branch Accountant',
+          email: 'Karimgharba5@gmail.com',
+          name: 'Mr. Karim Gharba',
+          role: 'Level_3_Approver',
           branch: 'Graha Al Badegel',
           phone: '+62 812-7777-8888',
           employeeId: 'EMP-105',
           department: 'Finance',
-          jobTitle: 'Madinah Branch Accountant',
+          jobTitle: 'Level 3 Approver',
           status: 'Active',
-          lastActive: 'Just now'
+          lastActive: 'Just now',
+          permissions: 'manage_companies'
+        },
+        {
+          id: 'usr_raed',
+          email: 'raed.albadrani@mukhtaraair.com',
+          name: 'Mr. Raed AlBadrani',
+          role: 'Level_3_Approver',
+          branch: 'Graha Al Badegel',
+          phone: '+62 812-7777-9999',
+          employeeId: 'EMP-106',
+          department: 'Finance',
+          jobTitle: 'Level 3 Approver',
+          status: 'Active',
+          lastActive: 'Just now',
+          permissions: null
         }
       ];
 
       const seedUserQuery = `
-        INSERT INTO dst_users (id, email, passwordHash, name, role, branch, phone, employeeId, department, jobTitle, status, lastActive)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO dst_users (id, email, passwordHash, name, role, branch, phone, employeeId, department, jobTitle, status, lastActive, permissions)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       for (const u of seedUsers) {
@@ -258,10 +336,11 @@ const initializeDatabase = async () => {
           u.department,
           u.jobTitle,
           u.status,
-          u.lastActive
+          u.lastActive,
+          u.permissions
         ]);
       }
-      console.log('4 Default users seeded successfully with full metadata');
+      console.log('Default users seeded successfully with full metadata');
 
       // Seed default initial notifications for usr_super_admin
       console.log('Seeding default notifications...');

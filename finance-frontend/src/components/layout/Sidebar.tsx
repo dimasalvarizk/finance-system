@@ -61,7 +61,7 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <FileText className="w-5 h-5" />
-            <span>Invoices</span>
+            <span>Confirmations</span>
           </Link>
 
           <Link
