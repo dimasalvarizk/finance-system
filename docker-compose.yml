@@ -89,12 +89,14 @@ services:
         - 'VITE_INVOICE_API_URL=https://api.odstfin.io'
         - 'VITE_REQUEST_API_URL=https://api.odstfin.io'
         - 'VITE_SETTING_API_URL=https://api.odstfin.io'
-    command: ["nginx", "-g", "daemon off;"]
+    command: [ "nginx", "-g", "daemon off;" ]
     restart: always
 
   # --- INI TAMBAHAN DATABASE INTERNALNYA ---
   mysql-db:
     image: mysql:8.0
+    ports:
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root_password_rahasia
       MYSQL_DATABASE: finance_db
@@ -107,3 +109,4 @@ services:
 # --- INI PENYIMPANAN DATABASENYA ---
 volumes:
   db_data:
+
