@@ -8,7 +8,7 @@ const getAuthBaseUrl = (req) => {
     const host = req.headers.host;
     return `${protocol}://${host}`;
   }
-  return 'http://localhost:5001';
+  return process.env.AUTH_SERVICE_URL || 'http://localhost:5001';
 };
 
 // @desc    Get all invoices

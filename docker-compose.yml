@@ -42,6 +42,7 @@ services:
     environment:
       - PORT=5002
       - NODE_ENV=production
+      - AUTH_SERVICE_URL=http://auth-service:5001
     restart: always
 
   request-service:
@@ -53,6 +54,7 @@ services:
     environment:
       - PORT=5003
       - NODE_ENV=production
+      - AUTH_SERVICE_URL=http://auth-service:5001
     restart: always
 
   company-service:
@@ -75,6 +77,7 @@ services:
     environment:
       - PORT=5005
       - NODE_ENV=production
+      - AUTH_SERVICE_URL=http://auth-service:5001
     restart: always
 
   finance-frontend:
