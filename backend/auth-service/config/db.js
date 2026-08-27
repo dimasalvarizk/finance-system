@@ -147,7 +147,7 @@ const initializeDatabase = async () => {
       if (raedExists.length > 0) {
         await pool.query(`
           UPDATE dst_users 
-          SET email = 'raed.albadrani@mukhtaraair.com', name = 'Mr. Raed AlBadrani', role = 'Level_3_Approver'
+          SET email = 'Raed@almokhtaragroup.com', name = 'Mr. Raed AlBadrani', role = 'Level_3_Approver'
           WHERE id = 'usr_raed'
         `);
       } else {
@@ -155,7 +155,7 @@ const initializeDatabase = async () => {
         const hashedPassword = await bcrypt.hash('password123', salt);
         await pool.query(`
           INSERT INTO dst_users (id, email, passwordHash, name, role, branch, phone, employeeId, department, jobTitle, status)
-          VALUES ('usr_raed', 'raed.albadrani@mukhtaraair.com', ?, 'Mr. Raed AlBadrani', 'Level_3_Approver', 'Graha Al Badegel', '+62 812-7777-9999', 'EMP-106', 'Finance', 'Level 3 Approver', 'Active')
+          VALUES ('usr_raed', 'Raed@almokhtaragroup.com', ?, 'Mr. Raed AlBadrani', 'Level_3_Approver', 'Graha Al Badegel', '+62 812-7777-9999', 'EMP-106', 'Finance', 'Level 3 Approver', 'Active')
         `, [hashedPassword]);
       }
       console.log('User roles & names updated successfully');
@@ -304,7 +304,7 @@ const initializeDatabase = async () => {
         },
         {
           id: 'usr_raed',
-          email: 'raed.albadrani@mukhtaraair.com',
+          email: 'Raed@almokhtaragroup.com',
           name: 'Mr. Raed AlBadrani',
           role: 'Level_3_Approver',
           branch: 'Graha Al Badegel',
