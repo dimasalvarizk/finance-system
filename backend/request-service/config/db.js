@@ -13,7 +13,7 @@ export const connectDB = async () => {
     const password = process.env.DB_PASSWORD || '';
     const database = process.env.DB_NAME || 'finance_db';
     const port = parseInt(process.env.DB_PORT || '3306');
-    const isLocal = host === 'localhost' || host === '127.0.0.1';
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || process.env.DB_SSL === 'false';
 
     const connectionOptions = {
       host,
