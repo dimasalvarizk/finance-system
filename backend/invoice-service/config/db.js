@@ -149,17 +149,6 @@ const initializeDatabase = async () => {
       }
     }
 
-    // Alter table to add agent if it does not exist
-    try {
-      await pool.query('SELECT agent FROM dst_invoices LIMIT 1');
-    } catch (err) {
-      console.log('Adding agent column to dst_invoices...');
-      try {
-        await pool.query('ALTER TABLE dst_invoices ADD COLUMN agent VARCHAR(255) DEFAULT NULL');
-      } catch (alterErr) {
-        console.error('Failed to add agent column to dst_invoices:', alterErr.message);
-      }
-    }
   } catch (error) {
     console.error('Database schema failed for invoice-service:', error.message);
   }

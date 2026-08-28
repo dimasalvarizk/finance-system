@@ -34,7 +34,7 @@ export const getInvoices = async (req, res, next) => {
 // @route   POST /api/invoices
 // @access  Public (or Protected)
 export const createInvoice = async (req, res, next) => {
-  const { invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, agent } = req.body;
+  const { invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate } = req.body;
 
   try {
     if (!invoiceNo || !company || !amount) {
@@ -60,8 +60,7 @@ export const createInvoice = async (req, res, next) => {
       items: items || [],
       taxRate: taxRate ? parseFloat(taxRate) : 0.00,
       branch: req.user ? req.user.branch : null,
-      createdBy: req.user ? req.user.name : null,
-      agent: agent || null
+      createdBy: req.user ? req.user.name : null
     };
 
     await createInvoiceDB(newInvoiceData);
@@ -255,7 +254,7 @@ export const cancelInvoice = async (req, res, next) => {
 // @access  Protected
 export const updateInvoice = async (req, res, next) => {
   const { id } = req.params;
-  const { company, companyCode, referenceNo, serialNo, amount, date, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, agent } = req.body;
+  const { company, companyCode, referenceNo, serialNo, amount, date, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate } = req.body;
 
   try {
     // Creator tenancy check for Accountant
@@ -280,8 +279,7 @@ export const updateInvoice = async (req, res, next) => {
       sarToIdrRate,
       dueDate,
       items,
-      taxRate: taxRate ? parseFloat(taxRate) : 0.00,
-      agent
+      taxRate: taxRate ? parseFloat(taxRate) : 0.00
     });
 
     if (!updated) {

@@ -2075,19 +2075,13 @@ const Invoices: React.FC = () => {
                             {selectedCompanyObj?.name || 'N/A'}
                           </span>
                         </div>
-                        <div className="w-52">
-                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                        <div>
+                          <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5 font-inter">
                             Agent Name
-                          </label>
-                          <select
-                            value={formAgent}
-                            onChange={(e) => setFormAgent(e.target.value)}
-                            className="w-full h-[36px] px-2.5 py-1 border border-[#cbd5e1] rounded-xl text-[12px] font-bold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans cursor-pointer"
-                          >
-                            <option value="">Select agent...</option>
-                            <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
-                            <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
-                          </select>
+                          </span>
+                          <span className="font-bold text-[#f59e0b] block mt-1">
+                            {selectedCompanyObj?.agent || 'N/A'}
+                          </span>
                         </div>
                       </div>
                       {!editInvoiceId && (
