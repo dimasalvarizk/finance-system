@@ -16,8 +16,21 @@ const allowedOrigins = [
 ];
 
 app.use((req, res, next) => {
+  // Set Private Network Access header if requested
   if (req.headers['access-control-request-private-network']) {
     res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
+
+  // Handle preflight OPTIONS requests manually to guarantee correct headers
+  if (req.method === 'OPTIONS') {
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+      res.setHeader('Access-Control-Allow-Headers', req.headers['access-control-request-headers'] || '*');
+      return res.status(204).end();
+    }
   }
   next();
 });
