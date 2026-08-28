@@ -513,6 +513,7 @@ const Invoices: React.FC = () => {
   const [selectedClientKey, setSelectedClientKey] = useState<string>('Select client company...');
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
+  const [formAgent, setFormAgent] = useState<string>('');
   const [formInvoiceNo, setFormInvoiceNo] = useState('');
   const [formRef, setFormRef] = useState('');
   const [formSerial, setFormSerial] = useState('');
@@ -756,10 +757,11 @@ const Invoices: React.FC = () => {
     return `${compCode}-${mmdd}-${seqStr}`;
   };
 
-  const handleClientChange = (comp: { name: string; code: string; phone?: string; address?: string; taxNumber?: string }) => {
+  const handleClientChange = (comp: { name: string; code: string; phone?: string; address?: string; taxNumber?: string; agent?: string }) => {
     const key = `${comp.name} - ${comp.code}`;
     setSelectedClientKey(key);
     setIsClientDropdownOpen(false);
+    setFormAgent(comp.agent || '');
 
     const today = new Date();
     const futureDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -954,6 +956,7 @@ const Invoices: React.FC = () => {
       dueDate: formDate,
       items: formItems.map(item => ({ ...item })),
       taxRate: globalTaxRate,
+      agent: formAgent || undefined,
     };
 
     const saveInvoice = async () => {
@@ -999,6 +1002,7 @@ const Invoices: React.FC = () => {
     setFormSerial(inv.serialNo);
     setFormDate(inv.dueDate ? convertToISODate(inv.dueDate) : convertToISODate(inv.date));
     setFormInvoiceDate(inv.date);
+    setFormAgent(inv.agent || '');
     if (inv.items) {
       setFormItems(inv.items.map(item => ({
         description: item.description,
@@ -2062,13 +2066,29 @@ const Invoices: React.FC = () => {
                       BILL TO
                     </h4>
                     <div className="space-y-3.5 text-[13px] font-sans">
-                      <div>
-                        <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5 font-inter">
-                          Client Company
-                        </span>
-                        <span className="font-bold text-[14px] text-[#0c0d0f]">
-                          {selectedCompanyObj?.name || 'N/A'}
-                        </span>
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5 font-inter">
+                            Client Company
+                          </span>
+                          <span className="font-bold text-[14px] text-[#0c0d0f] block mt-1">
+                            {selectedCompanyObj?.name || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="w-52">
+                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                            Agent Name
+                          </label>
+                          <select
+                            value={formAgent}
+                            onChange={(e) => setFormAgent(e.target.value)}
+                            className="w-full h-[36px] px-2.5 py-1 border border-[#cbd5e1] rounded-xl text-[12px] font-bold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans cursor-pointer"
+                          >
+                            <option value="">Select agent...</option>
+                            <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
+                            <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
+                          </select>
+                        </div>
                       </div>
                       {!editInvoiceId && (
                         <div>

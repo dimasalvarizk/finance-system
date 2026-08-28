@@ -322,13 +322,25 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   Bill To
                 </h4>
                 <div className="space-y-3.5 text-[13px] font-sans">
-                  <div>
-                    <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                      Client Company
-                    </span>
-                    <span className="font-bold text-[14px] text-[#0c0d0f]">
-                      {details.billTo.company}
-                    </span>
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
+                        Client Company
+                      </span>
+                      <span className="font-bold text-[14px] text-[#0c0d0f]">
+                        {details.billTo.company}
+                      </span>
+                    </div>
+                    {details.billTo.agent && (
+                      <div className="text-right">
+                        <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
+                          Agent
+                        </span>
+                        <span className="font-semibold text-amber-600 font-bold text-[13px]">
+                          {details.billTo.agent}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
@@ -338,16 +350,6 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                       {details.billTo.tax}
                     </span>
                   </div>
-                  {details.billTo.agent && (
-                    <div>
-                      <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                        Agent Details
-                      </span>
-                      <span className="font-semibold text-amber-600 font-bold">
-                        Agent: {details.billTo.agent}
-                      </span>
-                    </div>
-                  )}
                   <div>
                     <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
                       Street Address

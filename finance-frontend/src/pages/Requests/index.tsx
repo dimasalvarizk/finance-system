@@ -817,9 +817,17 @@ const Requests: React.FC = () => {
                       <div className="space-y-3">
                         <h4 className="text-[14px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">BILL TO</h4>
                         <div className="p-6 bg-[#f8fafc] rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5">
-                          <div className="space-y-0.5">
-                            <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">Client Company</span>
-                            <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billTo.company}</span>
+                          <div className="flex justify-between items-start gap-4">
+                            <div className="space-y-0.5">
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">Client Company</span>
+                              <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billTo.company}</span>
+                            </div>
+                            {selectedDetails?.billTo.agent && (
+                              <div className="text-right space-y-0.5">
+                                <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">Agent</span>
+                                <span className="font-bold text-amber-600 text-[14px] font-sans">{selectedDetails.billTo.agent}</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className="grid grid-cols-1 gap-y-4 pt-1">
