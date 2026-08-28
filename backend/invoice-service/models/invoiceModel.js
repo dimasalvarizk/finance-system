@@ -1,5 +1,17 @@
 import { getPool } from '../config/db.js';
 
+const cleanAgentName = (agent) => {
+  if (!agent) return null;
+  const lower = agent.toLowerCase();
+  if (lower.includes('hasoob')) {
+    return 'Hasoob Technology';
+  }
+  if (lower.includes('odst')) {
+    return 'ODST Travel & Tourizm';
+  }
+  return agent;
+};
+
 // Get all invoices (optionally filtered by createdBy for Accountant)
 export const getAllInvoicesDB = async (createdByFilter = null) => {
   const pool = getPool();
@@ -19,11 +31,22 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
     console.error('Failed to auto-cancel overdue invoices:', err);
   }
   
-  let query = 'SELECT * FROM dst_invoices ORDER BY createdAt DESC';
+  let query = `
+    SELECT i.*, c.agent 
+    FROM dst_invoices i
+    LEFT JOIN dst_companies c ON i.companyCode = c.code
+    ORDER BY i.createdAt DESC
+  `;
   let queryParams = [];
   
   if (createdByFilter) {
-    query = 'SELECT * FROM dst_invoices WHERE createdBy = ? OR createdBy IS NULL ORDER BY createdAt DESC';
+    query = `
+      SELECT i.*, c.agent 
+      FROM dst_invoices i
+      LEFT JOIN dst_companies c ON i.companyCode = c.code
+      WHERE i.createdBy = ? OR i.createdBy IS NULL 
+      ORDER BY i.createdAt DESC
+    `;
     queryParams = [createdByFilter];
   }
   
@@ -31,6 +54,7 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
 
   // Fetch items for each invoice
   for (const inv of invoices) {
+    inv.agent = cleanAgentName(inv.agent);
     const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
     inv.items = items;
   }
@@ -242,8 +266,18 @@ export const updateInvoiceDB = async (id, data) => {
 
 export const getInvoiceByIdDB = async (id) => {
   const pool = getPool();
-  const [rows] = await pool.query('SELECT * FROM dst_invoices WHERE id = ? OR invoiceNo = ?', [id, id]);
-  return rows[0] || null;
+  const [rows] = await pool.query(`
+    SELECT i.*, c.agent 
+    FROM dst_invoices i
+    LEFT JOIN dst_companies c ON i.companyCode = c.code
+    WHERE i.id = ? OR i.invoiceNo = ?
+  `, [id, id]);
+  if (rows.length > 0) {
+    const inv = rows[0];
+    inv.agent = cleanAgentName(inv.agent);
+    return inv;
+  }
+  return null;
 };
 
 export const savePaymentProofDB = async (invoiceNo, base64Data) => {

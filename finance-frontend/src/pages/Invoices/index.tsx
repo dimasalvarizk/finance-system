@@ -35,6 +35,7 @@ export interface Invoice {
   branch?: string;
   taxRate?: number;
   paymentAttachment?: string;
+  agent?: string;
 }
 
 
@@ -139,18 +140,26 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
 
   const companySettings = getLocalCompanySettings();
 
+  const cleanAgentName = (agentName?: string) => {
+    if (!agentName) return undefined;
+    const lower = agentName.toLowerCase();
+    if (lower.includes('hasoob')) return 'Hasoob Technology';
+    if (lower.includes('odst')) return 'ODST Travel & Tourizm';
+    return agentName;
+  };
+
   const billTo = localStorageComp ? {
     company: localStorageComp.name,
     tax: localStorageComp.taxNumber,
     address: localStorageComp.address.split(',')[0] || localStorageComp.address,
     cityCountry: localStorageComp.address.split(',').slice(1).join(',').trim() || localStorageComp.address,
-    agent: localStorageComp.agent,
+    agent: cleanAgentName(invoice.agent || localStorageComp.agent),
   } : {
     company: invoice.company,
     tax: 'N/A',
     address: 'N/A',
     cityCountry: 'N/A',
-    agent: undefined,
+    agent: cleanAgentName(invoice.agent),
   };
 
   return {

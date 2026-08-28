@@ -339,10 +339,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   {details.billTo.agent && (
                     <div>
                       <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                        Agent
+                        Agent Details
                       </span>
-                      <span className="font-semibold text-[#1e293b] font-bold text-amber-600">
-                        {details.billTo.agent}
+                      <span className="font-semibold text-amber-600 font-bold">
+                        Agent: {details.billTo.agent}
                       </span>
                     </div>
                   )}

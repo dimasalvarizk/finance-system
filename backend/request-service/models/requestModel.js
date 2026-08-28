@@ -1,5 +1,17 @@
 import { getPool } from '../config/db.js';
 
+const cleanAgentName = (agent) => {
+  if (!agent) return null;
+  const lower = agent.toLowerCase();
+  if (lower.includes('hasoob')) {
+    return 'Hasoob Technology';
+  }
+  if (lower.includes('odst')) {
+    return 'ODST Travel & Tourizm';
+  }
+  return agent;
+};
+
 // Format dynamic approval date: e.g. "Oct 12, 2026 at 09:15 AM"
 const formatApprovalDate = () => {
   const now = new Date();
@@ -23,7 +35,12 @@ export const getAllRequestsDB = async () => {
   
   // Enrich requests with details from dst_invoices and dst_invoice_items
   for (const req of requests) {
-    const [invRows] = await pool.query('SELECT referenceNo, serialNo, dueDate, usdToIdrRate, sarToIdrRate, id, branch, taxRate, paymentAttachment FROM dst_invoices WHERE invoiceNo = ?', [req.invoiceNo]);
+    const [invRows] = await pool.query(`
+      SELECT i.referenceNo, i.serialNo, i.dueDate, i.usdToIdrRate, i.sarToIdrRate, i.id, i.branch, i.taxRate, i.paymentAttachment, c.agent
+      FROM dst_invoices i
+      LEFT JOIN dst_companies c ON i.companyCode = c.code
+      WHERE i.invoiceNo = ?
+    `, [req.invoiceNo]);
     if (invRows.length > 0) {
       const inv = invRows[0];
       req.referenceNo = inv.referenceNo;
@@ -34,6 +51,7 @@ export const getAllRequestsDB = async () => {
       req.branch = inv.branch;
       req.taxRate = inv.taxRate;
       req.paymentAttachment = inv.paymentAttachment;
+      req.agent = cleanAgentName(inv.agent);
 
       const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
       req.items = items;
@@ -52,7 +70,12 @@ export const getRequestByInvoiceNoDB = async (invoiceNo) => {
   const req = rows[0];
   if (!req) return null;
 
-  const [invRows] = await pool.query('SELECT referenceNo, serialNo, dueDate, usdToIdrRate, sarToIdrRate, id, branch, taxRate, paymentAttachment FROM dst_invoices WHERE invoiceNo = ?', [req.invoiceNo]);
+  const [invRows] = await pool.query(`
+    SELECT i.referenceNo, i.serialNo, i.dueDate, i.usdToIdrRate, i.sarToIdrRate, i.id, i.branch, i.taxRate, i.paymentAttachment, c.agent
+    FROM dst_invoices i
+    LEFT JOIN dst_companies c ON i.companyCode = c.code
+    WHERE i.invoiceNo = ?
+  `, [req.invoiceNo]);
   if (invRows.length > 0) {
     const inv = invRows[0];
     req.referenceNo = inv.referenceNo;
@@ -63,6 +86,7 @@ export const getRequestByInvoiceNoDB = async (invoiceNo) => {
     req.branch = inv.branch;
     req.taxRate = inv.taxRate;
     req.paymentAttachment = inv.paymentAttachment;
+    req.agent = cleanAgentName(inv.agent);
 
     const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
     req.items = items;
