@@ -3,6 +3,7 @@ import { X, FileText, Printer, Download, Lock, Eye } from 'lucide-react';
 import { type Invoice, getInvoiceDetails, calculateConvertedTotals, getLocalCompanySettings } from '../../pages/Invoices';
 import { checkDownloadPermission } from '../../services/requestService';
 import { uploadPaymentProof } from '../../services/invoiceService';
+import { useAuth } from '../../context/AuthContext';
 
 interface Props {
   selectedInvoice: Invoice | null;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
+  const { user } = useAuth();
   const [isVerifying, setIsVerifying] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [viewingProof, setViewingProof] = React.useState<string | null>(null);
@@ -557,15 +559,17 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   <span>View Payment Proof</span>
                 </button>
               ) : (
-                <label className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f59e0b] border border-[#d97706] text-white hover:bg-[#d97706] font-bold rounded-lg text-[11px] font-sans transition-all cursor-pointer shadow-sm">
-                  <span>Upload Proof</span>
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={handleUploadProof}
-                    className="hidden"
-                  />
-                </label>
+                user?.role !== 'Viewer' && (
+                  <label className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f59e0b] border border-[#d97706] text-white hover:bg-[#d97706] font-bold rounded-lg text-[11px] font-sans transition-all cursor-pointer shadow-sm">
+                    <span>Upload Proof</span>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={handleUploadProof}
+                      className="hidden"
+                    />
+                  </label>
+                )
               )
             )}
           </div>

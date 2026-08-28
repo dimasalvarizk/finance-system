@@ -357,6 +357,7 @@ const Requests: React.FC = () => {
 
   const getApprovalPermission = (status: string, role?: string) => {
     if (!role) return { canApprove: false, level: 0, requiredRole: 'Super Admin', message: 'You must be logged in to approve.' };
+    if (role === 'Viewer') return { canApprove: false, level: 0, requiredRole: '', message: 'Access Denied: Viewers do not have approval permissions.' };
 
     if (status === '0/4 Pending' || status === '0/3 Pending') {
       return {
@@ -1276,82 +1277,86 @@ const Requests: React.FC = () => {
                               <span>🔍 Click to View Full Size</span>
                             </div>
                           </div>
-                          <div className="flex justify-end">
-                            <label className="px-3 py-1.5 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
-                              Change Document
-                              <input
-                                type="file"
-                                onChange={async (e) => {
-                                  if (!e.target.files || e.target.files.length === 0) return;
-                                  const file = e.target.files[0];
-                                  const isPDF = file.type === 'application/pdf';
-                                  try {
-                                    let base64Data = '';
-                                    if (isPDF) {
-                                      base64Data = await new Promise<string>((resolve, reject) => {
-                                        const reader = new FileReader();
-                                        reader.readAsDataURL(file);
-                                        reader.onload = () => resolve(reader.result as string);
-                                        reader.onerror = (err) => reject(err);
-                                      });
-                                    } else {
-                                      base64Data = await compressImage(file);
+                          {user?.role !== 'Viewer' && (
+                            <div className="flex justify-end">
+                              <label className="px-3 py-1.5 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
+                                Change Document
+                                <input
+                                  type="file"
+                                  onChange={async (e) => {
+                                    if (!e.target.files || e.target.files.length === 0) return;
+                                    const file = e.target.files[0];
+                                    const isPDF = file.type === 'application/pdf';
+                                    try {
+                                      let base64Data = '';
+                                      if (isPDF) {
+                                        base64Data = await new Promise<string>((resolve, reject) => {
+                                          const reader = new FileReader();
+                                          reader.readAsDataURL(file);
+                                          reader.onload = () => resolve(reader.result as string);
+                                          reader.onerror = (err) => reject(err);
+                                        });
+                                      } else {
+                                        base64Data = await compressImage(file);
+                                      }
+                                      await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
+                                      
+                                      // Update state
+                                      setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
+                                      setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
+                                    } catch (err: any) {
+                                      console.error('Failed to upload proof from requests:', err);
+                                      alert(err.response?.data?.message || 'Failed to upload payment proof.');
                                     }
-                                    await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
-                                    
-                                    // Update state
-                                    setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
-                                    setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
-                                  } catch (err: any) {
-                                    console.error('Failed to upload proof from requests:', err);
-                                    alert(err.response?.data?.message || 'Failed to upload payment proof.');
-                                  }
-                                }}
-                                accept="image/*,application/pdf"
-                                className="hidden"
-                              />
-                            </label>
-                          </div>
+                                  }}
+                                  accept="image/*,application/pdf"
+                                  className="hidden"
+                                />
+                              </label>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-[12px] font-sans">
                           <p>No payment proof document uploaded yet.</p>
-                          <div className="mt-3">
-                            <label className="px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
-                              Upload Proof (PDF/Image)
-                              <input
-                                type="file"
-                                onChange={async (e) => {
-                                  if (!e.target.files || e.target.files.length === 0) return;
-                                  const file = e.target.files[0];
-                                  const isPDF = file.type === 'application/pdf';
-                                  try {
-                                    let base64Data = '';
-                                    if (isPDF) {
-                                      base64Data = await new Promise<string>((resolve, reject) => {
-                                        const reader = new FileReader();
-                                        reader.readAsDataURL(file);
-                                        reader.onload = () => resolve(reader.result as string);
-                                        reader.onerror = (err) => reject(err);
-                                      });
-                                    } else {
-                                      base64Data = await compressImage(file);
+                          {user?.role !== 'Viewer' && (
+                            <div className="mt-3">
+                              <label className="px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
+                                Upload Proof (PDF/Image)
+                                <input
+                                  type="file"
+                                  onChange={async (e) => {
+                                    if (!e.target.files || e.target.files.length === 0) return;
+                                    const file = e.target.files[0];
+                                    const isPDF = file.type === 'application/pdf';
+                                    try {
+                                      let base64Data = '';
+                                      if (isPDF) {
+                                        base64Data = await new Promise<string>((resolve, reject) => {
+                                          const reader = new FileReader();
+                                          reader.readAsDataURL(file);
+                                          reader.onload = () => resolve(reader.result as string);
+                                          reader.onerror = (err) => reject(err);
+                                        });
+                                      } else {
+                                        base64Data = await compressImage(file);
+                                      }
+                                      await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
+                                      
+                                      // Update state
+                                      setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
+                                      setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
+                                    } catch (err: any) {
+                                      console.error('Failed to upload proof from requests:', err);
+                                      alert(err.response?.data?.message || 'Failed to upload payment proof.');
                                     }
-                                    await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
-                                    
-                                    // Update state
-                                    setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
-                                    setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
-                                  } catch (err: any) {
-                                    console.error('Failed to upload proof from requests:', err);
-                                    alert(err.response?.data?.message || 'Failed to upload payment proof.');
-                                  }
-                                }}
-                                accept="image/*,application/pdf"
-                                className="hidden"
-                              />
-                            </label>
-                          </div>
+                                  }}
+                                  accept="image/*,application/pdf"
+                                  className="hidden"
+                                />
+                              </label>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1390,7 +1395,7 @@ const Requests: React.FC = () => {
                           </div>
                         )
                       ) : (
-                        user?.role !== 'Accountant' && (
+                        (user?.role !== 'Accountant' && user?.role !== 'Viewer') && (
                           <button
                             onClick={() => {
                               if (!selectedRequest.paymentAttachment) {
@@ -1411,13 +1416,15 @@ const Requests: React.FC = () => {
                         )
                       )}
                       
-                      <button
-                        onClick={handleOpenSendInvoice}
-                        className="w-full py-2.5 bg-white border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm"
-                      >
-                        <FileText className="w-4 h-4 text-[#64748b]" />
-                        <span>Send Confirmation</span>
-                      </button>
+                      {user?.role !== 'Viewer' && (
+                        <button
+                          onClick={handleOpenSendInvoice}
+                          className="w-full py-2.5 bg-white border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm"
+                        >
+                          <FileText className="w-4 h-4 text-[#64748b]" />
+                          <span>Send Confirmation</span>
+                        </button>
+                      )}
 
                       <div className="grid grid-cols-2 gap-3 pt-1">
                         <button
@@ -1436,7 +1443,7 @@ const Requests: React.FC = () => {
                         </button>
                       </div>
                     </div>
-                  ) : selectedRequest.status === "Rejected" ? (
+                  ) : (selectedRequest.status === "Rejected" && user?.role !== 'Viewer') ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                       <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans text-left">Available Operations</h3>
                       <button

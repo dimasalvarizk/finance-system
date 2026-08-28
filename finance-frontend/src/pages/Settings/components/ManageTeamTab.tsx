@@ -344,6 +344,7 @@ const ManageTeamTab: React.FC = () => {
                       <option value="Chief Accountant">Chief Accountant</option>
                       <option value="Division Director">Division Director</option>
                       <option value="Accountant">Accountant</option>
+                      <option value="Viewer">Viewer</option>
                     </select>
                   </td>
                   <td className="px-6 py-4">
@@ -548,6 +549,7 @@ const ManageTeamTab: React.FC = () => {
                       <option value="Chief Accountant">Chief Accountant</option>
                       <option value="Division Director">Division Director</option>
                       <option value="Super Admin">Super Admin</option>
+                      <option value="Viewer">Viewer</option>
                     </select>
                   </div>
 
@@ -800,6 +802,7 @@ const ManageTeamTab: React.FC = () => {
                     <option value="Chief Accountant">Chief Accountant</option>
                     <option value="Division Director">Division Director</option>
                     <option value="Accountant">Accountant</option>
+                    <option value="Viewer">Viewer</option>
                   </select>
                 </div>
 

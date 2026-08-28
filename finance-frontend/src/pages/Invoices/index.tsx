@@ -1207,13 +1207,15 @@ const Invoices: React.FC = () => {
               </p>
             </div>
 
-            <button
-              onClick={handleOpenCreateModal}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Generate Confirmation</span>
-            </button>
+            {user?.role !== 'Viewer' && (
+              <button
+                onClick={handleOpenCreateModal}
+                className="flex items-center space-x-2 px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Generate Confirmation</span>
+              </button>
+            )}
           </div>
 
           {/* Metric Cards Grid */}
@@ -1320,12 +1322,14 @@ const Invoices: React.FC = () => {
                 <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed">
                   Generate your first confirmation to get started. Make sure you have added at least one partner company.
                 </p>
-                <button
-                  onClick={handleOpenCreateModal}
-                  className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
-                >
-                  Generate Confirmation
-                </button>
+                {user?.role !== 'Viewer' && (
+                  <button
+                    onClick={handleOpenCreateModal}
+                    className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
+                  >
+                    Generate Confirmation
+                  </button>
+                )}
               </div>
             ) : (
               // Standard Table Layout (Filters + Table Data + Pagination)
@@ -1469,24 +1473,26 @@ const Invoices: React.FC = () => {
                   <table className="w-full text-left border-collapse min-w-[1000px] font-sans">
                     <thead>
                       <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                        <th className="px-4 py-3 text-center w-12">
-                          <input
-                            type="checkbox"
-                            checked={paginatedInvoices.length > 0 && paginatedInvoices.every(inv => selectedInvoiceIds.includes(inv.invoiceNo))}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                const newSelected = [...selectedInvoiceIds];
-                                paginatedInvoices.forEach(inv => {
-                                  if (!newSelected.includes(inv.invoiceNo)) newSelected.push(inv.invoiceNo);
-                                });
-                                setSelectedInvoiceIds(newSelected);
-                              } else {
-                                setSelectedInvoiceIds(selectedInvoiceIds.filter(id => !paginatedInvoices.map(inv => inv.invoiceNo).includes(id)));
-                              }
-                            }}
-                            className="rounded border-gray-300 text-amber-500 focus:ring-amber-500 w-4 h-4 cursor-pointer"
-                          />
-                        </th>
+                        {user?.role !== 'Viewer' && (
+                          <th className="px-4 py-3 text-center w-12">
+                            <input
+                              type="checkbox"
+                              checked={paginatedInvoices.length > 0 && paginatedInvoices.every(inv => selectedInvoiceIds.includes(inv.invoiceNo))}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  const newSelected = [...selectedInvoiceIds];
+                                  paginatedInvoices.forEach(inv => {
+                                    if (!newSelected.includes(inv.invoiceNo)) newSelected.push(inv.invoiceNo);
+                                  });
+                                  setSelectedInvoiceIds(newSelected);
+                                } else {
+                                  setSelectedInvoiceIds(selectedInvoiceIds.filter(id => !paginatedInvoices.map(inv => inv.invoiceNo).includes(id)));
+                                }
+                              }}
+                              className="rounded border-gray-300 text-amber-500 focus:ring-amber-500 w-4 h-4 cursor-pointer"
+                            />
+                          </th>
+                        )}
                          <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] tracking-wider font-inter">
                           CONFIRMATION #
                         </th>
@@ -1530,20 +1536,22 @@ const Invoices: React.FC = () => {
                                 : "hover:bg-slate-50/50"
                               }`}
                           >
-                            <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                              <input
-                                type="checkbox"
-                                checked={selectedInvoiceIds.includes(inv.invoiceNo)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedInvoiceIds([...selectedInvoiceIds, inv.invoiceNo]);
-                                  } else {
-                                    setSelectedInvoiceIds(selectedInvoiceIds.filter(id => id !== inv.invoiceNo));
-                                  }
-                                }}
-                                className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
-                              />
-                            </td>
+                            {user?.role !== 'Viewer' && (
+                              <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedInvoiceIds.includes(inv.invoiceNo)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedInvoiceIds([...selectedInvoiceIds, inv.invoiceNo]);
+                                    } else {
+                                      setSelectedInvoiceIds(selectedInvoiceIds.filter(id => id !== inv.invoiceNo));
+                                    }
+                                  }}
+                                  className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
+                                />
+                              </td>
+                            )}
                             <td className="px-6 py-3.5 font-bold font-inter text-[#0c0d0f]">
                               {inv.invoiceNo}
                             </td>
@@ -1604,49 +1612,53 @@ const Invoices: React.FC = () => {
                                     ✅
                                   </button>
                                 ) : (
-                                  <button
-                                    onClick={() => handleTriggerUploadProof(inv)}
-                                    title="Upload Payment Proof"
-                                    className="p-1 hover:bg-blue-50 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
-                                  >
-                                    <Upload className="w-4 h-4" />
-                                  </button>
+                                  user?.role !== 'Viewer' && (
+                                    <button
+                                      onClick={() => handleTriggerUploadProof(inv)}
+                                      title="Upload Payment Proof"
+                                      className="p-1 hover:bg-blue-50 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
+                                    >
+                                      <Upload className="w-4 h-4" />
+                                    </button>
+                                  )
                                 )
                               ) : (
-                                <>
-                                  <button
-                                    onClick={() => handleEditInvoiceClick(inv)}
-                                    title="Edit Invoice"
-                                    className="p-1 hover:bg-slate-100 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
-                                  >
-                                    <Edit3 className="w-4 h-4" />
-                                  </button>
-                                  {inv.status !== 'Cancelled' && inv.status !== 'Archived' && (
+                                user?.role !== 'Viewer' && (
+                                  <>
                                     <button
-                                      onClick={() => handleCancelSingleInvoice(inv.invoiceNo)}
-                                      title="Cancel Invoice"
-                                      className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                      onClick={() => handleEditInvoiceClick(inv)}
+                                      title="Edit Invoice"
+                                      className="p-1 hover:bg-slate-100 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
                                     >
-                                      <XCircle className="w-4 h-4" />
+                                      <Edit3 className="w-4 h-4" />
                                     </button>
-                                  )}
-                                  {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director' || user?.role === 'Madinah Branch Accountant') && (
-                                    <button
-                                      onClick={() => handleDeleteSingleInvoice(inv.invoiceNo)}
-                                      title="Delete Invoice"
-                                      className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  )}
-                                </>
+                                    {inv.status !== 'Cancelled' && inv.status !== 'Archived' && (
+                                      <button
+                                        onClick={() => handleCancelSingleInvoice(inv.invoiceNo)}
+                                        title="Cancel Invoice"
+                                        className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                      >
+                                        <XCircle className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                    {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director' || user?.role === 'Madinah Branch Accountant') && (
+                                      <button
+                                        onClick={() => handleDeleteSingleInvoice(inv.invoiceNo)}
+                                        title="Delete Invoice"
+                                        className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                  </>
+                                )
                               )}
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={10} className="px-6 py-16 text-center text-[#64748b] font-medium">
+                          <td colSpan={user?.role === 'Viewer' ? 9 : 10} className="px-6 py-16 text-center text-[#64748b] font-medium">
                             <div className="flex flex-col items-center justify-center space-y-2">
                               <FileText className="w-8 h-8 text-gray-300" />
                               <span className="text-[14px] font-bold text-slate-600">No invoices found</span>

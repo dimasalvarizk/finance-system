@@ -7,21 +7,21 @@ const router = express.Router();
 // All routes require authentication
 router.use(protect);
 
-// Get and Create are public to all authenticated users
+// Get is public to all authenticated users, Create is restricted to platform operators (non-Viewers)
 router.get('/', getInvoices);
-router.post('/', createInvoice);
+router.post('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), createInvoice);
 
 // Admin-only route for deleting multiple invoices
 router.delete('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteInvoices);
 
 // Edit and Cancel invoice routes
-router.put('/:id', updateInvoice);
-router.put('/:id/cancel', cancelInvoice);
+router.put('/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), updateInvoice);
+router.put('/:id/cancel', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), cancelInvoice);
 
 // Only Super Admin, Chief Accountant, Division Director, Accountant, and Madinah Branch Accountant can update invoice statuses
 router.put('/:id/status', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), updateInvoiceStatus);
 
 // Upload payment proof for paid invoices
-router.put('/:id/payment-proof', uploadPaymentProof);
+router.put('/:id/payment-proof', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), uploadPaymentProof);
 
 export default router;

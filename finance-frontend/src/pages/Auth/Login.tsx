@@ -83,7 +83,11 @@ const Login: React.FC = () => {
           localStorage.removeItem('rememberedEmail');
           localStorage.removeItem('rememberedPassword');
         }
-        navigate('/dashboard');
+        if (data.user?.role === 'Viewer') {
+          navigate('/invoices');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
       const errMsg = err.response?.data?.message || 'Invalid credentials. Please try again.';

@@ -40,17 +40,19 @@ const Sidebar: React.FC = () => {
 
         {/* Navigation Menu */}
         <nav className="mt-6 px-4 space-y-2 font-inter">
-          <Link
-            to="/dashboard"
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] transition-all ${
-              location.pathname === '/dashboard'
-                ? 'bg-[#f59e0b] text-white font-semibold'
-                : 'text-white hover:bg-[#303c7c] font-normal'
-            }`}
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            <span>Dashboard</span>
-          </Link>
+          {user?.role !== 'Viewer' && (
+            <Link
+              to="/dashboard"
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] transition-all ${
+                location.pathname === '/dashboard'
+                  ? 'bg-[#f59e0b] text-white font-semibold'
+                  : 'text-white hover:bg-[#303c7c] font-normal'
+              }`}
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span>Dashboard</span>
+            </Link>
+          )}
 
           <Link
             to="/invoices"
@@ -90,17 +92,19 @@ const Sidebar: React.FC = () => {
             </Link>
           )}
 
-          <Link
-            to="/settings"
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] transition-all ${
-              location.pathname === '/settings'
-                ? 'bg-[#f59e0b] text-white font-semibold'
-                : 'text-white hover:bg-[#303c7c] font-normal'
-            }`}
-          >
-            <SettingsIcon className="w-5 h-5" />
-            <span>Settings</span>
-          </Link>
+          {user?.role !== 'Viewer' && (
+            <Link
+              to="/settings"
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] transition-all ${
+                location.pathname === '/settings'
+                  ? 'bg-[#f59e0b] text-white font-semibold'
+                  : 'text-white hover:bg-[#303c7c] font-normal'
+              }`}
+            >
+              <SettingsIcon className="w-5 h-5" />
+              <span>Settings</span>
+            </Link>
+          )}
         </nav>
       </div>
 

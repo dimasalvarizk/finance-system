@@ -45,3 +45,15 @@ export const protect = async (req, res, next) => {
     });
   }
 };
+
+export const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Access Denied: Your role (${req.user?.role || 'Guest'}) is not authorized to access this resource.`,
+      });
+    }
+    next();
+  };
+};
