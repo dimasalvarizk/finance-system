@@ -292,24 +292,28 @@ export const calculateConvertedTotals = (
 ) => {
   const normCurr = (currency || 'USD').toUpperCase();
   const isRp = normCurr === 'RP' || normCurr === 'IDR';
-  const effectiveUsdToSar = usdToSar || (usdToIdr / sarToIdr) || 3.75;
+
+  const parsedAmount = typeof amount === 'number' ? amount : (parseFloat(String(amount || '')) || 0);
+  const parsedUsdToIdr = typeof usdToIdr === 'number' ? usdToIdr : (parseFloat(String(usdToIdr || '')) || 18025);
+  const parsedSarToIdr = typeof sarToIdr === 'number' ? sarToIdr : (parseFloat(String(sarToIdr || '')) || 4800);
+  const parsedUsdToSar = typeof usdToSar === 'number' ? usdToSar : (parseFloat(String(usdToSar || '')) || (parsedUsdToIdr / parsedSarToIdr) || 3.75);
 
   let usdVal = 0;
   let sarVal = 0;
   let idrVal = 0;
 
   if (normCurr === 'USD') {
-    usdVal = amount;
-    idrVal = amount * usdToIdr;
-    sarVal = amount * effectiveUsdToSar;
+    usdVal = parsedAmount;
+    idrVal = parsedAmount * parsedUsdToIdr;
+    sarVal = parsedAmount * parsedUsdToSar;
   } else if (normCurr === 'SAR') {
-    sarVal = amount;
-    usdVal = amount / effectiveUsdToSar;
-    idrVal = amount * sarToIdr;
+    sarVal = parsedAmount;
+    usdVal = parsedAmount / parsedUsdToSar;
+    idrVal = parsedAmount * parsedSarToIdr;
   } else if (isRp) {
-    idrVal = amount;
-    usdVal = amount / usdToIdr;
-    sarVal = amount / sarToIdr;
+    idrVal = parsedAmount;
+    usdVal = parsedAmount / parsedUsdToIdr;
+    sarVal = parsedAmount / parsedSarToIdr;
   }
 
   return {
@@ -324,29 +328,37 @@ export const calculateConvertedTotals = (
 
 export const getExchangeRatesToShow = (
   currency: string,
-  usdToIdr: number,
-  sarToIdr: number,
-  usdToSar?: number
+  usdToIdr?: any,
+  sarToIdr?: any,
+  usdToSar?: any
 ) => {
   const normCurr = (currency || 'USD').toUpperCase();
   const isRp = normCurr === 'RP' || normCurr === 'IDR';
-  const effectiveUsdToSar = usdToSar || (usdToIdr / sarToIdr) || 3.75;
+
+  // Parse inputs safely
+  const parsedUsdToIdr = typeof usdToIdr === 'number' ? usdToIdr : (parseFloat(String(usdToIdr || '')) || 18025);
+  const parsedSarToIdr = typeof sarToIdr === 'number' ? sarToIdr : (parseFloat(String(sarToIdr || '')) || 4800);
+  const parsedUsdToSar = typeof usdToSar === 'number' ? usdToSar : (parseFloat(String(usdToSar || '')) || (parsedUsdToIdr / parsedSarToIdr) || 3.75);
+
+  const formatRate = (num: number) => {
+    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+  };
 
   if (normCurr === 'SAR') {
     return [
-      { text: `1 USD = ${effectiveUsdToSar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} SAR`, label: 'USD / SAR' },
-      { text: `1 SAR = ${sarToIdr.toLocaleString('en-US')} IDR`, label: 'SAR / IDR' }
+      { text: `1 USD = ${formatRate(parsedUsdToSar)} SAR`, label: 'USD / SAR' },
+      { text: `1 SAR = ${formatRate(parsedSarToIdr)} IDR`, label: 'SAR / IDR' }
     ];
   } else if (isRp) {
     return [
-      { text: `1 USD = ${usdToIdr.toLocaleString('en-US')} IDR`, label: 'USD / IDR' },
-      { text: `1 SAR = ${sarToIdr.toLocaleString('en-US')} IDR`, label: 'SAR / IDR' }
+      { text: `1 USD = ${formatRate(parsedUsdToIdr)} IDR`, label: 'USD / IDR' },
+      { text: `1 SAR = ${formatRate(parsedSarToIdr)} IDR`, label: 'SAR / IDR' }
     ];
   } else {
     // USD
     return [
-      { text: `1 USD = ${usdToIdr.toLocaleString('en-US')} IDR`, label: 'USD / IDR' },
-      { text: `1 USD = ${effectiveUsdToSar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} SAR`, label: 'USD / SAR' }
+      { text: `1 USD = ${formatRate(parsedUsdToIdr)} IDR`, label: 'USD / IDR' },
+      { text: `1 USD = ${formatRate(parsedUsdToSar)} SAR`, label: 'USD / SAR' }
     ];
   }
 };
