@@ -46,8 +46,9 @@ export interface InvoiceRequest {
     qty: number;
     price: number;
   }>;
-  paymentAttachment?: string;
   agent?: string;
+  currency?: string;
+  paymentAttachment?: string;
 }
 
 // Mock requests are not needed since we fetch from database.
@@ -269,7 +270,8 @@ const Requests: React.FC = () => {
       createdBy: selectedRequest.requestedBy,
       branch: selectedRequest.branch,
       taxRate: selectedRequest.taxRate,
-      agent: selectedRequest.agent
+      agent: selectedRequest.agent,
+      currency: selectedRequest.currency
     };
   }, [selectedRequest]);
 
