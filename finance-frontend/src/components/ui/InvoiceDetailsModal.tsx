@@ -15,14 +15,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
   const [isVerifying, setIsVerifying] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [viewingProof, setViewingProof] = React.useState<string | null>(null);
-
-  if (!selectedInvoice) return null;
-
-  const [localPaymentAttachment, setLocalPaymentAttachment] = React.useState<string | null>(selectedInvoice.paymentAttachment || null);
+  const [localPaymentAttachment, setLocalPaymentAttachment] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setLocalPaymentAttachment(selectedInvoice.paymentAttachment || null);
+    setLocalPaymentAttachment(selectedInvoice?.paymentAttachment || null);
   }, [selectedInvoice]);
+
+  if (!selectedInvoice) return null;
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -486,10 +485,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             <div className="bg-[#f8fafc] p-5 rounded-2xl border border-[#e2e8f0] font-sans space-y-4">
               <div className="flex flex-col space-y-2 text-[13px] font-sans text-slate-600 pb-3 border-b border-[#e2e8f0]">
                 {getExchangeRatesToShow(
-                  details.currency || 'USD',
-                  details.usdToIdrRate || 18025,
-                  details.sarToIdrRate || 4800,
-                  (details.usdToIdrRate && details.sarToIdrRate) ? (details.usdToIdrRate / details.sarToIdrRate) : 3.75
+                  details?.currency || 'USD',
+                  details?.usdToIdrRate || 18025,
+                  details?.sarToIdrRate || 4800,
+                  (details?.usdToIdrRate && details?.sarToIdrRate) ? (details?.usdToIdrRate / details?.sarToIdrRate) : 3.75
                 ).map((rate, idx) => (
                   <div key={idx} className="flex justify-between items-center">
                     <span>{rate.text}</span>
@@ -498,15 +497,16 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 ))}
               </div>
               {(() => {
-                const amount = details.totalAmount !== undefined ? details.totalAmount : (parseFloat(details.total.replace(/[^0-9.]/g, '')) || 0);
+                const currentCurrency = details?.currency || 'USD';
+                const amountVal = details?.totalAmount !== undefined ? details.totalAmount : (parseFloat((details?.total || '').replace(/[^0-9.]/g, '')) || 0);
                 const converted = calculateConvertedTotals(
-                  amount,
-                  details.currency || 'USD',
-                  details.usdToIdrRate || 18025,
-                  details.sarToIdrRate || 4800,
-                  (details.usdToIdrRate && details.sarToIdrRate) ? (details.usdToIdrRate / details.sarToIdrRate) : 3.75
+                  amountVal,
+                  currentCurrency,
+                  details?.usdToIdrRate || 18025,
+                  details?.sarToIdrRate || 4800,
+                  (details?.usdToIdrRate && details?.sarToIdrRate) ? (details?.usdToIdrRate / details?.sarToIdrRate) : 3.75
                 );
-                const normCurr = (details.currency || 'USD').toUpperCase();
+                const normCurr = currentCurrency.toUpperCase();
                 const isRp = normCurr === 'RP' || normCurr === 'IDR';
                 return (
                   <div className="flex flex-col space-y-2">

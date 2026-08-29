@@ -109,6 +109,7 @@ export const getLocalCompanySettings = () => {
 };
 
 export const formatPrice = (price: number, currency: string = 'USD'): string => {
+  if (price === undefined || price === null || isNaN(price)) return '0';
   const cleanCurrency = String(currency).toUpperCase();
   if (cleanCurrency === 'RP' || cleanCurrency === 'IDR') {
     return `Rp ${new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price)}`;
@@ -148,36 +149,37 @@ export const convertPrice = (
 };
 
 export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
-  const items = invoice.items || [];
-  const currency = invoice.currency || 'USD';
+  const safeInvoice = invoice || {};
+  const items = safeInvoice.items || [];
+  const currency = safeInvoice.currency || 'USD';
   const formattedItems = items.map(item => ({
-    description: item.description,
-    qty: item.qty,
-    price: formatPrice(item.price, currency),
-    total: formatPrice(item.qty * item.price, currency),
+    description: item?.description || '',
+    qty: item?.qty || 0,
+    price: formatPrice(item?.price || 0, currency),
+    total: formatPrice((item?.qty || 0) * (item?.price || 0), currency),
   }));
 
-  const calculatedSubtotal = items.reduce((acc, item) => acc + (item.qty * item.price), 0);
+  const calculatedSubtotal = items.reduce((acc, item) => acc + ((item?.qty || 0) * (item?.price || 0)), 0);
   const subtotalFormatted = formatPrice(calculatedSubtotal, currency);
 
   // Try to find client details from localStorage
   const savedCompStr = localStorage.getItem('finance_companies');
   let localStorageComp = null;
-  if (savedCompStr) {
+  if (savedCompStr && safeInvoice.company) {
     try {
       const comps = JSON.parse(savedCompStr);
-      localStorageComp = comps.find((c: any) => c.name.toLowerCase() === invoice.company.toLowerCase() || c.code.toLowerCase() === invoice.companyCode.toLowerCase());
+      localStorageComp = comps.find((c: any) => c.name.toLowerCase() === safeInvoice.company.toLowerCase() || c.code.toLowerCase() === safeInvoice.companyCode.toLowerCase());
     } catch (e) { }
   }
 
   // Try to find creator details from localStorage team members
   const savedTeamStr = localStorage.getItem('finance_team_members');
   let localStorageCreator = null;
-  if (savedTeamStr && invoice.createdBy) {
+  if (savedTeamStr && safeInvoice.createdBy) {
     try {
       const members = JSON.parse(savedTeamStr);
       const cleanName = (name?: string) => (name || '').toLowerCase().replace(/^(mr\.|mrs\.|ms\.)\s+/i, '').trim();
-      localStorageCreator = members.find((m: any) => cleanName(m.name) === cleanName(invoice.createdBy));
+      localStorageCreator = members.find((m: any) => cleanName(m.name) === cleanName(safeInvoice.createdBy));
     } catch (e) { }
   }
 
@@ -196,25 +198,25 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     tax: localStorageComp.taxNumber,
     address: localStorageComp.address.split(',')[0] || localStorageComp.address,
     cityCountry: localStorageComp.address.split(',').slice(1).join(',').trim() || localStorageComp.address,
-    agent: cleanAgentName(invoice.agent || localStorageComp.agent),
+    agent: cleanAgentName(safeInvoice.agent || localStorageComp.agent),
   } : {
-    company: invoice.company,
+    company: safeInvoice.company || 'N/A',
     tax: 'N/A',
     address: 'N/A',
     cityCountry: 'N/A',
-    agent: cleanAgentName(invoice.agent),
+    agent: cleanAgentName(safeInvoice.agent),
   };
 
   return {
     dueDate: (() => {
-      if (invoice.dueDate) {
-        if (invoice.dueDate.includes('-')) {
-          const parts = invoice.dueDate.split('-');
+      if (safeInvoice.dueDate) {
+        if (safeInvoice.dueDate.includes('-')) {
+          const parts = safeInvoice.dueDate.split('-');
           if (parts.length === 3) {
             return `${parts[1]}/${parts[2]}/${parts[0]}`;
           }
         }
-        return invoice.dueDate;
+        return safeInvoice.dueDate;
       }
       return 'N/A';
     })(),
@@ -226,7 +228,7 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
       email: localStorageCreator.email || 'info@odst.id',
       tax: companySettings.taxNumber,
     } : {
-      name: invoice.createdBy || 'Emad Moustafa',
+      name: safeInvoice.createdBy || 'Emad Moustafa',
       id: '260111',
       entity: companySettings.companyName || 'ODST Group',
       phone: companySettings.phone,
@@ -236,12 +238,12 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     billTo,
     items: formattedItems,
     subtotal: subtotalFormatted,
-    tax: formatPrice(calculatedSubtotal * ((invoice.taxRate || 0) / 100), currency),
-    total: formatPrice(calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100)), currency),
-    totalAmount: calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100)),
-    usdToIdrRate: invoice.usdToIdrRate || 18025,
-    sarToIdrRate: invoice.sarToIdrRate || 4800,
-    taxRate: invoice.taxRate || 0,
+    tax: formatPrice(calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100), currency),
+    total: formatPrice(calculatedSubtotal * (1 + ((safeInvoice.taxRate || 0) / 100)), currency),
+    totalAmount: calculatedSubtotal * (1 + ((safeInvoice.taxRate || 0) / 100)),
+    usdToIdrRate: safeInvoice.usdToIdrRate || 18025,
+    sarToIdrRate: safeInvoice.sarToIdrRate || 4800,
+    taxRate: safeInvoice.taxRate || 0,
     currency
   };
 };
@@ -294,6 +296,9 @@ export const calculateConvertedTotals = (
   const isRp = normCurr === 'RP' || normCurr === 'IDR';
 
   const parsedAmount = typeof amount === 'number' ? amount : (parseFloat(String(amount || '')) || 0);
+  if (!parsedAmount || isNaN(parsedAmount)) {
+    return { usdVal: 0, sarVal: 0, idrVal: 0, usdTotal: '0', sarTotal: '0', idrTotal: '0' };
+  }
   const parsedUsdToIdr = typeof usdToIdr === 'number' ? usdToIdr : (parseFloat(String(usdToIdr || '')) || 18025);
   const parsedSarToIdr = typeof sarToIdr === 'number' ? sarToIdr : (parseFloat(String(sarToIdr || '')) || 4800);
   const parsedUsdToSar = typeof usdToSar === 'number' ? usdToSar : (parseFloat(String(usdToSar || '')) || (parsedUsdToIdr / parsedSarToIdr) || 3.75);

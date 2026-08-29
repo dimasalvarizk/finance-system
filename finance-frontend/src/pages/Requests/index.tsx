@@ -271,7 +271,7 @@ const Requests: React.FC = () => {
       branch: selectedRequest.branch,
       taxRate: selectedRequest.taxRate,
       agent: selectedRequest.agent,
-      currency: selectedRequest.currency
+      currency: selectedRequest?.currency || 'USD'
     };
   }, [selectedRequest]);
 
