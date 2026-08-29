@@ -412,13 +412,13 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           <section className="mt-6 flex justify-between items-end font-sans">
             <div className="ml-[5px] w-[220px]">
               {/* Label */}
-              <p className="text-[10px] font-bold tracking-wider text-[#334155] uppercase font-sans text-center">
-                FINANCE MANAGER SIGNATURE
+              <p className="text-[10px] font-bold tracking-wider text-[#334155] font-sans text-center">
+                Financial Controller Signature
               </p>
 
               {/* Name */}
               <p className="mt-1 text-[9px] text-slate-500 font-sans text-center">
-                {details.billFrom.name}
+                Emad Moustafa
               </p>
 
               {/* Line */}
