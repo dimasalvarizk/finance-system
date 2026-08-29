@@ -966,14 +966,15 @@ const Invoices: React.FC = () => {
   // Filtered & Paginated Invoices
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
+      if (!inv) return false;
       // 1. Search Query
       const q = searchQuery.toLowerCase();
       const matchesSearch = (
-        inv.invoiceNo.toLowerCase().includes(q) ||
-        inv.company.toLowerCase().includes(q) ||
-        inv.companyCode.toLowerCase().includes(q) ||
-        inv.referenceNo.toLowerCase().includes(q) ||
-        inv.serialNo.toLowerCase().includes(q)
+        (inv.invoiceNo || '').toLowerCase().includes(q) ||
+        (inv.company || '').toLowerCase().includes(q) ||
+        (inv.companyCode || '').toLowerCase().includes(q) ||
+        (inv.referenceNo || '').toLowerCase().includes(q) ||
+        (inv.serialNo || '').toLowerCase().includes(q)
       );
 
       // 2. Company Filter
@@ -982,17 +983,18 @@ const Invoices: React.FC = () => {
       // 3. Status Filter
       let matchesStatus = true;
       if (filterStatus) {
+        const invStatus = inv.status || '';
         if (filterStatus === 'Pending') {
-          matchesStatus = inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review';
+          matchesStatus = invStatus.includes('Pending') || invStatus.includes('Approved') || invStatus === 'Pending Review';
         } else {
-          matchesStatus = inv.status === filterStatus;
+          matchesStatus = invStatus === filterStatus;
         }
       }
 
       // 4. Date Filter
       let matchesDate = true;
       if (filterDate) {
-        matchesDate = compareDates(inv.date, filterDate);
+        matchesDate = compareDates(inv.date || '', filterDate);
       }
 
       return matchesSearch && matchesCompany && matchesStatus && matchesDate;
@@ -1014,9 +1016,9 @@ const Invoices: React.FC = () => {
   }, [filteredInvoices, totalPages, currentPage]);
 
   // Stats calculation
-  const approvedCount = invoices.filter(inv => inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid').length;
-  const pendingCount = invoices.filter(inv => inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review').length;
-  const rejectedCount = invoices.filter(inv => inv.status === 'Rejected').length;
+  const approvedCount = invoices.filter(inv => inv && (inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid')).length;
+  const pendingCount = invoices.filter(inv => inv && inv.status && (inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review')).length;
+  const rejectedCount = invoices.filter(inv => inv && inv.status === 'Rejected').length;
 
   const dynamicApproved = approvedCount;
   const dynamicPending = pendingCount;
