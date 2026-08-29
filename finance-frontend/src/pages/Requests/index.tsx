@@ -363,7 +363,7 @@ const Requests: React.FC = () => {
 
     if (status === '0/4 Pending' || status === '0/3 Pending') {
       return {
-        canApprove: role === 'Chief Accountant' || role === 'Super Admin',
+        canApprove: role === 'Chief Accountant',
         level: 1,
         requiredRole: 'Chief Accountant',
         message: 'Only Chief Accountant (Mr. Hesham Mokhtar) can approve Level 1.'
@@ -371,7 +371,7 @@ const Requests: React.FC = () => {
     }
     if (status === '1/4' || status === '1/4 Approved' || status === '1/3 Approved') {
       return {
-        canApprove: role === 'Level_3_Approver' || role === 'Super Admin' || role === 'Madinah Branch Accountant',
+        canApprove: role === 'Level_3_Approver' || role === 'Madinah Branch Accountant',
         level: 2,
         requiredRole: 'Level_3_Approver',
         message: 'Only Level 2 Approvers (Mr. Karim Gharba & Mr. Raed AlBadrani) can approve Level 2.'
@@ -379,7 +379,7 @@ const Requests: React.FC = () => {
     }
     if (status === '2/4' || status === '2/4 Approved' || status === '2/3 Approved') {
       return {
-        canApprove: role === 'Division Director' || role === 'Super Admin',
+        canApprove: role === 'Division Director',
         level: 3,
         requiredRole: 'Division Director',
         message: 'Only Division Director (Mr. Khalid Idriss) can approve Level 3.'
