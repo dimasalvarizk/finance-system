@@ -154,8 +154,8 @@ export const approveRequestDB = async (id, userRole, note) => {
 
   // Validate Level 1 Approval
   if (currentStatus === '0/4 Pending' || currentStatus === '0/3 Pending') {
-    if (userRole !== 'Super Admin') {
-      return { success: false, code: 403, message: 'Access Denied: Only Mr. Emad Moustafa (Finance Director / Super Admin) can approve Level 1.' };
+    if (userRole !== 'Chief Accountant' && userRole !== 'Super Admin') {
+      return { success: false, code: 403, message: 'Access Denied: Only Chief Accountant (Mr. Hesham Mokhtar) can approve Level 1.' };
     }
     nextStatus = '1/4';
     updateField = 'level1ApprovedAt';
@@ -163,8 +163,8 @@ export const approveRequestDB = async (id, userRole, note) => {
   }
   // Validate Level 2 Approval
   else if (currentStatus === '1/4' || currentStatus === '1/4 Approved' || currentStatus === '1/3 Approved') {
-    if (userRole !== 'Chief Accountant' && userRole !== 'Super Admin') {
-      return { success: false, code: 403, message: 'Access Denied: Only Chief Accountant (Mr. Hesham Mokhtar) can approve Level 2.' };
+    if (userRole !== 'Level_3_Approver' && userRole !== 'Super Admin' && userRole !== 'Madinah Branch Accountant') {
+      return { success: false, code: 403, message: 'Access Denied: Only Level 2 Approvers (Mr. Karim Gharba & Mr. Raed AlBadrani) can approve Level 2.' };
     }
     nextStatus = '2/4';
     updateField = 'level2ApprovedAt';
@@ -172,8 +172,8 @@ export const approveRequestDB = async (id, userRole, note) => {
   }
   // Validate Level 3 Approval
   else if (currentStatus === '2/4' || currentStatus === '2/4 Approved' || currentStatus === '2/3 Approved') {
-    if (userRole !== 'Level_3_Approver' && userRole !== 'Super Admin' && userRole !== 'Madinah Branch Accountant') {
-      return { success: false, code: 403, message: 'Access Denied: Only Level 3 Approvers (Mr. Karim Gharba & Mr. Raed AlBadrani) can approve Level 3.' };
+    if (userRole !== 'Division Director' && userRole !== 'Super Admin') {
+      return { success: false, code: 403, message: 'Access Denied: Only Division Director (Mr. Khalid Idriss) can approve Level 3.' };
     }
     nextStatus = '3/4';
     updateField = 'level3ApprovedAt';
@@ -181,8 +181,8 @@ export const approveRequestDB = async (id, userRole, note) => {
   }
   // Validate Level 4 Approval
   else if (currentStatus === '3/4' || currentStatus === '3/4 Approved') {
-    if (userRole !== 'Division Director' && userRole !== 'Super Admin') {
-      return { success: false, code: 403, message: 'Access Denied: Only Division Director (Mr. Khalid Idriss) can approve Level 4.' };
+    if (userRole !== 'Super Admin') {
+      return { success: false, code: 403, message: 'Access Denied: Only Financial Controller (Mr. Emad Moustafa) can approve Level 4.' };
     }
     nextStatus = '4/4 Approved';
     updateField = 'level4ApprovedAt';
@@ -224,26 +224,26 @@ export const rejectRequestDB = async (id, userRole, userName, reason) => {
 
   // Reject constraints for Level 1
   if (request.status === '0/4 Pending' || request.status === '0/3 Pending') {
-    if (userRole !== 'Super Admin') {
-      return { success: false, code: 403, message: 'Access Denied: Only Mr. Emad Moustafa (Finance Director / Super Admin) can reject Level 1.' };
+    if (userRole !== 'Chief Accountant' && userRole !== 'Super Admin') {
+      return { success: false, code: 403, message: 'Access Denied: Only Chief Accountant (Mr. Hesham Mokhtar) can reject Level 1.' };
     }
   }
   // Reject constraints for Level 2
   else if (request.status === '1/4' || request.status === '1/4 Approved' || request.status === '1/3 Approved') {
-    if (userRole !== 'Chief Accountant' && userRole !== 'Super Admin') {
-      return { success: false, code: 403, message: 'Access Denied: Only Chief Accountant (Mr. Hesham Mokhtar) can reject Level 2.' };
+    if (userRole !== 'Level_3_Approver' && userRole !== 'Super Admin' && userRole !== 'Madinah Branch Accountant') {
+      return { success: false, code: 403, message: 'Access Denied: Only Level 2 Approvers (Mr. Karim Gharba & Mr. Raed AlBadrani) can reject Level 2.' };
     }
   }
   // Reject constraints for Level 3
   else if (request.status === '2/4' || request.status === '2/4 Approved' || request.status === '2/3 Approved') {
-    if (userRole !== 'Level_3_Approver' && userRole !== 'Super Admin' && userRole !== 'Madinah Branch Accountant') {
-      return { success: false, code: 403, message: 'Access Denied: Only Level 3 Approvers (Mr. Karim Gharba & Mr. Raed AlBadrani) can reject Level 3.' };
+    if (userRole !== 'Division Director' && userRole !== 'Super Admin') {
+      return { success: false, code: 403, message: 'Access Denied: Only Division Director (Mr. Khalid Idriss) can reject Level 3.' };
     }
   }
   // Reject constraints for Level 4
   else if (request.status === '3/4' || request.status === '3/4 Approved') {
-    if (userRole !== 'Division Director' && userRole !== 'Super Admin') {
-      return { success: false, code: 403, message: 'Access Denied: Only Division Director (Mr. Khalid Idriss) can reject Level 4.' };
+    if (userRole !== 'Super Admin') {
+      return { success: false, code: 403, message: 'Access Denied: Only Financial Controller (Mr. Emad Moustafa) can reject Level 4.' };
     }
   }
   else {

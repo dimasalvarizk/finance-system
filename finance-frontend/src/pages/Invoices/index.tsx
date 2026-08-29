@@ -1364,7 +1364,7 @@ const Invoices: React.FC = () => {
             <StatCard
               title="Pending Review"
               value={`${dynamicPending} Confirmations`}
-              subtext="Pending Finance Director verification"
+              subtext="Pending Chief Accountant verification"
               badgeText="Awaiting Clearance"
               badgeColorClass="bg-[#fff7ed] text-[#f97316]"
             />

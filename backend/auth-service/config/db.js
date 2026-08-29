@@ -125,6 +125,13 @@ const initializeDatabase = async () => {
         WHERE id = 'usr_hesham'
       `);
 
+      // Update Mr. Emad Moustafa's job title to Financial Controller
+      await pool.query(`
+        UPDATE dst_users 
+        SET jobTitle = 'Financial Controller' 
+        WHERE id IN ('usr_super_admin', 'usr_emad_moustafa')
+      `);
+
       // Karim Gharba
       const [karimExists] = await pool.query("SELECT id FROM dst_users WHERE id = 'usr_kareem'");
       if (karimExists.length > 0) {
@@ -227,7 +234,7 @@ const initializeDatabase = async () => {
           phone: '+62 812-0000-0000',
           employeeId: 'EMP-100',
           department: 'Finance',
-          jobTitle: 'Finance Director',
+          jobTitle: 'Financial Controller',
           status: 'Active',
           lastActive: 'Just now',
           permissions: null

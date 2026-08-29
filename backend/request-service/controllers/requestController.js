@@ -56,9 +56,9 @@ export const createRequest = async (req, res, next) => {
 
     const newRequest = await createRequestDB(payload);
 
-    // Trigger notification for new request to Level 1 assignees (Super Admins)
+    // Trigger notification for new request to Level 1 assignees (Chief Accountant)
     try {
-      const adminIds = ['usr_super_admin', 'usr_emad_moustafa'];
+      const adminIds = ['usr_hesham'];
       for (const adminId of adminIds) {
         fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
           method: 'POST',
@@ -140,14 +140,14 @@ export const approveRequest = async (req, res, next) => {
       let nextAssigneeId = null;
       let nextAssigneeRole = '';
       if (result.nextStatus === '1/4' || result.nextStatus === '1/4 Approved') {
-        nextAssigneeId = 'usr_hesham'; // Chief Accountant (Level 2)
-        nextAssigneeRole = 'Chief Accountant';
+        nextAssigneeId = ['usr_kareem', 'usr_raed']; // Level 2 Approvers (Karim & Raed)
+        nextAssigneeRole = 'Level 2 Approver';
       } else if (result.nextStatus === '2/4' || result.nextStatus === '2/4 Approved') {
-        nextAssigneeId = ['usr_kareem', 'usr_raed']; // Level 3 Approvers (Karim & Raed)
-        nextAssigneeRole = 'Level 3 Approver';
-      } else if (result.nextStatus === '3/4' || result.nextStatus === '3/4 Approved') {
-        nextAssigneeId = 'usr_khalid'; // Division Director (Level 4)
+        nextAssigneeId = 'usr_khalid'; // Division Director (Level 3)
         nextAssigneeRole = 'Division Director';
+      } else if (result.nextStatus === '3/4' || result.nextStatus === '3/4 Approved') {
+        nextAssigneeId = ['usr_super_admin', 'usr_emad_moustafa']; // Financial Controller (Level 4)
+        nextAssigneeRole = 'Financial Controller';
       }
 
       if (nextAssigneeId) {
@@ -170,14 +170,14 @@ export const approveRequest = async (req, res, next) => {
       let downstreamNotifUsers = [];
       let completionMsg = '';
       if (result.nextStatus === '2/4' || result.nextStatus === '2/4 Approved') {
-        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa'];
-        completionMsg = `Invoice request ${id} has been approved by Chief Accountant (Level 2).`;
+        downstreamNotifUsers = ['usr_hesham'];
+        completionMsg = `Invoice request ${id} has been approved by Level 2 Approver.`;
       } else if (result.nextStatus === '3/4' || result.nextStatus === '3/4 Approved') {
-        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham'];
-        completionMsg = `Invoice request ${id} has been approved by Level 3 Approver.`;
+        downstreamNotifUsers = ['usr_hesham', 'usr_kareem', 'usr_raed'];
+        completionMsg = `Invoice request ${id} has been approved by Division Director.`;
       } else if (result.nextStatus === '4/4 Approved') {
-        downstreamNotifUsers = ['usr_super_admin', 'usr_emad_moustafa', 'usr_hesham', 'usr_kareem', 'usr_raed'];
-        completionMsg = `Invoice request ${id} has been fully approved by all directors and accountants.`;
+        downstreamNotifUsers = ['usr_hesham', 'usr_kareem', 'usr_raed', 'usr_khalid'];
+        completionMsg = `Invoice request ${id} has been fully approved by all directors and controllers.`;
       }
 
       for (const userId of downstreamNotifUsers) {

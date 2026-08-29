@@ -34,13 +34,13 @@ export const checkOverdueRequests = async () => {
       // Determine assignees based on current status
       let assignees = [];
       if (req.status === '0/4 Pending' || req.status === '0/3 Pending') {
-        assignees = ['usr_super_admin', 'usr_emad_moustafa'];
-      } else if (req.status === '1/4 Approved' || req.status === '1/3 Approved') {
         assignees = ['usr_hesham'];
+      } else if (req.status === '1/4 Approved' || req.status === '1/3 Approved') {
+        assignees = ['usr_kareem', 'usr_raed'];
       } else if (req.status === '2/4 Approved' || req.status === '2/3 Approved') {
-        assignees = ['usr_kareem'];
-      } else if (req.status === '3/4 Approved') {
         assignees = ['usr_khalid'];
+      } else if (req.status === '3/4 Approved') {
+        assignees = ['usr_super_admin', 'usr_emad_moustafa'];
       }
 
       for (const userId of assignees) {
