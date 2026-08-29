@@ -67,6 +67,7 @@ export interface InvoiceDetail {
   subtotal: string;
   tax: string;
   total: string;
+  totalAmount: number;
   usdToIdrRate?: number;
   sarToIdrRate?: number;
   taxRate?: number;
@@ -237,6 +238,7 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     subtotal: subtotalFormatted,
     tax: formatPrice(calculatedSubtotal * ((invoice.taxRate || 0) / 100), currency),
     total: formatPrice(calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100)), currency),
+    totalAmount: calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100)),
     usdToIdrRate: invoice.usdToIdrRate || 16250,
     sarToIdrRate: invoice.sarToIdrRate || 4333,
     taxRate: invoice.taxRate || 0,
@@ -281,14 +283,72 @@ export const parseExchangeRate = (val: any, isIdr: boolean = true): number => {
   return parseFloat(str) || 0;
 };
 
-export const calculateConvertedTotals = (usdAmount: number, usdToIdr: number, sarToIdr: number) => {
-  const idr = usdAmount * usdToIdr;
-  const sar = idr / sarToIdr;
+export const calculateConvertedTotals = (
+  amount: number,
+  currency: string,
+  usdToIdr: number,
+  sarToIdr: number,
+  usdToSar?: number
+) => {
+  const normCurr = (currency || 'USD').toUpperCase();
+  const isRp = normCurr === 'RP' || normCurr === 'IDR';
+  const effectiveUsdToSar = usdToSar || (usdToIdr / sarToIdr) || 3.75;
+
+  let usdVal = 0;
+  let sarVal = 0;
+  let idrVal = 0;
+
+  if (normCurr === 'USD') {
+    usdVal = amount;
+    idrVal = amount * usdToIdr;
+    sarVal = amount * effectiveUsdToSar;
+  } else if (normCurr === 'SAR') {
+    sarVal = amount;
+    usdVal = amount / effectiveUsdToSar;
+    idrVal = amount * sarToIdr;
+  } else if (isRp) {
+    idrVal = amount;
+    usdVal = amount / usdToIdr;
+    sarVal = amount / sarToIdr;
+  }
 
   return {
-    idrTotal: `Rp ${new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(idr)}`,
-    sarTotal: `SAR ${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(sar)}`
+    usdVal,
+    sarVal,
+    idrVal,
+    idrTotal: `Rp ${new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(idrVal)}`,
+    sarTotal: `SAR ${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(sarVal)}`,
+    usdTotal: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(usdVal)
   };
+};
+
+export const getExchangeRatesToShow = (
+  currency: string,
+  usdToIdr: number,
+  sarToIdr: number,
+  usdToSar?: number
+) => {
+  const normCurr = (currency || 'USD').toUpperCase();
+  const isRp = normCurr === 'RP' || normCurr === 'IDR';
+  const effectiveUsdToSar = usdToSar || (usdToIdr / sarToIdr) || 3.75;
+
+  if (normCurr === 'SAR') {
+    return [
+      { text: `1 USD = ${effectiveUsdToSar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} SAR`, label: 'USD / SAR' },
+      { text: `1 SAR = ${sarToIdr.toLocaleString('en-US')} IDR`, label: 'SAR / IDR' }
+    ];
+  } else if (isRp) {
+    return [
+      { text: `1 USD = ${usdToIdr.toLocaleString('en-US')} IDR`, label: 'USD / IDR' },
+      { text: `1 SAR = ${sarToIdr.toLocaleString('en-US')} IDR`, label: 'SAR / IDR' }
+    ];
+  } else {
+    // USD
+    return [
+      { text: `1 USD = ${usdToIdr.toLocaleString('en-US')} IDR`, label: 'USD / IDR' },
+      { text: `1 USD = ${effectiveUsdToSar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} SAR`, label: 'USD / SAR' }
+    ];
+  }
 };
 
 export const convertToISODate = (dateStr: string): string => {
@@ -2435,32 +2495,77 @@ const Invoices: React.FC = () => {
                       </h4>
                       <div className="bg-[#f8fafc] p-5 rounded-2xl border border-[#e2e8f0] font-sans space-y-4">
                         <div className="flex flex-col space-y-2 text-[13px] font-sans text-slate-600 pb-3 border-b border-[#e2e8f0]">
-                          <div className="flex justify-between items-center">
-                            <span>1 USD = {configuredRates.usdToIdr.toLocaleString('en-US')} IDR</span>
-                            <span className="font-bold text-[#475569]">USD / IDR</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span>1 SAR = {configuredRates.sarToIdr.toLocaleString('en-US')} IDR</span>
-                            <span className="font-bold text-[#475569]">SAR / IDR</span>
-                          </div>
+                          {getExchangeRatesToShow(formCurrency, configuredRates.usdToIdr, configuredRates.sarToIdr, configuredRates.usdToSar).map((rate, idx) => (
+                            <div key={idx} className="flex justify-between items-center">
+                              <span>{rate.text}</span>
+                              <span className="font-bold text-[#475569]">{rate.label}</span>
+                            </div>
+                          ))}
                         </div>
                         {(() => {
-                          const totalUsd = formItems.reduce((acc, item) => acc + (item.qty * item.price), 0);
-                          const converted = calculateConvertedTotals(totalUsd, configuredRates.usdToIdr, configuredRates.sarToIdr);
+                          const normCurr = (formCurrency || 'USD').toUpperCase();
+                          const isRp = normCurr === 'RP' || normCurr === 'IDR';
+                          const subtotal = formItems.reduce((acc, item) => acc + (item.qty * item.price), 0);
+                          const taxRate = editInvoiceId ? (invoices.find(i => i.invoiceNo === editInvoiceId)?.taxRate || 0) : globalTaxRate;
+                          const currentTotalAmount = subtotal * (1 + (taxRate / 100));
+
+                          const converted = calculateConvertedTotals(
+                            currentTotalAmount,
+                            formCurrency,
+                            configuredRates.usdToIdr,
+                            configuredRates.sarToIdr,
+                            configuredRates.usdToSar
+                          );
                           return (
                             <div className="flex flex-col space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (IDR)</span>
-                                <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
-                                  {converted.idrTotal}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (SAR)</span>
-                                <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
-                                  {converted.sarTotal}
-                                </span>
-                              </div>
+                              {normCurr === 'SAR' && (
+                                <>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (USD)</span>
+                                    <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
+                                      {converted.usdTotal}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (IDR)</span>
+                                    <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
+                                      {converted.idrTotal}
+                                    </span>
+                                  </div>
+                                </>
+                              )}
+                              {isRp && (
+                                <>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (USD)</span>
+                                    <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
+                                      {converted.usdTotal}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (SAR)</span>
+                                    <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
+                                      {converted.sarTotal}
+                                    </span>
+                                  </div>
+                                </>
+                              )}
+                              {normCurr === 'USD' && (
+                                <>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (SAR)</span>
+                                    <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
+                                      {converted.sarTotal}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (IDR)</span>
+                                    <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
+                                      {converted.idrTotal}
+                                    </span>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           );
                         })()}
