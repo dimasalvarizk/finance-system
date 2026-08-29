@@ -149,6 +149,33 @@ export const convertPrice = (
   return price;
 };
 
+export const splitAddress = (fullAddress?: string): { address: string; cityCountry: string } => {
+  if (!fullAddress) {
+    return { address: 'N/A', cityCountry: 'N/A' };
+  }
+  const parts = fullAddress.split(',').map(p => p.trim()).filter(Boolean);
+  if (parts.length === 0) {
+    return { address: 'N/A', cityCountry: 'N/A' };
+  }
+  if (parts.length === 1) {
+    return { address: parts[0], cityCountry: 'N/A' };
+  }
+  if (parts.length === 2) {
+    return { address: parts[0], cityCountry: parts[1] };
+  }
+  if (parts.length === 3) {
+    return { address: parts[0], cityCountry: `${parts[1]}, ${parts[2]}` };
+  }
+  
+  // If 4 or more parts, keep the last 3 parts in cityCountry and the rest in address
+  const cityCountryParts = parts.slice(-3);
+  const addressParts = parts.slice(0, -3);
+  return {
+    address: addressParts.join(', '),
+    cityCountry: cityCountryParts.join(', ')
+  };
+};
+
 export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
   const safeInvoice = (invoice || {}) as Invoice;
   const items = safeInvoice.items || [];
@@ -194,11 +221,12 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     return agentName;
   };
 
+  const billToSplit = localStorageComp ? splitAddress(localStorageComp.address) : { address: 'N/A', cityCountry: 'N/A' };
   const billTo = localStorageComp ? {
     company: localStorageComp.name,
     tax: localStorageComp.taxNumber,
-    address: localStorageComp.address.split(',')[0] || localStorageComp.address,
-    cityCountry: localStorageComp.address.split(',').slice(1).join(',').trim() || localStorageComp.address,
+    address: billToSplit.address,
+    cityCountry: billToSplit.cityCountry,
     agent: cleanAgentName(safeInvoice.agent || localStorageComp.agent),
   } : {
     company: safeInvoice.company || 'N/A',
@@ -2222,9 +2250,9 @@ const Invoices: React.FC = () => {
                           Street Address
                         </span>
                         <span className="font-semibold text-[#1e293b] block">
-                          {selectedCompanyObj?.address && selectedCompanyObj.address.includes(',')
-                            ? selectedCompanyObj.address.split(',')[0]
-                            : (selectedCompanyObj?.address || 'N/A')}
+                          {selectedCompanyObj?.address
+                            ? splitAddress(selectedCompanyObj.address).address
+                            : 'N/A'}
                         </span>
                       </div>
                       {!editInvoiceId && (
@@ -2233,8 +2261,8 @@ const Invoices: React.FC = () => {
                             City / Country
                           </span>
                           <span className="font-semibold text-[#1e293b]">
-                            {selectedCompanyObj?.address && selectedCompanyObj.address.includes(',')
-                              ? selectedCompanyObj.address.split(',').slice(1).join(',').trim()
+                            {selectedCompanyObj?.address
+                              ? splitAddress(selectedCompanyObj.address).cityCountry
                               : 'N/A'}
                           </span>
                         </div>

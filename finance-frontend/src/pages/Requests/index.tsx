@@ -1410,18 +1410,24 @@ const Requests: React.FC = () => {
                             onClick={() => {
                               if (!selectedRequest.paymentAttachment) {
                                 alert("Please upload the payment proof first before submitting.");
+                              } else if (user?.role === 'Super Admin') {
+                                handleConfirmPayment();
                               } else {
                                 handleRequestPaymentApproval();
                               }
                             }}
-                            disabled={isPaid}
-                            className={`w-full py-3 text-white rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all ${isPaid
+                            disabled={!selectedRequest.paymentAttachment || isPaid}
+                            className={`w-full py-3 text-white rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 transition-all ${(!selectedRequest.paymentAttachment || isPaid)
                               ? "bg-slate-200 cursor-not-allowed opacity-60 text-slate-400"
-                              : "bg-[#f59e0b] hover:bg-[#d97706]"
+                              : "bg-[#f59e0b] hover:bg-[#d97706] cursor-pointer"
                               }`}
                           >
                             <CreditCard className="w-4 h-4" />
-                            {isPaid ? "Marked as Paid" : "Submit Payment for Approval"}
+                            {isPaid
+                              ? "Marked as Paid"
+                              : user?.role === 'Super Admin'
+                                ? "Execute Payment"
+                                : "Submit Payment for Approval"}
                           </button>
                         )
                       )}
