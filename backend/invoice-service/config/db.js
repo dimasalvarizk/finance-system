@@ -78,8 +78,8 @@ const initializeDatabase = async () => {
         amount VARCHAR(50) NOT NULL,
         date VARCHAR(50) NOT NULL,
         status VARCHAR(50) NOT NULL,
-        usdToIdrRate DECIMAL(10,2) DEFAULT 16250.00,
-        sarToIdrRate DECIMAL(10,2) DEFAULT 4333.00,
+        usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00,
+        sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00,
         dueDate VARCHAR(50),
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

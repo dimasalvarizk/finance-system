@@ -129,8 +129,8 @@ export const convertPrice = (
   const t = to.toUpperCase();
   if (f === t) return price;
 
-  let usdToIdr = rates.usdToIdr || 16250;
-  let sarToIdr = rates.sarToIdr || 4333;
+  let usdToIdr = rates.usdToIdr || 18025;
+  let sarToIdr = rates.sarToIdr || 4800;
   let usdToSar = rates.usdToSar || 3.75;
 
   const isRp = (c: string) => c === 'RP' || c === 'IDR';
@@ -239,8 +239,8 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     tax: formatPrice(calculatedSubtotal * ((invoice.taxRate || 0) / 100), currency),
     total: formatPrice(calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100)), currency),
     totalAmount: calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100)),
-    usdToIdrRate: invoice.usdToIdrRate || 16250,
-    sarToIdrRate: invoice.sarToIdrRate || 4333,
+    usdToIdrRate: invoice.usdToIdrRate || 18025,
+    sarToIdrRate: invoice.sarToIdrRate || 4800,
     taxRate: invoice.taxRate || 0,
     currency
   };
@@ -780,7 +780,7 @@ const Invoices: React.FC = () => {
 
   // Load services and rates from settings API
   const [availableServices, setAvailableServices] = useState<{ name: string; price: number; currency?: string }[]>([]);
-  const [configuredRates, setConfiguredRates] = useState<{ usdToIdr: number; sarToIdr: number; usdToSar: number }>({ usdToIdr: 16250, sarToIdr: 4333, usdToSar: 3.75 });
+  const [configuredRates, setConfiguredRates] = useState<{ usdToIdr: number; sarToIdr: number; usdToSar: number }>({ usdToIdr: 18025, sarToIdr: 4800, usdToSar: 3.75 });
   const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
 
   useEffect(() => {
@@ -789,8 +789,8 @@ const Invoices: React.FC = () => {
         const rates = await getExchangeRates();
         if (rates) {
           setConfiguredRates({
-            usdToIdr: parseExchangeRate(rates.usdToIdr, true) || 16250,
-            sarToIdr: parseExchangeRate(rates.sarToIdr, true) || 4333,
+            usdToIdr: parseExchangeRate(rates.usdToIdr, true) || 18025,
+            sarToIdr: parseExchangeRate(rates.sarToIdr, true) || 4800,
             usdToSar: parseExchangeRate(rates.usdToSar, true) || 3.75
           });
         }

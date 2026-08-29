@@ -167,7 +167,7 @@ const initializeDatabase = async () => {
     if (rateRows[0].count === 0) {
       console.log('Seeding default exchange rates...');
       const insertRates = 'INSERT INTO dst_exchange_rates (id, usdToIdr, sarToIdr, usdToSar) VALUES (?, ?, ?, ?)';
-      await pool.query(insertRates, ['current', '17,250', '4,333', '3.75']);
+      await pool.query(insertRates, ['current', '18025', '4800', '3.75']);
     }
 
     // Create dst_exchange_rates_history table

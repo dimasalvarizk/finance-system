@@ -487,8 +487,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
               <div className="flex flex-col space-y-2 text-[13px] font-sans text-slate-600 pb-3 border-b border-[#e2e8f0]">
                 {getExchangeRatesToShow(
                   details.currency || 'USD',
-                  details.usdToIdrRate || 16250,
-                  details.sarToIdrRate || 4333,
+                  details.usdToIdrRate || 18025,
+                  details.sarToIdrRate || 4800,
                   (details.usdToIdrRate && details.sarToIdrRate) ? (details.usdToIdrRate / details.sarToIdrRate) : 3.75
                 ).map((rate, idx) => (
                   <div key={idx} className="flex justify-between items-center">
@@ -502,8 +502,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 const converted = calculateConvertedTotals(
                   amount,
                   details.currency || 'USD',
-                  details.usdToIdrRate || 16250,
-                  details.sarToIdrRate || 4333,
+                  details.usdToIdrRate || 18025,
+                  details.sarToIdrRate || 4800,
                   (details.usdToIdrRate && details.sarToIdrRate) ? (details.usdToIdrRate / details.sarToIdrRate) : 3.75
                 );
                 const normCurr = (details.currency || 'USD').toUpperCase();

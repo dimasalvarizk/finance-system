@@ -303,8 +303,8 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
               <div className="flex flex-col space-y-1.5 text-xs text-slate-600 pb-2 border-b border-slate-200">
                 {getExchangeRatesToShow(
                   details.currency || 'USD',
-                  details.usdToIdrRate || 16250,
-                  details.sarToIdrRate || 4333,
+                  details.usdToIdrRate || 18025,
+                  details.sarToIdrRate || 4800,
                   (details.usdToIdrRate && details.sarToIdrRate) ? (details.usdToIdrRate / details.sarToIdrRate) : 3.75
                 ).map((rate, idx) => (
                   <div key={idx} className="flex justify-between items-center">
@@ -318,8 +318,8 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                 const converted = calculateConvertedTotals(
                   amount,
                   details.currency || 'USD',
-                  details.usdToIdrRate || 16250,
-                  details.sarToIdrRate || 4333,
+                  details.usdToIdrRate || 18025,
+                  details.sarToIdrRate || 4800,
                   (details.usdToIdrRate && details.sarToIdrRate) ? (details.usdToIdrRate / details.sarToIdrRate) : 3.75
                 );
                 const normCurr = (details.currency || 'USD').toUpperCase();

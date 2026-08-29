@@ -140,11 +140,11 @@ const Dashboard: React.FC = () => {
     );
 
     if (detectedCurrency === 'RP' || detectedCurrency === 'IDR') {
-      const rate = inv.usdToIdrRate || 16250;
+      const rate = inv.usdToIdrRate || 18025;
       return rawAmt / rate;
     } else if (detectedCurrency === 'SAR') {
-      const usdToIdr = inv.usdToIdrRate || 16250;
-      const sarToIdr = inv.sarToIdrRate || 4333;
+      const usdToIdr = inv.usdToIdrRate || 18025;
+      const sarToIdr = inv.sarToIdrRate || 4800;
       const usdToSar = usdToIdr / sarToIdr || 3.75;
       return rawAmt / usdToSar;
     }

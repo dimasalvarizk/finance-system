@@ -291,7 +291,7 @@ export const getExchangeRates = async (req, res, next) => {
     const pool = getPool();
     const [rows] = await pool.query('SELECT usdToIdr, sarToIdr, usdToSar FROM dst_exchange_rates WHERE id = ?', ['current']);
     if (rows.length === 0) {
-      return res.status(200).json({ success: true, data: { usdToIdr: '17,250', sarToIdr: '4,333', usdToSar: '3.75' } });
+      return res.status(200).json({ success: true, data: { usdToIdr: '18025', sarToIdr: '4800', usdToSar: '3.75' } });
     }
     res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {

@@ -9,8 +9,8 @@ interface ExchangeRates {
 }
 
 const DEFAULT_RATES: ExchangeRates = {
-  usdToIdr: '17,250',
-  sarToIdr: '4,333',
+  usdToIdr: '18025',
+  sarToIdr: '4800',
   usdToSar: '3.75'
 };
 
