@@ -54,17 +54,20 @@ Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong
    * Alur persetujuan diperluas menjadi **4 Level**: `0/4 Pending -> 1/4 -> 2/4 -> 3/4 -> 4/4 Approved`.
    * Khusus pada **Level 3**, sistem menggunakan logika **OR (ATAU)**. Persetujuan dapat dilakukan oleh Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani. Persetujuan salah satu dari mereka langsung meloloskan request ke Level 4 (Mr. Khalid Idriss).
 
+
 3. **Log Catatan Persetujuan & Unggah Bukti**:
    * Setiap approver dapat menambahkan alasan/catatan keputusan saat menyetujui, yang akan tersimpan dalam kolom `levelXNote` di database.
    * Dilengkapi fitur unggah bukti transfer pembayaran dengan kompresi gambar otomatis di sisi klien sebelum diunggah ke backend.
 
-4. **Kemitraan Klien & Manajemen Agent**:
-   * Formulir pendaftaran/edit perusahaan dilengkapi pilihan **Agent** resmi: `Hasoob Technology Trading - 2067` dan `ODST Travel and Tourism - 2114`.
-   * Informasi Agent yang dipilih ditampilkan secara dinamis di dalam kotak **"BILL TO"** pada halaman rincian konfirmasi dan cetakan PDF.
+4. **Kemitraan Klien & Manajemen Agent (Opsional)**:
+   * Pendaftaran perusahaan klien dilengkapi dropdown **Agent** resmi: `Hasoob Technology Trading - 2067` dan `ODST Travel and Tourism - 2114`.
+   * *Terbaru*: Pilihan Agent kini bersifat **opsional**. Pengguna dapat mendaftarkan perusahaan dengan memilih opsi `None (No Agent)`. Jika dipilih, agen akan bernilai NULL di database, dan ditampilkan sebagai `"N/A"` di detail/print invoice.
 
-5. **Multi-Currency & Konversi Kurs Otomatis (USD, SAR, IDR)**:
-   * Pengaturan harga standar pada katalog layanan kini dapat menggunakan mata uang non-USD (SAR atau Rupiah).
-   * Konversi otomatis ke USD didasarkan pada nilai tukar harian terkini di database (`dst_exchange_rates`).
+5. **Multi-Currency & Kurs Konversi Otomatis (USD, SAR, Rp)**:
+   * *Terbaru*: Halaman pembuatan invoice (Itemized Charges) sekarang memiliki **Currency Selector** dropdown dengan pilihan `Rp (Rupiah)`, `SAR (Riyal)`, dan `USD (Dolar AS)`.
+   * Memilih mata uang akan secara otomatis mengonversi seluruh item belanja yang diinput berdasarkan nilai kurs exchange rate harian terkini.
+   * Saat memilih layanan terkonfigurasi (misalnya VISA, Transport), harga standard dikonversi otomatis ke mata uang invoice terpilih.
+   * Laporan keuangan di dashboard utama dan breakdown profitabilitas perusahaan secara otomatis mengonversi kembali seluruh tagihan non-USD ke nilai USD berdasarkan kurs spesifik yang tersimpan pada invoice agar pelacakan global tetap konsisten.
 
 6. **Batal Otomatis (Auto-Cancel)**:
    * Logika backend memantau secara real-time status pembayaran tagihan; setiap tagihan yang belum dibayar melewati batas *Due Date* akan otomatis diubah statusnya menjadi **`Cancelled`** di database.
