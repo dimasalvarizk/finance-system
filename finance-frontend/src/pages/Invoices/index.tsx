@@ -150,7 +150,7 @@ export const convertPrice = (
 };
 
 export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
-  const safeInvoice = invoice || {};
+  const safeInvoice = (invoice || {}) as Invoice;
   const items = safeInvoice.items || [];
   const currency = safeInvoice.currency || 'USD';
   const formattedItems = items.map(item => ({
