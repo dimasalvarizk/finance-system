@@ -127,6 +127,30 @@ const Dashboard: React.FC = () => {
     return isNaN(val) ? 0 : val;
   };
 
+  const getInvoiceAmountInUsd = (inv: any): number => {
+    if (!inv) return 0;
+    const rawAmt = parseAmount(inv.amount);
+    const currency = String(inv.currency || '').toUpperCase();
+    
+    // Auto-detect currency from amount string if currency field is missing/empty
+    const amtStr = String(inv.amount || '');
+    const detectedCurrency = currency || (
+      amtStr.includes('Rp') ? 'RP' :
+      amtStr.includes('SAR') ? 'SAR' : 'USD'
+    );
+
+    if (detectedCurrency === 'RP' || detectedCurrency === 'IDR') {
+      const rate = inv.usdToIdrRate || 16250;
+      return rawAmt / rate;
+    } else if (detectedCurrency === 'SAR') {
+      const usdToIdr = inv.usdToIdrRate || 16250;
+      const sarToIdr = inv.sarToIdrRate || 4333;
+      const usdToSar = usdToIdr / sarToIdr || 3.75;
+      return rawAmt / usdToSar;
+    }
+    return rawAmt;
+  };
+
   // Stats calculation by branch
   const branchStats = useMemo(() => {
     const stats: Record<string, {
@@ -162,7 +186,7 @@ const Dashboard: React.FC = () => {
           stats[branch] = { revenue: 0, outstanding: 0, sent: 0, approved: 0, pending: 0, overdue: 0 };
         }
 
-        const amt = parseAmount(inv.amount);
+        const amt = getInvoiceAmountInUsd(inv);
         stats[branch].sent += 1;
         const status = String(inv.status || 'Pending').toLowerCase();
 
@@ -347,7 +371,7 @@ const Dashboard: React.FC = () => {
           if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
             const invDate = new Date(inv.date);
             if (invDate.toLocaleString('en-US', { month: 'short' }) === tm.monthName && invDate.getFullYear() === tm.year) {
-              amt += parseAmount(inv.amount);
+              amt += getInvoiceAmountInUsd(inv);
             }
           }
         });
@@ -388,7 +412,7 @@ const Dashboard: React.FC = () => {
           const invDate = new Date(inv.date);
           const q = getQuarter(invDate);
           const y = invDate.getFullYear();
-          const amt = parseAmount(inv.amount);
+          const amt = getInvoiceAmountInUsd(inv);
 
           if (q === currQ && y === currYear) {
             currQRevenue += amt;

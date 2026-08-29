@@ -149,6 +149,18 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Alter table to add currency if it does not exist
+    try {
+      await pool.query('SELECT currency FROM dst_invoices LIMIT 1');
+    } catch (err) {
+      console.log('Adding currency column to dst_invoices...');
+      try {
+        await pool.query("ALTER TABLE dst_invoices ADD COLUMN currency VARCHAR(10) DEFAULT 'USD'");
+      } catch (alterErr) {
+        console.error('Failed to add currency column to dst_invoices:', alterErr.message);
+      }
+    }
+
   } catch (error) {
     console.error('Database schema failed for invoice-service:', error.message);
   }

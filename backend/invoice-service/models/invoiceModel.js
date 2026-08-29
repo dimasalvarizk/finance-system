@@ -71,8 +71,8 @@ export const createInvoiceDB = async (invoiceData) => {
     await connection.beginTransaction();
 
     const insertInvoiceQuery = `
-      INSERT INTO dst_invoices (id, invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, branch, createdBy, taxRate)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO dst_invoices (id, invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, branch, createdBy, taxRate, currency)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await connection.query(insertInvoiceQuery, [
@@ -90,7 +90,8 @@ export const createInvoiceDB = async (invoiceData) => {
       invoiceData.dueDate,
       invoiceData.branch || null,
       invoiceData.createdBy || null,
-      invoiceData.taxRate || 0.00
+      invoiceData.taxRate || 0.00,
+      invoiceData.currency || 'USD'
     ]);
 
     if (invoiceData.items && invoiceData.items.length > 0) {
@@ -208,7 +209,7 @@ export const updateInvoiceDB = async (id, data) => {
     // 1. Update invoice in dst_invoices
     const updateQuery = `
       UPDATE dst_invoices 
-      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = '0/4 Pending', usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?
+      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = '0/4 Pending', usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?, currency = ?
       WHERE id = ? OR invoiceNo = ?
     `;
     await connection.query(updateQuery, [
@@ -222,6 +223,7 @@ export const updateInvoiceDB = async (id, data) => {
       data.sarToIdrRate || 4333.00,
       data.dueDate,
       data.taxRate || 0.00,
+      data.currency || 'USD',
       id,
       id
     ]);

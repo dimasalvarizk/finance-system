@@ -139,7 +139,7 @@ const Companies: React.FC = () => {
   const [newCompPostal, setNewCompPostal] = useState("");
   const [newCompCountry, setNewCompCountry] = useState("United States");
   const [newCompTax, setNewCompTax] = useState("");
-  const [newCompAgent, setNewCompAgent] = useState("Hasoob Technology Trading - 2067");
+  const [newCompAgent, setNewCompAgent] = useState("");
   const [formError, setFormError] = useState("");
   const [showValidation, setShowValidation] = useState(false);
 
@@ -191,6 +191,30 @@ const Companies: React.FC = () => {
     return isNaN(parsed) ? 0 : parsed;
   };
 
+  const getInvoiceAmountInUsd = (inv: any): number => {
+    if (!inv) return 0;
+    const rawAmt = parseAmount(inv.amount);
+    const currency = String(inv.currency || '').toUpperCase();
+    
+    // Auto-detect currency from amount string if currency field is missing/empty
+    const amtStr = String(inv.amount || '');
+    const detectedCurrency = currency || (
+      amtStr.includes('Rp') ? 'RP' :
+      amtStr.includes('SAR') ? 'SAR' : 'USD'
+    );
+
+    if (detectedCurrency === 'RP' || detectedCurrency === 'IDR') {
+      const rate = inv.usdToIdrRate || 16250;
+      return rawAmt / rate;
+    } else if (detectedCurrency === 'SAR') {
+      const usdToIdr = inv.usdToIdrRate || 16250;
+      const sarToIdr = inv.sarToIdrRate || 4333;
+      const usdToSar = usdToIdr / sarToIdr || 3.75;
+      return rawAmt / usdToSar;
+    }
+    return rawAmt;
+  };
+
   const reportData = useMemo(() => {
     let totalRevenue = 0;
     let totalPaid = 0;
@@ -202,7 +226,7 @@ const Companies: React.FC = () => {
     let overdueCount = 0;
 
     invoices.forEach((inv) => {
-      const amt = parseAmount(inv.amount);
+      const amt = getInvoiceAmountInUsd(inv);
       totalRevenue += amt;
       const status = (inv.status || "").toLowerCase();
       if (status.includes("paid")) {
@@ -226,7 +250,7 @@ const Companies: React.FC = () => {
 
     const monthlyGroups: Record<string, { revenue: number; sent: number; paid: number; orderDate: Date }> = {};
     invoices.forEach((inv) => {
-      const amt = parseAmount(inv.amount);
+      const amt = getInvoiceAmountInUsd(inv);
       const dateObj = new Date(inv.date);
       if (isNaN(dateObj.getTime())) return;
       const monthLabel = dateObj.toLocaleDateString("en-US", { month: "short", year: "numeric" });
@@ -261,7 +285,7 @@ const Companies: React.FC = () => {
     });
 
     invoices.forEach((inv) => {
-      const amt = parseAmount(inv.amount);
+      const amt = getInvoiceAmountInUsd(inv);
       const status = (inv.status || "").toLowerCase();
       const code = inv.companyCode || "GEN";
 
@@ -425,7 +449,7 @@ const Companies: React.FC = () => {
     setNewCompPostal("");
     setNewCompCountry("United States");
     setNewCompTax("");
-    setNewCompAgent("Hasoob Technology Trading - 2067");
+    setNewCompAgent("");
     setFormError("");
     setShowValidation(false);
     setCurrentPage(1);
@@ -1022,6 +1046,7 @@ const Companies: React.FC = () => {
                     onChange={(e) => setNewCompAgent(e.target.value)}
                     className="w-full h-[40px] px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white cursor-pointer font-sans"
                   >
+                    <option value="">None (No Agent)</option>
                     <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
                     <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
                   </select>
@@ -1130,7 +1155,7 @@ const Companies: React.FC = () => {
                   setEditPhone(selectedCompany.phone);
                   setEditAddress(selectedCompany.address);
                   setEditTaxId(selectedCompany.taxNumber);
-                  setEditAgent(selectedCompany.agent || "Hasoob Technology Trading - 2067");
+                  setEditAgent(selectedCompany.agent || "");
                   setIsDetailsModalOpen(false);
                   setIsEditModalOpen(true);
                 }}
@@ -1286,6 +1311,7 @@ const Companies: React.FC = () => {
                     onChange={(e) => setEditAgent(e.target.value)}
                     className="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] bg-white cursor-pointer font-sans"
                   >
+                    <option value="">None (No Agent)</option>
                     <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
                     <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
                   </select>

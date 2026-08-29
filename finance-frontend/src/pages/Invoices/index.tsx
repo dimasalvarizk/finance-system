@@ -36,6 +36,7 @@ export interface Invoice {
   taxRate?: number;
   paymentAttachment?: string;
   agent?: string;
+  currency?: string;
 }
 
 
@@ -69,6 +70,7 @@ export interface InvoiceDetail {
   usdToIdrRate?: number;
   sarToIdrRate?: number;
   taxRate?: number;
+  currency?: string;
 }
 
 export const getLocalCompanySettings = () => {
@@ -105,17 +107,57 @@ export const getLocalCompanySettings = () => {
   return defaults;
 };
 
+export const formatPrice = (price: number, currency: string = 'USD'): string => {
+  const cleanCurrency = String(currency).toUpperCase();
+  if (cleanCurrency === 'RP' || cleanCurrency === 'IDR') {
+    return `Rp ${new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price)}`;
+  } else if (cleanCurrency === 'SAR') {
+    return `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(price)} SAR`;
+  } else {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(price);
+  }
+};
+
+export const convertPrice = (
+  price: number,
+  from: string,
+  to: string,
+  rates: { usdToIdr: number; sarToIdr: number; usdToSar: number }
+): number => {
+  const f = from.toUpperCase();
+  const t = to.toUpperCase();
+  if (f === t) return price;
+
+  let usdToIdr = rates.usdToIdr || 16250;
+  let sarToIdr = rates.sarToIdr || 4333;
+  let usdToSar = rates.usdToSar || 3.75;
+
+  const isRp = (c: string) => c === 'RP' || c === 'IDR';
+
+  if (f === 'USD' && t === 'SAR') return parseFloat((price * usdToSar).toFixed(2));
+  if (f === 'USD' && isRp(t)) return parseFloat((price * usdToIdr).toFixed(2));
+
+  if (f === 'SAR' && t === 'USD') return parseFloat((price / usdToSar).toFixed(2));
+  if (f === 'SAR' && isRp(t)) return parseFloat((price * sarToIdr).toFixed(2));
+
+  if (isRp(f) && t === 'USD') return parseFloat((price / usdToIdr).toFixed(2));
+  if (isRp(f) && t === 'SAR') return parseFloat((price / sarToIdr).toFixed(2));
+
+  return price;
+};
+
 export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
   const items = invoice.items || [];
+  const currency = invoice.currency || 'USD';
   const formattedItems = items.map(item => ({
     description: item.description,
     qty: item.qty,
-    price: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(item.price),
-    total: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(item.qty * item.price),
+    price: formatPrice(item.price, currency),
+    total: formatPrice(item.qty * item.price, currency),
   }));
 
   const calculatedSubtotal = items.reduce((acc, item) => acc + (item.qty * item.price), 0);
-  const subtotalFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(calculatedSubtotal);
+  const subtotalFormatted = formatPrice(calculatedSubtotal, currency);
 
   // Try to find client details from localStorage
   const savedCompStr = localStorage.getItem('finance_companies');
@@ -193,11 +235,12 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     billTo,
     items: formattedItems,
     subtotal: subtotalFormatted,
-    tax: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(calculatedSubtotal * ((invoice.taxRate || 0) / 100)),
-    total: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100))),
+    tax: formatPrice(calculatedSubtotal * ((invoice.taxRate || 0) / 100), currency),
+    total: formatPrice(calculatedSubtotal * (1 + ((invoice.taxRate || 0) / 100)), currency),
     usdToIdrRate: invoice.usdToIdrRate || 16250,
     sarToIdrRate: invoice.sarToIdrRate || 4333,
-    taxRate: invoice.taxRate || 0
+    taxRate: invoice.taxRate || 0,
+    currency
   };
 };
 
@@ -514,6 +557,7 @@ const Invoices: React.FC = () => {
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
   const [formAgent, setFormAgent] = useState<string>('');
+  const [formCurrency, setFormCurrency] = useState<string>('USD');
   const [formInvoiceNo, setFormInvoiceNo] = useState('');
   const [formRef, setFormRef] = useState('');
   const [formSerial, setFormSerial] = useState('');
@@ -576,6 +620,7 @@ const Invoices: React.FC = () => {
     setFormInvoiceDate(today.toLocaleDateString('en-US', options));
     setEditInvoiceId(null);
     setFormItems([]);
+    setFormCurrency('USD');
     setFormError('');
     setIsModalOpen(true);
     if (availableCompanies.length > 0) {
@@ -919,12 +964,7 @@ const Invoices: React.FC = () => {
 
     const calculatedSubtotal = formItems.reduce((acc, item) => acc + (item.qty * item.price), 0);
     const calculatedTotal = calculatedSubtotal * (1 + (globalTaxRate / 100));
-    const formattedAmount = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(calculatedTotal);
+    const formattedAmount = formatPrice(calculatedTotal, formCurrency);
 
     // Format Date for Invoice Date (today's date)
     const today = new Date();
@@ -957,6 +997,7 @@ const Invoices: React.FC = () => {
       items: formItems.map(item => ({ ...item })),
       taxRate: globalTaxRate,
       agent: formAgent || undefined,
+      currency: formCurrency,
     };
 
     const saveInvoice = async () => {
@@ -1003,6 +1044,7 @@ const Invoices: React.FC = () => {
     setFormDate(inv.dueDate ? convertToISODate(inv.dueDate) : convertToISODate(inv.date));
     setFormInvoiceDate(inv.date);
     setFormAgent(inv.agent || '');
+    setFormCurrency(inv.currency || 'USD');
     if (inv.items) {
       setFormItems(inv.items.map(item => ({
         description: item.description,
@@ -2126,9 +2168,36 @@ const Invoices: React.FC = () => {
 
               {/* Itemized Charges Section */}
               <div className="space-y-3">
-                <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-                  Itemized Charges
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
+                    Itemized Charges
+                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <label className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                      Currency:
+                    </label>
+                    <select
+                      value={formCurrency}
+                      onChange={(e) => {
+                        const newCurrency = e.target.value;
+                        const oldCurrency = formCurrency;
+                        if (oldCurrency !== newCurrency) {
+                          const updatedItems = formItems.map(item => ({
+                            ...item,
+                            price: convertPrice(Number(item.price) || 0, oldCurrency, newCurrency, configuredRates)
+                          }));
+                          setFormItems(updatedItems);
+                          setFormCurrency(newCurrency);
+                        }
+                      }}
+                      className="px-2.5 py-1 border border-[#cbd5e1] rounded-lg text-[12px] font-bold text-[#1e293b] bg-white cursor-pointer focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+                    >
+                      <option value="USD">USD ($)</option>
+                      <option value="SAR">SAR (Riyal)</option>
+                      <option value="Rp">Rp (Rupiah)</option>
+                    </select>
+                  </div>
+                </div>
                 <div className="overflow-x-auto border border-[#e2e8f0] rounded-xl bg-white">
                   <table className="w-full text-left border-collapse text-[13px] font-sans">
                     <thead>
@@ -2210,7 +2279,7 @@ const Invoices: React.FC = () => {
                               value={
                                 activeFocusIndex?.index === idx && activeFocusIndex?.field === 'price' && !item.isService
                                   ? item.price
-                                  : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(item.price) || 0)
+                                  : formatPrice(Number(item.price) || 0, formCurrency)
                               }
                               onFocus={() => {
                                 if (!item.isService) {
@@ -2241,7 +2310,7 @@ const Invoices: React.FC = () => {
                             />
                           </td>
                           <td className="p-2 w-32 text-right font-bold text-[#0c0d0f] font-roboto">
-                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.qty * item.price)}
+                            {formatPrice(item.qty * item.price, formCurrency)}
                           </td>
                           <td className="p-2 w-16 text-center">
                             <button
@@ -2283,14 +2352,7 @@ const Invoices: React.FC = () => {
                             key={index}
                             type="button"
                             onClick={() => {
-                              let finalPrice = service.price;
-                              if (service.currency === 'SAR') {
-                                const rate = configuredRates.usdToSar || 3.75;
-                                finalPrice = parseFloat((service.price / rate).toFixed(2));
-                              } else if (service.currency === 'IDR' || service.currency === 'RP') {
-                                const rate = configuredRates.usdToIdr || 16250;
-                                finalPrice = parseFloat((service.price / rate).toFixed(2));
-                              }
+                              const finalPrice = convertPrice(service.price, service.currency || 'USD', formCurrency, configuredRates);
 
                               setFormItems([
                                 ...formItems,
@@ -2335,35 +2397,20 @@ const Invoices: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-[#64748b] font-semibold font-sans">Subtotal</span>
                       <span className="font-bold text-[#0c0d0f] font-roboto">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD',
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        }).format(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0))}
+                        {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0), formCurrency)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-[#64748b] font-semibold font-sans">Tax / VAT ({(editInvoiceId ? (invoices.find(i => i.invoiceNo === editInvoiceId)?.taxRate || 0) : globalTaxRate)}%)</span>
                       <span className="font-bold text-[#0c0d0f] font-roboto">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD',
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        }).format(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * ((editInvoiceId ? (invoices.find(i => i.invoiceNo === editInvoiceId)?.taxRate || 0) : globalTaxRate) / 100))}
+                        {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * ((editInvoiceId ? (invoices.find(i => i.invoiceNo === editInvoiceId)?.taxRate || 0) : globalTaxRate) / 100), formCurrency)}
                       </span>
                     </div>
                     <div className="h-px bg-[#e2e8f0] my-2" />
                     <div className="flex justify-between items-center text-[14px]">
                       <span className="text-[#0c0d0f] font-bold">Total Due</span>
                       <span className="font-extrabold text-[#2563eb] font-roboto text-[16px]">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD',
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        }).format(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * (1 + ((editInvoiceId ? (invoices.find(i => i.invoiceNo === editInvoiceId)?.taxRate || 0) : globalTaxRate) / 100)))}
+                        {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * (1 + ((editInvoiceId ? (invoices.find(i => i.invoiceNo === editInvoiceId)?.taxRate || 0) : globalTaxRate) / 100)), formCurrency)}
                       </span>
                     </div>
                   </div>
