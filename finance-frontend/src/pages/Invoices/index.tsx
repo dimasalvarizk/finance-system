@@ -124,15 +124,16 @@ export const convertPrice = (
   price: number,
   from: string,
   to: string,
-  rates: { usdToIdr: number; sarToIdr: number; usdToSar: number }
+  rates?: { usdToIdr: number; sarToIdr: number; usdToSar: number }
 ): number => {
-  const f = from.toUpperCase();
-  const t = to.toUpperCase();
+  const f = (from || 'USD').toUpperCase();
+  const t = (to || 'USD').toUpperCase();
   if (f === t) return price;
 
-  let usdToIdr = rates.usdToIdr || 18025;
-  let sarToIdr = rates.sarToIdr || 4800;
-  let usdToSar = rates.usdToSar || 3.75;
+  const safeRates = rates || { usdToIdr: 18025, sarToIdr: 4800, usdToSar: 3.75 };
+  let usdToIdr = safeRates.usdToIdr || 18025;
+  let sarToIdr = safeRates.sarToIdr || 4800;
+  let usdToSar = safeRates.usdToSar || 3.75;
 
   const isRp = (c: string) => c === 'RP' || c === 'IDR';
 
@@ -249,8 +250,9 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
 };
 
 export const parseExchangeRate = (val: any, isIdr: boolean = true): number => {
+  if (val === undefined || val === null) return 0;
   let str = String(val).trim();
-  if (!str) return 0;
+  if (!str || str === 'null' || str === 'undefined') return 0;
 
   // If it contains both dot and comma
   if (str.includes('.') && str.includes(',')) {
