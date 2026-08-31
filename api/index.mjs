@@ -9,6 +9,7 @@ import invoiceRoutes from '../backend/invoice-service/routes/invoiceRoutes.js';
 import companyRoutes from '../backend/company-service/routes/companyRoutes.js';
 import requestRoutes from '../backend/request-service/routes/requestRoutes.js';
 import settingRoutes from '../backend/setting-service/routes/settingRoutes.js';
+import hotelReservationRoutes from '../backend/hotel-reservation-service/routes/hotelReservationRoutes.js';
 
 // Import Database connection functions
 import { connectDB as connectAuthDB, getPool as getAuthPool } from '../backend/auth-service/config/db.js';
@@ -16,6 +17,7 @@ import { connectDB as connectInvoiceDB } from '../backend/invoice-service/config
 import { connectDB as connectCompanyDB } from '../backend/company-service/config/db.js';
 import { connectDB as connectRequestDB } from '../backend/request-service/config/db.js';
 import { connectDB as connectSettingDB } from '../backend/setting-service/config/db.js';
+import { connectDB as connectHotelDB } from '../backend/hotel-reservation-service/config/db.js';
 
 // Import error handler from auth service (or define a generic one)
 import { errorHandler as authErrorHandler } from '../backend/auth-service/utils/errorHandler.js';
@@ -35,7 +37,8 @@ app.use(async (req, res, next) => {
         connectInvoiceDB(),
         connectCompanyDB(),
         connectRequestDB(),
-        connectSettingDB()
+        connectSettingDB(),
+        connectHotelDB()
       ]);
       isConnected = true;
       console.log('[Serverless] All database pools connected successfully!');
@@ -101,6 +104,7 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/hotel-reservations', hotelReservationRoutes);
 
 // Catch-all route for unknown API requests
 app.use('/api/*', (req, res) => {
