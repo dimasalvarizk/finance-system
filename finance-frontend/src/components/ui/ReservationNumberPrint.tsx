@@ -29,9 +29,23 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
   const footerNote = `${formatDateToDMY(invoice.date)} · ${details.billFrom.entity}`;
 
   const companySettings = getLocalCompanySettings();
-  const notes = companySettings.defaultNotes.split('\n').map((note: string) =>
-    note.replace(/AIT-2608-011/g, invoice.invoiceNo).replace(/AIT-2608-011/gi, invoice.invoiceNo)
-  );
+  const isHotel = invoice.invoiceNo?.startsWith('HR-') || invoice.invoiceNo?.startsWith('HM-') || invoice.invoiceNo?.startsWith('CNF-') || details.items.some(item => item.description.toLowerCase().includes('hotel'));
+  const isTentative = invoice.status?.toLowerCase() === 'tentative' || invoice.status?.toLowerCase() === 'draft';
+
+  const notes = isHotel 
+    ? (isTentative 
+        ? [
+            "This is a tentative reservation. Confirmation required within 48 hours.",
+            `Please ensure the Invoice Number (e.g. ${invoice.invoiceNo}) is listed as the payment description reference.`
+          ]
+        : [
+            "This reservation has been confirmed. No further action required.",
+            "Thank you for settling the payment. Please keep this invoice copy as your official receipt."
+          ]
+      )
+    : companySettings.defaultNotes.split('\n').map((note: string) =>
+        note.replace(/AIT-2608-011/g, invoice.invoiceNo).replace(/AIT-2608-011/gi, invoice.invoiceNo)
+      );
 
   const termsAndConditions = companySettings.termsAndConditions;
   return (
@@ -49,17 +63,17 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                 />
                 {/* Company Address block */}
                 <div className="mt-1.5 text-[10px] text-slate-400 leading-relaxed font-sans">
-                  CBC Tower D, Jl. Ciengkorong Business City, Kp. Rw. Bakor
+                  CBC Tower G, Jl. Cengkareng Business City Jl. Kp. Rw. Bokor
                   <br />
-                  Pocol, RT.006/RW.007, Benda, Kec. Benda, Kota Tangerang,
+                  Pocal, RT.006/RW.007, Benda, Kec. Benda, Kota Tangerang, Banten
                   <br />
-                  Banten 15125
+                  15125
                 </div>
               </div>
 
               <div className="text-right">
                 <h1 className="text-xl font-extrabold text-slate-800 tracking-wide font-sans">
-                  RESERVATION CONFIRMATION
+                  {isHotel ? 'HOTEL RESERVATION' : 'RESERVATION CONFIRMATION'}
                 </h1>
                 <p className="text-xs text-slate-400 mt-1 font-sans">
                   Reservation No:{" "}
@@ -67,18 +81,41 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     {invoice.invoiceNo}
                   </span>
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5 font-sans">
-                  Reference:{" "}
-                  <span className="text-slate-600 font-semibold font-sans ml-1">
-                    {invoice.referenceNo}
-                  </span>
-                </p>
-                <p className="text-xs text-slate-400 mt-0.5 font-sans">
-                  Serial:{" "}
-                  <span className="text-slate-600 font-semibold font-sans ml-1">
-                    {invoice.serialNo}
-                  </span>
-                </p>
+                {isHotel ? (
+                  <div className="flex items-center justify-end gap-1.5 mt-1 select-none">
+                    {isTentative ? (
+                      <span className="px-2 py-0.5 text-[9px] font-bold text-orange-600 border border-orange-200 bg-orange-50 rounded">
+                        TENTATIVE RESERVATION
+                      </span>
+                    ) : (
+                      <>
+                        <span className="px-2 py-0.5 text-[9px] font-bold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded">
+                          CONFIRMED
+                        </span>
+                        {invoice.serialNo && (
+                          <span className="px-2 py-0.5 text-[9px] font-bold text-slate-500 border border-slate-200 bg-slate-50 rounded">
+                            {invoice.serialNo}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-slate-400 mt-0.5 font-sans">
+                      Reference:{" "}
+                      <span className="text-slate-600 font-semibold font-sans ml-1">
+                        {invoice.referenceNo}
+                      </span>
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5 font-sans">
+                      Serial:{" "}
+                      <span className="text-slate-600 font-semibold font-sans ml-1">
+                        {invoice.serialNo}
+                      </span>
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -269,7 +306,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
 
             <div>
               <h2 className="text-[10px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
-                CONFIRMATION SUMMARY
+                {isHotel ? 'INVOICE SUMMARY' : 'CONFIRMATION SUMMARY'}
               </h2>
               <div className="rounded-xl border border-slate-100 p-3 space-y-1.5" style={{ backgroundColor: 'rgba(248, 250, 252, 1)' }}>
                 <div className="flex items-center justify-between text-xs">
@@ -286,7 +323,11 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                   <span className="text-xs font-bold text-slate-800 font-sans">Total Due</span>
-                  <span className="text-base font-bold text-blue-600 font-sans">
+                  <span className={`text-base font-bold font-sans ${
+                    isHotel 
+                      ? (isTentative ? 'text-[#f97316]' : 'text-[#10b981]') 
+                      : 'text-blue-600'
+                  }`}>
                     {details.total}
                   </span>
                 </div>

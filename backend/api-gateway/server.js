@@ -82,6 +82,13 @@ const settingProxy = createProxyMiddleware({
   logLevel: 'debug',
 });
 
+const hotelReservationProxy = createProxyMiddleware({
+  target: process.env.HOTEL_RESERVATION_SERVICE_URL || 'http://localhost:5006',
+  changeOrigin: true,
+  pathFilter: (path, req) => path.startsWith('/api/hotel-reservations'),
+  logLevel: 'debug',
+});
+
 // Apply proxies at the root level (no path prefix mounting in Express)
 // This preserves the original path so the microservices receive the full URI (e.g., /api/invoices)
 app.use(authProxy);
@@ -89,6 +96,7 @@ app.use(invoiceProxy);
 app.use(companyProxy);
 app.use(requestProxy);
 app.use(settingProxy);
+app.use(hotelReservationProxy);
 
 // Base route for gateway health check (only matches exactly / or paths not caught by proxies)
 app.get('/', (req, res) => {
@@ -100,7 +108,8 @@ app.get('/', (req, res) => {
       invoice: process.env.INVOICE_SERVICE_URL || 'http://localhost:5002',
       request: process.env.REQUEST_SERVICE_URL || 'http://localhost:5003',
       company: process.env.COMPANY_SERVICE_URL || 'http://localhost:5004',
-      setting: process.env.SETTING_SERVICE_URL || 'http://localhost:5005'
+      setting: process.env.SETTING_SERVICE_URL || 'http://localhost:5005',
+      hotelReservation: process.env.HOTEL_RESERVATION_SERVICE_URL || 'http://localhost:5006'
     }
   });
 });

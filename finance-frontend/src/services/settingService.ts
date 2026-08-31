@@ -136,3 +136,39 @@ export const updateCompanySetting = async (data: {
   const response = await settingAPI.put('/company', data);
   return response.data.data;
 };
+
+// 10. HB Room Types Management
+export const getRoomTypes = async () => {
+  const response = await settingAPI.get('/hb/room-types');
+  return response.data.data;
+};
+export const createRoomType = async (data: { name: string; status: string }) => {
+  const response = await settingAPI.post('/hb/room-types', data);
+  return response.data.data;
+};
+export const updateRoomType = async (id: string, data: { name: string; status: string }) => {
+  const response = await settingAPI.put(`/hb/room-types/${id}`, data);
+  return response.data.data;
+};
+export const deleteRoomType = async (id: string) => {
+  const response = await settingAPI.delete(`/hb/room-types/${id}`);
+  return response.data;
+};
+
+// 11. HB Meal Types Management
+export const getMealTypes = async () => {
+  const response = await settingAPI.get('/hb/meal-types');
+  return response.data.data;
+};
+export const createMealType = async (data: { name: string; status: string }) => {
+  const response = await settingAPI.post('/hb/meal-types', data);
+  return response.data.data;
+};
+export const updateMealType = async (id: string, data: { name: string; status: string }) => {
+  const response = await settingAPI.put(`/hb/meal-types/${id}`, data);
+  return response.data.data;
+};
+export const deleteMealType = async (id: string) => {
+  const response = await settingAPI.delete(`/hb/meal-types/${id}`);
+  return response.data;
+};

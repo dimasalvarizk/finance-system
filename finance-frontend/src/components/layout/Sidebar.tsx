@@ -6,6 +6,7 @@ import {
   CheckSquare,
   Briefcase,
   Settings as SettingsIcon,
+  Bed,
 } from 'lucide-react';
 import odstDashboardLogo from '../../assets/odstdahboard.png';
 import { useAuth } from '../../context/AuthContext';
@@ -91,6 +92,18 @@ const Sidebar: React.FC = () => {
               <span>Companies</span>
             </Link>
           )}
+
+          <Link
+            to="/hotel-reservations"
+            className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] transition-all ${
+              location.pathname === '/hotel-reservations'
+                ? 'bg-[#f59e0b] text-white font-semibold'
+                : 'text-white hover:bg-[#303c7c] font-normal'
+            }`}
+          >
+            <Bed className="w-5 h-5" />
+            <span>Reservasi Hotel</span>
+          </Link>
 
           {user?.role !== 'Viewer' && (
             <Link

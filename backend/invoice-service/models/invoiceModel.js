@@ -21,8 +21,8 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
     const todayStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
     await pool.query(`
       UPDATE dst_invoices 
-      SET status = 'Cancelled' 
-      WHERE LOWER(status) NOT IN ('paid', 'cancelled', 'archived', 'rejected')
+      SET status = 'Cancelled', rejectionReason = 'Auto-Cancelled: Unpaid past due date'
+      WHERE LOWER(status) NOT IN ('paid', 'cancelled', 'archived', 'rejected', 'paid and closed')
         AND dueDate IS NOT NULL 
         AND dueDate != '' 
         AND dueDate < ?

@@ -652,8 +652,10 @@ const Invoices: React.FC = () => {
       case 'Cancelled':
         return 'bg-[#fef2f2] text-[#ef4444]';
       case 'Archived':
-      case 'Paid':
         return 'bg-[#f1f5f9] text-[#475569]';
+      case 'Paid':
+      case 'Paid and closed':
+        return 'bg-[#dbeafe] text-[#1e40af]';
       default:
         return 'bg-[#f1f5f9] text-[#475569]';
     }
@@ -1538,6 +1540,8 @@ const Invoices: React.FC = () => {
                     <option value="Rejected">Rejected</option>
                     <option value="Cancelled">Cancelled</option>
                     <option value="Archived">Archived</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Paid and closed">Paid and closed</option>
                   </select>
 
                   {/* Date Filter Input */}

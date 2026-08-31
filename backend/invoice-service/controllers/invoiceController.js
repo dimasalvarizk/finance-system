@@ -308,8 +308,8 @@ export const uploadPaymentProof = async (req, res, next) => {
   const { paymentAttachment } = req.body;
 
   try {
-    if (!paymentAttachment) {
-      return res.status(400).json({ success: false, message: 'paymentAttachment base64 data is required' });
+    if (paymentAttachment === undefined) {
+      return res.status(400).json({ success: false, message: 'paymentAttachment parameter is required' });
     }
 
     const success = await savePaymentProofDB(id, paymentAttachment);
@@ -320,7 +320,7 @@ export const uploadPaymentProof = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Payment proof uploaded successfully'
+      message: paymentAttachment ? 'Payment proof uploaded successfully' : 'Payment proof cleared successfully'
     });
   } catch (error) {
     next(error);

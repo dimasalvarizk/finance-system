@@ -11,6 +11,7 @@ import SecurityTab from './components/SecurityTab';
 import ExchangeRateTab from './components/ExchangeRateTab';
 import ServicesTab from './components/ServicesTab';
 import CompanyInfoTab from './components/CompanyInfoTab';
+import HBManagementTab from './components/HBManagementTab';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
@@ -54,7 +55,8 @@ const Settings: React.FC = () => {
               ...(isAdminOrDirector ? [
                 { id: 'Exchange Rate', label: 'Exchange Rate' },
                 { id: 'Services', label: 'Services' },
-                { id: 'Company Info', label: 'Company Info' }
+                { id: 'Company Info', label: 'Company Info' },
+                { id: 'HB Management', label: 'HB Management' }
               ] : []),
             ].map(tab => {
               const active = activeTab === tab.id;
@@ -85,6 +87,7 @@ const Settings: React.FC = () => {
             {activeTab === 'Exchange Rate' && <ExchangeRateTab />}
             {activeTab === 'Services' && <ServicesTab />}
             {activeTab === 'Company Info' && <CompanyInfoTab />}
+            {activeTab === 'HB Management' && <HBManagementTab />}
           </div>
 
         </div>

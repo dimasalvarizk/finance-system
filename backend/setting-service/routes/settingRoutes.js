@@ -9,7 +9,9 @@ import {
   getServices, createService, updateService, deleteService,
   getTaxSetting, updateTaxSetting,
   getCompanySetting, updateCompanySetting,
-  triggerMaintenanceNotif
+  triggerMaintenanceNotif,
+  getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
+  getMealTypes, createMealType, updateMealType, deleteMealType
 } from '../controllers/settingController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -62,5 +64,16 @@ router.put('/company', restrictTo('Super Admin', 'Chief Accountant', 'Division D
 
 // 10. System Maintenance Broadcast
 router.post('/maintenance', restrictTo('Super Admin'), triggerMaintenanceNotif);
+
+// 11. HB Management
+router.get('/hb/room-types', getRoomTypes);
+router.post('/hb/room-types', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), createRoomType);
+router.put('/hb/room-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateRoomType);
+router.delete('/hb/room-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteRoomType);
+
+router.get('/hb/meal-types', getMealTypes);
+router.post('/hb/meal-types', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), createMealType);
+router.put('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateMealType);
+router.delete('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteMealType);
 
 export default router;

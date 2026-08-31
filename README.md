@@ -52,7 +52,8 @@ Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong
 
 2. **Sistem Persetujuan Mandiri 4-Level & Logika OR**:
    * Alur persetujuan diperluas menjadi **4 Level**: `0/4 Pending -> 1/4 -> 2/4 -> 3/4 -> 4/4 Approved`.
-   * Khusus pada **Level 3**, sistem menggunakan logika **OR (ATAU)**. Persetujuan dapat dilakukan oleh Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani. Persetujuan salah satu dari mereka langsung meloloskan request ke Level 4 (Mr. Khalid Idriss).
+   * Khusus pada **Level 2**, sistem menggunakan logika **OR (ATAU)**. Persetujuan dapat dilakukan oleh Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani. Persetujuan salah satu dari mereka langsung meloloskan request ke Level 3 (Mr. Khalid Idriss).
+   * **Validasi Peran yang Ketat**: Hak istimewa override *Super Admin* pada Level 1, 2, dan 3 telah dihapus. Setiap tingkat persetujuan kini wajib disetujui secara ketat oleh peran yang sesuai demi kepatuhan audit internal.
 
 
 3. **Log Catatan Persetujuan & Unggah Bukti**:
@@ -105,28 +106,28 @@ Alur kerja operasional utama sistem keuangan ini dirancang untuk menjaga transpa
 sequenceDiagram
     autonumber
     actor Accountant as Accountant (Ahmad)
-    actor FD as Finance Director (Mr. Emad)
-    actor CA as Chief Accountant (Mr. Hesham Mokhtar)
-    actor L3 as Level 3 Approver (Mr. Karim OR Mr. Raed)
-    actor DD as Division Director (Mr. Khalid Idriss)
+    actor CA as Chief Accountant (Mr. Hesham)
+    actor L2 as Level 2 Approver (Mr. Karim OR Mr. Raed)
+    actor DD as Division Director (Mr. Khalid)
+    actor FC as Financial Controller (Mr. Emad)
 
     Accountant->>Invoice Service: 1. Buat Konfirmasi Baru
     Invoice Service->>Request Service: 2. Daftarkan Request Baru (Status: 0/4 Pending)
     
-    Note over FD: Level 1 Approval
-    FD->>Request Service: 3. Approve Level 1 (Mr. Emad Moustafa)
+    Note over CA: Level 1 Approval
+    CA->>Request Service: 3. Approve Level 1 (Mr. Hesham Mokhtar)
     Request Service-->>Invoice Service: Update Status: 1/4 Approved
 
-    Note over CA: Level 2 Approval
-    CA->>Request Service: 4. Approve Level 2 (Mr. Hesham Mokhtar)
+    Note over L2: Level 2 Approval (OR Logic)
+    L2->>Request Service: 4. Approve Level 2 (Mr. Karim Gharba ATAU Mr. Raed AlBadrani)
     Request Service-->>Invoice Service: Update Status: 2/4 Approved
 
-    Note over L3: Level 3 Approval (OR Logic)
-    L3->>Request Service: 5. Approve Level 3 (Mr. Karim Gharba ATAU Mr. Raed AlBadrani)
+    Note over DD: Level 3 Approval
+    DD->>Request Service: 5. Approve Level 3 (Mr. Khalid Idriss)
     Request Service-->>Invoice Service: Update Status: 3/4 Approved
 
-    Note over DD: Level 4 Approval
-    DD->>Request Service: 6. Approve Level 4 (Mr. Khalid Idriss)
+    Note over FC: Level 4 Approval
+    FC->>Request Service: 6. Approve Level 4 (Mr. Emad Moustafa)
     Request Service-->>Invoice Service: Update Status: 4/4 Approved (Fully Approved)
     
     Note over Accountant: Selesai / Pembayaran
@@ -136,24 +137,26 @@ sequenceDiagram
 
 ### 1. Otentikasi dan Matriks Peran Pengguna
 Pengguna harus masuk dengan salah satu peran (role) yang menentukan wewenang mereka dalam sistem persetujuan:
-*   **Super Admin** (Direktur Keuangan / *Finance Director* - **Mr. Emad Moustafa**): Memiliki wewenang penuh atas konfigurasi sistem serta dapat memberikan persetujuan pada Level 1, 2, 3, maupun 4.
-*   **Chief Accountant** (Kepala Akuntan - **Mr. Hesham Mokhtar**): Bertanggung jawab atas verifikasi kepatuhan keuangan pada Level 2.
-*   **Level 3 Approver** (**Mr. Karim Gharba** & **Mr. Raed AlBadrani**): Bertanggung jawab atas verifikasi Level 3. Karim memiliki permission khusus `manage_companies`.
-*   **Division Director** (Direktur Divisi Umrah - **Mr. Khalid Idriss**): Bertanggung jawab atas persetujuan akhir operasional pada Level 4.
-*   **Accountant** (Staf Akuntan - **Ahmad Saleh**): Membuat konfirmasi, memantau persetujuan, dan mengunggah bukti pembayaran.
+*   **Chief Accountant** (Kepala Akuntan - **Mr. Hesham Mokhtar**, Role: `Chief Accountant`): Bertanggung jawab atas persetujuan Level 1.
+*   **Level 2 Approver** (**Mr. Karim Gharba** & **Mr. Raed AlBadrani**, Role: `Level_3_Approver` / `Madinah Branch Accountant`): Bertanggung jawab atas persetujuan Level 2. Sistem menggunakan logika OR (salah satu cukup). Mr. Karim memiliki hak akses pengelolaan perusahaan (`manage_companies`).
+*   **Division Director** (Direktur Divisi Umrah - **Mr. Khalid Idriss**, Role: `Division Director`): Bertanggung jawab atas persetujuan Level 3.
+*   **Financial Controller** (Pengendali Keuangan - **Mr. Emad Moustafa**, Role: `Super Admin`): Bertanggung jawab atas persetujuan akhir Level 4. Mr. Emad juga memiliki akses konfigurasi sistem secara penuh.
+*   **Accountant** (Staf Akuntan - **Ahmad Saleh**, Role: `Accountant`): Membuat konfirmasi, memantau persetujuan, mengunggah bukti pembayaran, dan mencetak dokumen setelah disetujui.
 
 ### 2. Siklus Persetujuan Multi-Tahap (4-Level Approval System)
 1.  **Penginputan**: Staf Akuntan menginput konfirmasi baru atas transaksi belanja operasional atau pariwisata.
 2.  **Pengajuan**: Sistem membuat draft konfirmasi dengan status awal **`0/4 Pending`**.
-3.  **Proses Persetujuan Tingkat 1 (Level 1)**: Disetujui oleh **Super Admin** (Mr. Emad Moustafa). Status -> **`1/4 Approved`**.
-4.  **Proses Persetujuan Tingkat 2 (Level 2)**: Disetujui oleh **Chief Accountant** (Mr. Hesham Mokhtar) atau Super Admin. Status -> **`2/4 Approved`**.
-5.  **Proses Persetujuan Tingkat 3 (Level 3)**: Disetujui oleh salah satu **Level 3 Approver** (Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani) atau Super Admin. Status -> **`3/4 Approved`**.
-6.  **Proses Persetujuan Tingkat 4 (Level 4)**: Disetujui oleh **Division Director** (Mr. Khalid Idriss) atau Super Admin. Status -> **`4/4 Approved`** (Fully Approved).
+3.  **Proses Persetujuan Tingkat 1 (Level 1)**: Disetujui secara eksklusif oleh **Chief Accountant** (Mr. Hesham Mokhtar). Status berubah menjadi **`1/4`**.
+4.  **Proses Persetujuan Tingkat 2 (Level 2)**: Disetujui oleh salah satu **Level 2 Approver** (Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani). Status berubah menjadi **`2/4`**.
+5.  **Proses Persetujuan Tingkat 3 (Level 3)**: Disetujui secara eksklusif oleh **Division Director** (Mr. Khalid Idriss). Status berubah menjadi **`3/4`**.
+6.  **Proses Persetujuan Tingkat 4 (Level 4)**: Disetujui secara eksklusif oleh **Financial Controller** (Mr. Emad Moustafa). Status berubah menjadi **`4/4 Approved`** (Fully Approved).
 7.  **Pemberatan Keputusan (Rejection)**: Staf Accountant **tidak diizinkan** menolak pengajuan. Jika salah satu approver memilih *Reject*, status langsung dikunci menjadi **`Rejected`** dan alur dihentikan.
+8.  **Strict Role Validation**: Peran *Super Admin* tidak dapat lagi melompati/meng-override persetujuan di Level 1, 2, dan 3. Setiap persetujuan harus melalui alur bertahap oleh pemilik peran masing-masing secara berurutan.
 
 ### 3. Eksekusi Pembayaran & Cetak Faktur
 *   Sebelum konfirmasi berstatus **`4/4 Approved`**, fitur **Cetak (Print)** dan **Unduh PDF** dalam keadaan terkunci (locked).
 *   Setelah status mencapai **`4/4 Approved`**, tombol cetak dan unduh aktif secara otomatis.
+*   Halaman cetak faktur menggunakan blok tanda tangan statis untuk **Financial Controller Signature** (atas nama **Mr. Emad Moustafa**).
 *   Akuntan dapat mengunduh dokumen resmi yang menyertakan metadata tanda tangan digital (waktu persetujuan dari masing-masing level) serta instruksi transfer pembayaran ke Bank Danamon PT ODST Airlines Indo.
 *   Setelah pembayaran dilakukan, akuntan mengunggah bukti bayar untuk mengubah status menjadi *Paid*.
 

@@ -7,6 +7,7 @@ import Invoices from '../pages/Invoices';
 import Requests from '../pages/Requests';
 import Companies from '../pages/Companies';
 import Settings from '../pages/Settings';
+import HotelReservations from '../pages/HotelReservations';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,6 +36,7 @@ const AppRoutes: React.FC = () => {
           path="/settings"
           element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Settings />}
         />
+        <Route path="/hotel-reservations" element={<HotelReservations />} />
       </Route>
 
       {/* Fallback */}

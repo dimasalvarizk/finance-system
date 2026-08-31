@@ -299,6 +299,63 @@ const initializeDatabase = async () => {
       ]);
     }
 
+    // 7. Create dst_room_types table
+    const createRoomTypesQuery = `
+      CREATE TABLE IF NOT EXISTS dst_room_types (
+        id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        status VARCHAR(50) NOT NULL DEFAULT 'Active',
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createRoomTypesQuery);
+    console.log("Table 'dst_room_types' is ready");
+
+    // Seed default room types if empty
+    const [roomTypeRows] = await pool.query('SELECT COUNT(*) as count FROM dst_room_types');
+    if (roomTypeRows[0].count === 0) {
+      console.log('Seeding default room types...');
+      const defaultRooms = [
+        ['rt-1', 'Single Room', 'Active'],
+        ['rt-2', 'Double Room', 'Active'],
+        ['rt-3', 'Twin Room', 'Active'],
+        ['rt-4', 'Suite', 'Active'],
+        ['rt-5', 'Family Room', 'Active'],
+        ['rt-6', 'Deluxe Room', 'Inactive']
+      ];
+      for (const r of defaultRooms) {
+        await pool.query('INSERT INTO dst_room_types (id, name, status) VALUES (?, ?, ?)', r);
+      }
+    }
+
+    // 8. Create dst_meal_types table
+    const createMealTypesQuery = `
+      CREATE TABLE IF NOT EXISTS dst_meal_types (
+        id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        status VARCHAR(50) NOT NULL DEFAULT 'Active',
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createMealTypesQuery);
+    console.log("Table 'dst_meal_types' is ready");
+
+    // Seed default meal types if empty
+    const [mealTypeRows] = await pool.query('SELECT COUNT(*) as count FROM dst_meal_types');
+    if (mealTypeRows[0].count === 0) {
+      console.log('Seeding default meal types...');
+      const defaultMeals = [
+        ['mt-1', 'Room Only (RO)', 'Active'],
+        ['mt-2', 'Bed & Breakfast (BB)', 'Active'],
+        ['mt-3', 'Half Board (HB)', 'Active'],
+        ['mt-4', 'Full Board (FB)', 'Active'],
+        ['mt-5', 'All Inclusive (AI)', 'Inactive']
+      ];
+      for (const m of defaultMeals) {
+        await pool.query('INSERT INTO dst_meal_types (id, name, status) VALUES (?, ?, ?)', m);
+      }
+    }
+
   } catch (error) {
     console.error('Database schema/seed failed for setting-service:', error.message);
   }

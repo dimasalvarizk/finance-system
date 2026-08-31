@@ -622,3 +622,143 @@ export const triggerMaintenanceNotif = async (req, res, next) => {
     next(error);
   }
 };
+
+// ==========================================
+// 11. HB MANAGEMENT (Room Types & Meal Types)
+// ==========================================
+export const getRoomTypes = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query('SELECT * FROM dst_room_types ORDER BY name ASC');
+    res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createRoomType = async (req, res, next) => {
+  const { name, status } = req.body;
+  try {
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Room type name is required' });
+    }
+    const pool = getPool();
+    const id = `rt-${Date.now()}`;
+    await pool.query(
+      'INSERT INTO dst_room_types (id, name, status) VALUES (?, ?, ?)',
+      [id, name, status || 'Active']
+    );
+    res.status(201).json({ 
+      success: true, 
+      message: 'Room type created successfully', 
+      data: { id, name, status: status || 'Active' } 
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateRoomType = async (req, res, next) => {
+  const { id } = req.params;
+  const { name, status } = req.body;
+  try {
+    const pool = getPool();
+    const [result] = await pool.query(
+      'UPDATE dst_room_types SET name = ?, status = ? WHERE id = ?',
+      [name, status, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Room type not found' });
+    }
+    res.status(200).json({ 
+      success: true, 
+      message: 'Room type updated successfully', 
+      data: { id, name, status } 
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteRoomType = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const [result] = await pool.query('DELETE FROM dst_room_types WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Room type not found' });
+    }
+    res.status(200).json({ success: true, message: 'Room type deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Meal Types
+export const getMealTypes = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query('SELECT * FROM dst_meal_types ORDER BY name ASC');
+    res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createMealType = async (req, res, next) => {
+  const { name, status } = req.body;
+  try {
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Meal type name is required' });
+    }
+    const pool = getPool();
+    const id = `mt-${Date.now()}`;
+    await pool.query(
+      'INSERT INTO dst_meal_types (id, name, status) VALUES (?, ?, ?)',
+      [id, name, status || 'Active']
+    );
+    res.status(201).json({ 
+      success: true, 
+      message: 'Meal type created successfully', 
+      data: { id, name, status: status || 'Active' } 
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateMealType = async (req, res, next) => {
+  const { id } = req.params;
+  const { name, status } = req.body;
+  try {
+    const pool = getPool();
+    const [result] = await pool.query(
+      'UPDATE dst_meal_types SET name = ?, status = ? WHERE id = ?',
+      [name, status, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Meal type not found' });
+    }
+    res.status(200).json({ 
+      success: true, 
+      message: 'Meal type updated successfully', 
+      data: { id, name, status } 
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteMealType = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const [result] = await pool.query('DELETE FROM dst_meal_types WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Meal type not found' });
+    }
+    res.status(200).json({ success: true, message: 'Meal type deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
