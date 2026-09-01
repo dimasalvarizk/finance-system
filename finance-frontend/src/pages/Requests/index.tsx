@@ -21,7 +21,7 @@ export interface InvoiceRequest {
   amount: string;
   requestedBy: string;
   submittedDate: string;
-  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "0/4 Pending" | "1/4" | "1/4 Approved" | "2/4" | "2/4 Approved" | "3/4" | "3/4 Approved" | "4/4 Approved" | "Approved" | "Awaiting Payment Approval" | "Rejected" | "Cancelled" | "Paid" | "Paid and closed" | "Archived";
+  status: "1/3 Approved" | "2/3 Approved" | "3/3 Approved" | "0/3 Pending" | "0/4 Pending" | "1/4" | "1/4 Approved" | "2/4" | "2/4 Approved" | "3/4" | "3/4 Approved" | "4/4 Approved" | "Approved" | "Awaiting Payment Approval" | "Rejected" | "Cancelled" | "Paid" | "Paid and closed" | "Archived" | "Overdue" | "Cancelled due to overdue" | "Pending Review" | (string & {});
   branch?: string;
   rejectionReason?: string;
   level1ApprovedAt?: string | null;
@@ -128,6 +128,7 @@ const Requests: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filterCompany, setFilterCompany] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReasonInput, setRejectionReasonInput] = useState("");
@@ -315,13 +316,27 @@ const Requests: React.FC = () => {
       list = list.filter((r) => r.company === filterCompany);
     }
 
+    // Status Filter
+    if (filterStatus) {
+      if (filterStatus === 'Pending') {
+        list = list.filter((r) => r.status.includes('Pending') || r.status.includes('Approved') || r.status === 'Pending Review');
+      } else if (filterStatus === 'Overdue' || filterStatus === 'Cancelled due to overdue') {
+        list = list.filter((r) => {
+          const reason = (r.rejectionReason || '').toLowerCase();
+          return r.status === 'Overdue' || r.status === 'Cancelled due to overdue' || (r.status === 'Cancelled' && (reason.includes('overdue') || reason.includes('auto-cancelled') || reason.includes('unpaid past due date')));
+        });
+      } else {
+        list = list.filter((r) => r.status === filterStatus);
+      }
+    }
+
     // Date Filter
     if (filterDate) {
       list = list.filter((r) => compareDates(r.submittedDate, filterDate));
     }
 
     return list;
-  }, [allRequests, activeTab, searchQuery, filterCompany, filterDate]);
+  }, [allRequests, activeTab, searchQuery, filterCompany, filterStatus, filterDate]);
 
   // Counts for each tab
   const counts = useMemo(() => {
@@ -1709,6 +1724,27 @@ const Requests: React.FC = () => {
                         {c}
                       </option>
                     ))}
+                  </select>
+
+                  {/* Status Filter Dropdown */}
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => {
+                      setFilterStatus(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Overdue">Overdue</option>
+                    <option value="Cancelled due to overdue">Cancelled due to overdue</option>
+                    <option value="Archived">Archived</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Paid and closed">Paid and closed</option>
                   </select>
 
                   {/* Date Filter Input */}
