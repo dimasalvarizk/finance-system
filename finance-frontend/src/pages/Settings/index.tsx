@@ -13,12 +13,25 @@ import ServicesTab from './components/ServicesTab';
 import CompanyInfoTab from './components/CompanyInfoTab';
 import HBManagementTab from './components/HBManagementTab';
 
+import SystemBackupTab from './components/SystemBackupTab';
+
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'Super Admin';
   const isAdminOrDirector = ['Super Admin', 'Chief Accountant', 'Division Director'].includes(user?.role || '');
+
+  // Perizinan Khusus IT (Ali & Dimas) atau Super Admin (Mr. Emad Moustafa)
+  const userNameLower = (user?.name || '').toLowerCase();
+  const userEmailLower = (user?.email || '').toLowerCase();
+  const isIT = userNameLower.includes('ali') || 
+               userNameLower.includes('dimas') || 
+               userEmailLower.includes('ali') || 
+               userEmailLower.includes('dimas');
+
+  const isAuthorizedBackup = isSuperAdmin || isIT;
+
   const [activeTab, setActiveTab] = useState(
-    isSuperAdmin ? 'Manage Team' :
+    isSuperAdmin || isAuthorizedBackup ? 'System Backup' :
     isAdminOrDirector ? 'Branch / Office' : 'Edit Profile'
   );
 
@@ -47,6 +60,7 @@ const Settings: React.FC = () => {
           {/* Navigation Tabs bar */}
           <div className="border-b border-[#e2e8f0] flex flex-wrap gap-x-8 gap-y-2 pt-2 flex-shrink-0 text-[14px]">
             {[
+              ...(isAuthorizedBackup ? [{ id: 'System Backup', label: 'System Backup' }] : []),
               ...(isSuperAdmin ? [{ id: 'Manage Team', label: 'Manage Team' }] : []),
               ...(isAdminOrDirector ? [{ id: 'Branch / Office', label: 'Branch / Office' }] : []),
               { id: 'Notifications', label: 'Notifications' },
@@ -79,6 +93,7 @@ const Settings: React.FC = () => {
 
           {/* Render Tab Contents */}
           <div className="pt-2">
+            {activeTab === 'System Backup' && <SystemBackupTab />}
             {activeTab === 'Manage Team' && <ManageTeamTab />}
             {activeTab === 'Branch / Office' && <BranchOfficeTab />}
             {activeTab === 'Notifications' && <NotificationsTab />}
