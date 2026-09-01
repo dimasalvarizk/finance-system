@@ -83,11 +83,19 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
       {/* Print Stylesheet */}
       <style>{`
         @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
           body * {
             visibility: hidden;
           }
           #hotel-reservation-print-area, #hotel-reservation-print-area * {
             visibility: visible;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
           #hotel-reservation-print-area {
             position: absolute;
@@ -96,7 +104,7 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
             width: 100%;
             padding: 10mm 12mm;
             margin: 0;
-            background: white;
+            background: white !important;
             box-sizing: border-box;
           }
           @page {
@@ -214,24 +222,24 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
             <div className="border border-solid border-slate-300 rounded-xl overflow-hidden shadow-sm bg-white">
               <table className="w-full text-left border-collapse text-[9.5px] font-sans">
                 <thead>
-                  <tr className="bg-[#1d2857] text-white">
-                    <th colSpan={12} className="py-2.5 px-4 text-center font-bold text-[13px] tracking-wide select-none bg-[#1d2857] text-white">
+                  <tr className="bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                    <th colSpan={12} className="py-2.5 px-4 text-center font-bold text-[13px] tracking-wide select-none bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                       Hotel Details
                     </th>
                   </tr>
-                  <tr className="bg-[#e0e8fe] text-[#1d2857] font-bold uppercase tracking-wider text-[9px] border-b border-slate-300 select-none">
-                    <th className="py-2.5 px-3 whitespace-nowrap">Hotel</th>
-                    <th className="py-2.5 px-2.5 whitespace-nowrap">Room Type</th>
-                    <th className="py-2.5 px-2.5 whitespace-nowrap">Check-In</th>
-                    <th className="py-2.5 px-2.5 whitespace-nowrap">Check-Out</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Night</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Room</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Adult</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Child</th>
-                    <th className="py-2.5 px-2 text-center whitespace-nowrap">Meals</th>
-                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap">DayRate</th>
-                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap">Meals Rate</th>
-                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Total</th>
+                  <tr className="bg-[#e0e8fe] text-[#1d2857] font-bold uppercase tracking-wider text-[9px] border-b border-slate-300 select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                    <th className="py-2.5 px-3 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Hotel</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Room Type</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-In</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-Out</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Night</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Room</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Adult</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Child</th>
+                    <th className="py-2.5 px-2 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals</th>
+                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>DayRate</th>
+                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals Rate</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-800 bg-white">

@@ -33,8 +33,13 @@ input::-ms-clear {
   display: none !important;
 }
 
-/* Remove default browser header and footer (date, URL, page title, page number) on print/PDF */
+/* Remove default browser header and footer (date, URL, page title, page number) on print/PDF & force background colors */
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
   @page {
     margin: 0 !important;
   }
