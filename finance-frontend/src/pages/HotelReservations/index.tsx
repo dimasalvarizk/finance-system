@@ -938,8 +938,8 @@ const HotelReservations: React.FC = () => {
                                 if (!selectedBooking.paymentInvoiceFile) {
                                   setUploadErrorHighlight(true);
                                   triggerAlert(
-                                    'Wajib Unggah Bukti Pembayaran',
-                                    'Harap unggah barang bukti pembayaran (Payment Invoice) terlebih dahulu pada form UPLOAD PAYMENT INVOICE sebelum menandai sebagai Paid.',
+                                    'Payment Proof Required',
+                                    'Please upload the payment invoice / proof of payment document first before marking as Paid.',
                                     'error'
                                   );
                                   uploadSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -985,7 +985,7 @@ const HotelReservations: React.FC = () => {
                           <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Upload Payment Invoice</h3>
                           {uploadErrorHighlight && !selectedBooking.paymentInvoiceFile && (
                             <span className="text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded">
-                              ⚠️ Upload bukti pembayaran wajib
+                              ⚠️ Payment proof required
                             </span>
                           )}
                         </div>
@@ -995,7 +995,7 @@ const HotelReservations: React.FC = () => {
                               <div className="flex items-center gap-2">
                                 <span className="text-[14px]">📄</span>
                                 <div className="text-left">
-                                  <div className="text-xs font-bold">Bukti Pembayaran Tersimpan</div>
+                                  <div className="text-xs font-bold">Payment Proof Uploaded</div>
                                   <div className="text-[10px] text-emerald-600 font-sans">Ready to review</div>
                                 </div>
                               </div>
