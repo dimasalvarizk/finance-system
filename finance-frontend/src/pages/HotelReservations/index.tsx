@@ -20,6 +20,7 @@ import {
   updateHotelReservationStatus,
   deleteHotelReservation
 } from '../../services/hotelReservationService';
+import { getCompanies } from '../../services/invoiceService';
 import HotelReservationPrint from '../../components/ui/HotelReservationPrint';
 
 // Sub-interface untuk detail tipe kamar di dalam reservasi
@@ -346,6 +347,15 @@ const HotelReservations: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching tax settings:', error);
+      }
+
+      try {
+        const compList = await getCompanies();
+        if (compList) {
+          localStorage.setItem('finance_companies', JSON.stringify(compList));
+        }
+      } catch (error) {
+        console.error('Error fetching companies in HotelReservations:', error);
       }
 
       try {

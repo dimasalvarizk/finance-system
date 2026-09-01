@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import type { Booking, BookingRoom } from '../../pages/HotelReservations';
 import {
@@ -9,6 +9,7 @@ import {
 } from '../../pages/HotelReservations';
 import AlertModal from './AlertModal';
 import { getRoomTypes, getMealTypes } from '../../services/settingService';
+import { getCompanies } from '../../services/invoiceService';
 import { useAuth } from '../../context/AuthContext';
 
 interface NewReservationModalProps {
@@ -72,7 +73,11 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     message: '',
     type: 'success' as 'success' | 'error' | 'info'
   });
-  const [selectedClientId, setSelectedClientId] = useState('c-1');
+
+  // Dynamic Companies database list from dst_companies
+  const [dbCompanies, setDbCompanies] = useState<any[]>([]);
+  const [selectedCompanyCode, setSelectedCompanyCode] = useState<string>('');
+
   const [invoiceMeta, setInvoiceMeta] = useState({
     invoiceNo: '',
     referenceNo: '',
@@ -99,6 +104,90 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
   const [formAddedRooms, setFormAddedRooms] = useState<BookingRoom[]>([]);
   const [formCurrency, setFormCurrency] = useState<'USD' | 'SAR' | 'IDR'>('USD');
+
+  // Load live Companies from dst_companies table in database
+  useEffect(() => {
+    if (isOpen) {
+      getCompanies()
+        .then(data => {
+          if (data && Array.isArray(data) && data.length > 0) {
+            setDbCompanies(data);
+            setSelectedCompanyCode(prev => prev || data[0].code || data[0].id || '');
+          } else {
+            const cached = localStorage.getItem('finance_companies');
+            if (cached) {
+              try {
+                const parsed = JSON.parse(cached);
+                if (parsed && parsed.length > 0) {
+                  setDbCompanies(parsed);
+                  setSelectedCompanyCode(prev => prev || parsed[0].code || parsed[0].id || '');
+                  return;
+                }
+              } catch (e) {}
+            }
+            setDbCompanies(CLIENT_COMPANIES);
+            setSelectedCompanyCode(prev => prev || CLIENT_COMPANIES[0].code);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to load companies from database:', err);
+          const cached = localStorage.getItem('finance_companies');
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (parsed && parsed.length > 0) {
+                setDbCompanies(parsed);
+                setSelectedCompanyCode(prev => prev || parsed[0].code || parsed[0].id || '');
+                return;
+              }
+            } catch (e) {}
+          }
+          setDbCompanies(CLIENT_COMPANIES);
+          setSelectedCompanyCode(prev => prev || CLIENT_COMPANIES[0].code);
+        });
+    }
+  }, [isOpen]);
+
+  // Compute selected company (client) object dynamically with auto-populated details
+  const client = useMemo(() => {
+    if (dbCompanies.length === 0) {
+      return {
+        id: 'c-1',
+        code: 'AIT',
+        displayName: 'Arte Tours - AIT',
+        companyName: 'PT. Arie Tour',
+        taxNo: '0000-0000-0000',
+        address: 'Menara Kencana, FI 18, JL. Sudirman No. 45',
+        cityCountry: 'Jakarta, Indonesia 10210'
+      };
+    }
+    const found = dbCompanies.find(c => (c.code || c.id) === selectedCompanyCode);
+    if (found) {
+      const code = found.code || found.id;
+      const name = found.name || found.companyName || found.displayName || 'Unknown Company';
+      return {
+        id: code,
+        code,
+        displayName: found.displayName || `${name} (${code})`,
+        companyName: name,
+        taxNo: found.taxNumber || found.taxNo || '0000-0000-0000',
+        address: found.address || 'Address not specified',
+        cityCountry: found.phone ? `Phone: ${found.phone}` : ''
+      };
+    }
+    const first = dbCompanies[0];
+    const code = first.code || first.id;
+    const name = first.name || first.companyName || first.displayName || 'Unknown Company';
+    return {
+      id: code,
+      code,
+      displayName: first.displayName || `${name} (${code})`,
+      companyName: name,
+      taxNo: first.taxNumber || first.taxNo || '0000-0000-0000',
+      address: first.address || 'Address not specified',
+      cityCountry: first.phone ? `Phone: ${first.phone}` : ''
+    };
+  }, [dbCompanies, selectedCompanyCode]);
 
   // Auto-fill price per night based on selected hotel & room type
   useEffect(() => {
@@ -132,8 +221,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
   // Auto-generate invoice metadata (Invoice No, Ref No, Serial No) based on client and due date
   useEffect(() => {
-    if (isOpen) {
-      const client = CLIENT_COMPANIES.find(c => c.id === selectedClientId) || CLIENT_COMPANIES[0];
+    if (isOpen && client.code) {
       const dateToUse = invoiceMeta.dueDate || new Date().toISOString().split('T')[0];
       
       const generatedNo = generateReservationInvoiceNumber(client.code, dateToUse, bookings);
@@ -153,13 +241,12 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
         serialNo: `SR-${randomSerialSuffix}`
       }));
     }
-  }, [selectedClientId, invoiceMeta.dueDate, isOpen, bookings]);
+  }, [client.code, invoiceMeta.dueDate, isOpen, bookings]);
 
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setFormAddedRooms([]);
-      setSelectedClientId('c-1');
       setCurrentRoom({
         hotelName: 'SAFWAT AL MADINAH',
         roomType: 'TRIPLE',
@@ -245,8 +332,6 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const client = CLIENT_COMPANIES.find(c => c.id === selectedClientId) || CLIENT_COMPANIES[0];
 
     // Persiapkan list kamar: jika formAddedRooms kosong, masukkan currentRoom sebagai default
     let roomsToSubmit = [...formAddedRooms];
@@ -299,8 +384,6 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const client = CLIENT_COMPANIES.find(c => c.id === selectedClientId) || CLIENT_COMPANIES[0];
-
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm select-none">
       <div className="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 flex flex-col max-h-[95vh] text-[13px] text-slate-700">
@@ -328,22 +411,28 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           <div className="p-8 space-y-6">
             
-            {/* BILL TO (CLIENT) SELECT BLOCK */}
+            {/* BILL TO (CLIENT COMPANY FROM DATABASE) SELECT BLOCK */}
             <div className="space-y-1.5">
-              <label className="block text-slate-400 font-bold text-[9px] uppercase tracking-wider">BILL TO (CLIENT)</label>
+              <label className="block text-slate-400 font-bold text-[9px] uppercase tracking-wider">
+                BILL TO (CLIENT COMPANY) — INTEGRATED WITH COMPANIES DATABASE
+              </label>
               <select
-                value={selectedClientId}
-                onChange={e => setSelectedClientId(e.target.value)}
+                value={selectedCompanyCode}
+                onChange={e => setSelectedCompanyCode(e.target.value)}
                 className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white cursor-pointer font-bold"
               >
-                {CLIENT_COMPANIES.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.displayName}
-                  </option>
-                ))}
+                {dbCompanies.map(c => {
+                  const code = c.code || c.id;
+                  const name = c.name || c.companyName || c.displayName;
+                  return (
+                    <option key={code} value={code}>
+                      {c.displayName || `${name} (${code})`}
+                    </option>
+                  );
+                })}
               </select>
-              <p className="text-[11.5px] text-slate-400 font-medium">
-                {client.address}, {client.cityCountry}
+              <p className="text-[11.5px] text-slate-500 font-medium">
+                📍 {client.address} {client.cityCountry ? `(${client.cityCountry})` : ''}
               </p>
             </div>
 
