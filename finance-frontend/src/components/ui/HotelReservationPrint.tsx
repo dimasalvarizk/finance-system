@@ -34,6 +34,16 @@ const formatCurrency = (val: number, currency: string) => {
   return `${numStr} ${curr}`;
 };
 
+const formatMealPlan = (plan: string): string => {
+  if (!plan) return 'RO';
+  const p = plan.toUpperCase();
+  if (p.includes('FULL BOARD') || p.includes('FB')) return 'FB';
+  if (p.includes('HALF BOARD') || p.includes('HB')) return 'HB';
+  if (p.includes('BREAKFAST') || p.includes('BB')) return 'BB';
+  if (p.includes('ROOM ONLY') || p.includes('RO')) return 'RO';
+  return plan;
+};
+
 const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => {
   const isTentative = booking.status === 'Tentative';
   
@@ -84,7 +94,7 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
             left: 0;
             top: 0;
             width: 100%;
-            padding: 6mm 6mm;
+            padding: 10mm 12mm;
             margin: 0;
             background: white;
             box-sizing: border-box;
@@ -174,7 +184,6 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
               </div>
             </div>
 
-            {/* Bill To */}
             <div className="bg-slate-50/50 border border-solid border-slate-100 rounded-xl p-4 space-y-2">
               <h2 className="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase">
                 BILL TO
@@ -201,55 +210,52 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
           </div>
 
           {/* Hotel Details Table */}
-          <div className="mt-4">
-            <h2 className="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase mb-2">
-              HOTEL DETAILS
-            </h2>
-            <div className="border border-solid border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
-              <table className="w-full text-left border-collapse text-[8px] font-sans">
+          <div className="mt-5">
+            <div className="border border-solid border-slate-300 rounded-xl overflow-hidden shadow-sm bg-white">
+              <table className="w-full text-left border-collapse text-[9.5px] font-sans">
                 <thead>
-                  <tr className="bg-[#1e2952] text-white">
-                    <th colSpan={12} className="py-1.5 px-2 text-center font-bold text-[10px] tracking-wider select-none bg-[#1e2952] text-white">
+                  <tr className="bg-[#1d2857] text-white">
+                    <th colSpan={12} className="py-2.5 px-4 text-center font-bold text-[13px] tracking-wide select-none bg-[#1d2857] text-white">
                       Hotel Details
                     </th>
                   </tr>
-                  <tr className="bg-[#e0e9fe] text-[#1e2952] font-bold uppercase tracking-wider text-[8px] border-b border-slate-200 select-none">
-                    <th className="py-2 px-1.5 whitespace-nowrap">Hotel</th>
-                    <th className="py-2 px-1 whitespace-nowrap">Room Type</th>
-                    <th className="py-2 px-1 whitespace-nowrap">Check-In</th>
-                    <th className="py-2 px-1 whitespace-nowrap">Check-Out</th>
-                    <th className="py-2 px-1 text-center whitespace-nowrap">#Night</th>
-                    <th className="py-2 px-1 text-center whitespace-nowrap">#Room</th>
-                    <th className="py-2 px-1 text-center whitespace-nowrap">Adult</th>
-                    <th className="py-2 px-1 text-center whitespace-nowrap">Child</th>
-                    <th className="py-2 px-1 whitespace-nowrap">Meals</th>
-                    <th className="py-2 px-1 text-right whitespace-nowrap">DayRate</th>
-                    <th className="py-2 px-1 text-right whitespace-nowrap">Meals Rate</th>
-                    <th className="py-2 px-2 text-right whitespace-nowrap">Total</th>
+                  <tr className="bg-[#e0e8fe] text-[#1d2857] font-bold uppercase tracking-wider text-[9px] border-b border-slate-300 select-none">
+                    <th className="py-2.5 px-3 whitespace-nowrap">Hotel</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap">Room Type</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap">Check-In</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap">Check-Out</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Night</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Room</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Adult</th>
+                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Child</th>
+                    <th className="py-2.5 px-2 text-center whitespace-nowrap">Meals</th>
+                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap">DayRate</th>
+                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap">Meals Rate</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700 bg-white">
+                <tbody className="divide-y divide-slate-200 text-slate-800 bg-white">
                   {booking.rooms.map((room, idx) => {
                     const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
                     const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
                     return (
                       <tr key={idx} className="hover:bg-slate-50/50">
-                        <td className="py-2 px-1.5 font-bold text-slate-800 uppercase whitespace-nowrap">{room.hotelName}</td>
-                        <td className="py-2 px-1 uppercase whitespace-nowrap">{room.roomType}</td>
-                        <td className="py-2 px-1 whitespace-nowrap">{formatDateToDMY(room.checkIn)}</td>
-                        <td className="py-2 px-1 whitespace-nowrap">{formatDateToDMY(room.checkOut)}</td>
-                        <td className="py-2 px-1 text-center font-bold text-blue-600">{nights}</td>
-                        <td className="py-2 px-1 text-center font-semibold">{room.roomCount}</td>
-                        <td className="py-2 px-1 text-center font-semibold">{room.adults}</td>
-                        <td className="py-2 px-1 text-center font-semibold">{room.children}</td>
-                        <td className="py-2 px-1 uppercase whitespace-nowrap">{room.mealPlan.replace('FAREAST ', '')}</td>
-                        <td className="py-2 px-1 text-right font-medium whitespace-nowrap">
+                        <td className="py-2.5 px-3 font-semibold text-slate-900 uppercase whitespace-nowrap">{room.hotelName}</td>
+                        <td className="py-2.5 px-2.5 uppercase whitespace-nowrap text-slate-800">{room.roomType}</td>
+                        <td className="py-2.5 px-2.5 whitespace-nowrap text-slate-800">{formatDateToDMY(room.checkIn)}</td>
+                        <td className="py-2.5 px-2.5 whitespace-nowrap text-slate-800">{formatDateToDMY(room.checkOut)}</td>
+                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{nights}</td>
+                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{room.roomCount}</td>
+                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{room.adults}</td>
+                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{room.children}</td>
+                        <td className="py-2.5 px-2 text-center font-semibold text-slate-900 uppercase whitespace-nowrap">{formatMealPlan(room.mealPlan)}</td>
+                        <td className="py-2.5 px-2.5 text-right font-medium text-slate-800 whitespace-nowrap">
                           {formatCurrency(room.pricePerNight, booking.currency)}
                         </td>
-                        <td className="py-2 px-1 text-right font-medium whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 text-right font-medium text-slate-800 whitespace-nowrap">
                           {formatCurrency(room.mealRate, booking.currency)}
                         </td>
-                        <td className="py-2 px-2 text-right font-bold text-slate-900 whitespace-nowrap">
+                        <td className="py-2.5 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
                           {formatCurrency(roomTotal, booking.currency)}
                         </td>
                       </tr>
