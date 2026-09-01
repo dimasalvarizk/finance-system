@@ -1034,6 +1034,10 @@ const Invoices: React.FC = () => {
         const invStatus = inv.status || '';
         if (filterStatus === 'Pending') {
           matchesStatus = invStatus.includes('Pending') || invStatus.includes('Approved') || invStatus === 'Pending Review';
+        } else if (filterStatus === 'Overdue' || filterStatus === 'Cancelled due to overdue') {
+          matchesStatus = isInvoiceOverdue(inv) || invStatus === 'Overdue' || invStatus === 'Cancelled due to overdue';
+        } else if (filterStatus === 'Cancelled') {
+          matchesStatus = invStatus === 'Cancelled' && !isInvoiceOverdue(inv);
         } else {
           matchesStatus = invStatus === filterStatus;
         }
@@ -1066,11 +1070,11 @@ const Invoices: React.FC = () => {
   // Stats calculation
   const approvedCount = invoices.filter(inv => inv && (inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid')).length;
   const pendingCount = invoices.filter(inv => inv && inv.status && (inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review')).length;
-  const rejectedCount = invoices.filter(inv => inv && inv.status === 'Rejected').length;
+  const overdueCount = invoices.filter(inv => inv && (inv.status === 'Overdue' || inv.status === 'Cancelled due to overdue' || isInvoiceOverdue(inv) || inv.status === 'Rejected')).length;
 
   const dynamicApproved = approvedCount;
   const dynamicPending = pendingCount;
-  const dynamicOverdue = rejectedCount;
+  const dynamicOverdue = overdueCount;
   const dynamicTotal = invoices.length;
   const successRate = (dynamicApproved + dynamicPending) > 0
     ? ((dynamicApproved / (dynamicApproved + dynamicPending)) * 100).toFixed(1)
@@ -1557,6 +1561,8 @@ const Invoices: React.FC = () => {
                     <option value="Approved">Approved</option>
                     <option value="Rejected">Rejected</option>
                     <option value="Cancelled">Cancelled</option>
+                    <option value="Overdue">Overdue</option>
+                    <option value="Cancelled due to overdue">Cancelled due to overdue</option>
                     <option value="Archived">Archived</option>
                     <option value="Paid">Paid</option>
                     <option value="Paid and closed">Paid and closed</option>

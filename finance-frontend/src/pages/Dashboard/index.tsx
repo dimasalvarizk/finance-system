@@ -189,12 +189,27 @@ const Dashboard: React.FC = () => {
         const amt = getInvoiceAmountInUsd(inv);
         stats[branch].sent += 1;
         const status = String(inv.status || 'Pending').toLowerCase();
+        const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
+
+        let isOverdue = status === 'overdue' ||
+          status === 'cancelled due to overdue' ||
+          status === 'rejected' ||
+          status.includes('overdue') ||
+          (status === 'cancelled' && (notes.includes('overdue') || notes.includes('auto-cancelled') || notes.includes('unpaid past due date')));
+
+        if (!isOverdue && inv.dueDate && !status.includes('paid') && status !== 'approved' && status !== 'archived') {
+          const dueTime = new Date(inv.dueDate).getTime();
+          const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
+          if (dueTime < todayTime) {
+            isOverdue = true;
+          }
+        }
 
         // 1. Revenue & Approvals
         if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
           stats[branch].approved += 1;
           stats[branch].revenue += amt;
-        } else if (status === 'rejected') {
+        } else if (isOverdue) {
           stats[branch].overdue += 1;
         } else if (status.includes('pending') || status === '1/3 approved' || status === '2/3 approved') {
           stats[branch].pending += 1;
