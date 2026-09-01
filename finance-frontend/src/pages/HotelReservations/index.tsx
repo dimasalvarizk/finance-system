@@ -1023,52 +1023,56 @@ const HotelReservations: React.FC = () => {
 
                   {/* Your Decision Card */}
                   {!selectedBooking.approvedByKarim && selectedBooking.status !== 'Cancelled' && (
-                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
-                      <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Your Decision</h3>
-                      <p className="text-xs font-sans text-slate-600 leading-relaxed">
-                        As the Madinah Accountant, please confirm verification of the Requested Reservation.
-                      </p>
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <button
-                          onClick={() => {
-                            if (user?.role !== 'Level_3_Approver' && user?.role !== 'Madinah Branch Accountant' && !user?.name?.toLowerCase().includes('karim')) {
-                              triggerAlert('Access Denied', 'Only Mr. Karim Gharba (Madinah Accountant) can reject this request.', 'error');
-                              return;
-                            }
-                            if (confirm('Are you sure you want to reject this request?')) {
-                              updateHotelReservationStatus(selectedBooking.id, { status: 'Cancelled' })
-                                .then((updated) => {
-                                  if (updated) {
-                                    setBookings(prev => prev.map(b => b.id === selectedBooking.id ? updated : b));
-                                    setSelectedBooking(null);
-                                    triggerAlert('Rejected', 'Hotel reservation request has been rejected.', 'error');
-                                  }
-                                })
-                                .catch((err) => {
-                                  console.error('Error rejecting hotel request:', err);
-                                  triggerAlert('Failed', 'Failed to reject request.', 'error');
-                                });
-                            }
-                          }}
-                          className="py-2.5 border border-red-200 hover:border-red-300 text-red-600 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid text-center"
-                        >
-                          Reject Request
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (user?.role !== 'Level_3_Approver' && user?.role !== 'Madinah Branch Accountant' && !user?.name?.toLowerCase().includes('karim')) {
-                              triggerAlert('Access Denied', 'Only Mr. Karim Gharba (Madinah Accountant) can approve this request.', 'error');
-                              return;
-                            }
-                            setConfirmationNoInput('');
-                            setIsConfirmApprovalOpen(true);
-                          }}
-                          className="py-2.5 bg-[#10b981] hover:bg-[#059669] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none text-center shadow-sm"
-                        >
-                          Approve
-                        </button>
+                    (user?.role === 'Super Admin' || user?.role === 'Level_3_Approver' || user?.role === 'Madinah Branch Accountant' || user?.name?.toLowerCase().includes('karim')) ? (
+                      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                        <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Your Decision</h3>
+                        <p className="text-xs font-sans text-slate-600 leading-relaxed">
+                          As the Madinah Accountant, please confirm verification of the Requested Reservation.
+                        </p>
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                          <button
+                            onClick={() => {
+                              if (confirm('Are you sure you want to reject this request?')) {
+                                updateHotelReservationStatus(selectedBooking.id, { status: 'Cancelled' })
+                                  .then((updated) => {
+                                    if (updated) {
+                                      setBookings(prev => prev.map(b => b.id === selectedBooking.id ? updated : b));
+                                      setSelectedBooking(null);
+                                      triggerAlert('Rejected', 'Hotel reservation request has been rejected.', 'error');
+                                    }
+                                  })
+                                  .catch((err) => {
+                                    console.error('Error rejecting hotel request:', err);
+                                    triggerAlert('Failed', 'Failed to reject request.', 'error');
+                                  });
+                              }
+                            }}
+                            className="py-2.5 border border-red-200 hover:border-red-300 text-red-600 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid text-center"
+                          >
+                            Reject Request
+                          </button>
+                          <button
+                            onClick={() => {
+                              setConfirmationNoInput('');
+                              setIsConfirmApprovalOpen(true);
+                            }}
+                            className="py-2.5 bg-[#10b981] hover:bg-[#059669] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none text-center shadow-sm"
+                          >
+                            Approve
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="bg-slate-50 rounded-xl border border-slate-200/80 p-5 space-y-2 select-none">
+                        <div className="flex items-center space-x-2 text-amber-700 font-bold text-xs">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                          <span>Approval Action Locked</span>
+                        </div>
+                        <p className="text-[11.5px] font-sans text-slate-500 leading-relaxed">
+                          Only <span className="font-bold text-slate-800">Mr. Karim Gharba</span> (Madinah Accountant) or Super Admin can approve or reject this request.
+                        </p>
+                      </div>
+                    )
                   )}
 
                 </div>
