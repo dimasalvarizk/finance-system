@@ -5,6 +5,7 @@ import {
   CLIENT_COMPANIES,
   calculateNights,
   formatDateDMY,
+  formatCurrency,
   getRoomPrice
 } from '../../pages/HotelReservations';
 import AlertModal from './AlertModal';
@@ -348,9 +349,11 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
     setFormAddedRooms(prev => [...prev, roomItem]);
 
-    // Retain checkIn and checkOut dates so HTML5 form validation doesn't block submission
+    // Reset upper info form inputs so user can add another room cleanly
     setCurrentRoom(prev => ({
       ...prev,
+      hotelName: prev.hotelName || 'SAFWAT AL MADINAH',
+      roomType: 'TRIPLE',
       roomCount: 1,
       adults: 1,
       children: 0,
@@ -836,7 +839,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               <table className="w-full text-left text-xs font-sans border-collapse">
                 <thead>
                   <tr className="bg-[#1e293b] text-white">
-                    <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[11.5px] uppercase tracking-wider select-none bg-[#1e293b] text-white">
+                    <th colSpan={13} className="py-2.5 px-3 text-center font-bold text-[11.5px] uppercase tracking-wider select-none bg-[#1e293b] text-white">
                       Hotel Details
                     </th>
                   </tr>
@@ -852,6 +855,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                     <th className="py-2.5 px-1.5">Meals</th>
                     <th className="py-2.5 px-1.5 text-right font-sans">DayRate</th>
                     <th className="py-2.5 px-2 text-right font-sans">Meal Rate</th>
+                    <th className="py-2.5 px-2 text-right font-sans">Total</th>
                     <th className="py-2.5 px-1 text-center">Action</th>
                   </tr>
                 </thead>
@@ -893,72 +897,105 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                           <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
                         </div>
                       </td>
+                      <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
+                        {formatCurrency((currentRoom.pricePerNight + currentRoom.mealRate) * currentRoom.roomCount * calculateNights(currentRoom.checkIn, currentRoom.checkOut), formCurrency)}
+                      </td>
                       <td className="py-2.5 px-1 text-center">
-                        <span className="inline-block px-1.5 py-0.5 text-[8.5px] font-bold text-slate-400 bg-slate-100 rounded">Draft</span>
+                        <span className="inline-block px-1.5 py-0.5 text-[8.5px] font-bold text-slate-400 bg-slate-100 rounded">Initial</span>
                       </td>
                     </tr>
                   ) : (
-                    formAddedRooms.map((room, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/40">
-                        <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
-                        <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
-                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
-                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
-                        <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{room.nights}</td>
-                        <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
-                        <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
-                        <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
-                        <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
-                        <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end space-x-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              value={room.pricePerNight}
-                              onChange={e => {
-                                const newPrice = Math.max(0, Number(e.target.value));
-                                setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, pricePerNight: newPrice } : r));
-                              }}
-                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
-                            />
-                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-2 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end space-x-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              value={room.mealRate}
-                              onChange={e => {
-                                const newRate = Math.max(0, Number(e.target.value));
-                                setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, mealRate: newRate } : r));
-                              }}
-                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
-                            />
-                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-1 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteRoom(idx)}
-                            className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
-                            title="Delete room"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    formAddedRooms.map((room, idx) => {
+                      const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
+                      const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
+                      return (
+                        <tr key={idx} className="hover:bg-slate-50/40">
+                          <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
+                          <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
+                          <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
+                          <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
+                          <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{nights}</td>
+                          <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
+                          <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
+                          <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
+                          <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
+                          <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end space-x-1">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={room.pricePerNight}
+                                onChange={e => {
+                                  const newPrice = Math.max(0, Number(e.target.value));
+                                  setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, pricePerNight: newPrice } : r));
+                                }}
+                                className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                              />
+                              <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-2 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end space-x-1">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={room.mealRate}
+                                onChange={e => {
+                                  const newRate = Math.max(0, Number(e.target.value));
+                                  setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, mealRate: newRate } : r));
+                                }}
+                                className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                              />
+                              <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
+                            {formatCurrency(roomTotal, formCurrency)}
+                          </td>
+                          <td className="py-2.5 px-1 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRoom(idx)}
+                              className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
+                              title="Delete room"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
             </div>
 
-
+            {/* Subtotal & Total Due summary */}
+            {(() => {
+              const roomsForSummary = formAddedRooms.length > 0 ? formAddedRooms : [currentRoom];
+              const subtotalAmount = roomsForSummary.reduce((sum, room) => {
+                const nights = ('nights' in room && typeof (room as any).nights === 'number') ? (room as any).nights : calculateNights(room.checkIn, room.checkOut);
+                return sum + ((room.pricePerNight + room.mealRate) * room.roomCount * nights);
+              }, 0);
+              return (
+                <div className="mt-4 flex flex-col items-end space-y-1.5 font-sans select-none px-2">
+                  <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-600 font-medium">
+                    <span>Subtotal:</span>
+                    <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, formCurrency)}</span>
+                  </div>
+                  <div className="flex items-center justify-end space-x-8 text-xs text-slate-500 font-medium">
+                    <span>Tax / VAT (0%):</span>
+                    <span className="font-bold text-slate-700">{formatCurrency(0, formCurrency)}</span>
+                  </div>
+                  <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200 min-w-[240px] justify-between">
+                    <span className="font-extrabold text-slate-900">Total Due:</span>
+                    <span className="font-black text-emerald-600 text-lg">{formatCurrency(subtotalAmount, formCurrency)}</span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* SECTION: PAYMENT INSTRUCTIONS Rekening DST */}
             <div className="border-t border-slate-100 pt-6 space-y-4">
@@ -987,9 +1024,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
           </div>
 
           {/* Footer Modal */}
-          <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-            <span className="text-[11.5px] text-slate-400 font-medium">* Draft auto-saved on system</span>
-            
+          <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-end bg-slate-50">
             <div className="flex items-center space-x-2">
               <button
                 type="button"

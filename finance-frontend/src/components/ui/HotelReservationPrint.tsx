@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Booking } from '../../pages/HotelReservations';
+import { calculateNights } from '../../pages/HotelReservations';
 import odstLogo from '../../assets/odstlogo.png';
 
 interface Props {
@@ -230,28 +231,36 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                     <th className="py-2.5 px-2">Meals</th>
                     <th className="py-2.5 px-2 text-right">DayRate</th>
                     <th className="py-2.5 px-3 text-right">Meals Rate</th>
+                    <th className="py-2.5 px-3 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700 bg-white">
-                  {booking.rooms.map((room, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/50">
-                      <td className="py-2 px-3 font-semibold text-slate-800 uppercase">{room.hotelName}</td>
-                      <td className="py-2 px-2 uppercase">{room.roomType}</td>
-                      <td className="py-2 px-2">{formatDateToDMY(room.checkIn)}</td>
-                      <td className="py-2 px-2">{formatDateToDMY(room.checkOut)}</td>
-                      <td className="py-2 px-1 text-center">{room.nights}</td>
-                      <td className="py-2 px-1 text-center">{room.roomCount}</td>
-                      <td className="py-2 px-1 text-center">{room.adults}</td>
-                      <td className="py-2 px-1 text-center">{room.children}</td>
-                      <td className="py-2 px-2 uppercase">{room.mealPlan}</td>
-                      <td className="py-2 px-2 text-right font-medium">
-                        {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(room.pricePerNight)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-medium">
-                        {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(room.mealRate)}
-                      </td>
-                    </tr>
-                  ))}
+                  {booking.rooms.map((room, idx) => {
+                    const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
+                    const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
+                    return (
+                      <tr key={idx} className="hover:bg-slate-50/50">
+                        <td className="py-2 px-3 font-semibold text-slate-800 uppercase">{room.hotelName}</td>
+                        <td className="py-2 px-2 uppercase">{room.roomType}</td>
+                        <td className="py-2 px-2">{formatDateToDMY(room.checkIn)}</td>
+                        <td className="py-2 px-2">{formatDateToDMY(room.checkOut)}</td>
+                        <td className="py-2 px-1 text-center">{nights}</td>
+                        <td className="py-2 px-1 text-center">{room.roomCount}</td>
+                        <td className="py-2 px-1 text-center">{room.adults}</td>
+                        <td className="py-2 px-1 text-center">{room.children}</td>
+                        <td className="py-2 px-2 uppercase">{room.mealPlan}</td>
+                        <td className="py-2 px-2 text-right font-medium">
+                          {formatCurrency(room.pricePerNight, booking.currency)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-medium">
+                          {formatCurrency(room.mealRate, booking.currency)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-bold text-slate-900">
+                          {formatCurrency(roomTotal, booking.currency)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

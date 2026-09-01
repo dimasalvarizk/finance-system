@@ -3,7 +3,8 @@ import { X } from 'lucide-react';
 import type { Booking } from '../../pages/HotelReservations';
 import {
   formatDateDMY,
-  formatCurrency
+  formatCurrency,
+  calculateNights
 } from '../../pages/HotelReservations';
 import AlertModal from './AlertModal';
 
@@ -213,7 +214,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               <table className="w-full text-left text-xs font-sans border-collapse">
                 <thead>
                   <tr className="bg-[#1e293b] text-white">
-                    <th colSpan={11} className="py-2.5 px-3 text-center font-bold text-[11.5px] uppercase tracking-wider select-none bg-[#1e293b] text-white">
+                    <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[11.5px] uppercase tracking-wider select-none bg-[#1e293b] text-white">
                       Hotel Details
                     </th>
                   </tr>
@@ -229,27 +230,57 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <th className="py-2.5 px-1.5">Meals</th>
                     <th className="py-2.5 px-1.5 text-right font-sans">DayRate</th>
                     <th className="py-2.5 px-2 text-right font-sans">Meal Rate</th>
+                    <th className="py-2.5 px-2 text-right font-sans">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
-                  {selectedBooking.rooms.map((room, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/40">
-                      <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
-                      <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
-                      <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
-                      <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
-                      <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{room.nights}</td>
-                      <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
-                      <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
-                      <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
-                      <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
-                      <td className="py-2.5 px-1.5 text-right font-sans font-bold text-slate-800">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
-                      <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
-                    </tr>
-                  ))}
+                  {selectedBooking.rooms.map((room, idx) => {
+                    const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
+                    const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
+                    return (
+                      <tr key={idx} className="hover:bg-slate-50/40">
+                        <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
+                        <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
+                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
+                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
+                        <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{nights}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
+                        <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
+                        <td className="py-2.5 px-1.5 text-right font-sans font-bold text-slate-800">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+
+            {/* Subtotal & Total Due summary */}
+            {(() => {
+              const subtotalAmount = selectedBooking.rooms.reduce((sum, room) => {
+                const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
+                return sum + ((room.pricePerNight + room.mealRate) * room.roomCount * nights);
+              }, 0);
+              return (
+                <div className="mt-4 flex flex-col items-end space-y-1.5 font-sans select-none px-2">
+                  <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-600 font-medium">
+                    <span>Subtotal:</span>
+                    <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, selectedBooking.currency)}</span>
+                  </div>
+                  <div className="flex items-center justify-end space-x-8 text-xs text-slate-500 font-medium">
+                    <span>Tax / VAT (0%):</span>
+                    <span className="font-bold text-slate-700">{formatCurrency(0, selectedBooking.currency)}</span>
+                  </div>
+                  <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200 min-w-[240px] justify-between">
+                    <span className="font-extrabold text-slate-900">Total Due:</span>
+                    <span className="font-black text-emerald-600 text-lg">{formatCurrency(subtotalAmount, selectedBooking.currency)}</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* SECTION: PAYMENT INSTRUCTIONS Rekening DST */}
@@ -279,9 +310,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
         </div>
 
         {/* Footer Modal */}
-        <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-between bg-slate-50 text-xs">
-          <span className="text-[11.5px] text-slate-400 font-medium">* Draft auto-saved on system</span>
-          
+        <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-end bg-slate-50 text-xs">
           <div className="flex items-center space-x-2">
             <button
               type="button"
