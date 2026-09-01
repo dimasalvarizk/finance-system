@@ -722,39 +722,50 @@ const HotelReservations: React.FC = () => {
                   <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
                     <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
                     
-                    <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full">
+                    <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full shadow-sm">
                       <table className="w-full text-left text-xs font-sans border-collapse">
                         <thead>
-                          <tr className="bg-[#f8fafc] text-slate-500 border-b border-slate-200 font-bold uppercase tracking-wider text-[9.5px] select-none">
-                            <th className="py-3 px-3.5 whitespace-nowrap">HOTEL</th>
-                            <th className="py-3 px-2 whitespace-nowrap">ROOM TYPE</th>
-                            <th className="py-3 px-2 whitespace-nowrap">CHECK IN</th>
-                            <th className="py-3 px-2 whitespace-nowrap">CHECK OUT</th>
-                            <th className="py-3 px-1.5 text-center whitespace-nowrap">NIGHTS</th>
-                            <th className="py-3 px-1.5 text-center whitespace-nowrap">ROOMS</th>
-                            <th className="py-3 px-1.5 text-center whitespace-nowrap">ADULT</th>
-                            <th className="py-3 px-1.5 text-center whitespace-nowrap">CHILD</th>
-                            <th className="py-3 px-2 whitespace-nowrap">MEALS</th>
-                            <th className="py-3 px-2 text-right font-sans whitespace-nowrap">RATE</th>
-                            <th className="py-3 px-3 text-right font-sans whitespace-nowrap">MEAL RATE</th>
+                          <tr className="bg-[#1e2952] text-white">
+                            <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1e2952] text-white">
+                              Hotel Details
+                            </th>
+                          </tr>
+                          <tr className="bg-[#e0e9fe] text-slate-700 border-b border-slate-200 font-bold uppercase tracking-wider text-[9.5px] select-none">
+                            <th className="py-2.5 px-3 whitespace-nowrap">Hotel</th>
+                            <th className="py-2.5 px-2 whitespace-nowrap">Room Type</th>
+                            <th className="py-2.5 px-2 whitespace-nowrap">Check-In</th>
+                            <th className="py-2.5 px-2 whitespace-nowrap">Check-Out</th>
+                            <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Night</th>
+                            <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Room</th>
+                            <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Adult</th>
+                            <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Child</th>
+                            <th className="py-2.5 px-2 whitespace-nowrap">Meals</th>
+                            <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">DayRate</th>
+                            <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">Meals Rate</th>
+                            <th className="py-2.5 px-3 text-right font-sans whitespace-nowrap">Total</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
-                          {selectedBooking.rooms.map((room, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50/40">
-                              <td className="py-3.5 px-3.5 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
-                              <td className="py-3.5 px-2 text-slate-700 leading-tight">{room.roomType}</td>
-                              <td className="py-3.5 px-2 font-sans text-slate-600 text-[10px]">{formatDateVisual(room.checkIn)}</td>
-                              <td className="py-3.5 px-2 font-sans text-slate-600 text-[10px]">{formatDateVisual(room.checkOut)}</td>
-                              <td className="py-3.5 px-1.5 text-center text-blue-600 font-bold">{room.nights}</td>
-                              <td className="py-3.5 px-1.5 text-center font-semibold">{room.roomCount}</td>
-                              <td className="py-3.5 px-1.5 text-center font-semibold">{room.adults}</td>
-                              <td className="py-3.5 px-1.5 text-center font-semibold">{room.children}</td>
-                              <td className="py-3.5 px-2 text-slate-600 text-[10px] leading-tight">{room.mealPlan.replace('FAREAST ', '')}</td>
-                              <td className="py-3.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
-                              <td className="py-3.5 px-3 text-right font-sans font-bold text-slate-800">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
-                            </tr>
-                          ))}
+                          {selectedBooking.rooms.map((room, idx) => {
+                            const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
+                            const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
+                            return (
+                              <tr key={idx} className="hover:bg-slate-50/40">
+                                <td className="py-2.5 px-3 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
+                                <td className="py-2.5 px-2 text-slate-700 leading-tight">{room.roomType}</td>
+                                <td className="py-2.5 px-2 font-sans text-slate-600 text-[10px]">{formatDateVisual(room.checkIn)}</td>
+                                <td className="py-2.5 px-2 font-sans text-slate-600 text-[10px]">{formatDateVisual(room.checkOut)}</td>
+                                <td className="py-2.5 px-1.5 text-center text-blue-600 font-bold">{nights}</td>
+                                <td className="py-2.5 px-1.5 text-center font-semibold">{room.roomCount}</td>
+                                <td className="py-2.5 px-1.5 text-center font-semibold">{room.adults}</td>
+                                <td className="py-2.5 px-1.5 text-center font-semibold">{room.children}</td>
+                                <td className="py-2.5 px-2 text-slate-600 text-[10px] leading-tight">{room.mealPlan.replace('FAREAST ', '')}</td>
+                                <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
+                                <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
+                                <td className="py-2.5 px-3 text-right font-sans font-bold text-slate-900">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
