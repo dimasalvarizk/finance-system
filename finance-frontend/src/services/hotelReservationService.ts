@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_HOTEL_RESERVATION_API_URL || 'http://localhost:5000';
+const API_URL = 
+  import.meta.env.VITE_HOTEL_RESERVATION_API_URL || 
+  import.meta.env.VITE_SETTING_API_URL || 
+  import.meta.env.VITE_INVOICE_API_URL || 
+  import.meta.env.VITE_AUTH_API_URL || 
+  (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') ? '' : 'http://localhost:5000');
 
 const hotelReservationAPI = axios.create({
   baseURL: `${API_URL}/api/hotel-reservations`,

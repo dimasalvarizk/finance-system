@@ -133,6 +133,7 @@ services:
         - 'VITE_INVOICE_API_URL=https://api.odstfin.io'
         - 'VITE_REQUEST_API_URL=https://api.odstfin.io'
         - 'VITE_SETTING_API_URL=https://api.odstfin.io'
+        - 'VITE_HOTEL_RESERVATION_API_URL=https://api.odstfin.io'
     command: [ "nginx", "-g", "daemon off;" ]
     restart: always
 
