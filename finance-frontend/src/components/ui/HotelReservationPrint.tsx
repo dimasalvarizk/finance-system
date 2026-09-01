@@ -173,9 +173,13 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                   <p className="text-slate-400 font-medium">Company Email</p>
                   <p className="font-bold text-slate-800 text-[11px]">{booking.employeeEmail}</p>
                 </div>
-                <div className="col-span-2">
+                <div>
                   <p className="text-slate-400 font-medium">Entity / Company</p>
-                  <p className="font-bold text-slate-800 text-[11px]">{booking.employeeEntity}</p>
+                  <p className="font-bold text-slate-800 text-[11px]">{booking.employeeEntity || 'PT.ODST AIRLINES IND'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400 font-medium">Company Tax Number</p>
+                  <p className="font-bold text-slate-800 text-[11px]">{booking.companyTaxNo || '0000-0000-0001'}</p>
                 </div>
               </div>
             </div>

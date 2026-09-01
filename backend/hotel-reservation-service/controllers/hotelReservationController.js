@@ -64,7 +64,7 @@ export const createReservation = async (req, res, next) => {
     const {
       id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
       companyName, clientTaxNo, clientAddress, clientCityCountry,
-      employeeName, employeeId, employeePhone, employeeEmail, employeeEntity,
+      employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo,
       currency, taxRate, status, type, rooms, notes, usdToIdrRate, sarToIdrRate
     } = req.body;
 
@@ -72,16 +72,16 @@ export const createReservation = async (req, res, next) => {
       INSERT INTO dst_hotel_reservations (
         id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
         companyName, clientTaxNo, clientAddress, clientCityCountry,
-        employeeName, employeeId, employeePhone, employeeEmail, employeeEntity,
+        employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo,
         currency, taxRate, status, type, rooms, notes, approvedByKarim, isPaid,
         usdToIdrRate, sarToIdrRate
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
     `;
 
     await pool.query(query, [
       id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
       companyName, clientTaxNo, clientAddress, clientCityCountry,
-      employeeName, employeeId, employeePhone, employeeEmail, employeeEntity,
+      employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo || '0000-0000-0001',
       currency, taxRate || 0, status || 'Tentative', type || 'Confirmation',
       JSON.stringify(rooms || []), notes || '',
       usdToIdrRate || 18025.00, sarToIdrRate || 4800.00

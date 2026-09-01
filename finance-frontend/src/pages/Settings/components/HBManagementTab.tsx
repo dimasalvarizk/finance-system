@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, AlertCircle } from 'lucide-react';
-import { 
+import {
   getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
-  getMealTypes, createMealType, updateMealType, deleteMealType 
+  getMealTypes, createMealType, updateMealType, deleteMealType
 } from '../../../services/settingService';
 import ConfirmModal from '../../../components/ui/ConfirmModal';
 
@@ -23,7 +23,7 @@ const HBManagementTab: React.FC = () => {
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [loadingMeals, setLoadingMeals] = useState(false);
-  
+
   // Feedback states
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success');
@@ -44,7 +44,7 @@ const HBManagementTab: React.FC = () => {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   // Load Room Types & Meal Types
@@ -214,11 +214,10 @@ const HBManagementTab: React.FC = () => {
     <div className="space-y-8 animate-fade-in font-sans text-slate-800 pb-12">
       {/* Toast Alert Banner */}
       {feedback && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center space-x-2 px-4 py-3 rounded-xl shadow-lg border text-xs font-bold font-sans animate-fade-in ${
-          feedbackType === 'success' 
-            ? 'bg-[#ecfdf5] border-[#10b981]/30 text-[#065f46]' 
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center space-x-2 px-4 py-3 rounded-xl shadow-lg border text-xs font-bold font-sans animate-fade-in ${feedbackType === 'success'
+            ? 'bg-[#ecfdf5] border-[#10b981]/30 text-[#065f46]'
             : 'bg-rose-50 border-rose-200 text-rose-800'
-        }`}>
+          }`}>
           {feedbackType === 'success' ? (
             <span className="text-emerald-500">✓</span>
           ) : (
@@ -267,11 +266,10 @@ const HBManagementTab: React.FC = () => {
                   <tr key={room.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-3 px-4 font-bold text-slate-800">{room.name}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                        room.status === 'Active' 
-                          ? 'bg-emerald-50 text-emerald-600' 
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold ${room.status === 'Active'
+                          ? 'bg-emerald-50 text-emerald-600'
                           : 'bg-rose-50 text-rose-600'
-                      }`}>
+                        }`}>
                         {room.status}
                       </span>
                     </td>
@@ -338,11 +336,10 @@ const HBManagementTab: React.FC = () => {
                   <tr key={meal.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-3 px-4 font-bold text-slate-800">{meal.name}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                        meal.status === 'Active' 
-                          ? 'bg-emerald-50 text-emerald-600' 
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold ${meal.status === 'Active'
+                          ? 'bg-emerald-50 text-emerald-600'
                           : 'bg-rose-50 text-rose-600'
-                      }`}>
+                        }`}>
                         {meal.status}
                       </span>
                     </td>
@@ -410,14 +407,12 @@ const HBManagementTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setRoomStatusInput(prev => prev === 'Active' ? 'Inactive' : 'Active')}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      roomStatusInput === 'Active' ? 'bg-[#f59e0b]' : 'bg-slate-200'
-                    }`}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${roomStatusInput === 'Active' ? 'bg-[#f59e0b]' : 'bg-slate-200'
+                      }`}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        roomStatusInput === 'Active' ? 'translate-x-4' : 'translate-x-0'
-                      }`}
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${roomStatusInput === 'Active' ? 'translate-x-4' : 'translate-x-0'
+                        }`}
                     />
                   </button>
                 </div>
@@ -483,14 +478,12 @@ const HBManagementTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setMealStatusInput(prev => prev === 'Active' ? 'Inactive' : 'Active')}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      mealStatusInput === 'Active' ? 'bg-[#f59e0b]' : 'bg-slate-200'
-                    }`}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${mealStatusInput === 'Active' ? 'bg-[#f59e0b]' : 'bg-slate-200'
+                      }`}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        mealStatusInput === 'Active' ? 'translate-x-4' : 'translate-x-0'
-                      }`}
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${mealStatusInput === 'Active' ? 'translate-x-4' : 'translate-x-0'
+                        }`}
                     />
                   </button>
                 </div>

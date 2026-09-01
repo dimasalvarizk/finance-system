@@ -75,7 +75,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeName || 'Emad Moustafa'}
+                      value={selectedBooking.employeeName || 'Dimas Alva Rizki'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -84,7 +84,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeePhone || '+62 000-0000-000'}
+                      value={selectedBooking.employeePhone || '+62 8111 1203 330'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -93,7 +93,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeId || '260111'}
+                      value={selectedBooking.employeeId || 'UMP-111'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -102,16 +102,25 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeEmail || 'info@odst.id'}
+                      value={selectedBooking.employeeEmail || 'alvarizkidimas@gmail.com'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div>
                     <label className="block text-slate-400 font-bold text-[9px] mb-1">Entity / Company</label>
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeEntity || 'ODST Group'}
+                      value={selectedBooking.employeeEntity || 'PT.ODST AIRLINES IND'}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1">Company Tax Number</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={selectedBooking.companyTaxNo || '0000-0000-0001'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>

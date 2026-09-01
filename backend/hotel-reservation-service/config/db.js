@@ -111,17 +111,21 @@ const initializeDatabase = async () => {
       console.error('Failed to modify column paymentInvoiceFile to LONGTEXT:', alterErr.message);
     }
 
-    // Pastikan kolom usdToIdrRate dan sarToIdrRate ada di tabel dst_hotel_reservations
+    // Pastikan kolom usdToIdrRate, sarToIdrRate, dan companyTaxNo ada di tabel dst_hotel_reservations
     try {
       await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN IF NOT EXISTS usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
       await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN IF NOT EXISTS sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
-      console.log("Columns 'usdToIdrRate' and 'sarToIdrRate' are verified");
+      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN IF NOT EXISTS companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
+      console.log("Columns 'usdToIdrRate', 'sarToIdrRate', and 'companyTaxNo' are verified");
     } catch (alterRatesErr) {
       try {
         await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
       } catch (e) {}
       try {
         await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
+      } catch (e) {}
+      try {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
       } catch (e) {}
     }
 

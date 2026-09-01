@@ -9,6 +9,7 @@ import {
 } from '../../pages/HotelReservations';
 import AlertModal from './AlertModal';
 import { getRoomTypes, getMealTypes } from '../../services/settingService';
+import { useAuth } from '../../context/AuthContext';
 
 interface NewReservationModalProps {
   isOpen: boolean;
@@ -16,6 +17,9 @@ interface NewReservationModalProps {
   formType: 'Tentative' | 'Confirmation';
   bookings: Booking[];
   companySettings: {
+    companyName?: string;
+    phone?: string;
+    taxNumber?: string;
     bankName: string;
     accountName: string;
     idrAccountNumber: string;
@@ -38,7 +42,28 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   configuredRates,
   onSave
 }) => {
+  const { user } = useAuth();
   const previewSectionRef = useRef<HTMLDivElement>(null);
+
+  // Employee/Sender Fields (Bill From)
+  const [formEmpName, setFormEmpName] = useState('Dimas Alva Rizki');
+  const [formCompNumber, setFormCompNumber] = useState('+62 8111 1203 330');
+  const [formEmpId, setFormEmpId] = useState('UMP-111');
+  const [formCompEmail, setFormCompEmail] = useState('alvarizkidimas@gmail.com');
+  const [formEntity, setFormEntity] = useState('PT.ODST AIRLINES IND');
+  const [formCompTax, setFormCompTax] = useState('0000-0000-0001');
+
+  // Dynamically set Bill From fields from the logged-in user and company settings
+  useEffect(() => {
+    if (user) {
+      setFormEmpName(user.name || 'Dimas Alva Rizki');
+      setFormEmpId(user.employeeId || 'UMP-111');
+      setFormCompNumber(companySettings?.phone || user.phone || '+62 8111 1203 330');
+      setFormCompEmail(user.email || 'alvarizkidimas@gmail.com');
+      setFormEntity(companySettings?.companyName || 'PT.ODST AIRLINES IND');
+      setFormCompTax(companySettings?.taxNumber || '0000-0000-0001');
+    }
+  }, [user, isOpen, companySettings]);
 
   // States
   const [alertModal, setAlertModal] = useState({
@@ -254,11 +279,12 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       clientTaxNo: client.taxNo,
       clientAddress: client.address,
       clientCityCountry: client.cityCountry,
-      employeeName: 'Emad Moustafa',
-      employeeId: '260111',
-      employeePhone: '+62 000-0000-000',
-      employeeEmail: 'info@odst.id',
-      employeeEntity: 'ODST Group',
+      employeeName: formEmpName || 'Dimas Alva Rizki',
+      employeeId: formEmpId || 'UMP-111',
+      employeePhone: formCompNumber || '+62 8111 1203 330',
+      employeeEmail: formCompEmail || 'alvarizkidimas@gmail.com',
+      employeeEntity: formEntity || 'PT.ODST AIRLINES IND',
+      companyTaxNo: formCompTax || '0000-0000-0001',
       rooms: roomsToSubmit,
       currency: formCurrency,
       taxRate: Number(taxRate),
@@ -324,54 +350,81 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
             {/* SECTION: BILL FROM / BILL TO ROW */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* BILL FROM (Read Only) */}
+              {/* BILL FROM */}
               <div className="space-y-2">
                 <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">BILL FROM</h4>
                 <div className="border border-slate-100 rounded-xl p-5 bg-white space-y-3.5">
-                  <div className="grid grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-2 gap-3.5 text-[13px] font-sans">
                     <div>
-                      <label className="block text-slate-400 font-bold text-[9px] mb-1">Employee Name</label>
+                      <label className="block text-slate-400 font-bold text-[9px] mb-1">
+                        Employee Name
+                      </label>
                       <input
                         type="text"
-                        disabled
-                        value="Emad Moustafa"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
+                        required
+                        value={formEmpName}
+                        onChange={(e) => setFormEmpName(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-800 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-400 font-bold text-[9px] mb-1">Company Number</label>
+                      <label className="block text-slate-400 font-bold text-[9px] mb-1">
+                        Company Number
+                      </label>
                       <input
                         type="text"
-                        disabled
-                        value="+62 000-0000-000"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
+                        required
+                        value={formCompNumber}
+                        onChange={(e) => setFormCompNumber(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-800 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-400 font-bold text-[9px] mb-1">Employee ID</label>
+                      <label className="block text-slate-400 font-bold text-[9px] mb-1">
+                        Employee ID
+                      </label>
                       <input
                         type="text"
-                        disabled
-                        value="260111"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
+                        required
+                        value={formEmpId}
+                        onChange={(e) => setFormEmpId(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-800 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-400 font-bold text-[9px] mb-1">Company Email</label>
+                      <label className="block text-slate-400 font-bold text-[9px] mb-1">
+                        Company Email
+                      </label>
                       <input
-                        type="text"
-                        disabled
-                        value="info@odst.id"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
+                        type="email"
+                        required
+                        value={formCompEmail}
+                        onChange={(e) => setFormCompEmail(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-800 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
                       />
                     </div>
-                    <div className="col-span-2">
-                      <label className="block text-slate-400 font-bold text-[9px] mb-1">Entity / Company</label>
+                    <div>
+                      <label className="block text-slate-400 font-bold text-[9px] mb-1">
+                        Entity / Company
+                      </label>
                       <input
                         type="text"
-                        disabled
-                        value="ODST Group"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
+                        required
+                        value={formEntity}
+                        onChange={(e) => setFormEntity(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-800 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 font-bold text-[9px] mb-1">
+                        Company Tax Number
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formCompTax}
+                        onChange={(e) => setFormCompTax(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-800 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
                       />
                     </div>
                   </div>

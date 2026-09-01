@@ -58,6 +58,7 @@ export interface Booking {
   employeePhone: string;
   employeeEmail: string;
   employeeEntity: string;
+  companyTaxNo?: string;
   // Rooms List
   rooms: BookingRoom[];
   currency: 'USD' | 'SAR' | 'IDR';
@@ -264,6 +265,9 @@ const HotelReservations: React.FC = () => {
 
   // State Company Settings dari backend
   const [companySettings, setCompanySettings] = useState({
+    companyName: 'PT.ODST AIRLINES IND',
+    phone: '+62 8111 1203 330',
+    taxNumber: '0000-0000-0001',
     bankName: 'Danamon',
     accountName: 'PT ODST Airlines Indo',
     idrAccountNumber: '102-8829-011',
@@ -287,6 +291,9 @@ const HotelReservations: React.FC = () => {
         const data = await getCompanySetting();
         if (data) {
           setCompanySettings({
+            companyName: data.companyName || 'PT.ODST AIRLINES IND',
+            phone: data.phone || '+62 8111 1203 330',
+            taxNumber: data.taxNumber || '0000-0000-0001',
             bankName: data.bankName || 'Danamon',
             accountName: data.accountName || 'PT ODST Airlines Indo',
             idrAccountNumber: data.idrAccountNumber || '102-8829-011',
@@ -585,10 +592,12 @@ const HotelReservations: React.FC = () => {
                       <div>
                         <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2.5">BILL FROM</h4>
                         <div className="space-y-1 text-xs font-sans text-slate-600">
-                          <p className="font-bold text-slate-800 text-[13px]">{selectedBooking.employeeName || 'Emad Moustafa'}</p>
-                          <p>Employee ID: {selectedBooking.employeeId || '260111'}</p>
-                          <p>{selectedBooking.employeeEmail || 'info@odst.id'}</p>
-                          <p>{selectedBooking.employeeEntity || 'ODST Group'}</p>
+                          <p className="font-bold text-slate-800 text-[13px]">{selectedBooking.employeeName || 'Dimas Alva Rizki'}</p>
+                          <p>Employee ID: {selectedBooking.employeeId || 'UMP-111'}</p>
+                          <p>Phone: {selectedBooking.employeePhone || '+62 8111 1203 330'}</p>
+                          <p>{selectedBooking.employeeEmail || 'alvarizkidimas@gmail.com'}</p>
+                          <p>{selectedBooking.employeeEntity || 'PT.ODST AIRLINES IND'}</p>
+                          <p className="text-[11px] text-slate-400">Tax No: {selectedBooking.companyTaxNo || '0000-0000-0001'}</p>
                         </div>
                       </div>
 
