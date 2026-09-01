@@ -227,9 +227,9 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                     <th className="py-2.5 px-1 text-center">Adult</th>
                     <th className="py-2.5 px-1 text-center">Child</th>
                     <th className="py-2.5 px-2">Meals</th>
-                    <th className="py-2.5 px-2 text-right">DayRate</th>
-                    <th className="py-2.5 px-3 text-right">Meals Rate</th>
-                    <th className="py-2.5 px-3 text-right">Total</th>
+                    <th className="py-2.5 px-2 text-right whitespace-nowrap">DayRate</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Meals Rate</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700 bg-white">
@@ -247,13 +247,13 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                         <td className="py-2 px-1 text-center">{room.adults}</td>
                         <td className="py-2 px-1 text-center">{room.children}</td>
                         <td className="py-2 px-2 uppercase">{room.mealPlan}</td>
-                        <td className="py-2 px-2 text-right font-medium">
+                        <td className="py-2 px-2 text-right font-medium whitespace-nowrap">
                           {formatCurrency(room.pricePerNight, booking.currency)}
                         </td>
-                        <td className="py-2 px-3 text-right font-medium">
+                        <td className="py-2 px-3 text-right font-medium whitespace-nowrap">
                           {formatCurrency(room.mealRate, booking.currency)}
                         </td>
-                        <td className="py-2 px-3 text-right font-bold text-slate-900">
+                        <td className="py-2 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
                           {formatCurrency(roomTotal, booking.currency)}
                         </td>
                       </tr>
