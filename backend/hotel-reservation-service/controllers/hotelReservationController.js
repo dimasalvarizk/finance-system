@@ -61,6 +61,18 @@ export const getReservations = async (req, res, next) => {
 export const createReservation = async (req, res, next) => {
   try {
     const pool = getPool();
+
+    // Pastikan kolom-kolom baru (companyTaxNo, usdToIdrRate, sarToIdrRate) sudah ada di database produksi
+    try {
+      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
+    } catch (e) {}
+    try {
+      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
+    } catch (e) {}
+    try {
+      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
+    } catch (e) {}
+
     const {
       id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
       companyName, clientTaxNo, clientAddress, clientCityCountry,
@@ -80,9 +92,9 @@ export const createReservation = async (req, res, next) => {
 
     await pool.query(query, [
       id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
-      companyName, clientTaxNo, clientAddress, clientCityCountry,
-      employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo || '0000-0000-0001',
-      currency, taxRate || 0, status || 'Tentative', type || 'Confirmation',
+      companyName || 'Unknown Company', clientTaxNo || '0000-0000-0000', clientAddress || '', clientCityCountry || '',
+      employeeName || 'Dimas Alva Rizki', employeeId || 'UMP-111', employeePhone || '', employeeEmail || '', employeeEntity || '', companyTaxNo || '0000-0000-0001',
+      currency || 'USD', taxRate || 0, status || 'Tentative', type || 'Confirmation',
       JSON.stringify(rooms || []), notes || '',
       usdToIdrRate || 18025.00, sarToIdrRate || 4800.00
     ]);
@@ -90,13 +102,14 @@ export const createReservation = async (req, res, next) => {
     const [rows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ?', [id]);
     const created = rows[0];
     if (created) {
-      created.rooms = JSON.parse(created.rooms);
+      created.rooms = typeof created.rooms === 'string' ? JSON.parse(created.rooms) : created.rooms;
       created.approvedByKarim = false;
       created.isPaid = false;
     }
 
     res.status(201).json(created);
   } catch (error) {
+    console.error('Error in createReservation:', error);
     next(error);
   }
 };

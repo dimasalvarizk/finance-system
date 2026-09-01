@@ -50,9 +50,7 @@ export const connectDB = async () => {
     console.log('MySQL Database pool connected successfully for hotel-reservation-service');
     connection.release();
 
-    if (!isVercel) {
-      await initializeDatabase();
-    }
+    await initializeDatabase().catch(err => console.error('initializeDatabase warning for hotel-reservation-service:', err.message));
   } catch (error) {
     console.error('MySQL connection/initialization failed for hotel-reservation-service:', error.message);
     if (process.env.VERCEL !== '1') {
