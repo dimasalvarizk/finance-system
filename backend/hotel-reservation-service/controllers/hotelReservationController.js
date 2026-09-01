@@ -62,21 +62,42 @@ export const createReservation = async (req, res, next) => {
   try {
     const pool = getPool();
 
-    // Pastikan kolom-kolom baru (companyTaxNo, usdToIdrRate, sarToIdrRate) sudah ada di database produksi secara aman
+    // 1. Dapatkan daftar kolom yang benar-benar ada di tabel dst_hotel_reservations
+    let existingCols = [];
     try {
       const [cols] = await pool.query("SHOW COLUMNS FROM dst_hotel_reservations");
-      const existingCols = cols.map(c => c.Field);
+      existingCols = cols.map(c => c.Field);
+    } catch (e) {
+      console.error('Error fetching SHOW COLUMNS:', e.message);
+    }
 
+    // 2. Coba tambahkan kolom baru jika belum ada
+    if (existingCols.length > 0) {
       if (!existingCols.includes('companyTaxNo')) {
-        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
+          existingCols.push('companyTaxNo');
+        } catch (e) {
+          console.error('Failed adding companyTaxNo column:', e.message);
+        }
       }
       if (!existingCols.includes('usdToIdrRate')) {
-        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
+          existingCols.push('usdToIdrRate');
+        } catch (e) {
+          console.error('Failed adding usdToIdrRate column:', e.message);
+        }
       }
       if (!existingCols.includes('sarToIdrRate')) {
-        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
+          existingCols.push('sarToIdrRate');
+        } catch (e) {
+          console.error('Failed adding sarToIdrRate column:', e.message);
+        }
       }
-    } catch (e) {}
+    }
 
     const {
       id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
@@ -103,24 +124,49 @@ export const createReservation = async (req, res, next) => {
       finalReservationNo = `${compCode}-${mmdd}-${randSuffix}`;
     }
 
-    const query = `
-      INSERT INTO dst_hotel_reservations (
-        id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
-        companyName, clientTaxNo, clientAddress, clientCityCountry,
-        employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo,
-        currency, taxRate, status, type, rooms, notes, approvedByKarim, isPaid,
-        usdToIdrRate, sarToIdrRate
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
-    `;
+    // 3. Susun data kandidat kolom & nilai
+    const fieldsToInsert = [
+      { col: 'id', val: finalId },
+      { col: 'reservationNo', val: finalReservationNo },
+      { col: 'guestName', val: guestName || 'Guest' },
+      { col: 'guestPhone', val: guestPhone || '+62 000-0000-000' },
+      { col: 'referenceNo', val: referenceNo || 'REF-001' },
+      { col: 'serialNo', val: serialNo || 'SR-001' },
+      { col: 'dueDate', val: dueDate || new Date().toISOString().split('T')[0] },
+      { col: 'companyName', val: companyName || 'Unknown Company' },
+      { col: 'clientTaxNo', val: clientTaxNo || '0000-0000-0000' },
+      { col: 'clientAddress', val: clientAddress || '' },
+      { col: 'clientCityCountry', val: clientCityCountry || '' },
+      { col: 'employeeName', val: employeeName || 'Dimas Alva Rizki' },
+      { col: 'employeeId', val: employeeId || 'UMP-111' },
+      { col: 'employeePhone', val: employeePhone || '' },
+      { col: 'employeeEmail', val: employeeEmail || '' },
+      { col: 'employeeEntity', val: employeeEntity || '' },
+      { col: 'companyTaxNo', val: companyTaxNo || '0000-0000-0001' },
+      { col: 'currency', val: currency || 'USD' },
+      { col: 'taxRate', val: taxRate || 0 },
+      { col: 'status', val: status || 'Tentative' },
+      { col: 'type', val: type || 'Confirmation' },
+      { col: 'rooms', val: JSON.stringify(rooms || []) },
+      { col: 'notes', val: notes || '' },
+      { col: 'approvedByKarim', val: 0 },
+      { col: 'isPaid', val: 0 },
+      { col: 'usdToIdrRate', val: usdToIdrRate || 18025.00 },
+      { col: 'sarToIdrRate', val: sarToIdrRate || 4800.00 }
+    ];
 
-    await pool.query(query, [
-      finalId, finalReservationNo, guestName || 'Guest', guestPhone || '+62 000-0000-000', referenceNo || 'REF-001', serialNo || 'SR-001', dueDate || new Date().toISOString().split('T')[0],
-      companyName || 'Unknown Company', clientTaxNo || '0000-0000-0000', clientAddress || '', clientCityCountry || '',
-      employeeName || 'Dimas Alva Rizki', employeeId || 'UMP-111', employeePhone || '', employeeEmail || '', employeeEntity || '', companyTaxNo || '0000-0000-0001',
-      currency || 'USD', taxRate || 0, status || 'Tentative', type || 'Confirmation',
-      JSON.stringify(rooms || []), notes || '',
-      usdToIdrRate || 18025.00, sarToIdrRate || 4800.00
-    ]);
+    // Filter hanya kolom yang benar-benar ada di database (jika existingCols berhasil di-fetch)
+    const validFields = existingCols.length > 0
+      ? fieldsToInsert.filter(f => existingCols.includes(f.col))
+      : fieldsToInsert.filter(f => f.col !== 'companyTaxNo'); // Fallback aman jika existingCols tidak tersedia
+
+    const colNames = validFields.map(f => f.col).join(', ');
+    const placeholders = validFields.map(() => '?').join(', ');
+    const params = validFields.map(f => f.val);
+
+    const query = `INSERT INTO dst_hotel_reservations (${colNames}) VALUES (${placeholders})`;
+
+    await pool.query(query, params);
 
     const [rows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ?', [finalId]);
     const created = rows[0];
