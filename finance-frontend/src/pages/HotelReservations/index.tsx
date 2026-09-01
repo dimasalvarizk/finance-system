@@ -159,6 +159,16 @@ export const formatDateDMY = (dateStr: string) => {
   return `${d}/${m}/${y}`;
 };
 
+export const formatMealPlan = (plan: string): string => {
+  if (!plan) return 'RO';
+  const p = plan.toUpperCase();
+  if (p.includes('FULL BOARD') || p.includes('FB')) return 'FB';
+  if (p.includes('HALF BOARD') || p.includes('HB')) return 'HB';
+  if (p.includes('BREAKFAST') || p.includes('BB')) return 'BB';
+  if (p.includes('ROOM ONLY') || p.includes('RO')) return 'RO';
+  return plan;
+};
+
 // Hitung jumlah malam stay
 export const calculateNights = (inDate: string, outDate: string): number => {
   if (!inDate || !outDate) return 1;
@@ -721,9 +731,9 @@ const HotelReservations: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Hotel Details Section */}
-                  <div className="space-y-4 select-none mt-6">
-                    <h4 className="text-xs font-black text-slate-800 tracking-tight uppercase">HOTEL DETAILS</h4>
+                  {/* Accommodations Breakdown Card */}
+                  <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
+                    <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
                     
                     <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full shadow-sm">
                       <table className="w-full text-left text-xs font-sans border-collapse">
@@ -762,7 +772,7 @@ const HotelReservations: React.FC = () => {
                                 <td className="py-2.5 px-1.5 text-center font-semibold">{room.roomCount}</td>
                                 <td className="py-2.5 px-1.5 text-center font-semibold">{room.adults}</td>
                                 <td className="py-2.5 px-1.5 text-center font-semibold">{room.children}</td>
-                                <td className="py-2.5 px-2 text-slate-600 text-[10px] leading-tight">{room.mealPlan.replace('FAREAST ', '')}</td>
+                                <td className="py-2.5 px-2 text-slate-600 text-[10px] leading-tight">{formatMealPlan(room.mealPlan)}</td>
                                 <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
                                 <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
                                 <td className="py-2.5 px-3 text-right font-sans font-bold text-slate-900">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
@@ -779,15 +789,13 @@ const HotelReservations: React.FC = () => {
                         <span>Subtotal:</span>
                         <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(calculateBookingTotal(selectedBooking), selectedBooking.currency)}</span>
                       </div>
-                      <div className="flex items-center justify-end space-x-8 text-xs text-slate-400 font-medium">
-                        <span>Tax / VAT ({taxRate}%):</span>
-                        <span className="font-bold text-slate-900">
-                          {formatCurrency(calculateBookingTotal(selectedBooking) * (taxRate / 100), selectedBooking.currency)}
-                        </span>
+                      <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-400 font-medium">
+                        <span>Tax / VAT ({selectedBooking.taxRate || 0}%):</span>
+                        <span className="font-bold text-slate-700 text-sm">{formatCurrency(0, selectedBooking.currency)}</span>
                       </div>
-                      <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200/80 min-w-[240px] justify-between">
-                        <span className="font-extrabold text-slate-900">Total Due:</span>
-                        <span className="font-black text-emerald-600 text-lg">{formatCurrency(calculateBookingTotal(selectedBooking) * (1 + taxRate / 100), selectedBooking.currency)}</span>
+                      <div className="pt-2 border-t border-slate-100 w-64 flex justify-between items-center text-slate-800 font-extrabold text-base">
+                        <span className="text-slate-800">Total Due:</span>
+                        <span className="text-[#10b981] font-black text-lg tracking-tight">{formatCurrency(calculateBookingTotal(selectedBooking), selectedBooking.currency)}</span>
                       </div>
                     </div>
                   </div>
