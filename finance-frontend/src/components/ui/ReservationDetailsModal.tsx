@@ -240,18 +240,20 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
                     return (
                       <tr key={idx} className="hover:bg-slate-50/40">
-                        <td className="py-2.5 px-3 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
-                        <td className="py-2.5 px-2 text-slate-700 leading-tight">{room.roomType}</td>
-                        <td className="py-2.5 px-2 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
-                        <td className="py-2.5 px-2 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
-                        <td className="py-2.5 px-1.5 text-center text-blue-600 font-bold">{nights}</td>
-                        <td className="py-2.5 px-1.5 text-center font-semibold">{room.roomCount}</td>
-                        <td className="py-2.5 px-1.5 text-center font-semibold">{room.adults}</td>
-                        <td className="py-2.5 px-1.5 text-center font-semibold">{room.children}</td>
-                        <td className="py-2.5 px-2 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
-                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
-                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
-                        <td className="py-2.5 px-3 text-right font-sans font-bold text-slate-900">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-3 font-bold text-slate-900 uppercase whitespace-nowrap">{room.hotelName}</td>
+                        <td className="py-2.5 px-2 font-semibold text-slate-800 uppercase whitespace-nowrap">{room.roomType}</td>
+                        <td className="py-2.5 px-2 font-sans text-slate-700 text-[10.5px] whitespace-nowrap">{formatDateDMY(room.checkIn)}</td>
+                        <td className="py-2.5 px-2 font-sans text-slate-700 text-[10.5px] whitespace-nowrap">{formatDateDMY(room.checkOut)}</td>
+                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{nights}</td>
+                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.roomCount}</td>
+                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.adults}</td>
+                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.children}</td>
+                        <td className="py-2.5 px-2 text-center font-bold text-slate-900 uppercase whitespace-nowrap">
+                          {room.mealPlan ? (room.mealPlan.includes('FB') || room.mealPlan.includes('FULL') ? 'FB' : room.mealPlan.includes('HB') || room.mealPlan.includes('HALF') ? 'HB' : room.mealPlan.includes('BB') || room.mealPlan.includes('BREAKFAST') ? 'BB' : 'RO') : 'RO'}
+                        </td>
+                        <td className="py-2.5 px-2 text-right font-sans font-medium text-slate-800 whitespace-nowrap">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-2 text-right font-sans font-medium text-slate-800 whitespace-nowrap">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-3 text-right font-sans font-bold text-slate-900 whitespace-nowrap">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
                       </tr>
                     );
                   })}
