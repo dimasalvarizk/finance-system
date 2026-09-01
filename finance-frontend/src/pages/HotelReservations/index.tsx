@@ -182,6 +182,21 @@ export const calculateBookingTotal = (b: Booking) => {
   return subtotal;
 };
 
+// Cek apakah booking dibatalkan karena melewati due date (OVERDUE)
+export const isBookingOverdue = (booking: Booking): boolean => {
+  if (booking.status !== 'Cancelled') return false;
+  const notes = (booking.notes || '').toLowerCase();
+  if (notes.includes('auto-cancelled') || notes.includes('unpaid past due date') || notes.includes('overdue')) {
+    return true;
+  }
+  if (booking.dueDate) {
+    const dueTime = new Date(booking.dueDate).getTime();
+    const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
+    if (dueTime < todayTime) return true;
+  }
+  return false;
+};
+
 
 
 const HotelReservations: React.FC = () => {
@@ -536,9 +551,34 @@ const HotelReservations: React.FC = () => {
 
               {/* Title Header */}
               <div className="flex flex-col space-y-1 print:hidden">
-                <h1 className="text-[26px] font-extrabold text-[#0c0d0f] tracking-tight">
-                  Confirmed Reservation Details
-                </h1>
+                <div className="flex items-center space-x-3">
+                  <h1 className="text-[26px] font-extrabold text-[#0c0d0f] tracking-tight">
+                    Confirmed Reservation Details
+                  </h1>
+                  {(() => {
+                    const isOverdue = isBookingOverdue(selectedBooking);
+                    if (isOverdue) {
+                      return (
+                        <span className="inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]">
+                          OVERDUE
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide ${
+                        selectedBooking.status === 'Confirmed'
+                          ? 'bg-[#dcfce7] text-[#15803d]'
+                          : selectedBooking.status === 'Paid and closed'
+                          ? 'bg-[#dbeafe] text-[#1e40af]'
+                          : selectedBooking.status === 'Tentative'
+                          ? 'bg-[#fef3c7] text-[#d97706]'
+                          : 'bg-rose-50 text-rose-700'
+                      }`}>
+                        {selectedBooking.status.toUpperCase()}
+                      </span>
+                    );
+                  })()}
+                </div>
               </div>
 
               {/* Main Grid: Left Column (lg:col-span-2) and Right Column (lg:col-span-1) */}
@@ -1253,17 +1293,29 @@ const HotelReservations: React.FC = () => {
                               {firstRoom.roomType}
                             </td>
                             <td className="py-4 px-4 text-center">
-                              <span className={`inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide ${
-                                b.status === 'Confirmed'
-                                  ? 'bg-[#dcfce7] text-[#15803d]'
-                                  : b.status === 'Paid and closed'
-                                  ? 'bg-[#dbeafe] text-[#1e40af]'
-                                  : b.status === 'Tentative'
-                                  ? 'bg-[#fef3c7] text-[#d97706]'
-                                  : 'bg-rose-50 text-rose-700'
-                              }`}>
-                                {b.status}
-                              </span>
+                              {(() => {
+                                const isOverdue = isBookingOverdue(b);
+                                if (isOverdue) {
+                                  return (
+                                    <span className="inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]">
+                                      OVERDUE
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span className={`inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide ${
+                                    b.status === 'Confirmed'
+                                      ? 'bg-[#dcfce7] text-[#15803d]'
+                                      : b.status === 'Paid and closed'
+                                      ? 'bg-[#dbeafe] text-[#1e40af]'
+                                      : b.status === 'Tentative'
+                                      ? 'bg-[#fef3c7] text-[#d97706]'
+                                      : 'bg-rose-50 text-rose-700'
+                                  }`}>
+                                    {b.status.toUpperCase()}
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="py-4 px-4 text-center">
                               {b.paymentInvoiceFile ? (

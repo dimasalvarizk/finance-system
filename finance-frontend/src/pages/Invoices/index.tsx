@@ -651,6 +651,9 @@ const Invoices: React.FC = () => {
       case 'Rejected':
       case 'Cancelled':
         return 'bg-[#fef2f2] text-[#ef4444]';
+      case 'Overdue':
+      case 'OVERDUE':
+        return 'bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]';
       case 'Archived':
         return 'bg-[#f1f5f9] text-[#475569]';
       case 'Paid':
@@ -659,6 +662,21 @@ const Invoices: React.FC = () => {
       default:
         return 'bg-[#f1f5f9] text-[#475569]';
     }
+  };
+
+  // Helper untuk mendeteksi apakah invoice dibatalkan otomatis karena melewati due date
+  const isInvoiceOverdue = (inv: any) => {
+    if (inv.status !== 'Cancelled') return false;
+    const reason = (inv.rejectionReason || '').toLowerCase();
+    if (reason.includes('auto-cancelled') || reason.includes('unpaid past due date') || reason.includes('overdue')) {
+      return true;
+    }
+    if (inv.dueDate) {
+      const dueTime = new Date(inv.dueDate).getTime();
+      const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
+      if (dueTime < todayTime) return true;
+    }
+    return false;
   };
 
   // Form States & Selection
@@ -1751,14 +1769,23 @@ const Invoices: React.FC = () => {
                               })()}
                             </td>
                             <td className="px-6 py-3.5">
-                              <span
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)}`}
-                              >
-                                {(() => {
-                                  console.log('DEBUG: Rendering row', inv.invoiceNo, 'with status:', inv.status);
-                                  return inv.status;
-                                })()}
-                              </span>
+                              {(() => {
+                                const isOverdue = isInvoiceOverdue(inv);
+                                if (isOverdue) {
+                                  return (
+                                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]">
+                                      OVERDUE
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)}`}
+                                  >
+                                    {inv.status}
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
                               {inv.status === 'Paid' ? (

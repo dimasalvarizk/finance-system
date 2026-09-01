@@ -583,7 +583,7 @@ const Requests: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: InvoiceRequest["status"]) => {
+  const getStatusBadge = (status: InvoiceRequest["status"], req?: InvoiceRequest) => {
     switch (status) {
       case "0/4 Pending":
       case "0/3 Pending":
@@ -618,12 +618,23 @@ const Requests: React.FC = () => {
             {status}
           </span>
         );
-      case "Cancelled":
+      case "Cancelled": {
+        const isOverdue = req?.rejectionReason?.toLowerCase().includes('auto-cancelled') || 
+                          req?.rejectionReason?.toLowerCase().includes('overdue') ||
+                          (req?.dueDate ? new Date(req.dueDate).getTime() < new Date(new Date().toISOString().split('T')[0]).getTime() : false);
+        if (isOverdue) {
+          return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa] font-sans">
+              OVERDUE
+            </span>
+          );
+        }
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#fef2f2] text-[#ef4444] border border-[#fecaca] font-sans">
-            Cancelled
+            CANCELLED
           </span>
         );
+      }
       case "Archived":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#475569] border border-[#e2e8f0] font-sans">
@@ -1902,7 +1913,7 @@ const Requests: React.FC = () => {
                                 className="py-3 px-3 text-left whitespace-nowrap"
                                 style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
                               >
-                                {getStatusBadge(req.status)}
+                                {getStatusBadge(req.status, req)}
                               </td>
                               <td
                                 className="py-3 px-3 text-left whitespace-nowrap"
