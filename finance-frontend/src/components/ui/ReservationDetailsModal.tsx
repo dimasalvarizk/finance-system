@@ -213,24 +213,24 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
             <div className="border border-slate-200 border-solid rounded-xl overflow-hidden shadow-sm bg-white w-full">
               <table className="w-full text-left text-xs font-sans border-collapse">
                 <thead>
-                  <tr className="bg-[#1e293b] text-white">
-                    <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[11.5px] uppercase tracking-wider select-none bg-[#1e293b] text-white">
+                  <tr className="bg-[#1e2952] text-white">
+                    <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1e2952] text-white">
                       Hotel Details
                     </th>
                   </tr>
-                  <tr className="bg-[#f8fafc] text-slate-500 border-b border-slate-200 border-solid font-bold uppercase tracking-wider text-[9.5px] select-none">
-                    <th className="py-2.5 px-2">Hotel</th>
-                    <th className="py-2.5 px-1.5">Room Type</th>
-                    <th className="py-2.5 px-1">Check In</th>
-                    <th className="py-2.5 px-1">Check Out</th>
-                    <th className="py-2.5 px-1 text-center">Nights</th>
-                    <th className="py-2.5 px-1 text-center">Rooms</th>
-                    <th className="py-2.5 px-1 text-center">Adult</th>
-                    <th className="py-2.5 px-1 text-center">Child</th>
-                    <th className="py-2.5 px-1.5">Meals</th>
-                    <th className="py-2.5 px-1.5 text-right font-sans">DayRate</th>
-                    <th className="py-2.5 px-2 text-right font-sans">Meal Rate</th>
-                    <th className="py-2.5 px-2 text-right font-sans">Total</th>
+                  <tr className="bg-[#e0e9fe] text-slate-700 border-b border-slate-200 border-solid font-bold uppercase tracking-wider text-[9.5px] select-none">
+                    <th className="py-2.5 px-3">Hotel</th>
+                    <th className="py-2.5 px-2">Room Type</th>
+                    <th className="py-2.5 px-2">Check-In</th>
+                    <th className="py-2.5 px-2">Check-Out</th>
+                    <th className="py-2.5 px-1.5 text-center">#Night</th>
+                    <th className="py-2.5 px-1.5 text-center">#Room</th>
+                    <th className="py-2.5 px-1.5 text-center">Adult</th>
+                    <th className="py-2.5 px-1.5 text-center">Child</th>
+                    <th className="py-2.5 px-2">Meals</th>
+                    <th className="py-2.5 px-2 text-right font-sans">DayRate</th>
+                    <th className="py-2.5 px-2 text-right font-sans">Meals Rate</th>
+                    <th className="py-2.5 px-3 text-right font-sans">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
