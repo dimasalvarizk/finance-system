@@ -696,62 +696,62 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
             </div>
 
             {/* Preview Table */}
-            <div className="border border-slate-200 border-solid rounded-xl overflow-x-auto shadow-sm bg-white">
+            <div className="border border-slate-200 border-solid rounded-xl overflow-hidden shadow-sm bg-white w-full">
               <table className="w-full text-left text-xs font-sans border-collapse">
                 <thead>
                   <tr className="bg-[#1e293b] text-white">
-                    <th colSpan={12} className="py-2.5 px-4 text-center font-bold text-[12px] uppercase tracking-wider select-none bg-[#1e293b] text-white">
+                    <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[11.5px] uppercase tracking-wider select-none bg-[#1e293b] text-white">
                       Hotel Details
                     </th>
                   </tr>
-                  <tr className="bg-[#f8fafc] text-slate-500 border-b border-slate-200 border-solid font-bold uppercase tracking-wider text-[10px] select-none">
-                    <th className="py-3 px-4 min-w-[150px] whitespace-nowrap">Hotel</th>
-                    <th className="py-3 px-3 min-w-[120px] whitespace-nowrap">Room Type</th>
-                    <th className="py-3 px-3 min-w-[100px] whitespace-nowrap">Check-In</th>
-                    <th className="py-3 px-3 min-w-[100px] whitespace-nowrap">Check-Out</th>
-                    <th className="py-3 px-2 text-center min-w-[65px] whitespace-nowrap">#Night</th>
-                    <th className="py-3 px-2 text-center min-w-[65px] whitespace-nowrap">#Room</th>
-                    <th className="py-3 px-2 text-center min-w-[60px] whitespace-nowrap">Adult</th>
-                    <th className="py-3 px-2 text-center min-w-[60px] whitespace-nowrap">Child</th>
-                    <th className="py-3 px-3 min-w-[140px] whitespace-nowrap">Meals</th>
-                    <th className="py-3 px-3 text-right min-w-[95px] whitespace-nowrap">DayRate</th>
-                    <th className="py-3 px-4 text-right min-w-[95px] whitespace-nowrap">Meals Rate</th>
-                    <th className="py-3 px-4 text-center min-w-[70px] whitespace-nowrap">Action</th>
+                  <tr className="bg-[#f8fafc] text-slate-500 border-b border-slate-200 border-solid font-bold uppercase tracking-wider text-[9.5px] select-none">
+                    <th className="py-2.5 px-2">Hotel</th>
+                    <th className="py-2.5 px-1.5">Room Type</th>
+                    <th className="py-2.5 px-1">Check In</th>
+                    <th className="py-2.5 px-1">Check Out</th>
+                    <th className="py-2.5 px-1 text-center">Nights</th>
+                    <th className="py-2.5 px-1 text-center">Rooms</th>
+                    <th className="py-2.5 px-1 text-center">Adult</th>
+                    <th className="py-2.5 px-1 text-center">Child</th>
+                    <th className="py-2.5 px-1.5">Meals</th>
+                    <th className="py-2.5 px-1.5 text-right font-sans">DayRate</th>
+                    <th className="py-2.5 px-2 text-right font-sans">Meal Rate</th>
+                    <th className="py-2.5 px-1 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[11.5px]">
+                <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
                   {formAddedRooms.length === 0 ? (
                     <tr className="hover:bg-slate-50/20">
-                      <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{currentRoom.hotelName}</td>
-                      <td className="py-3.5 px-3 text-slate-700 whitespace-nowrap">{currentRoom.roomType}</td>
-                      <td className="py-3.5 px-3 font-sans text-slate-600 whitespace-nowrap">{currentRoom.checkIn ? formatDateDMY(currentRoom.checkIn) : '-'}</td>
-                      <td className="py-3.5 px-3 font-sans text-slate-600 whitespace-nowrap">{currentRoom.checkOut ? formatDateDMY(currentRoom.checkOut) : '-'}</td>
-                      <td className="py-3.5 px-2 text-center text-blue-600 font-bold whitespace-nowrap">{calculateNights(currentRoom.checkIn, currentRoom.checkOut)}</td>
-                      <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{currentRoom.roomCount}</td>
-                      <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{currentRoom.adults}</td>
-                      <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{currentRoom.children}</td>
-                      <td className="py-3.5 px-3 text-slate-600 whitespace-nowrap">{currentRoom.mealPlan}</td>
-                      <td className="py-3.5 px-3 text-right font-sans font-bold text-slate-800 whitespace-nowrap">{getRoomPrice(currentRoom.hotelName, currentRoom.roomType).toFixed(2)}</td>
-                      <td className="py-3.5 px-4 text-right font-sans font-bold text-slate-800 whitespace-nowrap">{currentRoom.mealRate.toFixed(2)}</td>
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                        <span className="inline-flex px-2 py-0.5 text-[9px] font-bold text-slate-400 bg-slate-100 rounded">Draft</span>
+                      <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{currentRoom.hotelName}</td>
+                      <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{currentRoom.roomType}</td>
+                      <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkIn ? formatDateDMY(currentRoom.checkIn) : '-'}</td>
+                      <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkOut ? formatDateDMY(currentRoom.checkOut) : '-'}</td>
+                      <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{calculateNights(currentRoom.checkIn, currentRoom.checkOut)}</td>
+                      <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.roomCount}</td>
+                      <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.adults}</td>
+                      <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.children}</td>
+                      <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{currentRoom.mealPlan}</td>
+                      <td className="py-2.5 px-1.5 text-right font-sans font-bold text-slate-800">{getRoomPrice(currentRoom.hotelName, currentRoom.roomType).toFixed(2)}</td>
+                      <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{currentRoom.mealRate.toFixed(2)}</td>
+                      <td className="py-2.5 px-1 text-center">
+                        <span className="inline-block px-1.5 py-0.5 text-[8.5px] font-bold text-slate-400 bg-slate-100 rounded">Draft</span>
                       </td>
                     </tr>
                   ) : (
                     formAddedRooms.map((room, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/40">
-                        <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{room.hotelName}</td>
-                        <td className="py-3.5 px-3 text-slate-700 whitespace-nowrap">{room.roomType}</td>
-                        <td className="py-3.5 px-3 font-sans text-slate-600 whitespace-nowrap">{formatDateDMY(room.checkIn)}</td>
-                        <td className="py-3.5 px-3 font-sans text-slate-600 whitespace-nowrap">{formatDateDMY(room.checkOut)}</td>
-                        <td className="py-3.5 px-2 text-center text-blue-600 font-bold whitespace-nowrap">{room.nights}</td>
-                        <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{room.roomCount}</td>
-                        <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{room.adults}</td>
-                        <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{room.children}</td>
-                        <td className="py-3.5 px-3 text-slate-600 whitespace-nowrap">{room.mealPlan}</td>
-                        <td className="py-3.5 px-3 text-right font-sans font-bold text-slate-800 whitespace-nowrap">{room.pricePerNight.toFixed(2)}</td>
-                        <td className="py-3.5 px-4 text-right font-sans font-bold text-slate-800 whitespace-nowrap">{room.mealRate.toFixed(2)}</td>
-                        <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                        <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
+                        <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
+                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
+                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
+                        <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{room.nights}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
+                        <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
+                        <td className="py-2.5 px-1.5 text-right font-sans font-bold text-slate-800">{room.pricePerNight.toFixed(2)}</td>
+                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{room.mealRate.toFixed(2)}</td>
+                        <td className="py-2.5 px-1 text-center">
                           <button
                             type="button"
                             onClick={() => handleDeleteRoom(idx)}

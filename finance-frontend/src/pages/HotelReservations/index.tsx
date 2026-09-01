@@ -711,37 +711,37 @@ const HotelReservations: React.FC = () => {
                   <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
                     <h3 className="text-sm font-bold text-slate-800">Accommodations Breakdown</h3>
                     
-                    <div className="overflow-x-auto w-full border border-slate-200 rounded-xl bg-white shadow-sm">
+                    <div className="border border-slate-200 border-solid rounded-xl overflow-hidden shadow-sm bg-white w-full">
                       <table className="w-full text-left text-xs font-sans border-collapse">
                         <thead>
-                          <tr className="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-[10px] select-none border-b border-slate-200">
-                            <th className="py-3 px-4 min-w-[150px] whitespace-nowrap">Hotel</th>
-                            <th className="py-3 px-3 min-w-[120px] whitespace-nowrap">Room Type</th>
-                            <th className="py-3 px-3 min-w-[100px] whitespace-nowrap">Check In</th>
-                            <th className="py-3 px-3 min-w-[100px] whitespace-nowrap">Check Out</th>
-                            <th className="py-3 px-2 text-center min-w-[65px] whitespace-nowrap">Nights</th>
-                            <th className="py-3 px-2 text-center min-w-[65px] whitespace-nowrap">Rooms</th>
-                            <th className="py-3 px-2 text-center min-w-[60px] whitespace-nowrap">Adult</th>
-                            <th className="py-3 px-2 text-center min-w-[60px] whitespace-nowrap">Child</th>
-                            <th className="py-3 px-3 min-w-[140px] whitespace-nowrap">Meals</th>
-                            <th className="py-3 px-3 text-right min-w-[95px] whitespace-nowrap">Rate</th>
-                            <th className="py-3 px-4 text-right min-w-[95px] whitespace-nowrap">Meal Rate</th>
+                          <tr className="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-[9.5px] select-none border-b border-slate-200">
+                            <th className="py-2.5 px-2">Hotel</th>
+                            <th className="py-2.5 px-1.5">Room Type</th>
+                            <th className="py-2.5 px-1">Check In</th>
+                            <th className="py-2.5 px-1">Check Out</th>
+                            <th className="py-2.5 px-1 text-center">Nights</th>
+                            <th className="py-2.5 px-1 text-center">Rooms</th>
+                            <th className="py-2.5 px-1 text-center">Adult</th>
+                            <th className="py-2.5 px-1 text-center">Child</th>
+                            <th className="py-2.5 px-1.5">Meals</th>
+                            <th className="py-2.5 px-1.5 text-right font-sans">Rate</th>
+                            <th className="py-2.5 px-2 text-right font-sans">Meal Rate</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[11.5px]">
+                        <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
                           {selectedBooking.rooms.map((room, idx) => (
                             <tr key={idx} className="hover:bg-slate-50/40">
-                              <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{room.hotelName}</td>
-                              <td className="py-3.5 px-3 text-slate-700 whitespace-nowrap">{room.roomType}</td>
-                              <td className="py-3.5 px-3 font-sans text-slate-600 whitespace-nowrap">{formatDateVisual(room.checkIn)}</td>
-                              <td className="py-3.5 px-3 font-sans text-slate-600 whitespace-nowrap">{formatDateVisual(room.checkOut)}</td>
-                              <td className="py-3.5 px-2 text-center text-blue-600 font-bold whitespace-nowrap">{room.nights}</td>
-                              <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{room.roomCount}</td>
-                              <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{room.adults}</td>
-                              <td className="py-3.5 px-2 text-center font-semibold whitespace-nowrap">{room.children}</td>
-                              <td className="py-3.5 px-3 text-slate-600 whitespace-nowrap">{room.mealPlan.replace('FAREAST ', '')}</td>
-                              <td className="py-3.5 px-3 text-right font-sans font-bold text-slate-800 whitespace-nowrap">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
-                              <td className="py-3.5 px-4 text-right font-sans font-bold text-slate-800 whitespace-nowrap">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
+                              <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
+                              <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
+                              <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateVisual(room.checkIn)}</td>
+                              <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateVisual(room.checkOut)}</td>
+                              <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{room.nights}</td>
+                              <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
+                              <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
+                              <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
+                              <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan.replace('FAREAST ', '')}</td>
+                              <td className="py-2.5 px-1.5 text-right font-sans font-bold text-slate-800">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
+                              <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
                             </tr>
                           ))}
                         </tbody>
