@@ -644,17 +644,24 @@ const HotelReservations: React.FC = () => {
                       );
                     }
                     return (
-                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide ${
-                        selectedBooking.status === 'Confirmed'
-                          ? 'bg-[#dcfce7] text-[#15803d]'
-                          : selectedBooking.status === 'Paid and closed'
-                          ? 'bg-[#dbeafe] text-[#1e40af]'
-                          : selectedBooking.status === 'Tentative'
-                          ? 'bg-[#fef3c7] text-[#d97706]'
-                          : 'bg-rose-50 text-rose-700'
-                      }`}>
-                        {selectedBooking.status.toUpperCase()}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide ${
+                          selectedBooking.status === 'Confirmed'
+                            ? 'bg-[#dcfce7] text-[#15803d]'
+                            : selectedBooking.status === 'Paid and closed'
+                            ? 'bg-[#dbeafe] text-[#1e40af]'
+                            : selectedBooking.status === 'Tentative'
+                            ? 'bg-[#fef3c7] text-[#d97706]'
+                            : 'bg-rose-50 text-rose-700'
+                        }`}>
+                          {selectedBooking.status.toUpperCase()}
+                        </span>
+                        {selectedBooking.confirmationNo && (
+                          <span className="inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide bg-slate-100 text-slate-700 border border-slate-200 font-mono">
+                            {selectedBooking.confirmationNo}
+                          </span>
+                        )}
+                      </div>
                     );
                   })()}
                 </div>
