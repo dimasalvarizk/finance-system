@@ -275,12 +275,15 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
       setFormAddedRooms([]);
       setCurrentRoom({
         hotelName: 'SAFWAT AL MADINAH',
         roomType: 'TRIPLE',
-        checkIn: '',
-        checkOut: '',
+        checkIn: todayStr,
+        checkOut: tomorrowStr,
         roomCount: 1,
         adults: 1,
         children: 0,
@@ -318,6 +321,16 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   }, [isOpen]);
 
   const handleAddRoomToForm = () => {
+    if (!currentRoom.checkIn || !currentRoom.checkOut) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Missing Dates',
+        message: 'Please select Check-In and Check-Out dates first.',
+        type: 'error'
+      });
+      return;
+    }
+
     const nights = calculateNights(currentRoom.checkIn, currentRoom.checkOut);
     const roomItem: BookingRoom = {
       hotelName: currentRoom.hotelName,
@@ -335,19 +348,15 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
     setFormAddedRooms(prev => [...prev, roomItem]);
 
-    // Reset upper info (Reservation Details input fields)
-    setCurrentRoom({
-      hotelName: 'SAFWAT AL MADINAH',
-      roomType: 'TRIPLE',
-      checkIn: '',
-      checkOut: '',
+    // Retain checkIn and checkOut dates so HTML5 form validation doesn't block submission
+    setCurrentRoom(prev => ({
+      ...prev,
       roomCount: 1,
       adults: 1,
       children: 0,
-      mealPlan: 'FAREAST FULL BOARD',
       pricePerNight: 100,
       mealRate: 0
-    });
+    }));
 
     // Gulirkan layar ke pratinjau kamar secara smooth agar user langsung melihat perubahannya
     setTimeout(() => {
@@ -632,7 +641,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Hotel Name</label>
                   <input
                     type="text"
-                    required
+                    required={formAddedRooms.length === 0}
                     value={currentRoom.hotelName}
                     onChange={e => setCurrentRoom(prev => ({ ...prev, hotelName: e.target.value }))}
                     placeholder="Enter Hotel Name (e.g. SAFWAT AL MADINAH)"
@@ -668,7 +677,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Check-In Date</label>
                   <input
                     type="date"
-                    required
+                    required={formAddedRooms.length === 0}
                     value={currentRoom.checkIn}
                     onChange={e => setCurrentRoom(prev => ({ ...prev, checkIn: e.target.value }))}
                     className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white font-sans font-bold"
@@ -678,7 +687,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Check-Out Date</label>
                   <input
                     type="date"
-                    required
+                    required={formAddedRooms.length === 0}
                     value={currentRoom.checkOut}
                     onChange={e => setCurrentRoom(prev => ({ ...prev, checkOut: e.target.value }))}
                     className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white font-sans font-bold"
