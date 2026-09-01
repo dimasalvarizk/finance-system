@@ -109,11 +109,11 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                   className="h-11 w-auto object-contain self-start"
                 />
                 <div className="mt-1 text-[9px] text-slate-400 leading-relaxed font-sans">
-                  CBC Tower G, Jl. Cengkareng Business City Jl. Kp. Rw. Bokor
+                  Gedung Graha Al Badgel, Jl. Hajjah Tutty Alawiyah No.7, RT.2/RW.5
                   <br />
-                  Pocal, RT.006/RW.007, Benda, Kec. Benda, Kota Tangerang, Banten
+                  Kalibata, Kec. Pancoran, Kota Jakarta Selatan, DKI Jakarta
                   <br />
-                  15125
+                  12740, Indonesia
                 </div>
               </div>
 

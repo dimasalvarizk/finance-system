@@ -63,11 +63,11 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                 />
                 {/* Company Address block */}
                 <div className="mt-1.5 text-[10px] text-slate-400 leading-relaxed font-sans">
-                  CBC Tower G, Jl. Cengkareng Business City Jl. Kp. Rw. Bokor
+                  Gedung Graha Al Badgel, Jl. Hajjah Tutty Alawiyah No.7, RT.2/RW.5
                   <br />
-                  Pocal, RT.006/RW.007, Benda, Kec. Benda, Kota Tangerang, Banten
+                  Kalibata, Kec. Pancoran, Kota Jakarta Selatan, DKI Jakarta
                   <br />
-                  15125
+                  12740, Indonesia
                 </div>
               </div>
 
