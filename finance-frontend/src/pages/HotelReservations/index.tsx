@@ -718,9 +718,9 @@ const HotelReservations: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Accommodations Breakdown Card */}
-                  <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
-                    <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
+                  {/* Hotel Details Section */}
+                  <div className="space-y-4 select-none mt-6">
+                    <h4 className="text-xs font-black text-slate-800 tracking-tight uppercase">HOTEL DETAILS</h4>
                     
                     <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full shadow-sm">
                       <table className="w-full text-left text-xs font-sans border-collapse">

@@ -811,10 +811,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               </button>
             </div>
 
-            {/* SECTION: ACCOMMODATIONS BREAKDOWN */}
-            <div ref={previewSectionRef} className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
+            {/* SECTION: HOTEL DETAILS */}
+            <div ref={previewSectionRef} className="space-y-4 select-none mt-6">
               <div className="flex justify-between items-center">
-                <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
+                <h4 className="text-xs font-black text-slate-800 tracking-tight uppercase">HOTEL DETAILS</h4>
                 <select
                   value={formCurrency}
                   onChange={e => setFormCurrency(e.target.value as any)}
@@ -830,12 +830,12 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full shadow-sm">
                 <table className="w-full text-left text-xs font-sans border-collapse">
                   <thead>
-                    <tr className="bg-[#1e2952] text-white">
-                      <th colSpan={13} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1e2952] text-white">
+                    <tr className="bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                      <th colSpan={13} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                         Hotel Details
                       </th>
                     </tr>
-                    <tr className="bg-[#e0e9fe] text-slate-700 border-b border-slate-200 font-bold uppercase tracking-wider text-[9.5px] select-none">
+                    <tr className="bg-[#e0e8fe] text-[#1d2857] border-b border-slate-200 font-bold uppercase tracking-wider text-[9.5px] select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                       <th className="py-2.5 px-3 whitespace-nowrap">Hotel</th>
                       <th className="py-2.5 px-2 whitespace-nowrap">Room Type</th>
                       <th className="py-2.5 px-2 whitespace-nowrap">Check-In</th>
