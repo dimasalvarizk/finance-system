@@ -812,9 +812,11 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
             </div>
 
             {/* SECTION: ACCOMMODATIONS BREAKDOWN */}
-            <div ref={previewSectionRef} className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
+            <div ref={previewSectionRef} className="space-y-4 select-none">
               <div className="flex justify-between items-center">
-                <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
+                <h3 className="text-[18px] font-black text-[#0f172a] font-sans tracking-tight">
+                  Accommodations Breakdown
+                </h3>
                 <select
                   value={formCurrency}
                   onChange={e => setFormCurrency(e.target.value as any)}
