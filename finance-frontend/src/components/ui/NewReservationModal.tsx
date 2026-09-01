@@ -811,204 +811,197 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               </button>
             </div>
 
-            {/* SECTION: PREVIEW & CURRENCY SELECT */}
-            <div ref={previewSectionRef} className="relative my-8 select-none">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-slate-200 border-solid"></div>
+            {/* SECTION: ACCOMMODATIONS BREAKDOWN */}
+            <div ref={previewSectionRef} className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
+              <div className="flex justify-between items-center">
+                <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
+                <select
+                  value={formCurrency}
+                  onChange={e => setFormCurrency(e.target.value as any)}
+                  className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs bg-slate-50 font-bold focus:outline-none cursor-pointer text-slate-700"
+                >
+                  <option value="USD">USD ($)</option>
+                  <option value="SAR">SAR (SR)</option>
+                  <option value="IDR">IDR (Rp)</option>
+                </select>
               </div>
-              <div className="relative flex justify-center">
-                <span className="bg-white px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Preview</span>
-              </div>
-            </div>
 
-            <div className="flex justify-between items-center mb-4 select-none">
-              <h4 className="text-[13px] font-black text-slate-800 tracking-tight uppercase">HOTEL DETAILS</h4>
-              <select
-                value={formCurrency}
-                onChange={e => setFormCurrency(e.target.value as any)}
-                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs bg-slate-50 font-bold focus:outline-none cursor-pointer text-slate-700"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="SAR">SAR (SR)</option>
-                <option value="IDR">IDR (Rp)</option>
-              </select>
-            </div>
-
-            {/* Preview Table */}
-            <div className="border border-slate-200 border-solid rounded-xl overflow-hidden shadow-sm bg-white w-full">
-              <table className="w-full text-left text-xs font-sans border-collapse">
-                <thead>
-                  <tr className="bg-[#1e2952] text-white">
-                    <th colSpan={13} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1e2952] text-white">
-                      Hotel Details
-                    </th>
-                  </tr>
-                  <tr className="bg-[#e0e9fe] text-slate-700 border-b border-slate-200 border-solid font-bold uppercase tracking-wider text-[9.5px] select-none">
-                    <th className="py-2.5 px-3 whitespace-nowrap">Hotel</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap">Room Type</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap">Check-In</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap">Check-Out</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Night</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Room</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Adult</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Child</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap">Meals</th>
-                    <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">DayRate</th>
-                    <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">Meals Rate</th>
-                    <th className="py-2.5 px-3 text-right font-sans whitespace-nowrap">Total</th>
-                    <th className="py-2.5 px-2 text-center whitespace-nowrap">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
-                  {formAddedRooms.length === 0 ? (
-                    <tr className="hover:bg-slate-50/20">
-                      <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{currentRoom.hotelName}</td>
-                      <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{currentRoom.roomType}</td>
-                      <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkIn ? formatDateDMY(currentRoom.checkIn) : '-'}</td>
-                      <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkOut ? formatDateDMY(currentRoom.checkOut) : '-'}</td>
-                      <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{calculateNights(currentRoom.checkIn, currentRoom.checkOut)}</td>
-                      <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.roomCount}</td>
-                      <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.adults}</td>
-                      <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.children}</td>
-                      <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{currentRoom.mealPlan}</td>
-                      <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end space-x-1">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={currentRoom.pricePerNight}
-                            onChange={e => setCurrentRoom(prev => ({ ...prev, pricePerNight: Math.max(0, Number(e.target.value)) }))}
-                            className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
-                          />
-                          <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-2 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end space-x-1">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={currentRoom.mealRate}
-                            onChange={e => setCurrentRoom(prev => ({ ...prev, mealRate: Math.max(0, Number(e.target.value)) }))}
-                            className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
-                          />
-                          <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
-                        {formatCurrency((currentRoom.pricePerNight + currentRoom.mealRate) * currentRoom.roomCount * calculateNights(currentRoom.checkIn, currentRoom.checkOut), formCurrency)}
-                      </td>
-                      <td className="py-2.5 px-1 text-center">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCurrentRoom(prev => ({
-                              ...prev,
-                              pricePerNight: 0,
-                              mealRate: 0
-                            }));
-                          }}
-                          className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
-                          title="Remove room"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
+              {/* Preview Table */}
+              <div className="border border-slate-200 border-solid rounded-xl overflow-hidden shadow-sm bg-white w-full">
+                <table className="w-full text-left text-xs font-sans border-collapse">
+                  <thead>
+                    <tr className="bg-[#1e2952] text-white">
+                      <th colSpan={13} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1e2952] text-white">
+                        Hotel Details
+                      </th>
                     </tr>
-                  ) : (
-                    formAddedRooms.map((room, idx) => {
-                      const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
-                      const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
-                      return (
-                        <tr key={idx} className="hover:bg-slate-50/40">
-                          <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
-                          <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
-                          <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
-                          <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
-                          <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{nights}</td>
-                          <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
-                          <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
-                          <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
-                          <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
-                          <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end space-x-1">
-                              <input
-                                type="number"
-                                min={0}
-                                step="0.01"
-                                value={room.pricePerNight}
-                                onChange={e => {
-                                  const newPrice = Math.max(0, Number(e.target.value));
-                                  setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, pricePerNight: newPrice } : r));
-                                }}
-                                className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
-                              />
-                              <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
-                            </div>
-                          </td>
-                          <td className="py-2.5 px-2 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end space-x-1">
-                              <input
-                                type="number"
-                                min={0}
-                                step="0.01"
-                                value={room.mealRate}
-                                onChange={e => {
-                                  const newRate = Math.max(0, Number(e.target.value));
-                                  setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, mealRate: newRate } : r));
-                                }}
-                                className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
-                              />
-                              <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
-                            </div>
-                          </td>
-                          <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
-                            {formatCurrency(roomTotal, formCurrency)}
-                          </td>
-                          <td className="py-2.5 px-1 text-center">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRoom(idx)}
-                              className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
-                              title="Delete room"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    <tr className="bg-[#e0e9fe] text-slate-700 border-b border-slate-200 border-solid font-bold uppercase tracking-wider text-[9.5px] select-none">
+                      <th className="py-2.5 px-3 whitespace-nowrap">Hotel</th>
+                      <th className="py-2.5 px-2 whitespace-nowrap">Room Type</th>
+                      <th className="py-2.5 px-2 whitespace-nowrap">Check-In</th>
+                      <th className="py-2.5 px-2 whitespace-nowrap">Check-Out</th>
+                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Night</th>
+                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Room</th>
+                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Adult</th>
+                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Child</th>
+                      <th className="py-2.5 px-2 whitespace-nowrap">Meals</th>
+                      <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">DayRate</th>
+                      <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">Meals Rate</th>
+                      <th className="py-2.5 px-3 text-right font-sans whitespace-nowrap">Total</th>
+                      <th className="py-2.5 px-2 text-center whitespace-nowrap">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
+                    {formAddedRooms.length === 0 ? (
+                      <tr className="hover:bg-slate-50/20">
+                        <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{currentRoom.hotelName}</td>
+                        <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{currentRoom.roomType}</td>
+                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkIn ? formatDateDMY(currentRoom.checkIn) : '-'}</td>
+                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkOut ? formatDateDMY(currentRoom.checkOut) : '-'}</td>
+                        <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{calculateNights(currentRoom.checkIn, currentRoom.checkOut)}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.roomCount}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.adults}</td>
+                        <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.children}</td>
+                        <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{currentRoom.mealPlan}</td>
+                        <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={currentRoom.pricePerNight}
+                              onChange={e => setCurrentRoom(prev => ({ ...prev, pricePerNight: Math.max(0, Number(e.target.value)) }))}
+                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                            />
+                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={currentRoom.mealRate}
+                              onChange={e => setCurrentRoom(prev => ({ ...prev, mealRate: Math.max(0, Number(e.target.value)) }))}
+                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                            />
+                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
+                          {formatCurrency((currentRoom.pricePerNight + currentRoom.mealRate) * currentRoom.roomCount * calculateNights(currentRoom.checkIn, currentRoom.checkOut), formCurrency)}
+                        </td>
+                        <td className="py-2.5 px-1 text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentRoom(prev => ({
+                                ...prev,
+                                pricePerNight: 0,
+                                mealRate: 0
+                              }));
+                            }}
+                            className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
+                            title="Remove room"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ) : (
+                      formAddedRooms.map((room, idx) => {
+                        const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
+                        const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50/40">
+                            <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
+                            <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
+                            <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
+                            <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
+                            <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{nights}</td>
+                            <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
+                            <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
+                            <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
+                            <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
+                            <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end space-x-1">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={room.pricePerNight}
+                                  onChange={e => {
+                                    const newPrice = Math.max(0, Number(e.target.value));
+                                    setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, pricePerNight: newPrice } : r));
+                                  }}
+                                  className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                                />
+                                <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-2 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end space-x-1">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={room.mealRate}
+                                  onChange={e => {
+                                    const newRate = Math.max(0, Number(e.target.value));
+                                    setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, mealRate: newRate } : r));
+                                  }}
+                                  className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                                />
+                                <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
+                              {formatCurrency(roomTotal, formCurrency)}
+                            </td>
+                            <td className="py-2.5 px-1 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRoom(idx)}
+                                className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
+                                title="Delete room"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Subtotal & Total Due summary */}
-            {(() => {
-              const roomsForSummary = formAddedRooms.length > 0 ? formAddedRooms : [currentRoom];
-              const subtotalAmount = roomsForSummary.reduce((sum, room) => {
-                const nights = ('nights' in room && typeof (room as any).nights === 'number') ? (room as any).nights : calculateNights(room.checkIn, room.checkOut);
-                return sum + ((room.pricePerNight + room.mealRate) * room.roomCount * nights);
-              }, 0);
-              return (
-                <div className="mt-4 flex flex-col items-end space-y-1.5 font-sans select-none px-2">
-                  <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-600 font-medium">
-                    <span>Subtotal:</span>
-                    <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, formCurrency)}</span>
+              {/* Subtotal & Total Due summary */}
+              {(() => {
+                const roomsForSummary = formAddedRooms.length > 0 ? formAddedRooms : [currentRoom];
+                const subtotalAmount = roomsForSummary.reduce((sum, room) => {
+                  const nights = ('nights' in room && typeof (room as any).nights === 'number') ? (room as any).nights : calculateNights(room.checkIn, room.checkOut);
+                  return sum + ((room.pricePerNight + room.mealRate) * room.roomCount * nights);
+                }, 0);
+                return (
+                  <div className="mt-4 flex flex-col items-end space-y-1.5 font-sans select-none px-2">
+                    <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-600 font-medium">
+                      <span>Subtotal:</span>
+                      <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, formCurrency)}</span>
+                    </div>
+                    <div className="flex items-center justify-end space-x-8 text-xs text-slate-500 font-medium">
+                      <span>Tax / VAT (0%):</span>
+                      <span className="font-bold text-slate-700">{formatCurrency(0, formCurrency)}</span>
+                    </div>
+                    <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200 min-w-[240px] justify-between">
+                      <span className="font-extrabold text-slate-900">Total Due:</span>
+                      <span className="font-black text-emerald-600 text-lg">{formatCurrency(subtotalAmount, formCurrency)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-end space-x-8 text-xs text-slate-500 font-medium">
-                    <span>Tax / VAT (0%):</span>
-                    <span className="font-bold text-slate-700">{formatCurrency(0, formCurrency)}</span>
-                  </div>
-                  <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200 min-w-[240px] justify-between">
-                    <span className="font-extrabold text-slate-900">Total Due:</span>
-                    <span className="font-black text-emerald-600 text-lg">{formatCurrency(subtotalAmount, formCurrency)}</span>
-                  </div>
-                </div>
-              );
-            })()}
+                );
+              })()}
+            </div>
 
             {/* SECTION: PAYMENT INSTRUCTIONS Rekening DST */}
             <div className="border-t border-slate-100 pt-6 space-y-4">

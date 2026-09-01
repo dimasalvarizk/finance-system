@@ -206,8 +206,9 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
             </div>
           </div>
 
-          <div className="space-y-4 select-none">
-            <h4 className="text-[13px] font-black text-slate-800 tracking-tight uppercase">HOTEL DETAILS</h4>
+          {/* SECTION: ACCOMMODATIONS BREAKDOWN */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
+            <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
             
             {/* Table */}
             <div className="border border-slate-200 border-solid rounded-xl overflow-hidden shadow-sm bg-white w-full">
