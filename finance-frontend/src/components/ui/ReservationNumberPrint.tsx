@@ -82,19 +82,19 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                   </span>
                 </p>
                 {isHotel ? (
-                  <div className="flex items-center justify-end gap-1.5 mt-1 select-none">
+                  <div className="flex items-center justify-end gap-2 mt-1.5 select-none">
                     {isTentative ? (
-                      <span className="px-2 py-0.5 text-[9px] font-bold text-orange-600 border border-orange-200 bg-orange-50 rounded">
+                      <span className="px-3 py-1 text-[9px] font-extrabold text-orange-600 border border-solid border-orange-300 bg-orange-50/60 rounded-xl">
                         TENTATIVE RESERVATION
                       </span>
                     ) : (
                       <>
-                        <span className="px-2 py-0.5 text-[9px] font-bold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded">
+                        <span className="px-3 py-1 text-[9px] font-extrabold text-emerald-600 border border-solid border-emerald-400 bg-emerald-50/40 rounded-xl">
                           CONFIRMED
                         </span>
-                        {invoice.serialNo && (
-                          <span className="px-2 py-0.5 text-[9px] font-bold text-slate-500 border border-slate-200 bg-slate-50 rounded">
-                            {invoice.serialNo}
+                        {((invoice as any).confirmationNo || (invoice as any).confirmation_number || (invoice.serialNo && invoice.serialNo.startsWith('CNF'))) && (
+                          <span className="px-3 py-1 text-[9px] font-extrabold text-slate-700 border border-solid border-slate-300 bg-slate-100/80 rounded-xl font-sans">
+                            {(invoice as any).confirmationNo || (invoice as any).confirmation_number || invoice.serialNo}
                           </span>
                         )}
                       </>

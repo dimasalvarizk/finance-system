@@ -144,25 +144,26 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                     {booking.reservationNo}
                   </span>
                 </p>
-                <div className="flex items-center justify-end gap-1.5 mt-1 select-none">
+                <div className="flex items-center justify-end gap-2 mt-1.5 select-none">
                   {isTentative ? (
-                    <span className="px-2.5 py-0.5 text-[8px] font-bold text-orange-600 border border-solid border-orange-200 bg-orange-50 rounded">
+                    <span className="px-3 py-1 text-[9px] font-extrabold text-orange-600 border border-solid border-orange-300 bg-orange-50/60 rounded-xl">
                       TENTATIVE RESERVATION
                     </span>
                   ) : (
                     <>
-                      <span className="px-2.5 py-0.5 text-[8px] font-bold text-emerald-600 border border-solid border-emerald-200 bg-emerald-50 rounded">
+                      <span className="px-3 py-1 text-[9px] font-extrabold text-emerald-600 border border-solid border-emerald-400 bg-emerald-50/40 rounded-xl">
                         CONFIRMED
                       </span>
-                      {(booking.confirmationNo || (booking as any).confirmation_number) && (
-                        <span className="px-2.5 py-0.5 text-[8px] font-bold text-slate-700 border border-solid border-slate-300 bg-slate-100 rounded font-sans">
+                      {(booking.confirmationNo || (booking as any).confirmation_number) ? (
+                        <span className="px-3 py-1 text-[9px] font-extrabold text-slate-700 border border-solid border-slate-300 bg-slate-100/80 rounded-xl font-sans">
                           {booking.confirmationNo || (booking as any).confirmation_number}
                         </span>
-                      )}
-                      {booking.isPaid && (
-                        <span className="px-2.5 py-0.5 text-[8px] font-bold text-blue-600 border border-solid border-blue-200 bg-blue-50 rounded">
-                          PAID
-                        </span>
+                      ) : (
+                        booking.isPaid && (
+                          <span className="px-3 py-1 text-[9px] font-extrabold text-blue-600 border border-solid border-blue-200 bg-blue-50 rounded-xl">
+                            PAID
+                          </span>
+                        )
                       )}
                     </>
                   )}
