@@ -26,15 +26,12 @@ const formatDateToDMY = (dateStr: string): string => {
 };
 
 const formatCurrency = (val: number, currency: string) => {
-  if (currency === 'IDR') {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 })
-      .format(val)
-      .replace('Rp', 'Rp ');
+  const curr = (currency || 'USD').toUpperCase();
+  if (curr === 'IDR' || curr === 'RP') {
+    return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val) + ' IDR';
   }
-  if (currency === 'SAR') {
-    return 'SAR ' + new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
-  }
-  return '$' + new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+  const numStr = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+  return `${numStr} ${curr}`;
 };
 
 const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => {
