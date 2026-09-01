@@ -102,7 +102,7 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <Bed className="w-5 h-5" />
-            <span>Reservasi Hotel</span>
+            <span>Hotel Reservations</span>
           </Link>
 
           {user?.role !== 'Viewer' && (

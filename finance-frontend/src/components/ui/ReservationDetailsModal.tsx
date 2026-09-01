@@ -295,8 +295,8 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               onClick={() => {
                 setAlertModal({
                   isOpen: true,
-                  title: 'Berhasil',
-                  message: 'Konfirmasi email berhasil dikirim ke tamu!',
+                  title: 'Success',
+                  message: 'Confirmation email sent successfully to guest!',
                   type: 'success'
                 });
               }}

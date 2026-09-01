@@ -253,11 +253,11 @@ const HotelReservations: React.FC = () => {
         if (updated) {
           setBookings(prev => prev.map(b => b.id === selectedBooking.id ? updated : b));
           setSelectedBooking(updated);
-          triggerAlert('Berhasil', 'Bukti pembayaran hotel berhasil diunggah!', 'success');
+          triggerAlert('Success', 'Hotel payment proof uploaded successfully!', 'success');
         }
       } catch (err) {
         console.error('Error uploading payment file:', err);
-        triggerAlert('Gagal', 'Gagal mengunggah bukti pembayaran.', 'error');
+        triggerAlert('Failed', 'Failed to upload payment proof.', 'error');
       }
     };
     reader.readAsDataURL(file);
@@ -395,22 +395,22 @@ const HotelReservations: React.FC = () => {
       }
     } catch (err) {
       console.error('Error approving hotel reservation:', err);
-      triggerAlert('Gagal', 'Gagal menyetujui reservasi.', 'error');
+      triggerAlert('Failed', 'Failed to approve reservation.', 'error');
     }
   };
 
   // Handler hapus pemesanan
   const handleDeleteBooking = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus pemesanan ini secara permanen?')) {
+    if (confirm('Are you sure you want to delete this reservation permanently?')) {
       try {
         await deleteHotelReservation(id);
         setBookings(prev => prev.filter(b => b.id !== id));
         setIsDetailOpen(false);
         setSelectedBooking(null);
-        triggerAlert('Berhasil', 'Reservasi berhasil dihapus.', 'success');
+        triggerAlert('Success', 'Reservation deleted successfully.', 'success');
       } catch (err) {
         console.error('Error deleting hotel reservation:', err);
-        triggerAlert('Gagal', 'Gagal menghapus reservasi.', 'error');
+        triggerAlert('Failed', 'Failed to delete reservation.', 'error');
       }
     }
   };
@@ -823,11 +823,11 @@ const HotelReservations: React.FC = () => {
                                   if (updated) {
                                     setBookings(prev => prev.map(b => b.id === selectedBooking.id ? updated : b));
                                     setSelectedBooking(updated);
-                                    triggerAlert('Berhasil', 'Status pembayaran berhasil diperbarui menjadi Paid and closed!', 'success');
+                                    triggerAlert('Success', 'Payment status updated to Paid and closed successfully!', 'success');
                                   }
                                 } catch (err) {
                                   console.error('Error marking as paid:', err);
-                                  triggerAlert('Gagal', 'Gagal memperbarui status pembayaran.', 'error');
+                                  triggerAlert('Failed', 'Failed to update payment status.', 'error');
                                 }
                               }}
                               className="w-full py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm text-center"
@@ -915,21 +915,21 @@ const HotelReservations: React.FC = () => {
                         <button
                           onClick={() => {
                             if (user?.role !== 'Level_3_Approver' && user?.role !== 'Madinah Branch Accountant' && !user?.name?.toLowerCase().includes('karim')) {
-                              triggerAlert('Akses Ditolak', 'Hanya Mr. Karim Gharba (Madinah Accountant) yang dapat menolak request ini.', 'error');
+                              triggerAlert('Access Denied', 'Only Mr. Karim Gharba (Madinah Accountant) can reject this request.', 'error');
                               return;
                             }
-                                                        if (confirm('Apakah Anda yakin ingin menolak request ini?')) {
+                            if (confirm('Are you sure you want to reject this request?')) {
                               updateHotelReservationStatus(selectedBooking.id, { status: 'Cancelled' })
                                 .then((updated) => {
                                   if (updated) {
                                     setBookings(prev => prev.map(b => b.id === selectedBooking.id ? updated : b));
                                     setSelectedBooking(null);
-                                    triggerAlert('Ditolak', 'Request reservasi berhasil ditolak.', 'error');
+                                    triggerAlert('Rejected', 'Hotel reservation request has been rejected.', 'error');
                                   }
                                 })
                                 .catch((err) => {
                                   console.error('Error rejecting hotel request:', err);
-                                  triggerAlert('Gagal', 'Gagal menolak request.', 'error');
+                                  triggerAlert('Failed', 'Failed to reject request.', 'error');
                                 });
                             }
                           }}
@@ -940,7 +940,7 @@ const HotelReservations: React.FC = () => {
                         <button
                           onClick={() => {
                             if (user?.role !== 'Level_3_Approver' && user?.role !== 'Madinah Branch Accountant' && !user?.name?.toLowerCase().includes('karim')) {
-                              triggerAlert('Akses Ditolak', 'Hanya Mr. Karim Gharba (Madinah Accountant) yang dapat menyetujui request ini.', 'error');
+                              triggerAlert('Access Denied', 'Only Mr. Karim Gharba (Madinah Accountant) can approve this request.', 'error');
                               return;
                             }
                             setConfirmationNoInput('');
@@ -1386,11 +1386,11 @@ const HotelReservations: React.FC = () => {
             if (saved) {
               setBookings(prev => [saved, ...prev]);
               setIsFormOpen(false);
-              triggerAlert('Berhasil', 'Reservasi baru berhasil ditambahkan!', 'success');
+              triggerAlert('Success', 'New reservation added successfully!', 'success');
             }
           } catch (err) {
             console.error('Error creating hotel reservation:', err);
-            triggerAlert('Gagal', 'Gagal menambahkan reservasi baru.', 'error');
+            triggerAlert('Failed', 'Failed to create new reservation.', 'error');
           }
         }}
       />
