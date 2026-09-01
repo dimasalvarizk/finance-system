@@ -427,7 +427,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm select-none">
-      <div className="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 flex flex-col max-h-[95vh] text-[13px] text-slate-700">
+      <div className="bg-white rounded-2xl max-w-6xl w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 flex flex-col max-h-[95vh] text-[13px] text-slate-700">
         
         {/* Header Modal */}
         <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -835,7 +835,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
             </div>
 
             {/* Preview Table */}
-            <div className="border border-slate-200 border-solid rounded-xl overflow-x-auto shadow-sm bg-white w-full">
+            <div className="border border-slate-200 border-solid rounded-xl overflow-hidden shadow-sm bg-white w-full">
               <table className="w-full text-left text-xs font-sans border-collapse">
                 <thead>
                   <tr className="bg-[#1e2952] text-white">
