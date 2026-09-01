@@ -205,7 +205,7 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                   <p className="font-bold text-slate-800 text-[11px]">{booking.clientCityCountry}</p>
                 </div>
                 <div>
-                  <p className="text-slate-400 font-medium">Contact Reference</p>
+                  <p className="text-slate-400 font-medium">Tax Number</p>
                   <p className="font-bold text-slate-800 text-[11px]">{booking.clientTaxNo}</p>
                 </div>
               </div>
