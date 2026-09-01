@@ -33,4 +33,11 @@ input::-ms-clear {
   display: none !important;
 }
 
+/* Remove default browser header and footer (date, URL, page title, page number) on print/PDF */
+@media print {
+  @page {
+    margin: 0 !important;
+  }
+}
+
 

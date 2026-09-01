@@ -87,13 +87,14 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
             left: 0;
             top: 0;
             width: 100%;
-            padding: 0;
+            padding: 12mm 15mm;
             margin: 0;
             background: white;
+            box-sizing: border-box;
           }
           @page {
-            size: A4;
-            margin: 12mm 15mm 12mm 15mm;
+            size: A4 portrait;
+            margin: 0 !important;
           }
         }
       `}</style>
