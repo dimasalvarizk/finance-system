@@ -243,6 +243,8 @@ const HotelReservations: React.FC = () => {
     type: 'success' as 'success' | 'error' | 'info'
   });
   const [viewingProof, setViewingProof] = useState<string | null>(null);
+  const [uploadErrorHighlight, setUploadErrorHighlight] = useState(false);
+  const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   const triggerAlert = (title: string, message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setAlertModal({
@@ -272,6 +274,7 @@ const HotelReservations: React.FC = () => {
         if (updated) {
           setBookings(prev => prev.map(b => b.id === selectedBooking.id ? updated : b));
           setSelectedBooking(updated);
+          setUploadErrorHighlight(false);
           triggerAlert('Success', 'Hotel payment proof uploaded successfully!', 'success');
         }
       } catch (err) {
@@ -932,6 +935,17 @@ const HotelReservations: React.FC = () => {
                           ) : (
                             <button
                               onClick={async () => {
+                                if (!selectedBooking.paymentInvoiceFile) {
+                                  setUploadErrorHighlight(true);
+                                  triggerAlert(
+                                    'Wajib Unggah Bukti Pembayaran',
+                                    'Harap unggah barang bukti pembayaran (Payment Invoice) terlebih dahulu pada form UPLOAD PAYMENT INVOICE sebelum menandai sebagai Paid.',
+                                    'error'
+                                  );
+                                  uploadSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                  return;
+                                }
+                                setUploadErrorHighlight(false);
                                 try {
                                   const updated = await updateHotelReservationStatus(selectedBooking.id, {
                                     status: 'Paid and closed',
@@ -959,8 +973,22 @@ const HotelReservations: React.FC = () => {
                       </div>
 
                       {/* Upload Payment Invoice */}
-                      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
-                        <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Upload Payment Invoice</h3>
+                      <div
+                        ref={uploadSectionRef}
+                        className={`bg-white rounded-xl border shadow-sm p-6 space-y-4 transition-all ${
+                          uploadErrorHighlight && !selectedBooking.paymentInvoiceFile
+                            ? 'border-2 border-rose-500 bg-rose-50/30 ring-4 ring-rose-100 animate-pulse'
+                            : 'border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Upload Payment Invoice</h3>
+                          {uploadErrorHighlight && !selectedBooking.paymentInvoiceFile && (
+                            <span className="text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded">
+                              ⚠️ Upload bukti pembayaran wajib
+                            </span>
+                          )}
+                        </div>
                         {selectedBooking.paymentInvoiceFile ? (
                           <div className="space-y-3">
                             <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-[#d1fae5] flex items-center justify-between">
