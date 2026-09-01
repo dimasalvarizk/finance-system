@@ -630,17 +630,14 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Hotel Name</label>
-                  <select
+                  <input
+                    type="text"
+                    required
                     value={currentRoom.hotelName}
                     onChange={e => setCurrentRoom(prev => ({ ...prev, hotelName: e.target.value }))}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white cursor-pointer"
-                  >
-                    <option value="SAFWAT AL MADINAH">SAFWAT AL MADINAH</option>
-                    <option value="Grand Hyatt Jakarta">Grand Hyatt Jakarta</option>
-                    <option value="Sheraton Surabaya">Sheraton Surabaya</option>
-                    <option value="The Ritz-Carlton Mega Kuningan">The Ritz-Carlton Mega Kuningan</option>
-                    <option value="JW Marriott Medan">JW Marriott Medan</option>
-                  </select>
+                    placeholder="Enter Hotel Name (e.g. SAFWAT AL MADINAH)"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white font-bold text-[13px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
                 </div>
                 <div>
                   <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Room Type</label>
