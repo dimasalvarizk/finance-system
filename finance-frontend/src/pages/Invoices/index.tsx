@@ -279,8 +279,13 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
 
 export const parseExchangeRate = (val: any, isIdr: boolean = true): number => {
   if (val === undefined || val === null) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
   let str = String(val).trim();
   if (!str || str === 'null' || str === 'undefined') return 0;
+
+  // Remove currency symbols, letters, and spaces (e.g. "$", "SAR", "USD", "Rp", "IDR")
+  str = str.replace(/[^0-9.,-]/g, '').trim();
+  if (!str) return 0;
 
   // If it contains both dot and comma
   if (str.includes('.') && str.includes(',')) {
