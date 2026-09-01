@@ -901,7 +901,20 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                         {formatCurrency((currentRoom.pricePerNight + currentRoom.mealRate) * currentRoom.roomCount * calculateNights(currentRoom.checkIn, currentRoom.checkOut), formCurrency)}
                       </td>
                       <td className="py-2.5 px-1 text-center">
-                        <span className="inline-block px-1.5 py-0.5 text-[8.5px] font-bold text-slate-400 bg-slate-100 rounded">Initial</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCurrentRoom(prev => ({
+                              ...prev,
+                              pricePerNight: 0,
+                              mealRate: 0
+                            }));
+                          }}
+                          className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
+                          title="Remove room"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ) : (
