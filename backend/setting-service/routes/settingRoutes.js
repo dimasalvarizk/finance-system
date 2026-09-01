@@ -11,7 +11,8 @@ import {
   getCompanySetting, updateCompanySetting,
   triggerMaintenanceNotif,
   getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
-  getMealTypes, createMealType, updateMealType, deleteMealType
+  getMealTypes, createMealType, updateMealType, deleteMealType,
+  exportFullDatabaseDump
 } from '../controllers/settingController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -19,6 +20,9 @@ const router = express.Router();
 
 // All settings routes require auth token
 router.use(protect);
+
+// 0. Full Database Backup Exporter
+router.get('/export-database', exportFullDatabaseDump);
 
 // 1. Team Management
 router.get('/team', getTeam);

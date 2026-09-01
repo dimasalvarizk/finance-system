@@ -17,6 +17,12 @@ const attachToken = (config: any) => {
 
 settingAPI.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 
+// 0. Full Database Exporter
+export const exportFullDatabaseAPI = async () => {
+  const response = await settingAPI.get('/export-database');
+  return response.data.data;
+};
+
 // 1. Team Members
 export const getTeamMembers = async () => {
   const response = await settingAPI.get('/team');

@@ -762,3 +762,54 @@ export const deleteMealType = async (req, res, next) => {
     next(error);
   }
 };
+
+export const exportFullDatabaseDump = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const tables = [
+      'dst_branches',
+      'dst_companies',
+      'dst_company_settings',
+      'dst_exchange_rates',
+      'dst_exchange_rates_history',
+      'dst_hotel_reservations',
+      'dst_invoice_items',
+      'dst_invoices',
+      'dst_login_logs',
+      'dst_meal_types',
+      'dst_notification_settings',
+      'dst_notifications',
+      'dst_requests',
+      'dst_room_types',
+      'dst_services',
+      'dst_sessions',
+      'dst_tax_settings',
+      'dst_users'
+    ];
+
+    const databaseDump = {
+      system: 'ODST Group / Manazil AL.Mukhtara Finance System Complete Database Backup',
+      exportedAt: new Date().toISOString(),
+      exportedBy: req.user ? `${req.user.name} (${req.user.role})` : 'Authorized Administrator',
+      tableCount: tables.length,
+      tables: {}
+    };
+
+    for (const table of tables) {
+      try {
+        const [rows] = await pool.query(`SELECT * FROM ${table}`);
+        databaseDump.tables[table] = rows;
+      } catch (err) {
+        console.warn(`Table ${table} query notice:`, err.message);
+        databaseDump.tables[table] = [];
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: databaseDump
+    });
+  } catch (error) {
+    next(error);
+  }
+};
