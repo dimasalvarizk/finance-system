@@ -763,50 +763,45 @@ export const deleteMealType = async (req, res, next) => {
   }
 };
 
-export const exportFullDatabaseDump = async (req, res, next) => {
+// ==========================================
+// 12. FULL DATABASE BACKUP EXPORT (All 18 MySQL Tables)
+// ==========================================
+export const exportFullDatabaseBackup = async (req, res, next) => {
   try {
     const pool = getPool();
-    const tables = [
-      'dst_branches',
-      'dst_companies',
-      'dst_company_settings',
-      'dst_exchange_rates',
-      'dst_exchange_rates_history',
-      'dst_hotel_reservations',
-      'dst_invoice_items',
-      'dst_invoices',
-      'dst_login_logs',
-      'dst_meal_types',
-      'dst_notification_settings',
-      'dst_notifications',
-      'dst_requests',
-      'dst_room_types',
-      'dst_services',
-      'dst_sessions',
-      'dst_tax_settings',
-      'dst_users'
-    ];
+    // Fetch all table names dynamically from MySQL
+    const [tables] = await pool.query('SHOW TABLES');
+    if (!tables || tables.length === 0) {
+      return res.status(200).json({ success: true, message: 'No tables found in database', data: {} });
+    }
 
+    const tableKey = Object.keys(tables[0])[0];
     const databaseDump = {
-      system: 'ODST Group / Manazil AL.Mukhtara Finance System Complete Database Backup',
-      exportedAt: new Date().toISOString(),
-      exportedBy: req.user ? `${req.user.name} (${req.user.role})` : 'Authorized Administrator',
+      system: 'ODST Group / Manazil AL.Mukhtara Finance System',
+      exportDate: new Date().toISOString(),
+      databaseEngine: 'MySQL Cloud (Aiven)',
       tableCount: tables.length,
       tables: {}
     };
 
-    for (const table of tables) {
+    // Query rows of all 18 tables: dst_branches, dst_companies, dst_company_settings, dst_exchange_rates, dst_exchange_rates_history, dst_hotel_reservations, dst_invoice_items, dst_invoices, dst_login_logs, dst_meal_types, dst_notification_settings, dst_notifications, dst_requests, dst_room_types, dst_services, dst_sessions, dst_tax_settings, dst_users
+    for (const t of tables) {
+      const tableName = t[tableKey];
       try {
-        const [rows] = await pool.query(`SELECT * FROM ${table}`);
-        databaseDump.tables[table] = rows;
+        const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
+        databaseDump.tables[tableName] = {
+          rowCount: rows.length,
+          rows: rows
+        };
       } catch (err) {
-        console.warn(`Table ${table} query notice:`, err.message);
-        databaseDump.tables[table] = [];
+        console.error(`Error dumping table ${tableName}:`, err);
+        databaseDump.tables[tableName] = { rowCount: 0, rows: [], error: err.message };
       }
     }
 
     res.status(200).json({
       success: true,
+      message: 'Full database snapshot exported successfully',
       data: databaseDump
     });
   } catch (error) {

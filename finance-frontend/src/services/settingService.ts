@@ -17,12 +17,6 @@ const attachToken = (config: any) => {
 
 settingAPI.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 
-// 0. Full Database Exporter
-export const exportFullDatabaseAPI = async () => {
-  const response = await settingAPI.get('/export-database');
-  return response.data.data;
-};
-
 // 1. Team Members
 export const getTeamMembers = async () => {
   const response = await settingAPI.get('/team');
@@ -176,5 +170,11 @@ export const updateMealType = async (id: string, data: { name: string; status: s
 };
 export const deleteMealType = async (id: string) => {
   const response = await settingAPI.delete(`/hb/meal-types/${id}`);
+  return response.data;
+};
+
+// 12. Full Database Snapshot Backup (All 18 MySQL Tables)
+export const getFullDatabaseBackup = async () => {
+  const response = await settingAPI.get('/backup/full');
   return response.data;
 };

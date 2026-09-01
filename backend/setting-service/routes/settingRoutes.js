@@ -12,7 +12,7 @@ import {
   triggerMaintenanceNotif,
   getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
   getMealTypes, createMealType, updateMealType, deleteMealType,
-  exportFullDatabaseDump
+  exportFullDatabaseBackup
 } from '../controllers/settingController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -20,9 +20,6 @@ const router = express.Router();
 
 // All settings routes require auth token
 router.use(protect);
-
-// 0. Full Database Backup Exporter
-router.get('/export-database', exportFullDatabaseDump);
 
 // 1. Team Management
 router.get('/team', getTeam);
@@ -79,5 +76,8 @@ router.get('/hb/meal-types', getMealTypes);
 router.post('/hb/meal-types', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), createMealType);
 router.put('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateMealType);
 router.delete('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteMealType);
+
+// 12. Full Database Backup Export (All 18 MySQL Tables)
+router.get('/backup/full', exportFullDatabaseBackup);
 
 export default router;
