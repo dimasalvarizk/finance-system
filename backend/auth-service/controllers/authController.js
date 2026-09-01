@@ -100,7 +100,7 @@ export const login = async (req, res, next) => {
     // Check last successful login IP for security alerts (IP Change check)
     try {
       const [lastLoginRows] = await pool.query(
-        'SELECT ip FROM dst_login_logs WHERE email = ? AND status = "Success" ORDER BY createdAt DESC LIMIT 1',
+        'SELECT ip FROM dst_login_logs WHERE email = ? AND status = \'Success\' ORDER BY createdAt DESC LIMIT 1',
         [email]
       );
       if (lastLoginRows.length > 0 && lastLoginRows[0].ip !== ip) {

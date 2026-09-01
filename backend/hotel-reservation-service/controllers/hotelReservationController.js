@@ -6,7 +6,7 @@ const checkAndCancelOverdueReservations = async (pool) => {
     
     // Cari reservasi aktif (bukan Cancelled atau Paid and closed), belum lunas, dan sudah melewati jatuh tempo
     const [overdue] = await pool.query(
-      'SELECT id, notes FROM dst_hotel_reservations WHERE status NOT IN ("Cancelled", "Paid and closed") AND isPaid = 0 AND dueDate < ?',
+      'SELECT id, notes FROM dst_hotel_reservations WHERE status NOT IN (\'Cancelled\', \'Paid and closed\') AND isPaid = 0 AND dueDate < ?',
       [todayStr]
     );
 
@@ -15,7 +15,7 @@ const checkAndCancelOverdueReservations = async (pool) => {
       const updatedNotes = resv.notes ? `${resv.notes}${appendNote}` : `Auto-cancelled: Unpaid after due date.`;
       
       await pool.query(
-        'UPDATE dst_hotel_reservations SET status = "Cancelled", notes = ? WHERE id = ?',
+        'UPDATE dst_hotel_reservations SET status = \'Cancelled\', notes = ? WHERE id = ?',
         [updatedNotes, resv.id]
       );
       console.log(`[Auto-Cancel] Reservation ID ${resv.id} has been automatically cancelled due to unpaid status past due date.`);
@@ -75,7 +75,7 @@ export const createReservation = async (req, res, next) => {
     if (existingCols.length > 0) {
       if (!existingCols.includes('companyTaxNo')) {
         try {
-          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT \'0000-0000-0001\'');
           existingCols.push('companyTaxNo');
         } catch (e) {
           console.error('Failed adding companyTaxNo column:', e.message);
@@ -195,9 +195,11 @@ export const approveReservation = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Reservation not found' });
     }
 
+    const currentApprovedAt = approvedAtKarim || new Date().toISOString();
+
     await pool.query(
-      'UPDATE dst_hotel_reservations SET approvedByKarim = 1, approvedAtKarim = ?, confirmationNo = ?, status = "Confirmed" WHERE id = ?',
-      [approvedAtKarim, confirmationNo, id]
+      'UPDATE dst_hotel_reservations SET approvedByKarim = 1, approvedAtKarim = ?, confirmationNo = ?, status = ? WHERE id = ?',
+      [currentApprovedAt, confirmationNo || '', 'Confirmed', id]
     );
 
     const [rows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ?', [id]);
