@@ -154,10 +154,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       return {
         id: 'c-1',
         code: 'AIT',
-        displayName: 'Arte Tours - AIT',
+        displayName: 'Arie Tours - AIT',
         companyName: 'PT. Arie Tour',
         taxNo: '0000-0000-0000',
-        address: 'Menara Kencana, FI 18, JL. Sudirman No. 45',
+        address: 'Menara Kencana, Fl 18, JL. Sudirman No. 45',
         cityCountry: 'Jakarta, Indonesia 10210'
       };
     }
@@ -165,23 +165,25 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     if (found) {
       const code = found.code || found.id;
       const name = found.name || found.companyName || found.displayName || 'Unknown Company';
+      const label = `${name}${code ? ` - ${code}` : ''}`;
       return {
         id: code,
         code,
-        displayName: found.displayName || `${name} (${code})`,
+        displayName: found.displayName || label,
         companyName: name,
         taxNo: found.taxNumber || found.taxNo || '0000-0000-0000',
         address: found.address || 'Address not specified',
-        cityCountry: found.phone ? `Phone: ${found.phone}` : ''
+        cityCountry: found.cityCountry || (found.phone ? `Phone: ${found.phone}` : '')
       };
     }
     const first = dbCompanies[0];
     const code = first.code || first.id;
     const name = first.name || first.companyName || first.displayName || 'Unknown Company';
+    const label = `${name}${code ? ` - ${code}` : ''}`;
     return {
       id: code,
       code,
-      displayName: first.displayName || `${name} (${code})`,
+      displayName: first.displayName || label,
       companyName: name,
       taxNo: first.taxNumber || first.taxNo || '0000-0000-0000',
       address: first.address || 'Address not specified',
@@ -411,10 +413,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           <div className="p-8 space-y-6">
             
-            {/* BILL TO (CLIENT COMPANY FROM DATABASE) SELECT BLOCK */}
+            {/* BILL TO (CLIENT) SELECT BLOCK */}
             <div className="space-y-1.5">
               <label className="block text-slate-400 font-bold text-[9px] uppercase tracking-wider">
-                BILL TO (CLIENT COMPANY) — INTEGRATED WITH COMPANIES DATABASE
+                BILL TO (CLIENT)
               </label>
               <select
                 value={selectedCompanyCode}
@@ -424,15 +426,16 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 {dbCompanies.map(c => {
                   const code = c.code || c.id;
                   const name = c.name || c.companyName || c.displayName;
+                  const label = `${name}${code ? ` - ${code}` : ''}`;
                   return (
                     <option key={code} value={code}>
-                      {c.displayName || `${name} (${code})`}
+                      {c.displayName || label}
                     </option>
                   );
                 })}
               </select>
-              <p className="text-[11.5px] text-slate-500 font-medium">
-                📍 {client.address} {client.cityCountry ? `(${client.cityCountry})` : ''}
+              <p className="text-[11.5px] text-slate-400 font-medium">
+                {client.address}{client.cityCountry ? `, ${client.cityCountry}` : ''}
               </p>
             </div>
 
