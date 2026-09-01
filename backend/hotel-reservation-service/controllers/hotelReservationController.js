@@ -62,15 +62,20 @@ export const createReservation = async (req, res, next) => {
   try {
     const pool = getPool();
 
-    // Pastikan kolom-kolom baru (companyTaxNo, usdToIdrRate, sarToIdrRate) sudah ada di database produksi
+    // Pastikan kolom-kolom baru (companyTaxNo, usdToIdrRate, sarToIdrRate) sudah ada di database produksi secara aman
     try {
-      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
-    } catch (e) {}
-    try {
-      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
-    } catch (e) {}
-    try {
-      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
+      const [cols] = await pool.query("SHOW COLUMNS FROM dst_hotel_reservations");
+      const existingCols = cols.map(c => c.Field);
+
+      if (!existingCols.includes('companyTaxNo')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
+      }
+      if (!existingCols.includes('usdToIdrRate')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
+      }
+      if (!existingCols.includes('sarToIdrRate')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
+      }
     } catch (e) {}
 
     const {
@@ -79,6 +84,24 @@ export const createReservation = async (req, res, next) => {
       employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo,
       currency, taxRate, status, type, rooms, notes, usdToIdrRate, sarToIdrRate
     } = req.body;
+
+    // Pastikan id unik
+    let finalId = id || `hr-${Date.now()}`;
+    const [existingId] = await pool.query('SELECT id FROM dst_hotel_reservations WHERE id = ?', [finalId]);
+    if (existingId.length > 0) {
+      finalId = `hr-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
+    }
+
+    // Pastikan reservationNo unik agar tidak memicu ER_DUP_ENTRY UNIQUE constraint
+    let finalReservationNo = reservationNo || `HR-${Date.now()}`;
+    const [existingRes] = await pool.query('SELECT id FROM dst_hotel_reservations WHERE reservationNo = ?', [finalReservationNo]);
+    if (existingRes.length > 0) {
+      const parts = finalReservationNo.split('-');
+      const compCode = parts[0] || 'RES';
+      const mmdd = parts[1] || (String(new Date().getMonth() + 1).padStart(2, '0') + String(new Date().getDate()).padStart(2, '0'));
+      const randSuffix = Math.floor(100 + Math.random() * 900);
+      finalReservationNo = `${compCode}-${mmdd}-${randSuffix}`;
+    }
 
     const query = `
       INSERT INTO dst_hotel_reservations (
@@ -91,7 +114,7 @@ export const createReservation = async (req, res, next) => {
     `;
 
     await pool.query(query, [
-      id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
+      finalId, finalReservationNo, guestName || 'Guest', guestPhone || '+62 000-0000-000', referenceNo || 'REF-001', serialNo || 'SR-001', dueDate || new Date().toISOString().split('T')[0],
       companyName || 'Unknown Company', clientTaxNo || '0000-0000-0000', clientAddress || '', clientCityCountry || '',
       employeeName || 'Dimas Alva Rizki', employeeId || 'UMP-111', employeePhone || '', employeeEmail || '', employeeEntity || '', companyTaxNo || '0000-0000-0001',
       currency || 'USD', taxRate || 0, status || 'Tentative', type || 'Confirmation',
@@ -99,7 +122,7 @@ export const createReservation = async (req, res, next) => {
       usdToIdrRate || 18025.00, sarToIdrRate || 4800.00
     ]);
 
-    const [rows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ?', [id]);
+    const [rows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ?', [finalId]);
     const created = rows[0];
     if (created) {
       created.rooms = typeof created.rooms === 'string' ? JSON.parse(created.rooms) : created.rooms;

@@ -81,6 +81,7 @@ const initializeDatabase = async () => {
         employeePhone VARCHAR(100) NOT NULL,
         employeeEmail VARCHAR(255) NOT NULL,
         employeeEntity VARCHAR(255) NOT NULL,
+        companyTaxNo VARCHAR(100) DEFAULT '0000-0000-0001',
         currency VARCHAR(10) NOT NULL,
         taxRate DECIMAL(5,2) DEFAULT 0.00,
         status VARCHAR(50) NOT NULL,
@@ -104,27 +105,24 @@ const initializeDatabase = async () => {
     // Pastikan tipe kolom paymentInvoiceFile adalah LONGTEXT agar muat base64 file yang diupload
     try {
       await pool.query('ALTER TABLE dst_hotel_reservations MODIFY COLUMN paymentInvoiceFile LONGTEXT DEFAULT NULL');
-      console.log("Column 'paymentInvoiceFile' has been verified/modified to LONGTEXT");
-    } catch (alterErr) {
-      console.error('Failed to modify column paymentInvoiceFile to LONGTEXT:', alterErr.message);
-    }
+    } catch (alterErr) {}
 
-    // Pastikan kolom usdToIdrRate, sarToIdrRate, dan companyTaxNo ada di tabel dst_hotel_reservations
+    // Pastikan kolom-kolom baru ada di tabel dst_hotel_reservations via INFORMATION_SCHEMA
     try {
-      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN IF NOT EXISTS usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
-      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN IF NOT EXISTS sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
-      await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN IF NOT EXISTS companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
-      console.log("Columns 'usdToIdrRate', 'sarToIdrRate', and 'companyTaxNo' are verified");
-    } catch (alterRatesErr) {
-      try {
-        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
-      } catch (e) {}
-      try {
-        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
-      } catch (e) {}
-      try {
+      const [cols] = await pool.query("SHOW COLUMNS FROM dst_hotel_reservations");
+      const existingCols = cols.map(c => c.Field);
+
+      if (!existingCols.includes('companyTaxNo')) {
         await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT "0000-0000-0001"');
-      } catch (e) {}
+      }
+      if (!existingCols.includes('usdToIdrRate')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
+      }
+      if (!existingCols.includes('sarToIdrRate')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
+      }
+    } catch (alterRatesErr) {
+      console.error('Failed checking columns for dst_hotel_reservations:', alterRatesErr.message);
     }
 
     // Seed default reservations if empty
