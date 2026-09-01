@@ -182,17 +182,19 @@ export const calculateBookingTotal = (b: Booking) => {
   return subtotal;
 };
 
-// Cek apakah booking dibatalkan karena melewati due date (OVERDUE)
+// Cek apakah booking melewati due date / berstatus OVERDUE
 export const isBookingOverdue = (booking: Booking): boolean => {
-  if (booking.status !== 'Cancelled') return false;
+  if (booking.isPaid || booking.status === 'Paid and closed') return false;
+
   const notes = (booking.notes || '').toLowerCase();
   if (notes.includes('auto-cancelled') || notes.includes('unpaid past due date') || notes.includes('overdue')) {
     return true;
   }
+
   if (booking.dueDate) {
-    const dueTime = new Date(booking.dueDate).getTime();
-    const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
-    if (dueTime < todayTime) return true;
+    const dueStr = booking.dueDate.split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (dueStr < todayStr) return true;
   }
   return false;
 };
@@ -435,13 +437,15 @@ const HotelReservations: React.FC = () => {
     const activeBookings = bookings.filter(b => b.status !== 'Cancelled');
     const totalReservations = activeBookings.length;
     const confirmedCount = bookings.filter(b => b.status === 'Confirmed' || b.status === 'Paid and closed').length;
-    const tentativeCount = bookings.filter(b => b.status === 'Tentative').length;
-    const cancelledCount = bookings.filter(b => b.status === 'Cancelled').length;
+    const tentativeCount = bookings.filter(b => b.status === 'Tentative' && !isBookingOverdue(b)).length;
+    const overdueCount = bookings.filter(b => isBookingOverdue(b)).length;
+    const cancelledCount = bookings.filter(b => b.status === 'Cancelled' && !isBookingOverdue(b)).length;
 
     return {
       totalReservations,
       confirmed: confirmedCount,
       tentative: tentativeCount,
+      overdue: overdueCount,
       cancelled: cancelledCount
     };
   }, [bookings]);
@@ -491,7 +495,18 @@ const HotelReservations: React.FC = () => {
                             b.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (b.rooms[0]?.hotelName || '').toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus = activeTab === 'Requests' || statusFilter === 'All' || b.status === statusFilter;
+      let matchesStatus = true;
+      if (activeTab === 'Reservations') {
+        if (statusFilter === 'Overdue') {
+          matchesStatus = isBookingOverdue(b);
+        } else if (statusFilter === 'Cancelled') {
+          matchesStatus = b.status === 'Cancelled' && !isBookingOverdue(b);
+        } else if (statusFilter === 'Tentative') {
+          matchesStatus = b.status === 'Tentative' && !isBookingOverdue(b);
+        } else if (statusFilter !== 'All') {
+          matchesStatus = b.status === statusFilter;
+        }
+      }
 
       return matchesSearch && matchesStatus;
     });
@@ -499,22 +514,62 @@ const HotelReservations: React.FC = () => {
 
   // Ekspor CSV
   const handleExportCSV = () => {
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'REF #,HOTEL NAME,GUEST NAME,CHECK-IN,CHECK-OUT,ROOM TYPE,STATUS,TOTAL PRICE\n';
-    
-    finalFilteredBookings.forEach(b => {
+    if (finalFilteredBookings.length === 0) {
+      triggerAlert('Notice', 'No reservations available to export.', 'info');
+      return;
+    }
+
+    const headers = [
+      'Reservation #',
+      'Reference #',
+      'Hotel Name',
+      'Guest Name',
+      'Company / Agency',
+      'Check-In',
+      'Check-Out',
+      'Room Type',
+      'Due Date',
+      'Status',
+      'Currency',
+      'Total Price'
+    ];
+
+    const escapeCell = (val: any) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+
+    const rows = finalFilteredBookings.map(b => {
       const mainRoom = b.rooms[0] || { hotelName: '-', checkIn: '-', checkOut: '-', roomType: '-' };
-      const row = `${b.reservationNo},${mainRoom.hotelName},${b.guestName},${mainRoom.checkIn},${mainRoom.checkOut},${mainRoom.roomType},${b.status},${calculateBookingTotal(b)}\n`;
-      csvContent += row;
+      const isOverdue = isBookingOverdue(b);
+      const statusLabel = isOverdue ? 'OVERDUE' : b.status;
+      const totalCost = calculateBookingTotal(b);
+
+      return [
+        escapeCell(b.reservationNo),
+        escapeCell(b.referenceNo),
+        escapeCell(mainRoom.hotelName),
+        escapeCell(b.guestName),
+        escapeCell(b.companyName),
+        escapeCell(mainRoom.checkIn),
+        escapeCell(mainRoom.checkOut),
+        escapeCell(mainRoom.roomType),
+        escapeCell(b.dueDate || '-'),
+        escapeCell(statusLabel),
+        escapeCell(b.currency),
+        escapeCell(totalCost)
+      ];
     });
 
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Reservasi_Hotel_${activeTab}.csv`);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `hotel_reservations_${activeTab.toLowerCase()}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    triggerAlert('Success', `Successfully exported ${finalFilteredBookings.length} reservations as CSV.`, 'success');
   };
 
   return (
@@ -1090,48 +1145,59 @@ const HotelReservations: React.FC = () => {
 
           {/* Metrics summary OR Inline Requests Filters */}
           {activeTab === 'Reservations' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 print:hidden">
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[120px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 print:hidden">
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[12px] font-bold text-[#64748b] uppercase tracking-wider">Total Reservations</span>
-                  <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">+8.2%</span>
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Total Bookings</span>
+                  <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">All</span>
                 </div>
-                <div className="mt-2">
+                <div className="mt-1">
                   <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.totalReservations.toLocaleString()}</h3>
-                  <p className="text-[11.5px] text-[#64748b] font-medium mt-1">Total booked YTD</p>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Total booked</p>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[120px]">
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[12px] font-bold text-[#64748b] uppercase tracking-wider">Confirmed</span>
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Confirmed</span>
                   <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Active</span>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.confirmed.toLocaleString()} Bookings</h3>
-                  <p className="text-[11.5px] text-[#64748b] font-medium mt-1">Secured and finalized</p>
+                <div className="mt-1">
+                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.confirmed.toLocaleString()}</h3>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Finalized</p>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[120px]">
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[12px] font-bold text-[#64748b] uppercase tracking-wider">Tentative</span>
-                  <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Follow-up</span>
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Tentative</span>
+                  <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.tentative.toLocaleString()} Bookings</h3>
-                  <p className="text-[11.5px] text-[#64748b] font-medium mt-1">Pending client approval</p>
+                <div className="mt-1">
+                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.tentative.toLocaleString()}</h3>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">In Progress</p>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[120px]">
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[12px] font-bold text-[#64748b] uppercase tracking-wider">Cancelled</span>
-                  <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full">-3.1%</span>
+                  <span className="text-[11px] font-bold text-[#c2410c] uppercase tracking-wider">Overdue</span>
+                  <span className="bg-orange-50 text-[#c2410c] text-[10px] font-bold px-2 py-0.5 rounded-full">Past Due</span>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.cancelled.toLocaleString()} Bookings</h3>
-                  <p className="text-[11.5px] text-[#64748b] font-medium mt-1">Voided or rescheduled</p>
+                <div className="mt-1">
+                  <h3 className="text-2xl font-extrabold text-[#c2410c]">{stats.overdue.toLocaleString()}</h3>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Expired payment</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
+                <div className="flex justify-between items-start">
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Cancelled</span>
+                  <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Voided</span>
+                </div>
+                <div className="mt-1">
+                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.cancelled.toLocaleString()}</h3>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Manually cancelled</p>
                 </div>
               </div>
             </div>
@@ -1203,6 +1269,7 @@ const HotelReservations: React.FC = () => {
                     <option value="All">All Statuses</option>
                     <option value="Confirmed">Confirmed</option>
                     <option value="Tentative">Tentative</option>
+                    <option value="Overdue">Overdue</option>
                     <option value="Cancelled">Cancelled</option>
                     <option value="Paid and closed">Paid and closed</option>
                   </select>
@@ -1229,6 +1296,7 @@ const HotelReservations: React.FC = () => {
                         <th className="py-3 px-4">Check-In</th>
                         <th className="py-3 px-4">Check-Out</th>
                         <th className="py-3 px-4">Room Type</th>
+                        <th className="py-3 px-4">Due Date</th>
                         <th className="py-3 px-4 text-center">Status</th>
                         <th className="py-3 px-4 text-center">Proof</th>
                         <th className="py-3 px-5 text-right">Total Price</th>
@@ -1251,7 +1319,7 @@ const HotelReservations: React.FC = () => {
                 <tbody className="divide-y divide-slate-100 text-[#334155] font-medium">
                   {finalFilteredBookings.length === 0 ? (
                     <tr>
-                      <td colSpan={activeTab === 'Reservations' ? 9 : 9} className="py-16 text-center text-[#64748b]">
+                      <td colSpan={activeTab === 'Reservations' ? 10 : 9} className="py-16 text-center text-[#64748b]">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <Bed className="w-8 h-8 text-slate-300" />
                           <p className="font-semibold text-slate-600 text-sm">No bookings found</p>
@@ -1291,6 +1359,9 @@ const HotelReservations: React.FC = () => {
                             </td>
                             <td className="py-4 px-4 text-slate-600">
                               {firstRoom.roomType}
+                            </td>
+                            <td className="py-4 px-4 text-slate-600 font-sans">
+                              {b.dueDate ? formatDateVisual(b.dueDate) : '-'}
                             </td>
                             <td className="py-4 px-4 text-center">
                               {(() => {
