@@ -102,7 +102,7 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
             left: 0;
             top: 0;
             width: 100%;
-            padding: 10mm 12mm;
+            padding: 5mm 6mm;
             margin: 0;
             background: white !important;
             box-sizing: border-box;
@@ -220,50 +220,50 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
           {/* Hotel Details Table */}
           <div className="mt-5">
             <div className="border border-solid border-slate-300 rounded-xl overflow-hidden shadow-sm bg-white">
-              <table className="w-full text-left border-collapse text-[9.5px] font-sans">
+              <table className="w-full text-left border-collapse text-[8px] font-sans">
                 <thead>
                   <tr className="bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                    <th colSpan={12} className="py-2.5 px-4 text-center font-bold text-[13px] tracking-wide select-none bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                    <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wide select-none bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                       Hotel Details
                     </th>
                   </tr>
-                  <tr className="bg-[#e0e8fe] text-[#1d2857] font-bold uppercase tracking-wider text-[9px] border-b border-slate-300 select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                    <th className="py-2.5 px-3 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Hotel</th>
-                    <th className="py-2.5 px-2.5 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Room Type</th>
-                    <th className="py-2.5 px-2.5 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-In</th>
-                    <th className="py-2.5 px-2.5 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-Out</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Night</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Room</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Adult</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Child</th>
-                    <th className="py-2.5 px-2 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals</th>
-                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>DayRate</th>
-                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals Rate</th>
-                    <th className="py-2.5 px-3 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Total</th>
+                  <tr className="bg-[#e0e8fe] text-[#1d2857] font-bold uppercase tracking-wider text-[8px] border-b border-slate-300 select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                    <th className="py-2 px-1.5 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Hotel</th>
+                    <th className="py-2 px-1 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Room Type</th>
+                    <th className="py-2 px-1 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-In</th>
+                    <th className="py-2 px-1 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-Out</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Night</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Room</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Adult</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Child</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals</th>
+                    <th className="py-2 px-1.5 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>DayRate</th>
+                    <th className="py-2 px-1.5 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals Rate</th>
+                    <th className="py-2 px-2 text-right whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 text-slate-800 bg-white">
+                <tbody className="divide-y divide-slate-200 text-slate-800 bg-white text-[8px]">
                   {booking.rooms.map((room, idx) => {
                     const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
                     const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
                     return (
                       <tr key={idx} className="hover:bg-slate-50/50">
-                        <td className="py-2.5 px-3 font-semibold text-slate-900 uppercase whitespace-nowrap">{room.hotelName}</td>
-                        <td className="py-2.5 px-2.5 uppercase whitespace-nowrap text-slate-800">{room.roomType}</td>
-                        <td className="py-2.5 px-2.5 whitespace-nowrap text-slate-800">{formatDateToDMY(room.checkIn)}</td>
-                        <td className="py-2.5 px-2.5 whitespace-nowrap text-slate-800">{formatDateToDMY(room.checkOut)}</td>
-                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{nights}</td>
-                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{room.roomCount}</td>
-                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{room.adults}</td>
-                        <td className="py-2.5 px-1.5 text-center font-semibold text-slate-900">{room.children}</td>
-                        <td className="py-2.5 px-2 text-center font-semibold text-slate-900 uppercase whitespace-nowrap">{formatMealPlan(room.mealPlan)}</td>
-                        <td className="py-2.5 px-2.5 text-right font-medium text-slate-800 whitespace-nowrap">
+                        <td className="py-2 px-1.5 font-semibold text-slate-900 uppercase whitespace-nowrap">{room.hotelName}</td>
+                        <td className="py-2 px-1 uppercase whitespace-nowrap text-slate-800">{room.roomType}</td>
+                        <td className="py-2 px-1 whitespace-nowrap text-slate-800">{formatDateToDMY(room.checkIn)}</td>
+                        <td className="py-2 px-1 whitespace-nowrap text-slate-800">{formatDateToDMY(room.checkOut)}</td>
+                        <td className="py-2 px-1 text-center font-semibold text-slate-900">{nights}</td>
+                        <td className="py-2 px-1 text-center font-semibold text-slate-900">{room.roomCount}</td>
+                        <td className="py-2 px-1 text-center font-semibold text-slate-900">{room.adults}</td>
+                        <td className="py-2 px-1 text-center font-semibold text-slate-900">{room.children}</td>
+                        <td className="py-2 px-1 text-center font-semibold text-slate-900 uppercase whitespace-nowrap">{formatMealPlan(room.mealPlan)}</td>
+                        <td className="py-2 px-1.5 text-right font-medium text-slate-800 whitespace-nowrap">
                           {formatCurrency(room.pricePerNight, booking.currency)}
                         </td>
-                        <td className="py-2.5 px-2.5 text-right font-medium text-slate-800 whitespace-nowrap">
+                        <td className="py-2 px-1.5 text-right font-medium text-slate-800 whitespace-nowrap">
                           {formatCurrency(room.mealRate, booking.currency)}
                         </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
+                        <td className="py-2 px-2 text-right font-bold text-slate-900 whitespace-nowrap">
                           {formatCurrency(roomTotal, booking.currency)}
                         </td>
                       </tr>
