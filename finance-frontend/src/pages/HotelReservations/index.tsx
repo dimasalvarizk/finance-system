@@ -136,15 +136,16 @@ export const getRoomPrice = (hotel: string, roomType: string): number => {
   return 150.0;
 };
 
-// Format ke mata uang USD / SAR / IDR
+// Format ke mata uang dengan kode mata uang (contoh: 180.00 SAR, 225.00 USD)
 export const formatCurrency = (val: number, currency: 'USD' | 'SAR' | 'IDR') => {
+  const numStr = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (currency === 'USD') {
-    return `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${numStr} USD`;
   }
   if (currency === 'SAR') {
-    return `${val.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`;
+    return `${numStr} SAR`;
   }
-  return `Rp ${val.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${numStr} IDR`;
 };
 
 // Format tanggal ke format visual (e.g. 05/09/2026)

@@ -732,14 +732,14 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 </div>
               </div>
 
-              {/* Meals */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Meals & Rates */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Meal Plan</label>
                   <select
                     value={currentRoom.mealPlan}
                     onChange={e => setCurrentRoom(prev => ({ ...prev, mealPlan: e.target.value }))}
-                    className="w-full p-3 border border-slate-200 rounded-lg text-slate-800 bg-white cursor-pointer"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white cursor-pointer"
                   >
                     {dbMealTypes.length > 0 ? (
                       dbMealTypes.map(mt => (
@@ -756,24 +756,35 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Meal Rate</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">DayRate (Price / Night)</label>
                   <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
-                    <select
-                      value={formCurrency}
-                      onChange={e => setFormCurrency(e.target.value as any)}
-                      className="border-none bg-transparent py-3 pl-3 pr-8 focus:outline-none cursor-pointer font-bold text-slate-700"
-                    >
-                      <option value="USD">USD</option>
-                      <option value="SAR">SAR</option>
-                      <option value="IDR">IDR</option>
-                    </select>
-                    <div className="w-[1px] h-6 bg-slate-200" />
+                    <span className="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-50 border-r border-slate-200 select-none">
+                      {formCurrency}
+                    </span>
                     <input
                       type="number"
                       min={0}
+                      step="0.01"
+                      value={currentRoom.pricePerNight}
+                      onChange={e => setCurrentRoom(prev => ({ ...prev, pricePerNight: Math.max(0, Number(e.target.value)) }))}
+                      className="flex-1 border-none py-2 px-3 focus:outline-none text-slate-800 font-bold text-[13px]"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Meal Rate</label>
+                  <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                    <span className="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-50 border-r border-slate-200 select-none">
+                      {formCurrency}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
                       value={currentRoom.mealRate}
                       onChange={e => setCurrentRoom(prev => ({ ...prev, mealRate: Math.max(0, Number(e.target.value)) }))}
-                      className="flex-1 border-none py-3 px-3 focus:outline-none text-slate-800 font-bold text-[13px]"
+                      className="flex-1 border-none py-2 px-3 focus:outline-none text-slate-800 font-bold text-[13px]"
                       placeholder="0.00"
                     />
                   </div>
@@ -850,8 +861,32 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                       <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.adults}</td>
                       <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.children}</td>
                       <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{currentRoom.mealPlan}</td>
-                      <td className="py-2.5 px-1.5 text-right font-sans font-bold text-slate-800">{getRoomPrice(currentRoom.hotelName, currentRoom.roomType).toFixed(2)}</td>
-                      <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{currentRoom.mealRate.toFixed(2)}</td>
+                      <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-1">
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={currentRoom.pricePerNight}
+                            onChange={e => setCurrentRoom(prev => ({ ...prev, pricePerNight: Math.max(0, Number(e.target.value)) }))}
+                            className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                          />
+                          <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-2 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-1">
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={currentRoom.mealRate}
+                            onChange={e => setCurrentRoom(prev => ({ ...prev, mealRate: Math.max(0, Number(e.target.value)) }))}
+                            className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                          />
+                          <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                        </div>
+                      </td>
                       <td className="py-2.5 px-1 text-center">
                         <span className="inline-block px-1.5 py-0.5 text-[8.5px] font-bold text-slate-400 bg-slate-100 rounded">Draft</span>
                       </td>
@@ -868,8 +903,38 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                         <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
                         <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
                         <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
-                        <td className="py-2.5 px-1.5 text-right font-sans font-bold text-slate-800">{room.pricePerNight.toFixed(2)}</td>
-                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-800">{room.mealRate.toFixed(2)}</td>
+                        <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={room.pricePerNight}
+                              onChange={e => {
+                                const newPrice = Math.max(0, Number(e.target.value));
+                                setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, pricePerNight: newPrice } : r));
+                              }}
+                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                            />
+                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={room.mealRate}
+                              onChange={e => {
+                                const newRate = Math.max(0, Number(e.target.value));
+                                setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, mealRate: newRate } : r));
+                              }}
+                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                            />
+                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                          </div>
+                        </td>
                         <td className="py-2.5 px-1 text-center">
                           <button
                             type="button"
