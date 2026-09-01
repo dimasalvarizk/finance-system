@@ -148,6 +148,33 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     }
   }, [isOpen]);
 
+  // Helper untuk mengekstrak City / Country dari data perusahaan tanpa menggunakan nomor telepon
+  const resolveCityCountry = (comp: any) => {
+    if (!comp) return 'Indonesia';
+    if (comp.cityCountry && typeof comp.cityCountry === 'string' && !comp.cityCountry.toLowerCase().startsWith('phone')) {
+      return comp.cityCountry;
+    }
+    const parts = [];
+    if (comp.city) parts.push(comp.city);
+    if (comp.country) parts.push(comp.country);
+    if (parts.length > 0) return parts.join(', ');
+
+    if (comp.address && comp.address.includes(',')) {
+      const segments = comp.address.split(',').map((s: string) => s.trim()).filter(Boolean);
+      if (segments.length >= 2) {
+        const last = segments[segments.length - 1];
+        const secondLast = segments[segments.length - 2];
+        if (/^\d+$/.test(secondLast) && segments.length >= 3) {
+          const thirdLast = segments[segments.length - 3].replace(/^["'\s]+|["'\s]+$/g, '');
+          return `${thirdLast}, ${last}`;
+        }
+        const cleanSecond = secondLast.replace(/^["'\s]+|["'\s]+$/g, '');
+        return `${cleanSecond}, ${last}`;
+      }
+    }
+    return 'Indonesia';
+  };
+
   // Compute selected company (client) object dynamically with auto-populated details
   const client = useMemo(() => {
     if (dbCompanies.length === 0) {
@@ -173,7 +200,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
         companyName: name,
         taxNo: found.taxNumber || found.taxNo || '0000-0000-0000',
         address: found.address || 'Address not specified',
-        cityCountry: found.cityCountry || (found.phone ? `Phone: ${found.phone}` : '')
+        cityCountry: resolveCityCountry(found)
       };
     }
     const first = dbCompanies[0];
@@ -187,7 +214,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       companyName: name,
       taxNo: first.taxNumber || first.taxNo || '0000-0000-0000',
       address: first.address || 'Address not specified',
-      cityCountry: first.phone ? `Phone: ${first.phone}` : ''
+      cityCountry: resolveCityCountry(first)
     };
   }, [dbCompanies, selectedCompanyCode]);
 
