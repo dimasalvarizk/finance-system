@@ -1070,7 +1070,22 @@ const Invoices: React.FC = () => {
   // Stats calculation
   const approvedCount = invoices.filter(inv => inv && (inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid')).length;
   const pendingCount = invoices.filter(inv => inv && inv.status && (inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review')).length;
-  const overdueCount = invoices.filter(inv => inv && (inv.status === 'Overdue' || inv.status === 'Cancelled due to overdue' || isInvoiceOverdue(inv) || inv.status === 'Rejected')).length;
+  const overdueInvoicesList = invoices.filter(inv => inv && (inv.status === 'Overdue' || inv.status === 'Cancelled due to overdue' || isInvoiceOverdue(inv) || inv.status === 'Rejected'));
+  const overdueCount = overdueInvoicesList.length;
+
+  const totalOverdueAmountUSD = overdueInvoicesList.reduce((sum, inv) => {
+    const rawAmt = parseExchangeRate(inv.amount, false);
+    const curr = inv.currency || (String(inv.amount || '').includes('Rp') ? 'IDR' : String(inv.amount || '').includes('SAR') ? 'SAR' : 'USD');
+    const converted = calculateConvertedTotals(rawAmt, curr, configuredRates.usdToIdr, configuredRates.sarToIdr, configuredRates.usdToSar);
+    return sum + converted.usdVal;
+  }, 0);
+
+  const formattedOverdueBalance = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(totalOverdueAmountUSD);
 
   const dynamicApproved = approvedCount;
   const dynamicPending = pendingCount;
@@ -1422,8 +1437,8 @@ const Invoices: React.FC = () => {
             />
             <StatCard
               title="Overdue Balance"
-              value={`${dynamicOverdue} Confirmations`}
-              subtext="Outstanding balance past collection limits"
+              value={formattedOverdueBalance}
+              subtext={`${dynamicOverdue} overdue confirmation${dynamicOverdue !== 1 ? 's' : ''}`}
               badgeText="Action Required"
               badgeColorClass="bg-[#fef2f2] text-[#ef4444]"
             />
