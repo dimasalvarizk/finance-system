@@ -88,35 +88,7 @@ export interface ClientCompany {
   code: string;
 }
 
-export const CLIENT_COMPANIES: ClientCompany[] = [
-  {
-    id: 'c-1',
-    displayName: 'Arte Tours - AIT',
-    companyName: 'PT. Arie Tour',
-    taxNo: '0000-0000-0000',
-    address: 'Menara Kencana, FI 18, JL. Sudirman No. 45',
-    cityCountry: 'Jakarta, Indonesia 10210',
-    code: 'AIT'
-  },
-  {
-    id: 'c-2',
-    displayName: 'DST Travel - DST',
-    companyName: 'DST Travel & Tourizm',
-    taxNo: '2222-3333-4444',
-    address: 'Ibrahim Al Khalil Road, Ash Shubaikah',
-    cityCountry: 'Makkah, Saudi Arabia 24231',
-    code: 'DST'
-  },
-  {
-    id: 'c-3',
-    displayName: 'Hajj & Umrah Indah - HUI',
-    companyName: 'PT. Hajj & Umrah Indah',
-    taxNo: '1111-2222-3333',
-    address: 'Wisma Mulia Lt. 12, Jl. Gatot Subroto',
-    cityCountry: 'Jakarta, Indonesia 12710',
-    code: 'HUI'
-  }
-];
+export const CLIENT_COMPANIES: ClientCompany[] = [];
 
 // Helper to get room price from catalog
 export const getRoomPrice = (hotel: string, roomType: string): number => {
@@ -301,12 +273,12 @@ const HotelReservations: React.FC = () => {
   // State Company Settings dari backend
   const [companySettings, setCompanySettings] = useState({
     companyName: 'PT.ODST AIRLINES IND',
-    phone: '+62 8111 1203 330',
-    taxNumber: '0000-0000-0001',
-    bankName: 'Danamon',
-    accountName: 'PT ODST Airlines Indo',
-    idrAccountNumber: '102-8829-011',
-    usdAccountNumber: '102-8829-022'
+    phone: '',
+    taxNumber: '',
+    bankName: '',
+    accountName: '',
+    idrAccountNumber: '',
+    usdAccountNumber: ''
   });
 
   // State Exchange Rates dari backend
@@ -327,12 +299,12 @@ const HotelReservations: React.FC = () => {
         if (data) {
           setCompanySettings({
             companyName: data.companyName || 'PT.ODST AIRLINES IND',
-            phone: data.phone || '+62 8111 1203 330',
-            taxNumber: data.taxNumber || '0000-0000-0001',
-            bankName: data.bankName || 'Danamon',
-            accountName: data.accountName || 'PT ODST Airlines Indo',
-            idrAccountNumber: data.idrAccountNumber || '102-8829-011',
-            usdAccountNumber: data.usdAccountNumber || '102-8829-022'
+            phone: data.phone || '',
+            taxNumber: data.taxNumber || '',
+            bankName: data.bankName || '',
+            accountName: data.accountName || '',
+            idrAccountNumber: data.idrAccountNumber || '',
+            usdAccountNumber: data.usdAccountNumber || ''
           });
         }
       } catch (error) {

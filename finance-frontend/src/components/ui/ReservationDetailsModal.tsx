@@ -76,7 +76,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeName || 'Dimas Alva Rizki'}
+                      value={selectedBooking.employeeName || '-'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -85,7 +85,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeePhone || '+62 8111 1203 330'}
+                      value={selectedBooking.employeePhone || '-'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -94,7 +94,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeId || 'UMP-111'}
+                      value={selectedBooking.employeeId || '-'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -103,7 +103,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeEmail || 'alvarizkidimas@gmail.com'}
+                      value={selectedBooking.employeeEmail || '-'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -112,7 +112,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeEntity || 'PT.ODST AIRLINES IND'}
+                      value={selectedBooking.employeeEntity || '-'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -121,7 +121,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.companyTaxNo || '0000-0000-0001'}
+                      value={selectedBooking.companyTaxNo || '-'}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>
@@ -140,15 +140,15 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                   </div>
                   <div>
                     <p className="text-[9px] font-medium text-slate-400 uppercase">Company Tax Number</p>
-                    <p className="font-bold text-slate-800 mt-0.5">{selectedBooking.clientTaxNo || '0000-0000-0000'}</p>
+                    <p className="font-bold text-slate-800 mt-0.5">{selectedBooking.clientTaxNo || '-'}</p>
                   </div>
                   <div>
                     <p className="text-[9px] font-medium text-slate-400 uppercase">Street Address</p>
-                    <p className="font-medium text-slate-700 mt-0.5 leading-relaxed">{selectedBooking.clientAddress || 'Menara Kencana, FI 18, JL. Sudirman No. 45'}</p>
+                    <p className="font-medium text-slate-700 mt-0.5 leading-relaxed">{selectedBooking.clientAddress || '-'}</p>
                   </div>
                   <div>
                     <p className="text-[9px] font-medium text-slate-400 uppercase">City / Country</p>
-                    <p className="font-bold text-slate-800 mt-0.5">{selectedBooking.clientCityCountry || 'Jakarta, Indonesia 10210'}</p>
+                    <p className="font-medium text-slate-700 mt-0.5 font-sans">{selectedBooking.clientCityCountry || '-'}</p>
                   </div>
                 </div>
               </div>

@@ -48,22 +48,22 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   const previewSectionRef = useRef<HTMLDivElement>(null);
 
   // Employee/Sender Fields (Bill From)
-  const [formEmpName, setFormEmpName] = useState('Dimas Alva Rizki');
-  const [formCompNumber, setFormCompNumber] = useState('+62 8111 1203 330');
-  const [formEmpId, setFormEmpId] = useState('UMP-111');
-  const [formCompEmail, setFormCompEmail] = useState('alvarizkidimas@gmail.com');
-  const [formEntity, setFormEntity] = useState('PT.ODST AIRLINES IND');
-  const [formCompTax, setFormCompTax] = useState('0000-0000-0001');
+  const [formEmpName, setFormEmpName] = useState('');
+  const [formCompNumber, setFormCompNumber] = useState('');
+  const [formEmpId, setFormEmpId] = useState('');
+  const [formCompEmail, setFormCompEmail] = useState('');
+  const [formEntity, setFormEntity] = useState('');
+  const [formCompTax, setFormCompTax] = useState('');
 
   // Dynamically set Bill From fields from the logged-in user and company settings
   useEffect(() => {
     if (user) {
-      setFormEmpName(user.name || 'Dimas Alva Rizki');
-      setFormEmpId(user.employeeId || 'UMP-111');
-      setFormCompNumber(companySettings?.phone || user.phone || '+62 8111 1203 330');
-      setFormCompEmail(user.email || 'alvarizkidimas@gmail.com');
+      setFormEmpName(user.name || '');
+      setFormEmpId(user.employeeId || '');
+      setFormCompNumber(companySettings?.phone || user.phone || '');
+      setFormCompEmail(user.email || '');
       setFormEntity(companySettings?.companyName || 'PT.ODST AIRLINES IND');
-      setFormCompTax(companySettings?.taxNumber || '0000-0000-0001');
+      setFormCompTax(companySettings?.taxNumber || '');
     }
   }, [user, isOpen, companySettings]);
 
@@ -83,21 +83,21 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     invoiceNo: '',
     referenceNo: '',
     serialNo: '',
-    dueDate: '2026-09-09'
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   });
   const taxRate = 0;
 
   const [currentRoom, setCurrentRoom] = useState({
-    hotelName: 'SAFWAT AL MADINAH',
-    roomType: 'TRIPLE',
-    checkIn: '2026-09-05',
-    checkOut: '2026-09-10',
-    roomCount: 3,
-    adults: 9,
+    hotelName: '',
+    roomType: '',
+    checkIn: new Date().toISOString().split('T')[0],
+    checkOut: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    roomCount: 1,
+    adults: 1,
     children: 0,
-    mealPlan: 'FAREAST FULL BOARD',
-    pricePerNight: 225.00,
-    mealRate: 40.00
+    mealPlan: 'RO',
+    pricePerNight: 0,
+    mealRate: 0
   });
 
   const [dbRoomTypes, setDbRoomTypes] = useState<{ id: string; name: string; status: string }[]>([]);
