@@ -12,7 +12,7 @@ import {
   triggerMaintenanceNotif,
   getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
   getMealTypes, createMealType, updateMealType, deleteMealType,
-  exportFullDatabaseBackup
+  exportFullDatabaseBackup, logBackupHistory, getBackupHistory
 } from '../controllers/settingController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -79,5 +79,9 @@ router.delete('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant'
 
 // 12. Full Database Backup Export (All 18 MySQL Tables)
 router.get('/backup/full', exportFullDatabaseBackup);
+
+// 13. Backup History & Audit Logs
+router.get('/backup/history', getBackupHistory);
+router.post('/backup/history', logBackupHistory);
 
 export default router;

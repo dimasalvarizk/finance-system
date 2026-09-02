@@ -356,6 +356,21 @@ const initializeDatabase = async () => {
       }
     }
 
+    // 9. Create dst_backup_history table
+    const createBackupHistoryQuery = `
+      CREATE TABLE IF NOT EXISTS dst_backup_history (
+        id VARCHAR(50) PRIMARY KEY,
+        exportType VARCHAR(100) NOT NULL,
+        filename VARCHAR(255) NOT NULL,
+        recordCount INT DEFAULT 0,
+        exportedBy VARCHAR(255) NOT NULL,
+        backupPayload LONGTEXT DEFAULT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createBackupHistoryQuery);
+    console.log("Table 'dst_backup_history' is ready");
+
   } catch (error) {
     console.error('Database schema/seed failed for setting-service:', error.message);
   }

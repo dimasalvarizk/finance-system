@@ -178,3 +178,19 @@ export const getFullDatabaseBackup = async () => {
   const response = await settingAPI.get('/backup/full');
   return response.data;
 };
+
+// 13. Backup History & Audit Logs
+export const logBackupHistory = async (data: {
+  exportType: string;
+  filename: string;
+  recordCount?: number;
+  backupPayload?: any;
+}) => {
+  const response = await settingAPI.post('/backup/history', data);
+  return response.data;
+};
+
+export const getBackupHistory = async () => {
+  const response = await settingAPI.get('/backup/history');
+  return response.data.data;
+};

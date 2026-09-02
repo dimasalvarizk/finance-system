@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { getInvoices, getCompanies } from '../../../services/invoiceService';
 import { getHotelReservations } from '../../../services/hotelReservationService';
-import { getExchangeRates, getFullDatabaseBackup } from '../../../services/settingService';
+import { getExchangeRates, getFullDatabaseBackup, logBackupHistory, getBackupHistory } from '../../../services/settingService';
+import { Download, FileSpreadsheet, FileJson, Clock, User } from 'lucide-react';
+
+interface BackupHistoryItem {
+  id: string;
+  exportType: string;
+  filename: string;
+  recordCount: number;
+  exportedBy: string;
+  createdAt: string;
+}
 
 const SystemBackupTab: React.FC = () => {
   const { user } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
   const [exportSuccessMessage, setExportSuccessMessage] = useState<string | null>(null);
+  const [historyList, setHistoryList] = useState<BackupHistoryItem[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
 
   // Akses Khusus: Super Admin (Mr. Emad Moustafa) dan Tim IT (Ali & Dimas)
   const isSuperAdmin = user?.role === 'Super Admin';
@@ -20,6 +32,26 @@ const SystemBackupTab: React.FC = () => {
                userEmailLower.includes('dimas');
 
   const isAuthorized = isSuperAdmin || isIT;
+
+  const fetchHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const data = await getBackupHistory();
+      if (Array.isArray(data)) {
+        setHistoryList(data);
+      }
+    } catch (e) {
+      console.warn('Failed to load backup history from server:', e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthorized) {
+      fetchHistory();
+    }
+  }, [isAuthorized]);
 
   if (!isAuthorized) {
     return (
@@ -94,6 +126,19 @@ const SystemBackupTab: React.FC = () => {
       downloadAnchor.click();
       downloadAnchor.remove();
 
+      // Log history to server
+      try {
+        await logBackupHistory({
+          exportType: 'FULL_JSON',
+          filename,
+          recordCount: 18,
+          backupPayload
+        });
+        fetchHistory();
+      } catch (logErr) {
+        console.warn('Failed to log backup history:', logErr);
+      }
+
       const timeNow = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setLastBackupTime(timeNow);
       setExportSuccessMessage(`Full Database Snapshot (All 18 Tables) exported successfully at ${timeNow}!`);
@@ -142,6 +187,18 @@ const SystemBackupTab: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      // Log to history audit log
+      try {
+        await logBackupHistory({
+          exportType: `${type.toUpperCase()}_CSV`,
+          filename,
+          recordCount: data.length
+        });
+        fetchHistory();
+      } catch (logErr) {
+        console.warn('Failed to log CSV export history:', logErr);
+      }
     } catch (err) {
       console.error('Error exporting CSV:', err);
       alert('Failed to export CSV file.');
@@ -202,8 +259,9 @@ const SystemBackupTab: React.FC = () => {
             <button
               onClick={handleDownloadFullBackup}
               disabled={isExporting}
-              className="px-5 py-2.5 bg-[#1d2857] hover:bg-[#111827] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm border-none disabled:opacity-50"
+              className="px-5 py-2.5 bg-[#1d2857] hover:bg-[#111827] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm border-none disabled:opacity-50 flex items-center gap-2"
             >
+              <FileJson className="w-4 h-4" />
               <span>{isExporting ? 'Generating Backup...' : 'Download Full Backup'}</span>
             </button>
           </div>
@@ -256,6 +314,7 @@ const SystemBackupTab: React.FC = () => {
               <div className="text-xs font-bold text-slate-800">Invoices & Ledger</div>
               <div className="text-[10px] text-slate-400">All invoice entries</div>
             </div>
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
           </button>
 
           <button
@@ -266,6 +325,7 @@ const SystemBackupTab: React.FC = () => {
               <div className="text-xs font-bold text-slate-800">Hotel Reservations</div>
               <div className="text-[10px] text-slate-400">Bookings & room data</div>
             </div>
+            <FileSpreadsheet className="w-4 h-4 text-blue-600" />
           </button>
 
           <button
@@ -276,8 +336,108 @@ const SystemBackupTab: React.FC = () => {
               <div className="text-xs font-bold text-slate-800">Client Directory</div>
               <div className="text-[10px] text-slate-400">Companies & agencies</div>
             </div>
+            <FileSpreadsheet className="w-4 h-4 text-amber-600" />
           </button>
         </div>
+      </div>
+
+      {/* Export & Backup History Audit Log Table */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-indigo-600" />
+              Recent Export & Backup History Log
+            </h3>
+            <p className="text-[11px] text-slate-400 font-medium">
+              Audit log of past data exports. If a file was deleted or lost on your device, click "Re-Download" to extract a fresh backup.
+            </p>
+          </div>
+          <button
+            onClick={fetchHistory}
+            className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-all cursor-pointer"
+          >
+            Refresh History
+          </button>
+        </div>
+
+        {loadingHistory ? (
+          <div className="py-8 text-center text-xs text-slate-400 font-medium animate-pulse">
+            Loading export audit logs...
+          </div>
+        ) : historyList.length === 0 ? (
+          <div className="py-8 text-center text-xs text-slate-400 font-medium border border-dashed border-slate-200 rounded-xl bg-slate-50">
+            No export history recorded yet. Generating a backup or CSV export will log entries here automatically.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs font-sans">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                  <th className="px-4 py-3">Timestamp / Date</th>
+                  <th className="px-4 py-3">Export Type</th>
+                  <th className="px-4 py-3">Filename</th>
+                  <th className="px-4 py-3">Exported By</th>
+                  <th className="px-4 py-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {historyList.map((item) => {
+                  const isFull = item.exportType === 'FULL_JSON';
+                  const dateStr = item.createdAt 
+                    ? new Date(item.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+                    : 'N/A';
+
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">
+                        {dateStr}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          isFull 
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200' 
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}>
+                          {isFull ? 'FULL JSON (18 Tables)' : item.exportType}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-[11px] text-slate-600 font-medium">
+                        {item.filename}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 font-medium flex items-center gap-1.5">
+                        <User className="w-3 h-3 text-slate-400" />
+                        {item.exportedBy}
+                      </td>
+                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                        <button
+                          onClick={() => {
+                            if (isFull) {
+                              handleDownloadFullBackup();
+                            } else if (item.exportType.includes('INVOICES')) {
+                              handleExportCSV('invoices');
+                            } else if (item.exportType.includes('RESERVATIONS')) {
+                              handleExportCSV('reservations');
+                            } else if (item.exportType.includes('COMPANIES')) {
+                              handleExportCSV('companies');
+                            } else {
+                              handleDownloadFullBackup();
+                            }
+                          }}
+                          className="px-3 py-1 bg-slate-100 hover:bg-indigo-50 text-indigo-700 hover:text-indigo-800 font-bold text-[11px] rounded-lg border border-slate-200 hover:border-indigo-200 transition-all cursor-pointer inline-flex items-center gap-1"
+                          title="Re-download a fresh copy of this backup"
+                        >
+                          <Download className="w-3 h-3" />
+                          Re-Download
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
     </div>

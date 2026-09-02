@@ -808,3 +808,52 @@ export const exportFullDatabaseBackup = async (req, res, next) => {
     next(error);
   }
 };
+
+// ==========================================
+// 13. BACKUP HISTORY & AUDIT LOGS
+// ==========================================
+export const logBackupHistory = async (req, res, next) => {
+  const { exportType, filename, recordCount, backupPayload } = req.body;
+  try {
+    const pool = getPool();
+    const backupId = `bkp_${Date.now()}`;
+    const exportedBy = req.user ? `${req.user.name} (${req.user.email})` : 'System Admin';
+
+    await pool.query(
+      `INSERT INTO dst_backup_history (id, exportType, filename, recordCount, exportedBy, backupPayload)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        backupId,
+        exportType || 'FULL_JSON',
+        filename || `ODST_BACKUP_${Date.now()}.json`,
+        recordCount || 0,
+        exportedBy,
+        backupPayload ? JSON.stringify(backupPayload) : null
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Backup history logged successfully',
+      data: { id: backupId, exportType, filename, recordCount, exportedBy }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getBackupHistory = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query(
+      'SELECT id, exportType, filename, recordCount, exportedBy, createdAt FROM dst_backup_history ORDER BY createdAt DESC LIMIT 50'
+    );
+    res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (error) {
+    next(error);
+  }
+};
