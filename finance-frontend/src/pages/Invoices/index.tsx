@@ -3335,24 +3335,26 @@ const Invoices: React.FC = () => {
                                     <span className="text-slate-300 font-mono text-[11px]">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-right space-x-1">
-                                  {canAddPayment && (
-                                    <>
+                                <td className="px-4 py-3 text-right">
+                                  {user?.role !== 'Viewer' && (
+                                    <div className="flex items-center justify-end space-x-1.5">
                                       <button
                                         onClick={() => handleOpenEditPayment(pay)}
                                         title="Edit Payment"
-                                        className="p-1 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-600 transition-all inline-flex items-center"
+                                        className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
                                       >
-                                        <Edit3 className="w-3.5 h-3.5" />
+                                        <Edit3 className="w-3 h-3" />
+                                        <span>Edit</span>
                                       </button>
                                       <button
                                         onClick={() => handleDeletePayment(pay.id)}
                                         title="Delete Payment"
-                                        className="p-1 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all inline-flex items-center"
+                                        className="px-2 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
                                       >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <Trash2 className="w-3 h-3" />
+                                        <span>Delete</span>
                                       </button>
-                                    </>
+                                    </div>
                                   )}
                                 </td>
                               </tr>
