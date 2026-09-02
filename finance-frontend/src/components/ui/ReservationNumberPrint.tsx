@@ -133,7 +133,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
               <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
                 BILL FROM
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 grid grid-cols-2 gap-y-4 gap-x-4 h-[130px] bg-white">
+              <div className="rounded-xl border border-slate-200 p-4 grid grid-cols-2 gap-y-3 gap-x-4 h-full bg-white content-start">
                 <div className="flex flex-col">
                   <p className="text-[8.5px] font-medium text-slate-400 font-sans">
                     Employee Name
@@ -189,7 +189,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
               <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
                 BILL TO
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 flex flex-col gap-3 h-[130px] bg-white">
+              <div className="rounded-xl border border-slate-200 p-4 flex flex-col gap-3 h-full bg-white justify-start">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col">
                     <p className="text-[8.5px] font-medium text-slate-400 font-sans">
@@ -252,13 +252,13 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     <th className="text-left font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans">
                       Description
                     </th>
-                    <th className="text-center font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans">
+                    <th className="text-center font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans w-16">
                       Qty
                     </th>
-                    <th className="text-right font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans">
+                    <th className="text-right font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans w-32">
                       Unit Price
                     </th>
-                    <th className="text-right font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans">
+                    <th className="text-right font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans w-32">
                       Total
                     </th>
                   </tr>
@@ -291,7 +291,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
               <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
                 PAYMENT INSTRUCTIONS
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 space-y-2 bg-white h-[110px]">
+              <div className="rounded-xl border border-slate-200 p-4 space-y-2 bg-white h-full content-center">
                 <div className="flex items-center justify-between text-[10px]">
                   <span className="text-slate-500 font-sans">Bank Name:</span>
                   <span className="font-bold text-slate-900 font-sans">{companySettings.bankName}</span>
@@ -315,7 +315,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
               <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
                 {isHotel ? 'INVOICE SUMMARY' : 'INVOICE SUMMARY'}
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 space-y-2 bg-white h-[110px] flex flex-col justify-center">
+              <div className="rounded-xl border border-slate-200 p-4 space-y-2 bg-white h-full flex flex-col justify-center">
                 <div className="flex items-center justify-between text-[10.5px]">
                   <span className="text-slate-500 font-sans">Subtotal</span>
                   <span className="font-bold text-slate-900 font-sans">
