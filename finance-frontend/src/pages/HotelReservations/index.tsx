@@ -435,12 +435,12 @@ const HotelReservations: React.FC = () => {
 
   // Statistik sesuai dengan database
   const stats = useMemo(() => {
-    const activeBookings = bookings.filter(b => b.status !== 'Cancelled' && !(b.type === 'Confirmation' && !b.approvedByKarim && b.status === 'Pending'));
-    const totalReservations = activeBookings.length;
-    const confirmedCount = bookings.filter(b => b.status === 'Confirmed' || b.status === 'Paid and closed' || b.isPaid).length;
-    const tentativeCount = bookings.filter(b => b.status === 'Tentative' && !isBookingOverdue(b)).length;
-    const overdueCount = bookings.filter(b => isBookingOverdue(b)).length;
-    const cancelledCount = bookings.filter(b => b.status === 'Cancelled' && !isBookingOverdue(b)).length;
+    const reservationBookings = bookings.filter(b => !(b.type === 'Confirmation' && !b.approvedByKarim && b.status === 'Pending'));
+    const totalReservations = reservationBookings.length;
+    const confirmedCount = reservationBookings.filter(b => b.status === 'Confirmed' || b.status === 'Paid and closed' || b.isPaid).length;
+    const tentativeCount = reservationBookings.filter(b => b.status === 'Tentative' && !isBookingOverdue(b)).length;
+    const overdueCount = reservationBookings.filter(b => isBookingOverdue(b)).length;
+    const cancelledCount = reservationBookings.filter(b => b.status === 'Cancelled' && !isBookingOverdue(b)).length;
 
     return {
       totalReservations,
