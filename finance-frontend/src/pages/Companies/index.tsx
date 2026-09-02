@@ -561,14 +561,14 @@ const Companies: React.FC = () => {
           </div>
 
           {/* Stat Card */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 w-full h-[120px] flex flex-col justify-between">
+          <div className={`bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 w-full h-[120px] flex flex-col justify-between ${loading ? 'animate-pulse' : ''}`}>
             <div className="flex justify-between items-start w-full">
               <div>
                 <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block font-sans">
                   Total Partners
                 </span>
                 <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight mt-0.5 font-sans">
-                  {companies.length} Companies
+                  {loading ? <div className="h-7 w-32 bg-slate-200 rounded mt-1"></div> : `${companies.length} Companies`}
                 </div>
               </div>
               <div

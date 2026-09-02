@@ -1624,7 +1624,7 @@ const Requests: React.FC = () => {
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                     style={activeTab === "all" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
                   >
-                    {counts.all}
+                    {loading ? <span className="inline-block w-3 h-2.5 bg-slate-300 animate-pulse rounded"></span> : counts.all}
                   </span>
                 </button>
 
@@ -1641,7 +1641,7 @@ const Requests: React.FC = () => {
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                     style={activeTab === "pending" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
                   >
-                    {counts.pending}
+                    {loading ? <span className="inline-block w-3 h-2.5 bg-slate-300 animate-pulse rounded"></span> : counts.pending}
                   </span>
                 </button>
 
@@ -1658,7 +1658,7 @@ const Requests: React.FC = () => {
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                     style={activeTab === "approved" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
                   >
-                    {counts.approved}
+                    {loading ? <span className="inline-block w-3 h-2.5 bg-slate-300 animate-pulse rounded"></span> : counts.approved}
                   </span>
                 </button>
 
@@ -1675,7 +1675,7 @@ const Requests: React.FC = () => {
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                   style={activeTab === "rejected" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
                   >
-                    {counts.rejected}
+                    {loading ? <span className="inline-block w-3 h-2.5 bg-slate-300 animate-pulse rounded"></span> : counts.rejected}
                   </span>
                 </button>
               </div>

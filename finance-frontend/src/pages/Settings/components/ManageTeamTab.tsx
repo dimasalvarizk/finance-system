@@ -270,7 +270,7 @@ const ManageTeamTab: React.FC = () => {
           <div className="flex items-center space-x-2.5">
             <h3 className="text-[17px] font-bold text-[#0f172a] font-sans">Team Members</h3>
             <span className="bg-[#f1f5f9] text-[#64748b] text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-100 font-sans">
-              {members.length} Members
+              {loading ? <span className="inline-block w-4 h-3 bg-slate-300 animate-pulse rounded"></span> : `${members.length} Members`}
             </span>
           </div>
           <button
