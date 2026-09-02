@@ -225,6 +225,8 @@ const HotelReservations: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [requestStatusFilter, setRequestStatusFilter] = useState<'All' | 'Pending' | 'Confirmed' | 'Rejected'>('Pending');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   // State Dropdown "+ New Reservation"
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -535,6 +537,18 @@ const HotelReservations: React.FC = () => {
       return matchesSearch && matchesStatus;
     });
   }, [tabFilteredBookings, searchQuery, statusFilter, activeTab]);
+
+  // Reset halaman saat filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, requestStatusFilter, activeTab]);
+
+  const totalPages = Math.max(1, Math.ceil(finalFilteredBookings.length / itemsPerPage));
+
+  const paginatedBookings = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return finalFilteredBookings.slice(startIndex, startIndex + itemsPerPage);
+  }, [finalFilteredBookings, currentPage, itemsPerPage]);
 
   // Ekspor CSV
   const handleExportCSV = () => {
@@ -1394,7 +1408,7 @@ const HotelReservations: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    finalFilteredBookings.map((b, index) => {
+                    paginatedBookings.map((b, index) => {
                       const totalCost = calculateBookingTotal(b);
                       const firstRoom = b.rooms[0] || { hotelName: '-', checkIn: '', checkOut: '', roomType: '-' };
                       
@@ -1543,17 +1557,41 @@ const HotelReservations: React.FC = () => {
             {/* Pagination Footer */}
             <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs font-sans text-slate-500 bg-white select-none">
               <span>
-                {activeTab === 'Reservations' 
-                  ? `Showing 1 to 8 of ${stats.totalReservations.toLocaleString()} reservations` 
-                  : `Showing 1 to 8 of ${requestStatusFilter === 'Pending' ? requestsCount.pending : requestStatusFilter === 'Confirmed' ? requestsCount.confirmed : requestStatusFilter === 'Rejected' ? requestsCount.rejected : requestsCount.all} requests`}
+                {finalFilteredBookings.length > 0
+                  ? `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, finalFilteredBookings.length)} of ${finalFilteredBookings.length.toLocaleString()} ${activeTab === 'Reservations' ? 'reservations' : 'requests'}`
+                  : `Showing 0 to 0 of 0 ${activeTab === 'Reservations' ? 'reservations' : 'requests'}`}
               </span>
-              <div className="flex items-center space-x-1">
-                <button className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer">Previous</button>
-                <button className="px-3 py-1.5 bg-[#2563eb] text-white rounded-lg font-bold transition-all border-none cursor-pointer">1</button>
-                <button className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer">2</button>
-                <button className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer">3</button>
-                <button className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer">Next</button>
-              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                        currentPage === page
+                          ? 'bg-[#2563eb] text-white border-none'
+                          : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           </div>
