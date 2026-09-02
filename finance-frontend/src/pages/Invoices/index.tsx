@@ -531,19 +531,24 @@ const Invoices: React.FC = () => {
     setIsAddPaymentModalOpen(true);
   };
 
-  const handleDeletePayment = async (payId: string) => {
-    if (!paymentHistoryModal.invoice) return;
-    if (!window.confirm('Are you sure you want to delete this payment record? Balance will be recalculated.')) return;
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
 
+  const confirmDeletePayment = async () => {
+    if (!paymentHistoryModal.invoice || !deletingPaymentId) return;
+
+    setIsSubmittingPayment(true);
     try {
-      await deleteInvoicePayment(payId);
+      await deleteInvoicePayment(deletingPaymentId);
       triggerAlert('Success', 'Payment deleted successfully!', 'success');
+      setDeletingPaymentId(null);
       const history = await getInvoicePayments(paymentHistoryModal.invoice.invoiceNo);
       setPaymentHistoryList(history || []);
       await fetchInvoices(true);
     } catch (err: any) {
       console.error('Failed to delete payment:', err);
       triggerAlert('Error', 'Failed to delete payment record.', 'info');
+    } finally {
+      setIsSubmittingPayment(false);
     }
   };
 
@@ -3337,18 +3342,16 @@ const Invoices: React.FC = () => {
                                       <button
                                         onClick={() => handleOpenEditPayment(pay)}
                                         title="Edit Payment"
-                                        className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
+                                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 font-bold text-[11.5px] rounded-lg transition-all cursor-pointer"
                                       >
-                                        <Edit3 className="w-3 h-3" />
-                                        <span>Edit</span>
+                                        Edit
                                       </button>
                                       <button
-                                        onClick={() => handleDeletePayment(pay.id)}
+                                        onClick={() => setDeletingPaymentId(pay.id)}
                                         title="Delete Payment"
-                                        className="px-2 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
+                                        className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-[11.5px] rounded-lg transition-all cursor-pointer"
                                       >
-                                        <Trash2 className="w-3 h-3" />
-                                        <span>Delete</span>
+                                        Delete
                                       </button>
                                     </div>
                                   )}
@@ -3547,6 +3550,37 @@ const Invoices: React.FC = () => {
             <p className="text-[12.5px] text-[#64748b] font-medium text-center leading-relaxed">
               Converting image and uploading to server. Please wait...
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Payment Confirmation Modal Popup */}
+      {deletingPaymentId && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setDeletingPaymentId(null)}>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 animate-scale-up text-center font-sans space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div>
+              <h3 className="text-base font-bold text-slate-800">Hapus Riwayat Pembayaran?</h3>
+              <p className="text-[12.5px] text-slate-500 mt-2 leading-relaxed">
+                Apakah Anda yakin ingin menghapus catatan pembayaran ini? Sisa saldo akan otomatis dihitung ulang.
+              </p>
+            </div>
+            <div className="flex items-center justify-center space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingPaymentId(null)}
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[12px] rounded-xl transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePayment}
+                disabled={isSubmittingPayment}
+                className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[12px] rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                {isSubmittingPayment ? 'Menghapus...' : 'Hapus'}
+              </button>
+            </div>
           </div>
         </div>
       )}
