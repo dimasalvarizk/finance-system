@@ -4,7 +4,7 @@
   "description": "Root workspace for Finance System microservices and frontend",
   "private": true,
   "scripts": {
-    "build": "npm --prefix finance-frontend run build && node -e \"const fs=require('fs'); fs.cpSync('finance-frontend/dist', 'dist', {recursive: true});\"",
+    "build": "npm --prefix finance-frontend install && npm --prefix finance-frontend run build && node -e \"const fs=require('fs'); fs.cpSync('finance-frontend/dist', 'dist', {recursive: true});\"",
     "install:all": "npm install && npm install --prefix backend/auth-service && npm install --prefix backend/invoice-service && npm install --prefix backend/request-service && npm install --prefix backend/company-service && npm install --prefix backend/setting-service && npm install --prefix backend/hotel-reservation-service && npm install --prefix backend/api-gateway && npm install --prefix finance-frontend",
     "build:backend": "npm install && npm install --prefix backend/auth-service && npm install --prefix backend/invoice-service && npm install --prefix backend/request-service && npm install --prefix backend/company-service && npm install --prefix backend/setting-service && npm install --prefix backend/hotel-reservation-service && npm install --prefix backend/api-gateway",
     "backend": "concurrently -n \"auth,invoice,request,company,setting,hotel,gateway\" -c \"blue,green,magenta,cyan,red,pink,yellow\" \"npm --prefix backend/auth-service run dev\" \"npm --prefix backend/invoice-service run dev\" \"npm --prefix backend/request-service run dev\" \"npm --prefix backend/company-service run dev\" \"npm --prefix backend/setting-service run dev\" \"npm --prefix backend/hotel-reservation-service run dev\" \"npm --prefix backend/api-gateway run dev\"",
