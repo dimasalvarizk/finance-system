@@ -624,6 +624,22 @@ const Invoices: React.FC = () => {
 
   useEffect(() => {
     fetchInvoices();
+
+    // Auto-refresh data dari database MySQL setiap 10 detik agar 100% real-time
+    const interval = setInterval(() => {
+      fetchInvoices();
+    }, 10000);
+
+    // Refresh saat tab diklik / kembali aktif
+    const handleFocus = () => {
+      fetchInvoices();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   useEffect(() => {
