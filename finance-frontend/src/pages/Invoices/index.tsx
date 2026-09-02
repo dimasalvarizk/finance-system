@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import StatCard from '../../components/ui/StatCard';
-import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, DollarSign } from 'lucide-react';
+import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
 import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments } from '../../services/invoiceService';
@@ -1944,13 +1944,13 @@ const Invoices: React.FC = () => {
                                })()}
                              </td>
                              <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                               {/* 1. Payment History & Installment Ledger Button ($) */}
+                               {/* 1. Payment History & Installment Ledger Button */}
                                <button
                                  onClick={() => openPaymentHistoryModal(inv)}
-                                 title="Payment History & Installments"
+                                 title="Payment History & Installments Ledger"
                                  className="p-1.5 hover:bg-amber-50 rounded-lg text-amber-600 hover:text-amber-700 transition-all cursor-pointer"
                                >
-                                 <DollarSign className="w-4 h-4" />
+                                 <Receipt className="w-4 h-4" />
                                </button>
 
                                {/* 2. Payment Proof Upload / View Button (ALWAYS VISIBLE) */}
