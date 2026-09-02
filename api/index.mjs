@@ -26,35 +26,7 @@ dotenv.config();
 
 const app = express();
 
-// Middleware to ensure all databases are connected
-let isConnected = false;
-app.use(async (req, res, next) => {
-  if (!isConnected) {
-    try {
-      console.log('[Serverless] Initializing database pools...');
-      await Promise.all([
-        connectAuthDB(),
-        connectInvoiceDB(),
-        connectCompanyDB(),
-        connectRequestDB(),
-        connectSettingDB(),
-        connectHotelDB()
-      ]);
-      isConnected = true;
-      console.log('[Serverless] All database pools connected successfully!');
-    } catch (err) {
-      console.error('[Serverless] Database connection failed:', err);
-      return res.status(500).json({
-        success: false,
-        message: 'Internal Database Connection Error',
-        error: err.message
-      });
-    }
-  }
-  next();
-});
-
-// Standard HTTP Middlewares
+// Standard HTTP Middlewares & CORS Configuration (MUST BE AT THE TOP)
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -99,6 +71,35 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// Middleware to ensure all databases are connected
+let isConnected = false;
+app.use(async (req, res, next) => {
+  if (!isConnected) {
+    try {
+      console.log('[Serverless] Initializing database pools...');
+      await Promise.all([
+        connectAuthDB(),
+        connectInvoiceDB(),
+        connectCompanyDB(),
+        connectRequestDB(),
+        connectSettingDB(),
+        connectHotelDB()
+      ]);
+      isConnected = true;
+      console.log('[Serverless] All database pools connected successfully!');
+    } catch (err) {
+      console.error('[Serverless] Database connection failed:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal Database Connection Error',
+        error: err.message
+      });
+    }
+  }
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
