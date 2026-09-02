@@ -18,12 +18,12 @@ requestAPI.interceptors.request.use((config) => {
 });
 
 export const getRequests = async () => {
-  const response = await requestAPI.get('/');
+  const response = await requestAPI.get('');
   return response.data.data;
 };
 
 export const createRequest = async (requestData: any) => {
-  const response = await requestAPI.post('/', requestData);
+  const response = await requestAPI.post('', requestData);
   return response.data.data;
 };
 

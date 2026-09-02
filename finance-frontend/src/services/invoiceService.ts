@@ -27,12 +27,12 @@ invoiceAPI.interceptors.request.use(attachToken, (error) => Promise.reject(error
 companyAPI.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 
 export const getInvoices = async () => {
-  const response = await invoiceAPI.get('/');
+  const response = await invoiceAPI.get('');
   return response.data.data;
 };
 
 export const createInvoice = async (invoiceData: any) => {
-  const response = await invoiceAPI.post('/', invoiceData);
+  const response = await invoiceAPI.post('', invoiceData);
   return response.data.data;
 };
 
@@ -42,12 +42,12 @@ export const updateInvoiceStatus = async (idOrInvoiceNo: string, status: string)
 };
 
 export const getCompanies = async () => {
-  const response = await companyAPI.get('/');
+  const response = await companyAPI.get('');
   return response.data.data;
 };
 
 export const createCompany = async (companyData: any) => {
-  const response = await companyAPI.post('/', companyData);
+  const response = await companyAPI.post('', companyData);
   return response.data.data;
 };
 
@@ -72,7 +72,7 @@ export const cancelInvoice = async (id: string) => {
 };
 
 export const deleteInvoices = async (ids: string[]) => {
-  const response = await invoiceAPI.delete('/', { data: { ids } });
+  const response = await invoiceAPI.delete('', { data: { ids } });
   return response.data;
 };
 

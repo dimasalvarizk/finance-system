@@ -23,12 +23,12 @@ hotelReservationAPI.interceptors.request.use((config) => {
 });
 
 export const getHotelReservations = async () => {
-  const response = await hotelReservationAPI.get('/');
+  const response = await hotelReservationAPI.get('');
   return response.data;
 };
 
 export const createHotelReservation = async (bookingData: any) => {
-  const response = await hotelReservationAPI.post('/', bookingData);
+  const response = await hotelReservationAPI.post('', bookingData);
   return response.data;
 };
 
