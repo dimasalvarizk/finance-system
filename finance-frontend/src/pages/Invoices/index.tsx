@@ -483,8 +483,11 @@ const Invoices: React.FC = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
   const [addPayAmount, setAddPayAmount] = useState('');
+  const [addPayCurrency, setAddPayCurrency] = useState('SAR');
   const [addPayDate, setAddPayDate] = useState('');
   const [addPayNote, setAddPayNote] = useState('');
+  const [addPayProof, setAddPayProof] = useState('');
+  const [addPayProofName, setAddPayProofName] = useState('');
   const [saveOverpaymentCredit, setSaveOverpaymentCredit] = useState(false);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
@@ -504,8 +507,11 @@ const Invoices: React.FC = () => {
 
   const handleOpenAddPayment = () => {
     setAddPayAmount('');
+    setAddPayCurrency(paymentHistoryModal.invoice?.currency || 'SAR');
     setAddPayDate(new Date().toISOString().split('T')[0]);
     setAddPayNote('');
+    setAddPayProof('');
+    setAddPayProofName('');
     setSaveOverpaymentCredit(false);
     setIsAddPaymentModalOpen(true);
   };
@@ -520,8 +526,10 @@ const Invoices: React.FC = () => {
     try {
       await addInvoicePayment(paymentHistoryModal.invoice.invoiceNo, {
         amount: numAmt,
+        currency: addPayCurrency,
         paymentDate: addPayDate,
         note: addPayNote,
+        proofUrl: addPayProof || undefined,
         saveOverpaymentCredit,
         companyCode: paymentHistoryModal.invoice.companyCode
       });
@@ -3245,7 +3253,7 @@ const Invoices: React.FC = () => {
                             <th className="px-4 py-2.5">Date</th>
                             <th className="px-4 py-2.5">Amount</th>
                             <th className="px-4 py-2.5">Recorded By</th>
-                            <th className="px-4 py-2.5">Note</th>
+                            <th className="px-4 py-2.5">Proof</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -3262,13 +3270,26 @@ const Invoices: React.FC = () => {
                                   {pay.paymentDate ? pay.paymentDate.split('T')[0] : 'N/A'}
                                 </td>
                                 <td className="px-4 py-3 font-bold text-emerald-600">
-                                  {formatPrice(pay.amount, currency)}
+                                  {formatPrice(pay.amount, pay.currency || currency)}
                                 </td>
                                 <td className="px-4 py-3 text-slate-600 font-medium">
                                   {pay.createdBy || 'System'}
                                 </td>
-                                <td className="px-4 py-3 text-slate-500 italic">
-                                  {pay.note || '-'}
+                                <td className="px-4 py-3">
+                                  {pay.proofUrl ? (
+                                    <button
+                                      onClick={() => setViewingProofBase64(pay.proofUrl)}
+                                      className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
+                                    >
+                                      <span>📄 View Proof</span>
+                                    </button>
+                                  ) : pay.note ? (
+                                    <span className="text-slate-500 italic text-[11.5px]" title={pay.note}>
+                                      {pay.note}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 font-mono text-[11px]">-</span>
+                                  )}
                                 </td>
                               </tr>
                             ))
@@ -3302,29 +3323,45 @@ const Invoices: React.FC = () => {
             </div>
 
             <form onSubmit={handleAddPaymentSubmit} className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Amount ({paymentHistoryModal.invoice.currency || 'USD'})</label>
-                <input
-                  type="number"
-                  step="any"
-                  required
-                  placeholder="Enter amount paid..."
-                  value={addPayAmount}
-                  onChange={(e) => {
-                    setAddPayAmount(e.target.value);
-                    const inv = paymentHistoryModal.invoice!;
-                    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
-                    const advAmt = parseFloat(String(inv.advancePayment || 0));
-                    const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                    const rem = Math.max(0, rawAmt - advAmt - totalInstallments);
-                    if (parseFloat(e.target.value) > rem) {
-                      setSaveOverpaymentCredit(true);
-                    } else {
-                      setSaveOverpaymentCredit(false);
-                    }
-                  }}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-800 focus:outline-none focus:border-amber-500"
-                />
+              
+              {/* Amount & Currency Selector */}
+              <div className="grid grid-cols-3 gap-2.5">
+                <div className="col-span-2">
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Amount</label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    placeholder="Enter amount paid..."
+                    value={addPayAmount}
+                    onChange={(e) => {
+                      setAddPayAmount(e.target.value);
+                      const inv = paymentHistoryModal.invoice!;
+                      const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                      const advAmt = parseFloat(String(inv.advancePayment || 0));
+                      const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                      const rem = Math.max(0, rawAmt - advAmt - totalInstallments);
+                      if (parseFloat(e.target.value) > rem) {
+                        setSaveOverpaymentCredit(true);
+                      } else {
+                        setSaveOverpaymentCredit(false);
+                      }
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Currency</label>
+                  <select
+                    value={addPayCurrency}
+                    onChange={(e) => setAddPayCurrency(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-800 focus:outline-none focus:border-amber-500 bg-slate-50 cursor-pointer"
+                  >
+                    <option value="SAR">SAR</option>
+                    <option value="USD">USD</option>
+                    <option value="IDR">RP (IDR)</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -3336,6 +3373,42 @@ const Invoices: React.FC = () => {
                   onChange={(e) => setAddPayDate(e.target.value)}
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-800 focus:outline-none focus:border-amber-500"
                 />
+              </div>
+
+              {/* Upload Proof Field */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Upload Payment Proof (Transfer Receipt)</label>
+                <div className="flex items-center space-x-2">
+                  <label className="flex-1 px-3.5 py-2.5 border border-dashed border-slate-300 hover:border-amber-500 rounded-xl bg-slate-50 hover:bg-amber-50/30 text-slate-600 font-medium text-[12.5px] cursor-pointer flex items-center justify-between transition-all">
+                    <span className="truncate">{addPayProofName ? `📄 ${addPayProofName}` : 'Attach proof file (Image/PDF)...'}</span>
+                    <Upload className="w-4 h-4 text-slate-400" />
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setAddPayProofName(file.name);
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setAddPayProof(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                  {addPayProof && (
+                    <button
+                      type="button"
+                      onClick={() => { setAddPayProof(''); setAddPayProofName(''); }}
+                      className="px-2.5 py-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl font-bold text-[11px] transition-all cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>

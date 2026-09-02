@@ -180,13 +180,20 @@ const initializeDatabase = async () => {
         referenceId VARCHAR(100) NOT NULL,
         moduleType ENUM('CONFIRMATION', 'HOTEL') NOT NULL,
         amount DECIMAL(15,2) NOT NULL,
+        currency VARCHAR(10) DEFAULT 'SAR',
         paymentDate DATETIME NOT NULL,
         note TEXT DEFAULT NULL,
+        proofUrl LONGTEXT DEFAULT NULL,
         createdBy VARCHAR(255) DEFAULT NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
     await pool.query(createPaymentHistoryTableQuery);
+
+    try {
+      await pool.query('ALTER TABLE dst_payment_history ADD COLUMN currency VARCHAR(10) DEFAULT "SAR", ADD COLUMN proofUrl LONGTEXT DEFAULT NULL');
+    } catch (alterPayErr) {}
+
     console.log("Table 'dst_payment_history' is verified/ready");
 
   } catch (error) {

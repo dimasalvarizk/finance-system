@@ -338,7 +338,7 @@ export const uploadPaymentProof = async (req, res, next) => {
 // @access  Protected
 export const addPaymentHistory = async (req, res, next) => {
   const { invoiceNo } = req.params;
-  const { amount, paymentDate, note, saveOverpaymentCredit, companyCode } = req.body;
+  const { amount, currency, paymentDate, note, proofUrl, saveOverpaymentCredit, companyCode } = req.body;
 
   try {
     if (!amount || !paymentDate) {
@@ -355,8 +355,10 @@ export const addPaymentHistory = async (req, res, next) => {
       referenceId: invoiceNo,
       moduleType: 'CONFIRMATION',
       amount: numericAmount,
+      currency: currency || 'SAR',
       paymentDate,
       note: note || '',
+      proofUrl: proofUrl || null,
       createdBy: req.user ? req.user.name : 'System'
     };
 

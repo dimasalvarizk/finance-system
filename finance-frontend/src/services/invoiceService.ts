@@ -81,7 +81,7 @@ export const uploadPaymentProof = async (idOrInvoiceNo: string, base64Data: stri
   return response.data;
 };
 
-export const addInvoicePayment = async (invoiceNo: string, paymentData: { amount: number; paymentDate: string; note?: string; saveOverpaymentCredit?: boolean; companyCode?: string }) => {
+export const addInvoicePayment = async (invoiceNo: string, paymentData: { amount: number; currency?: string; paymentDate: string; note?: string; proofUrl?: string; saveOverpaymentCredit?: boolean; companyCode?: string }) => {
   const response = await invoiceAPI.post(`/${invoiceNo}/payments`, paymentData);
   return response.data;
 };

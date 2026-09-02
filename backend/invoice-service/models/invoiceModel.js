@@ -298,16 +298,18 @@ export const addPaymentHistoryDB = async (paymentData) => {
     await connection.beginTransaction();
 
     const insertQuery = `
-      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, paymentDate, note, createdBy)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, currency, paymentDate, note, proofUrl, createdBy)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     await connection.query(insertQuery, [
       paymentData.id,
       paymentData.referenceId,
       paymentData.moduleType,
       paymentData.amount,
+      paymentData.currency || 'SAR',
       paymentData.paymentDate,
       paymentData.note || null,
+      paymentData.proofUrl || null,
       paymentData.createdBy || null
     ]);
 
