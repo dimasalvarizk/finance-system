@@ -1534,30 +1534,28 @@ const HotelReservations: React.FC = () => {
                   <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px] select-none">
                     {activeTab === 'Reservations' ? (
                       <>
-                        {user?.role !== 'Viewer' && (
-                          <th className="py-3 px-4 text-center w-10">
-                            <input
-                              type="checkbox"
-                              checked={
-                                paginatedBookings.length > 0 &&
-                                paginatedBookings.every(b => selectedBookingIds.includes(b.id))
+                        <th className="py-3 px-4 text-center w-10 select-none">
+                          <input
+                            type="checkbox"
+                            checked={
+                              paginatedBookings.length > 0 &&
+                              paginatedBookings.every(b => selectedBookingIds.includes(b.id))
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const newSelected = [...selectedBookingIds];
+                                paginatedBookings.forEach(b => {
+                                  if (!newSelected.includes(b.id)) newSelected.push(b.id);
+                                });
+                                setSelectedBookingIds(newSelected);
+                              } else {
+                                const pageIds = paginatedBookings.map(b => b.id);
+                                setSelectedBookingIds(selectedBookingIds.filter(id => !pageIds.includes(id)));
                               }
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  const newSelected = [...selectedBookingIds];
-                                  paginatedBookings.forEach(b => {
-                                    if (!newSelected.includes(b.id)) newSelected.push(b.id);
-                                  });
-                                  setSelectedBookingIds(newSelected);
-                                } else {
-                                  const pageIds = paginatedBookings.map(b => b.id);
-                                  setSelectedBookingIds(selectedBookingIds.filter(id => !pageIds.includes(id)));
-                                }
-                              }}
-                              className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
-                            />
-                          </th>
-                        )}
+                            }}
+                            className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
+                          />
+                        </th>
                         <th className="py-3 px-5">Ref #</th>
                         <th className="py-3 px-4">Hotel Name</th>
                         <th className="py-3 px-4">Guest Name</th>
@@ -1587,7 +1585,7 @@ const HotelReservations: React.FC = () => {
                 <tbody className="divide-y divide-slate-100 text-[#334155] font-medium">
                   {finalFilteredBookings.length === 0 ? (
                     <tr>
-                      <td colSpan={activeTab === 'Reservations' ? (user?.role !== 'Viewer' ? 11 : 10) : 9} className="py-16 text-center text-[#64748b]">
+                      <td colSpan={activeTab === 'Reservations' ? 11 : 9} className="py-16 text-center text-[#64748b]">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <Bed className="w-8 h-8 text-slate-300" />
                           <p className="font-semibold text-slate-600 text-sm">No bookings found</p>
@@ -1614,22 +1612,20 @@ const HotelReservations: React.FC = () => {
                                 : "hover:bg-slate-50/70"
                             }`}
                           >
-                            {user?.role !== 'Viewer' && (
-                              <td className="py-4 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedBookingIds.includes(b.id)}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedBookingIds([...selectedBookingIds, b.id]);
-                                    } else {
-                                      setSelectedBookingIds(selectedBookingIds.filter(id => id !== b.id));
-                                    }
-                                  }}
-                                  className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
-                                />
-                              </td>
-                            )}
+                            <td className="py-4 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={selectedBookingIds.includes(b.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedBookingIds([...selectedBookingIds, b.id]);
+                                  } else {
+                                    setSelectedBookingIds(selectedBookingIds.filter(id => id !== b.id));
+                                  }
+                                }}
+                                className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
+                              />
+                            </td>
                             <td className="py-4 px-5 font-bold text-[#0f172a] font-sans tracking-wide">
                               {b.reservationNo}
                             </td>
