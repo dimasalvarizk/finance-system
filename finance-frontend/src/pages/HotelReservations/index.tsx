@@ -217,6 +217,7 @@ const HotelReservations: React.FC = () => {
   const { user } = useAuth();
   // State data utama
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // State navigasi tab
   const [activeTab, setActiveTab] = useState<'Reservations' | 'Requests'>('Reservations');
@@ -381,6 +382,8 @@ const HotelReservations: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching hotel bookings:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchSettings();
@@ -1222,8 +1225,54 @@ const HotelReservations: React.FC = () => {
             </button>
           </div>
 
-          {/* Metrics summary OR Inline Requests Filters */}
-          {activeTab === 'Reservations' ? (
+          {/* Skeleton Loading Effect or Actual Content */}
+          {loading ? (
+            <div className="space-y-6 animate-pulse select-none">
+              {/* Top Stat Cards Skeleton */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px] space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                      <div className="h-3 bg-slate-200 rounded-full w-8"></div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-7 bg-slate-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-slate-200 rounded w-1/3"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Table Card Skeleton */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+                <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                  <div className="h-5 bg-slate-200 rounded w-48"></div>
+                  <div className="flex space-x-3">
+                    <div className="h-9 bg-slate-200 rounded w-64"></div>
+                    <div className="h-9 bg-slate-200 rounded w-28"></div>
+                    <div className="h-9 bg-slate-200 rounded w-28"></div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {Array.from({ length: 7 }).map((_, i) => (
+                    <div key={i} className="h-12 bg-slate-100/80 rounded-lg w-full flex items-center justify-between px-5">
+                      <div className="h-4 bg-slate-200 rounded w-24"></div>
+                      <div className="h-4 bg-slate-200 rounded w-36"></div>
+                      <div className="h-4 bg-slate-200 rounded w-28"></div>
+                      <div className="h-4 bg-slate-200 rounded w-20"></div>
+                      <div className="h-4 bg-slate-200 rounded w-20"></div>
+                      <div className="h-4 bg-slate-200 rounded w-16"></div>
+                      <div className="h-4 bg-slate-200 rounded w-24"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Metrics summary OR Inline Requests Filters */}
+              {activeTab === 'Reservations' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 print:hidden">
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
@@ -1594,9 +1643,11 @@ const HotelReservations: React.FC = () => {
               )}
             </div>
           </div>
-          </div>
-          )}
-        </div>
+        </>
+      )}
+    </div>
+  )}
+</div>
       </main>
 
       {/* MODAL 1: PEMBUATAN RESERVASI BARU */}
