@@ -1089,8 +1089,18 @@ const Invoices: React.FC = () => {
   }, [filteredInvoices, totalPages, currentPage]);
 
   // Stats calculation
-  const approvedCount = invoices.filter(inv => inv && (inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid')).length;
-  const pendingCount = invoices.filter(inv => inv && inv.status && (inv.status.includes('Pending') || inv.status.includes('Approved') || inv.status === 'Pending Review')).length;
+  const approvedCount = invoices.filter(inv => inv && (inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid' || inv.status === 'Paid and closed')).length;
+  const pendingCount = invoices.filter(inv => inv && inv.status && (
+    inv.status === 'Pending' || 
+    inv.status === 'Pending Review' || 
+    inv.status === '0/3 Pending' || 
+    inv.status === '1/3 Approved' || 
+    inv.status === '2/3 Approved' || 
+    inv.status === '0/4 Pending' || 
+    inv.status === '1/4 Approved' || 
+    inv.status === '2/4 Approved' || 
+    inv.status === '3/4 Approved'
+  )).length;
   const overdueInvoicesList = invoices.filter(inv => inv && (inv.status === 'Overdue' || inv.status === 'Cancelled due to overdue' || isInvoiceOverdue(inv) || inv.status === 'Rejected'));
   const overdueCount = overdueInvoicesList.length;
 
@@ -1112,8 +1122,8 @@ const Invoices: React.FC = () => {
   const dynamicPending = pendingCount;
   const dynamicOverdue = overdueCount;
   const dynamicTotal = invoices.length;
-  const successRate = (dynamicApproved + dynamicPending) > 0
-    ? ((dynamicApproved / (dynamicApproved + dynamicPending)) * 100).toFixed(1)
+  const successRate = dynamicTotal > 0
+    ? ((dynamicApproved / dynamicTotal) * 100).toFixed(1)
     : '0.0';
 
   const handleGenerateInvoice = (e: React.FormEvent) => {
