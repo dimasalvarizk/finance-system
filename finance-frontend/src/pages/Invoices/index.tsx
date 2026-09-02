@@ -590,12 +590,11 @@ const Invoices: React.FC = () => {
     }
   };
 
-  const fetchInvoices = async () => {
-    setLoading(true);
+  const fetchInvoices = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     setError(null);
     try {
       const fetched = await getInvoices();
-      console.log('DEBUG: fetched invoices from API:', fetched);
       if (fetched) {
         setInvoices(fetched);
       }
@@ -616,23 +615,23 @@ const Invoices: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to fetch invoices, companies, team members, or company settings from API:', err);
-      setError('Failed to fetch invoices. Please check backend service connections.');
+      if (!isSilent) setError('Failed to fetch invoices. Please check backend service connections.');
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInvoices();
+    fetchInvoices(false);
 
-    // Auto-refresh data dari database MySQL setiap 10 detik agar 100% real-time
+    // Auto-refresh data dari database MySQL secara silent setiap 10 detik tanpa memicu loading flicker
     const interval = setInterval(() => {
-      fetchInvoices();
+      fetchInvoices(true);
     }, 10000);
 
-    // Refresh saat tab diklik / kembali aktif
+    // Refresh saat tab diklik / kembali aktif secara silent
     const handleFocus = () => {
-      fetchInvoices();
+      fetchInvoices(true);
     };
     window.addEventListener('focus', handleFocus);
 

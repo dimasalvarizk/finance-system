@@ -89,8 +89,8 @@ const Dashboard: React.FC = () => {
     };
   }, [selectedBranch, invoices, dbBranches]);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  const fetchDashboardData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     setError(null);
     try {
       const [fetchedInvoices, fetchedBranches] = await Promise.all([
@@ -101,23 +101,23 @@ const Dashboard: React.FC = () => {
       if (fetchedBranches) setDbBranches(fetchedBranches);
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
-      setError('Failed to fetch dashboard metrics. Please check server connections.');
+      if (!isSilent) setError('Failed to fetch dashboard metrics. Please check server connections.');
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(false);
 
-    // Auto-refresh data dari database MySQL setiap 10 detik agar 100% real-time
+    // Auto-refresh data dari database MySQL secara silent tanpa memicu loading flicker
     const interval = setInterval(() => {
-      fetchDashboardData();
+      fetchDashboardData(true);
     }, 10000);
 
-    // Refresh saat tab diklik / kembali aktif
+    // Refresh saat tab diklik / kembali aktif secara silent
     const handleFocus = () => {
-      fetchDashboardData();
+      fetchDashboardData(true);
     };
     window.addEventListener('focus', handleFocus);
 
