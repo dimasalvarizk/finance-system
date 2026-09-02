@@ -1378,10 +1378,9 @@ const HotelReservations: React.FC = () => {
                     <option value="All">All Statuses</option>
                     <option value="Confirmed">Confirmed</option>
                     <option value="Tentative">Tentative</option>
+                    <option value="Paid">Paid</option>
                     <option value="Overdue">Overdue</option>
-                    <option value="Cancelled due to overdue">Cancelled due to overdue</option>
                     <option value="Cancelled">Cancelled</option>
-                    <option value="Paid and closed">Paid and closed</option>
                   </select>
                 )}
 
