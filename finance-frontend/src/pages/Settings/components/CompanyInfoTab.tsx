@@ -180,7 +180,7 @@ const CompanyInfoTab: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 w-full">
 
       {/* 0. Company Identity Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
