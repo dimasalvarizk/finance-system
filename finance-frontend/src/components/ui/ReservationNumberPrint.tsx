@@ -50,7 +50,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
   const termsAndConditions = companySettings.termsAndConditions;
   
   return (
-    <div id="reservation-confirmation-print-area" className="hidden print:block w-full bg-white px-8 py-8 font-sans text-slate-800">
+    <div id="reservation-confirmation-print-area" className="hidden print:block w-full bg-white px-[44px] py-[38px] font-sans text-slate-800">
       <div className="w-full max-w-3xl mx-auto bg-white p-0 shadow-none border-none h-full flex flex-col justify-between" style={{ minHeight: '250mm' }}>
         <div>
           {/* Header */}
@@ -127,12 +127,12 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </div>
 
           {/* Bill From / Bill To */}
-          <section className="mt-2.5 grid grid-cols-2 gap-4">
+          <section className="mt-2.5 grid grid-cols-2 gap-5">
             <div>
-              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
                 BILL FROM
               </h2>
-              <div className="rounded-xl border border-slate-200 p-3 grid grid-cols-2 gap-y-2 gap-x-3 h-full bg-white content-start">
+              <div className="rounded-xl border border-slate-200 p-3 grid grid-cols-2 gap-y-2 gap-x-3 h-full bg-slate-50/80 content-start">
                 <div className="flex flex-col">
                   <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Employee Name
@@ -185,10 +185,10 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
             </div>
 
             <div>
-              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
                 BILL TO
               </h2>
-              <div className="rounded-xl border border-slate-200 p-3 grid grid-cols-2 gap-y-2 gap-x-3 h-full bg-white content-start">
+              <div className="rounded-xl border border-slate-200 p-3 grid grid-cols-2 gap-y-2 gap-x-3 h-full bg-slate-50/80 content-start">
                 <div className="flex flex-col">
                   <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Company Name
@@ -238,24 +238,24 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Itemized Charges */}
-          <section className="mt-4 font-sans">
-            <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+          <section className="mt-5 font-sans">
+            <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
               ITEMIZED CHARGES
             </h2>
             <div className="overflow-hidden border-t border-b border-slate-200">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 bg-white">
-                    <th className="text-left font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans">
+                    <th className="text-left font-bold text-slate-500 text-[8px] uppercase tracking-wider py-2 px-2 font-sans">
                       Description
                     </th>
-                    <th className="text-center font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-12">
+                    <th className="text-center font-bold text-slate-500 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-12">
                       Qty
                     </th>
-                    <th className="text-right font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-24">
+                    <th className="text-right font-bold text-slate-500 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-24">
                       Unit Price
                     </th>
-                    <th className="text-right font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-24">
+                    <th className="text-right font-bold text-slate-500 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-24">
                       Total
                     </th>
                   </tr>
@@ -283,49 +283,49 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Payment Instructions / Invoice Summary */}
-          <section className="mt-4 grid grid-cols-2 gap-4 font-sans">
+          <section className="mt-5 grid grid-cols-2 gap-5 font-sans">
             <div>
-              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
                 PAYMENT INSTRUCTIONS
               </h2>
-              <div className="rounded-xl border border-slate-200 p-3 space-y-1.5 bg-white h-full content-center">
+              <div className="rounded-xl border border-slate-200 p-3 space-y-1.5 bg-slate-50/80 h-full content-center">
                 <div className="flex items-center justify-between text-[9px]">
-                  <span className="text-slate-500 font-sans">Bank Name:</span>
+                  <span className="text-slate-400 font-sans">Bank Name:</span>
                   <span className="font-bold text-slate-900 font-sans">{companySettings.bankName}</span>
                 </div>
                 <div className="flex items-center justify-between text-[9px]">
-                  <span className="text-slate-500 font-sans">Account Name:</span>
+                  <span className="text-slate-400 font-sans">Account Name:</span>
                   <span className="font-bold text-slate-900 font-sans">{companySettings.accountName}</span>
                 </div>
                 <div className="flex items-center justify-between text-[9px]">
-                  <span className="text-slate-500 font-sans">IDR Account Number:</span>
+                  <span className="text-slate-400 font-sans">IDR Account Number:</span>
                   <span className="font-bold text-[#2563eb] font-sans">{companySettings.idrAccountNumber}</span>
                 </div>
                 <div className="flex items-center justify-between text-[9px]">
-                  <span className="text-slate-500 font-sans">USD Account Number:</span>
+                  <span className="text-slate-400 font-sans">USD Account Number:</span>
                   <span className="font-bold text-[#2563eb] font-sans">{companySettings.usdAccountNumber}</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
                 {isHotel ? 'INVOICE SUMMARY' : 'INVOICE SUMMARY'}
               </h2>
-              <div className="rounded-xl border border-slate-200 p-3 space-y-1.5 bg-white h-full flex flex-col justify-center">
+              <div className="rounded-xl border border-slate-200 p-3 space-y-1.5 bg-slate-50/80 h-full flex flex-col justify-center">
                 <div className="flex items-center justify-between text-[9.5px]">
-                  <span className="text-slate-500 font-sans">Subtotal</span>
+                  <span className="text-slate-400 font-sans">Subtotal</span>
                   <span className="font-bold text-slate-900 font-sans">
                     {details.subtotal}
                   </span>
                 </div>
                  <div className="flex items-center justify-between text-[9.5px]">
-                  <span className="text-slate-500 font-sans">Tax / VAT ({details.taxRate || 0}%)</span>
+                  <span className="text-slate-400 font-sans">Tax / VAT ({details.taxRate || 0}%)</span>
                   <span className="font-bold text-slate-900 font-sans">
                     {details.tax}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-2 mt-0.5 border-t border-slate-100">
+                <div className="flex items-center justify-between pt-2 mt-0.5 border-t border-slate-200">
                   <span className="text-[10px] font-bold text-slate-900 font-sans">Total Due</span>
                   <span className={`text-[12.5px] font-bold font-sans ${
                     isHotel 
@@ -340,12 +340,12 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Exchange Rate Card */}
-          <section className="mt-4 font-sans">
-            <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+          <section className="mt-5 font-sans">
+            <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
               EXCHANGE RATE
             </h2>
-            <div className="rounded-xl border border-slate-200 p-3 space-y-2.5 font-sans bg-white">
-              <div className="flex flex-col space-y-1.5 text-[9px] text-slate-500 pb-2 border-b border-slate-100">
+            <div className="rounded-xl border border-slate-200 p-3 space-y-2.5 font-sans bg-slate-50/80">
+              <div className="flex flex-col space-y-1.5 text-[9px] text-slate-500 pb-2 border-b border-slate-200">
                 {getExchangeRatesToShow(
                   details.currency || 'USD',
                   details.usdToIdrRate || 18025,
@@ -426,24 +426,24 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Notes / Terms & Conditions */}
-          <section className="mt-4 grid grid-cols-2 gap-4">
+          <section className="mt-5 grid grid-cols-2 gap-5">
             <div>
-              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
                 NOTES
               </h2>
               <ul className="space-y-0.5">
                 {notes.map((note: string, idx: number) => (
-                  <li key={idx} className="text-[8px] text-slate-600 leading-relaxed font-sans font-medium">
+                  <li key={idx} className="text-[8px] text-slate-500 leading-relaxed font-sans font-medium">
                     * {note}
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-700 uppercase mb-1.5 font-sans">
                 TERMS &amp; CONDITIONS
               </h2>
-              <p className="text-[8px] text-slate-600 leading-relaxed font-sans font-medium">
+              <p className="text-[8px] text-slate-500 leading-relaxed font-sans font-medium">
                 {termsAndConditions}
               </p>
             </div>
