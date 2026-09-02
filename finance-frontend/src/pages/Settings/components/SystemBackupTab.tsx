@@ -33,18 +33,50 @@ const SystemBackupTab: React.FC = () => {
 
   const isAuthorized = isSuperAdmin || isIT;
 
+  const addHistoryItem = (newItem: BackupHistoryItem) => {
+    setHistoryList((prev) => {
+      const filtered = prev.filter((x) => x.filename !== newItem.filename);
+      const updated = [newItem, ...filtered];
+      try {
+        localStorage.setItem('odst_backup_history', JSON.stringify(updated.slice(0, 50)));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
   const fetchHistory = async () => {
     setLoadingHistory(true);
+    let apiData: BackupHistoryItem[] = [];
     try {
       const data = await getBackupHistory();
-      if (Array.isArray(data)) {
-        setHistoryList(data);
+      if (Array.isArray(data) && data.length > 0) {
+        apiData = data;
       }
     } catch (e) {
       console.warn('Failed to load backup history from server:', e);
-    } finally {
-      setLoadingHistory(false);
     }
+
+    let localList: BackupHistoryItem[] = [];
+    try {
+      const localSaved = localStorage.getItem('odst_backup_history');
+      if (localSaved) {
+        localList = JSON.parse(localSaved);
+      }
+    } catch (e) {}
+
+    const map = new Map<string, BackupHistoryItem>();
+    [...apiData, ...localList].forEach((item) => {
+      if (item && item.filename) {
+        map.set(item.id || item.filename, item);
+      }
+    });
+
+    const merged = Array.from(map.values()).sort((a, b) => 
+      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+
+    setHistoryList(merged);
+    setLoadingHistory(false);
   };
 
   useEffect(() => {
@@ -126,7 +158,17 @@ const SystemBackupTab: React.FC = () => {
       downloadAnchor.click();
       downloadAnchor.remove();
 
-      // Log history to server
+      const newItem: BackupHistoryItem = {
+        id: `bkp_${Date.now()}`,
+        exportType: 'FULL_JSON',
+        filename,
+        recordCount: 18,
+        exportedBy: user?.name ? `${user.name} (${user.email || ''})` : 'System Admin',
+        createdAt: new Date().toISOString()
+      };
+      addHistoryItem(newItem);
+
+      // Log history to server in background
       try {
         await logBackupHistory({
           exportType: 'FULL_JSON',
@@ -134,9 +176,8 @@ const SystemBackupTab: React.FC = () => {
           recordCount: 18,
           backupPayload
         });
-        fetchHistory();
       } catch (logErr) {
-        console.warn('Failed to log backup history:', logErr);
+        console.warn('Failed to log backup history to backend:', logErr);
       }
 
       const timeNow = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -188,16 +229,25 @@ const SystemBackupTab: React.FC = () => {
       link.click();
       document.body.removeChild(link);
 
-      // Log to history audit log
+      const newItem: BackupHistoryItem = {
+        id: `bkp_${Date.now()}`,
+        exportType: `${type.toUpperCase()}_CSV`,
+        filename,
+        recordCount: data.length,
+        exportedBy: user?.name ? `${user.name} (${user.email || ''})` : 'System Admin',
+        createdAt: new Date().toISOString()
+      };
+      addHistoryItem(newItem);
+
+      // Log to history audit log backend
       try {
         await logBackupHistory({
           exportType: `${type.toUpperCase()}_CSV`,
           filename,
           recordCount: data.length
         });
-        fetchHistory();
       } catch (logErr) {
-        console.warn('Failed to log CSV export history:', logErr);
+        console.warn('Failed to log CSV export history to backend:', logErr);
       }
     } catch (err) {
       console.error('Error exporting CSV:', err);

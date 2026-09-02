@@ -53,10 +53,10 @@ export const connectDB = async () => {
     connection.release();
 
     // Initialize schema & seeds
-    if (!isVercel) {
+    try {
       await initializeDatabase();
-    } else {
-      console.log('Running on Vercel: Skipping schema initialization for setting-service');
+    } catch (dbInitErr) {
+      console.warn('Schema initialization warning for setting-service:', dbInitErr.message);
     }
   } catch (error) {
     console.error('MySQL connection/initialization failed for setting-service:', error.message);

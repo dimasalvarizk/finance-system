@@ -809,6 +809,24 @@ export const exportFullDatabaseBackup = async (req, res, next) => {
   }
 };
 
+const ensureBackupTable = async (pool) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS dst_backup_history (
+        id VARCHAR(50) PRIMARY KEY,
+        exportType VARCHAR(100) NOT NULL,
+        filename VARCHAR(255) NOT NULL,
+        recordCount INT DEFAULT 0,
+        exportedBy VARCHAR(255) NOT NULL,
+        backupPayload LONGTEXT DEFAULT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+  } catch (e) {
+    console.warn('Auto create dst_backup_history table warning:', e.message);
+  }
+};
+
 // ==========================================
 // 13. BACKUP HISTORY & AUDIT LOGS
 // ==========================================
@@ -816,6 +834,8 @@ export const logBackupHistory = async (req, res, next) => {
   const { exportType, filename, recordCount, backupPayload } = req.body;
   try {
     const pool = getPool();
+    await ensureBackupTable(pool);
+
     const backupId = `bkp_${Date.now()}`;
     const exportedBy = req.user ? `${req.user.name} (${req.user.email})` : 'System Admin';
 
@@ -835,7 +855,7 @@ export const logBackupHistory = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Backup history logged successfully',
-      data: { id: backupId, exportType, filename, recordCount, exportedBy }
+      data: { id: backupId, exportType, filename, recordCount, exportedBy, createdAt: new Date().toISOString() }
     });
   } catch (error) {
     next(error);
@@ -845,6 +865,8 @@ export const logBackupHistory = async (req, res, next) => {
 export const getBackupHistory = async (req, res, next) => {
   try {
     const pool = getPool();
+    await ensureBackupTable(pool);
+
     const [rows] = await pool.query(
       'SELECT id, exportType, filename, recordCount, exportedBy, createdAt FROM dst_backup_history ORDER BY createdAt DESC LIMIT 50'
     );
