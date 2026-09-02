@@ -248,8 +248,73 @@ const HotelReservations: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  // State Approval Workflow Modals
-  const [isConfirmApprovalOpen, setIsConfirmApprovalOpen] = useState(false);
+  // State pencarian, filter & seleksi multi-row
+  const [selectedBookingIds, setSelectedBookingIds] = useState<string[]>([]);
+
+  // Reset seleksi saat filter/tab berubah
+  useEffect(() => {
+    setSelectedBookingIds([]);
+  }, [searchQuery, statusFilter, requestStatusFilter, currentPage, activeTab]);
+
+  // Bulk Delete
+  const handleBulkDelete = async () => {
+    if (selectedBookingIds.length === 0) return;
+
+    if (user?.role === 'Viewer') {
+      triggerAlert('Access Denied', 'Viewer role cannot delete reservations.', 'error');
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to permanently delete the ${selectedBookingIds.length} selected reservation(s)? This action cannot be undone.`)) {
+      try {
+        await Promise.all(selectedBookingIds.map(id => deleteHotelReservation(id)));
+        setBookings(prev => prev.filter(b => !selectedBookingIds.includes(b.id)));
+        setSelectedBookingIds([]);
+        triggerAlert('Success', `Successfully deleted ${selectedBookingIds.length} reservation(s).`, 'success');
+      } catch (err) {
+        console.error('Failed to delete selected reservations:', err);
+        triggerAlert('Error', 'Failed to delete selected reservations.', 'error');
+      }
+    }
+  };
+
+  // Bulk Export CSV
+  const handleBulkExportCSV = () => {
+    const selectedBookings = bookings.filter(b => selectedBookingIds.includes(b.id));
+    if (selectedBookings.length === 0) return;
+
+    const rows = selectedBookings.map(b => {
+      const firstRoom = b.rooms[0] || { hotelName: '', checkIn: '', checkOut: '', roomType: '' };
+      const totalCost = calculateBookingTotal(b);
+      return [
+        b.reservationNo,
+        `"${(firstRoom.hotelName || '').replace(/"/g, '""')}"`,
+        `"${(b.guestName || '').replace(/"/g, '""')}"`,
+        firstRoom.checkIn,
+        firstRoom.checkOut,
+        `"${(firstRoom.roomType || '').replace(/"/g, '""')}"`,
+        b.dueDate || '',
+        b.status,
+        totalCost,
+        b.currency
+      ];
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + 
+      ['Reservation No,Hotel Name,Guest Name,Check In,Check Out,Room Type,Due Date,Status,Total Cost,Currency']
+        .concat(rows.map(e => e.join(',')))
+        .join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `hotel_reservations_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    triggerAlert('Success', `Exported ${selectedBookings.length} selected reservation(s) to CSV.`, 'success');
+  };
   const [confirmationNoInput, setConfirmationNoInput] = useState('');
   const [isApprovedSuccessOpen, setIsApprovedSuccessOpen] = useState(false);
   const [lastConfirmationNo, setLastConfirmationNo] = useState('');
@@ -1427,12 +1492,69 @@ const HotelReservations: React.FC = () => {
               </div>
             </div>
 
+            {/* Bulk Actions Banner */}
+            {selectedBookingIds.length > 0 && (
+              <div className="bg-[#f0f9ff] border-b border-[#e0f2fe] px-6 py-3 flex items-center justify-between transition-all animate-fade-in">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    onChange={() => setSelectedBookingIds([])}
+                    className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-[13px] text-[#1d4ed8] font-bold">
+                    {selectedBookingIds.length} selected
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleBulkExportCSV}
+                    className="px-4 py-1.5 bg-white border border-[#2563eb] text-[#2563eb] rounded-lg text-[12px] font-bold hover:bg-blue-50/50 transition-all cursor-pointer shadow-sm font-sans"
+                  >
+                    Export Selected
+                  </button>
+                  {user?.role !== 'Viewer' && (
+                    <button
+                      onClick={handleBulkDelete}
+                      className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-[12px] font-bold hover:bg-red-700 transition-all cursor-pointer shadow-sm font-sans"
+                    >
+                      Delete Selected
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="overflow-x-auto w-full text-slate-800">
               <table className="w-full text-left text-xs font-sans">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px] select-none">
                     {activeTab === 'Reservations' ? (
                       <>
+                        {user?.role !== 'Viewer' && (
+                          <th className="py-3 px-4 text-center w-10">
+                            <input
+                              type="checkbox"
+                              checked={
+                                paginatedBookings.length > 0 &&
+                                paginatedBookings.every(b => selectedBookingIds.includes(b.id))
+                              }
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  const newSelected = [...selectedBookingIds];
+                                  paginatedBookings.forEach(b => {
+                                    if (!newSelected.includes(b.id)) newSelected.push(b.id);
+                                  });
+                                  setSelectedBookingIds(newSelected);
+                                } else {
+                                  const pageIds = paginatedBookings.map(b => b.id);
+                                  setSelectedBookingIds(selectedBookingIds.filter(id => !pageIds.includes(id)));
+                                }
+                              }}
+                              className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
+                            />
+                          </th>
+                        )}
                         <th className="py-3 px-5">Ref #</th>
                         <th className="py-3 px-4">Hotel Name</th>
                         <th className="py-3 px-4">Guest Name</th>
@@ -1462,7 +1584,7 @@ const HotelReservations: React.FC = () => {
                 <tbody className="divide-y divide-slate-100 text-[#334155] font-medium">
                   {finalFilteredBookings.length === 0 ? (
                     <tr>
-                      <td colSpan={activeTab === 'Reservations' ? 10 : 9} className="py-16 text-center text-[#64748b]">
+                      <td colSpan={activeTab === 'Reservations' ? (user?.role !== 'Viewer' ? 11 : 10) : 9} className="py-16 text-center text-[#64748b]">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <Bed className="w-8 h-8 text-slate-300" />
                           <p className="font-semibold text-slate-600 text-sm">No bookings found</p>
@@ -1483,8 +1605,28 @@ const HotelReservations: React.FC = () => {
                               setSelectedBooking(b);
                               setIsDetailOpen(true);
                             }}
-                            className="hover:bg-slate-50/70 transition-colors cursor-pointer animate-fade-in"
+                            className={`transition-colors cursor-pointer animate-fade-in ${
+                              selectedBookingIds.includes(b.id)
+                                ? "bg-[#f0f9ff] hover:bg-[#e0f2fe]"
+                                : "hover:bg-slate-50/70"
+                            }`}
                           >
+                            {user?.role !== 'Viewer' && (
+                              <td className="py-4 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedBookingIds.includes(b.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedBookingIds([...selectedBookingIds, b.id]);
+                                    } else {
+                                      setSelectedBookingIds(selectedBookingIds.filter(id => id !== b.id));
+                                    }
+                                  }}
+                                  className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
+                                />
+                              </td>
+                            )}
                             <td className="py-4 px-5 font-bold text-[#0f172a] font-sans tracking-wide">
                               {b.reservationNo}
                             </td>
