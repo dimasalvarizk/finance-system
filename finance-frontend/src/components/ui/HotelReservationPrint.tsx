@@ -102,7 +102,7 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
             left: 0;
             top: 0;
             width: 100%;
-            padding: 5mm 6mm;
+            padding: 12mm 14mm;
             margin: 0;
             background: white !important;
             box-sizing: border-box;
@@ -114,7 +114,7 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
         }
       `}</style>
 
-      <div className="w-full mx-auto bg-white p-0 shadow-none border-none min-h-[250mm] flex flex-col justify-between text-xs leading-normal">
+      <div className="w-full mx-auto bg-white p-0 shadow-none border-none min-h-[265mm] flex flex-col justify-between text-xs leading-normal">
         <div>
           {/* Header */}
           <div className="pb-3 border-b border-slate-200">

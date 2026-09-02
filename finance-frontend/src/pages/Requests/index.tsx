@@ -2374,8 +2374,8 @@ const Requests: React.FC = () => {
         __html: `
         @media print {
           @page {
-            size: portrait;
-            margin: 6mm 10mm;
+            size: A4 portrait;
+            margin: 0 !important;
           }
           html, body, #root {
             height: 100% !important;
@@ -2395,13 +2395,15 @@ const Requests: React.FC = () => {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            max-width: 210mm !important;
             box-shadow: none !important;
             border: none !important;
             background: white !important;
-            padding: 0 !important;
+            padding: 12mm 14mm !important;
             margin: 0 !important;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
