@@ -64,7 +64,7 @@ export interface Booking {
   rooms: BookingRoom[];
   currency: 'USD' | 'SAR' | 'IDR';
   taxRate: number;
-  status: 'Confirmed' | 'Tentative' | 'Cancelled' | 'Paid and closed';
+  status: 'Confirmed' | 'Tentative' | 'Cancelled' | 'Paid and closed' | 'Pending';
   isPaid?: boolean;
   notes?: string;
   // Approval
@@ -435,9 +435,9 @@ const HotelReservations: React.FC = () => {
 
   // Statistik sesuai dengan database
   const stats = useMemo(() => {
-    const activeBookings = bookings.filter(b => b.status !== 'Cancelled');
+    const activeBookings = bookings.filter(b => b.status !== 'Cancelled' && !(b.type === 'Confirmation' && !b.approvedByKarim && b.status === 'Pending'));
     const totalReservations = activeBookings.length;
-    const confirmedCount = bookings.filter(b => b.status === 'Confirmed' || b.status === 'Paid and closed').length;
+    const confirmedCount = bookings.filter(b => b.status === 'Confirmed' || b.status === 'Paid and closed' || b.isPaid).length;
     const tentativeCount = bookings.filter(b => b.status === 'Tentative' && !isBookingOverdue(b)).length;
     const overdueCount = bookings.filter(b => isBookingOverdue(b)).length;
     const cancelledCount = bookings.filter(b => b.status === 'Cancelled' && !isBookingOverdue(b)).length;
@@ -469,17 +469,24 @@ const HotelReservations: React.FC = () => {
   // Penyaringan data berdasarkan tab aktif
   const tabFilteredBookings = useMemo(() => {
     if (activeTab === 'Reservations') {
-      return bookings.filter(b => b.type === 'Tentative' || b.status === 'Confirmed' || b.status === 'Cancelled');
+      // Tab Reservations: Tampilkan Confirmed, Tentative, Paid, Paid and closed, Overdue, Cancelled
+      // Sembunyikan request yang masih Pending yang belum di-approve
+      return bookings.filter(b => {
+        if (b.type === 'Confirmation' && !b.approvedByKarim && b.status === 'Pending') {
+          return false;
+        }
+        return true;
+      });
     }
-    // Tab Requests -> Filter berdasarkan requestStatusFilter
+    // Tab Requests -> Filter berdasarkan requestStatusFilter (Tampilkan SEMUA request tanpa terkecuali)
     return bookings.filter(b => {
       if (b.type !== 'Confirmation') return false;
       
       if (requestStatusFilter === 'Pending') {
-        return !b.approvedByKarim && b.status !== 'Cancelled';
+        return !b.approvedByKarim && b.status !== 'Cancelled' && b.status !== 'Paid and closed';
       }
       if (requestStatusFilter === 'Confirmed') {
-        return b.approvedByKarim === true;
+        return b.approvedByKarim === true || b.status === 'Confirmed' || b.status === 'Paid and closed';
       }
       if (requestStatusFilter === 'Rejected') {
         return b.status === 'Cancelled';
@@ -504,6 +511,8 @@ const HotelReservations: React.FC = () => {
           matchesStatus = b.status === 'Cancelled' && !isBookingOverdue(b);
         } else if (statusFilter === 'Tentative') {
           matchesStatus = b.status === 'Tentative' && !isBookingOverdue(b);
+        } else if (statusFilter === 'Paid and closed' || statusFilter === 'Paid') {
+          matchesStatus = b.status === 'Paid and closed' || b.isPaid === true;
         } else if (statusFilter !== 'All') {
           matchesStatus = b.status === statusFilter;
         }
@@ -1476,15 +1485,15 @@ const HotelReservations: React.FC = () => {
                                 }
                                 return (
                                   <span className={`inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide ${
-                                    b.status === 'Confirmed'
-                                      ? 'bg-[#dcfce7] text-[#15803d]'
-                                      : b.status === 'Paid and closed'
+                                    (b.status === 'Paid and closed' || b.isPaid)
                                       ? 'bg-[#dbeafe] text-[#1e40af]'
+                                      : b.status === 'Confirmed'
+                                      ? 'bg-[#dcfce7] text-[#15803d]'
                                       : b.status === 'Tentative'
                                       ? 'bg-[#fef3c7] text-[#d97706]'
                                       : 'bg-rose-50 text-rose-700'
                                   }`}>
-                                    {b.status.toUpperCase()}
+                                    {(b.status === 'Paid and closed' || b.isPaid) ? 'PAID' : b.status.toUpperCase()}
                                   </span>
                                 );
                               })()}
@@ -1511,7 +1520,11 @@ const HotelReservations: React.FC = () => {
                         );
                       } else {
                         // Tab Requests layout row
-                        const approvalStatus = b.status === 'Cancelled' ? 'Rejected' : (b.status === 'Paid and closed' ? 'Paid and closed' : (b.approvedByKarim ? 'Confirmed' : 'Pending'));
+                        const approvalStatus = b.status === 'Cancelled' 
+                          ? 'Rejected' 
+                          : (b.status === 'Paid and closed' || b.isPaid 
+                            ? 'Paid and closed' 
+                            : (b.approvedByKarim ? 'Confirmed' : 'Pending'));
                         return (
                           <tr
                             key={b.id}
