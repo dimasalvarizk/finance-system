@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Database, Download, ShieldCheck, Server, FileSpreadsheet, Lock, Clock, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { getInvoices, getCompanies } from '../../../services/invoiceService';
 import { getHotelReservations } from '../../../services/hotelReservationService';
@@ -24,12 +23,9 @@ const SystemBackupTab: React.FC = () => {
 
   if (!isAuthorized) {
     return (
-      <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center space-y-4 max-w-2xl mx-auto my-8">
-        <div className="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
-          <Lock className="w-7 h-7" />
-        </div>
-        <h3 className="text-lg font-extrabold text-rose-900 font-sans">Access Restricted</h3>
-        <p className="text-xs text-rose-700 font-medium leading-relaxed font-sans">
+      <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center space-y-4 max-w-2xl mx-auto my-8 font-sans">
+        <h3 className="text-lg font-extrabold text-rose-900">Access Restricted</h3>
+        <p className="text-xs text-rose-700 font-medium leading-relaxed">
           This system backup section is strictly restricted. Only <strong>Super Admin (Mr. Emad Moustafa)</strong> and <strong>IT Administrators (Ali & Dimas)</strong> are authorized to access and download full database backups.
         </p>
       </div>
@@ -169,18 +165,12 @@ const SystemBackupTab: React.FC = () => {
             Generate and download full database snapshot backups for offline disaster recovery. Access is strictly audited and limited to <strong>Super Admin (Mr. Emad Moustafa)</strong> and <strong>IT Administrators (Ali & Dimas)</strong>.
           </p>
         </div>
-        <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10 hidden md:block">
-          <ShieldCheck className="w-10 h-10 text-emerald-400" />
-        </div>
       </div>
 
       {/* Success Alert Banner */}
       {exportSuccessMessage && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 flex items-center justify-between text-xs font-bold animate-fade-in">
-          <div className="flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>{exportSuccessMessage}</span>
-          </div>
+          <span>{exportSuccessMessage}</span>
           <button 
             onClick={() => setExportSuccessMessage(null)} 
             className="text-emerald-600 hover:text-emerald-800 font-bold border-none bg-transparent cursor-pointer text-xs"
@@ -196,14 +186,9 @@ const SystemBackupTab: React.FC = () => {
         {/* Full Database Snapshot Card */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                <Database className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-800">Full System Backup (.json)</h3>
-                <p className="text-[11px] text-slate-400 font-medium">Includes Invoices, Reservations, Clients, and Settings</p>
-              </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-800">Full System Backup (.json)</h3>
+              <p className="text-[11px] text-slate-400 font-medium">Includes Invoices, Reservations, Clients, and Settings</p>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed font-sans">
               Exports a complete JSON payload containing all active ledger records, hotel reservations, client directory data, and exchange rate parameters for offline archival.
@@ -211,16 +196,14 @@ const SystemBackupTab: React.FC = () => {
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-[11px] text-slate-400 font-medium flex items-center space-x-1">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <div className="text-[11px] text-slate-400 font-medium">
               <span>{lastBackupTime ? `Last export: ${lastBackupTime}` : 'No export this session'}</span>
             </div>
             <button
               onClick={handleDownloadFullBackup}
               disabled={isExporting}
-              className="px-5 py-2.5 bg-[#1d2857] hover:bg-[#111827] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm flex items-center space-x-2 border-none disabled:opacity-50"
+              className="px-5 py-2.5 bg-[#1d2857] hover:bg-[#111827] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm border-none disabled:opacity-50"
             >
-              <Download className="w-4 h-4" />
               <span>{isExporting ? 'Generating Backup...' : 'Download Full Backup'}</span>
             </button>
           </div>
@@ -229,24 +212,19 @@ const SystemBackupTab: React.FC = () => {
         {/* Infrastructure & Cloud Backup Status */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-                <Server className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-800">Cloud Infrastructure Backup</h3>
-                <p className="text-[11px] text-slate-400 font-medium">Aiven Cloud DB & Vercel Deployment</p>
-              </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-800">Cloud Infrastructure Backup</h3>
+              <p className="text-[11px] text-slate-400 font-medium">Aiven Cloud DB & Vercel Deployment</p>
             </div>
             
             <div className="space-y-2 text-xs font-sans text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Aiven Point-in-Time Recovery:</span>
-                <span className="font-bold text-emerald-600">🟢 Active (Daily Logs)</span>
+                <span className="font-bold text-emerald-600">Active (Daily Logs)</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Vercel Code Deployments:</span>
-                <span className="font-bold text-blue-600">🟢 Synchronized (Git Main)</span>
+                <span className="font-bold text-blue-600">Synchronized (Git Main)</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Authorized IT Controllers:</span>
@@ -264,14 +242,9 @@ const SystemBackupTab: React.FC = () => {
 
       {/* Modular CSV Exports Section */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-            <FileSpreadsheet className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-extrabold text-slate-800">Individual Modular Data Exports (CSV)</h3>
-            <p className="text-[11px] text-slate-400 font-medium">Download specific datasets compatible with Microsoft Excel & Google Sheets</p>
-          </div>
+        <div>
+          <h3 className="text-sm font-extrabold text-slate-800">Individual Modular Data Exports (CSV)</h3>
+          <p className="text-[11px] text-slate-400 font-medium">Download specific datasets compatible with Microsoft Excel & Google Sheets</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -283,7 +256,6 @@ const SystemBackupTab: React.FC = () => {
               <div className="text-xs font-bold text-slate-800">Invoices & Ledger</div>
               <div className="text-[10px] text-slate-400">All invoice entries</div>
             </div>
-            <Download className="w-4 h-4 text-slate-400" />
           </button>
 
           <button
@@ -294,7 +266,6 @@ const SystemBackupTab: React.FC = () => {
               <div className="text-xs font-bold text-slate-800">Hotel Reservations</div>
               <div className="text-[10px] text-slate-400">Bookings & room data</div>
             </div>
-            <Download className="w-4 h-4 text-slate-400" />
           </button>
 
           <button
@@ -305,7 +276,6 @@ const SystemBackupTab: React.FC = () => {
               <div className="text-xs font-bold text-slate-800">Client Directory</div>
               <div className="text-[10px] text-slate-400">Companies & agencies</div>
             </div>
-            <Download className="w-4 h-4 text-slate-400" />
           </button>
         </div>
       </div>
