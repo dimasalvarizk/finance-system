@@ -3251,14 +3251,10 @@ const Invoices: React.FC = () => {
 
                 return (
                   <>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Billed</span>
                         <span className="text-[15px] font-extrabold text-slate-800">{formatPrice(rawAmt, currency)}</span>
-                      </div>
-                      <div className="bg-amber-50/60 p-3.5 rounded-xl border border-amber-100">
-                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Advance Deposit</span>
-                        <span className="text-[15px] font-extrabold text-amber-800">{formatPrice(advAmt, currency)}</span>
                       </div>
                       <div className="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">
                         <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">Total Paid</span>
