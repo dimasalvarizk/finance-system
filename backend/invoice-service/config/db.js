@@ -190,9 +190,28 @@ const initializeDatabase = async () => {
     `;
     await pool.query(createPaymentHistoryTableQuery);
 
+    // Ensure currency and proofUrl columns exist in dst_payment_history
     try {
-      await pool.query('ALTER TABLE dst_payment_history ADD COLUMN currency VARCHAR(10) DEFAULT "SAR", ADD COLUMN proofUrl LONGTEXT DEFAULT NULL');
-    } catch (alterPayErr) {}
+      await pool.query('SELECT currency FROM dst_payment_history LIMIT 1');
+    } catch (err) {
+      console.log('Adding currency column to dst_payment_history...');
+      try {
+        await pool.query("ALTER TABLE dst_payment_history ADD COLUMN currency VARCHAR(10) DEFAULT 'SAR'");
+      } catch (alterErr) {
+        console.error('Failed to add currency to dst_payment_history:', alterErr.message);
+      }
+    }
+
+    try {
+      await pool.query('SELECT proofUrl FROM dst_payment_history LIMIT 1');
+    } catch (err) {
+      console.log('Adding proofUrl column to dst_payment_history...');
+      try {
+        await pool.query("ALTER TABLE dst_payment_history ADD COLUMN proofUrl LONGTEXT DEFAULT NULL");
+      } catch (alterErr) {
+        console.error('Failed to add proofUrl to dst_payment_history:', alterErr.message);
+      }
+    }
 
     console.log("Table 'dst_payment_history' is verified/ready");
 

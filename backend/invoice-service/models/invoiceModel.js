@@ -297,6 +297,14 @@ export const addPaymentHistoryDB = async (paymentData) => {
   try {
     await connection.beginTransaction();
 
+    // Self-healing: Ensure currency and proofUrl columns exist in production table
+    try {
+      await connection.query("ALTER TABLE dst_payment_history ADD COLUMN currency VARCHAR(10) DEFAULT 'SAR'");
+    } catch (e) {}
+    try {
+      await connection.query("ALTER TABLE dst_payment_history ADD COLUMN proofUrl LONGTEXT DEFAULT NULL");
+    } catch (e) {}
+
     const insertQuery = `
       INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, currency, paymentDate, note, proofUrl, createdBy)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -397,6 +405,13 @@ export const updatePaymentHistoryDB = async (paymentId, paymentData) => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
+
+    try {
+      await connection.query("ALTER TABLE dst_payment_history ADD COLUMN currency VARCHAR(10) DEFAULT 'SAR'");
+    } catch (e) {}
+    try {
+      await connection.query("ALTER TABLE dst_payment_history ADD COLUMN proofUrl LONGTEXT DEFAULT NULL");
+    } catch (e) {}
 
     const [existing] = await connection.query('SELECT referenceId FROM dst_payment_history WHERE id = ?', [paymentId]);
     if (existing.length === 0) {
