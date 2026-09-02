@@ -32,6 +32,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://odstfin.io',
   'https://www.odstfin.io',
+  'https://finance-system-navy.vercel.app',
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(s => s.trim()) : [])
 ];
 
