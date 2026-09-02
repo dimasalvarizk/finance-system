@@ -1,11 +1,14 @@
 import express from 'express';
-import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof, addPaymentHistory, getPaymentHistory, updatePayment, deletePayment } from '../controllers/invoiceController.js';
+import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof, addPaymentHistory, getPaymentHistory, updatePayment, deletePayment, getAuditLogs } from '../controllers/invoiceController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(protect);
+
+// Audit logs route (Highly restricted)
+router.get('/audit-logs', getAuditLogs);
 
 // Get is public to all authenticated users, Create is restricted to platform operators (non-Viewers)
 router.get('/', getInvoices);

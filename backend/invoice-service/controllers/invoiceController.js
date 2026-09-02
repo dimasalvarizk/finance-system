@@ -1,5 +1,5 @@
 
-import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB, updatePaymentHistoryDB, deletePaymentHistoryDB } from '../models/invoiceModel.js';
+import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB, updatePaymentHistoryDB, deletePaymentHistoryDB, insertAuditLogDB, getAuditLogsDB } from '../models/invoiceModel.js';
 import { getPool } from '../config/db.js';
 
 const getAuthBaseUrl = (req) => {
@@ -211,6 +211,22 @@ export const deleteInvoices = async (req, res, next) => {
 
     await deleteInvoicesDB(ids);
 
+    // [AUDIT LOG] Log the deletion
+    try {
+      for (const id of ids) {
+        await insertAuditLogDB({
+          user_name: req.user ? req.user.name : 'System',
+          user_email: req.user ? req.user.email : null,
+          action_type: 'DELETE',
+          entity_type: 'INVOICE',
+          entity_reference: id,
+          details: { message: 'Invoice deleted via bulk delete operation' }
+        });
+      }
+    } catch (auditErr) {
+      console.error('Failed to write audit log for deleteInvoices:', auditErr.message);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Invoices deleted successfully'
@@ -295,6 +311,20 @@ export const updateInvoice = async (req, res, next) => {
         success: false,
         message: 'Invoice not found'
       });
+    }
+
+    // [AUDIT LOG] Log the edit
+    try {
+      await insertAuditLogDB({
+        user_name: req.user ? req.user.name : 'System',
+        user_email: req.user ? req.user.email : null,
+        action_type: 'EDIT',
+        entity_type: 'INVOICE',
+        entity_reference: id,
+        details: { message: 'Invoice data edited', updatedFields: { amount, company, status: '0/4 Pending' } }
+      });
+    } catch (auditErr) {
+      console.error('Failed to write audit log for updateInvoice:', auditErr.message);
     }
 
     res.status(200).json({
@@ -458,3 +488,29 @@ export const deletePayment = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get private audit logs
+// @route   GET /api/invoices/audit-logs
+// @access  Protected (Super Admin / Dimas / Ali only)
+export const getAuditLogs = async (req, res, next) => {
+  try {
+    const userName = req.user ? req.user.name : '';
+    // Very strict guard as per PRD
+    if (!userName.includes('Dimas') && !userName.includes('Ali') && userName !== 'Super Admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access Denied: You do not have permission to view audit logs.'
+      });
+    }
+
+    const logs = await getAuditLogsDB();
+    res.status(200).json({
+      success: true,
+      count: logs.length,
+      data: logs
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

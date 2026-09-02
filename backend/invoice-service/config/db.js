@@ -213,7 +213,21 @@ const initializeDatabase = async () => {
       }
     }
 
-    console.log("Table 'dst_payment_history' is verified/ready");
+    // Create dst_audit_logs table if not exists (Private Audit Log Feature)
+    const createAuditLogsTableQuery = `
+      CREATE TABLE IF NOT EXISTS dst_audit_logs (
+          id VARCHAR(50) PRIMARY KEY,
+          user_name VARCHAR(100) NOT NULL,
+          user_email VARCHAR(100),
+          action_type ENUM('EDIT', 'DELETE') NOT NULL,
+          entity_type VARCHAR(50) DEFAULT 'INVOICE',
+          entity_reference VARCHAR(100) NOT NULL,
+          details TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createAuditLogsTableQuery);
+    console.log("Table 'dst_audit_logs' is verified/ready");
 
   } catch (error) {
     console.error('Database schema failed for invoice-service:', error.message);

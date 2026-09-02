@@ -105,3 +105,8 @@ export const addCompanyCredit = async (code: string, creditAmount: number) => {
   const response = await companyAPI.put(`/${code}/credit`, { creditAmount });
   return response.data;
 };
+
+export const getAuditLogs = async () => {
+  const response = await invoiceAPI.get('/audit-logs');
+  return response.data.data;
+};

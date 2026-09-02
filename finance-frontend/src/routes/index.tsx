@@ -12,6 +12,7 @@ const Requests = lazy(() => import('../pages/Requests'));
 const Companies = lazy(() => import('../pages/Companies'));
 const Settings = lazy(() => import('../pages/Settings'));
 const HotelReservations = lazy(() => import('../pages/HotelReservations'));
+const AuditLog = lazy(() => import('../pages/AuditLog'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#f4f6fa]">
@@ -101,6 +102,14 @@ const AppRoutes: React.FC = () => {
             element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Settings />}
           />
           <Route path="/hotel-reservations" element={<HotelReservations />} />
+          <Route
+            path="/system-audit-hidden"
+            element={
+              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin')
+                ? <AuditLog />
+                : <Navigate to="/dashboard" replace />
+            }
+          />
         </Route>
 
         {/* Fallback */}

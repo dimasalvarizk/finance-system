@@ -470,3 +470,31 @@ export const deletePaymentHistoryDB = async (paymentId) => {
     connection.release();
   }
 };
+
+// --- PRIVATE AUDIT LOG ---
+export const insertAuditLogDB = async (logData) => {
+  const pool = getPool();
+  try {
+    const insertQuery = `
+      INSERT INTO dst_audit_logs (id, user_name, user_email, action_type, entity_type, entity_reference, details)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    await pool.query(insertQuery, [
+      `log_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      logData.user_name || 'System',
+      logData.user_email || null,
+      logData.action_type,
+      logData.entity_type || 'INVOICE',
+      logData.entity_reference,
+      logData.details ? JSON.stringify(logData.details) : null
+    ]);
+  } catch (err) {
+    console.error('Failed to insert audit log:', err.message);
+  }
+};
+
+export const getAuditLogsDB = async () => {
+  const pool = getPool();
+  const [rows] = await pool.query('SELECT * FROM dst_audit_logs ORDER BY created_at DESC LIMIT 500');
+  return rows;
+};
