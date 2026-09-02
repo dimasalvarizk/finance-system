@@ -5,8 +5,6 @@ services:
     build:
       context: ./backend/api-gateway
       dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
     expose:
       - "5000"
     environment:
@@ -138,8 +136,6 @@ services:
         - 'VITE_REQUEST_API_URL=https://api.odstfin.io'
         - 'VITE_SETTING_API_URL=https://api.odstfin.io'
         - 'VITE_HOTEL_RESERVATION_API_URL=https://api.odstfin.io'
-    ports:
-      - "80:80"
     expose:
       - "80"
     command: [ "nginx", "-g", "daemon off;" ]
