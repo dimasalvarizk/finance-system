@@ -158,7 +158,7 @@ const SystemBackupTab: React.FC = () => {
             <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-extrabold text-[11px] border border-emerald-500/30 uppercase tracking-wider">
               System Admin & IT Only
             </span>
-            <span className="text-slate-400 text-xs font-mono">Aiven MySQL Cloud Engine</span>
+            <span className="text-slate-400 text-xs font-mono">Cloud MySQL Engine</span>
           </div>
           <h2 className="text-xl font-black tracking-tight text-white">System Data Backup & Infrastructure Export</h2>
           <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
@@ -213,17 +213,17 @@ const SystemBackupTab: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-800">Cloud Infrastructure Backup</h3>
-              <p className="text-[11px] text-slate-400 font-medium">Aiven Cloud DB & Vercel Deployment</p>
+              <h3 className="text-sm font-extrabold text-slate-800">Hosting Infrastructure & Database Backup</h3>
+              <p className="text-[11px] text-slate-400 font-medium">Production Database & Web Server Deployment</p>
             </div>
             
             <div className="space-y-2 text-xs font-sans text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Aiven Point-in-Time Recovery:</span>
-                <span className="font-bold text-emerald-600">Active (Daily Logs)</span>
+                <span className="text-slate-500 font-medium">Database Backup Engine:</span>
+                <span className="font-bold text-emerald-600">Active (Auto Snapshot)</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Vercel Code Deployments:</span>
+                <span className="text-slate-500 font-medium">Server Deployments:</span>
                 <span className="font-bold text-blue-600">Synchronized (Git Main)</span>
               </div>
               <div className="flex justify-between items-center">
@@ -234,7 +234,7 @@ const SystemBackupTab: React.FC = () => {
           </div>
 
           <div className="pt-2 text-[11px] text-slate-400 italic">
-            * Automatic cloud backups run continuously on Aiven database infrastructure.
+            * Automatic cloud backups run continuously on your active production database server.
           </div>
         </div>
 
