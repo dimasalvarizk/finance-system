@@ -109,6 +109,22 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Auto-refresh data dari database MySQL setiap 10 detik agar 100% real-time
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 10000);
+
+    // Refresh saat tab diklik / kembali aktif
+    const handleFocus = () => {
+      fetchDashboardData();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const getFirstName = (fullName?: string) => {
