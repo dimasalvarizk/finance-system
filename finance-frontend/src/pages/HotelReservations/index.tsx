@@ -248,6 +248,13 @@ const HotelReservations: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  // State Approval Workflow Modals
+  const [isConfirmApprovalOpen, setIsConfirmApprovalOpen] = useState(false);
+  const [confirmationNoInput, setConfirmationNoInput] = useState('');
+  const [isApprovedSuccessOpen, setIsApprovedSuccessOpen] = useState(false);
+  const [lastConfirmationNo, setLastConfirmationNo] = useState('');
+  const [lastApprovedBooking, setLastApprovedBooking] = useState<Booking | null>(null);
+
   // State pencarian, filter & seleksi multi-row
   const [selectedBookingIds, setSelectedBookingIds] = useState<string[]>([]);
 
@@ -315,10 +322,6 @@ const HotelReservations: React.FC = () => {
 
     triggerAlert('Success', `Exported ${selectedBookings.length} selected reservation(s) to CSV.`, 'success');
   };
-  const [confirmationNoInput, setConfirmationNoInput] = useState('');
-  const [isApprovedSuccessOpen, setIsApprovedSuccessOpen] = useState(false);
-  const [lastConfirmationNo, setLastConfirmationNo] = useState('');
-  const [lastApprovedBooking, setLastApprovedBooking] = useState<Booking | null>(null);
 
   // State Alert Modal Custom
   const [alertModal, setAlertModal] = useState({
