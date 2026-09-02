@@ -1167,42 +1167,44 @@ const HotelReservations: React.FC = () => {
             </div>
 
             {/* Actions Button */}
-            {activeTab === 'Reservations' ? (
-              <div className="relative" ref={dropdownRef}>
+            {user?.role !== 'Viewer' && (
+              activeTab === 'Reservations' ? (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setIsDropdownOpen(prev => !prev)}
+                    className="flex items-center space-x-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-bold transition-all shadow-sm cursor-pointer border-none"
+                  >
+                    <Plus className="w-4 h-4 font-bold" />
+                    <span>New Reservation</span>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-40 animate-fade-in text-[13px]">
+                      <button
+                        onClick={() => openNewReservationForm('Tentative')}
+                        className="w-full text-left px-4 py-2.5 text-[#0f172a] hover:bg-slate-50 transition-colors font-medium border-none bg-transparent cursor-pointer"
+                      >
+                        Tentative
+                      </button>
+                      <button
+                        onClick={() => openNewReservationForm('Confirmation')}
+                        className="w-full text-left px-4 py-2.5 text-[#0f172a] hover:bg-slate-50 transition-colors font-medium border-t border-slate-100 border-x-none border-b-none bg-transparent cursor-pointer"
+                      >
+                        Confirmation
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <button
-                  onClick={() => setIsDropdownOpen(prev => !prev)}
+                  onClick={() => openNewReservationForm('Confirmation')}
                   className="flex items-center space-x-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-bold transition-all shadow-sm cursor-pointer border-none"
                 >
                   <Plus className="w-4 h-4 font-bold" />
-                  <span>New Reservation</span>
-                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>New Request</span>
                 </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-40 animate-fade-in text-[13px]">
-                    <button
-                      onClick={() => openNewReservationForm('Tentative')}
-                      className="w-full text-left px-4 py-2.5 text-[#0f172a] hover:bg-slate-50 transition-colors font-medium border-none bg-transparent cursor-pointer"
-                    >
-                      Tentative
-                    </button>
-                    <button
-                      onClick={() => openNewReservationForm('Confirmation')}
-                      className="w-full text-left px-4 py-2.5 text-[#0f172a] hover:bg-slate-50 transition-colors font-medium border-t border-slate-100 border-x-none border-b-none bg-transparent cursor-pointer"
-                    >
-                      Confirmation
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => openNewReservationForm('Confirmation')}
-                className="flex items-center space-x-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-bold transition-all shadow-sm cursor-pointer border-none"
-              >
-                <Plus className="w-4 h-4 font-bold" />
-                <span>New Request</span>
-              </button>
+              )
             )}
           </div>
 
