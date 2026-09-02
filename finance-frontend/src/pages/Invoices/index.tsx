@@ -3559,9 +3559,9 @@ const Invoices: React.FC = () => {
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setDeletingPaymentId(null)}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 animate-scale-up text-center font-sans space-y-4" onClick={(e) => e.stopPropagation()}>
             <div>
-              <h3 className="text-base font-bold text-slate-800">Hapus Riwayat Pembayaran?</h3>
+              <h3 className="text-base font-bold text-slate-800">Delete Payment Record?</h3>
               <p className="text-[12.5px] text-slate-500 mt-2 leading-relaxed">
-                Apakah Anda yakin ingin menghapus catatan pembayaran ini? Sisa saldo akan otomatis dihitung ulang.
+                Are you sure you want to delete this payment record? Remaining balance will be automatically recalculated.
               </p>
             </div>
             <div className="flex items-center justify-center space-x-3 pt-2">
@@ -3570,7 +3570,7 @@ const Invoices: React.FC = () => {
                 onClick={() => setDeletingPaymentId(null)}
                 className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[12px] rounded-xl transition-all cursor-pointer"
               >
-                Batal
+                Cancel
               </button>
               <button
                 type="button"
@@ -3578,7 +3578,7 @@ const Invoices: React.FC = () => {
                 disabled={isSubmittingPayment}
                 className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[12px] rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
               >
-                {isSubmittingPayment ? 'Menghapus...' : 'Hapus'}
+                {isSubmittingPayment ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
