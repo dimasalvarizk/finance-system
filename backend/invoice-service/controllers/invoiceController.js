@@ -1,5 +1,5 @@
 
-import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB } from '../models/invoiceModel.js';
+import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB, updatePaymentHistoryDB, deletePaymentHistoryDB } from '../models/invoiceModel.js';
 import { getPool } from '../config/db.js';
 
 const getAuthBaseUrl = (req) => {
@@ -414,6 +414,45 @@ export const getPaymentHistory = async (req, res, next) => {
       success: true,
       count: history.length,
       data: history
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updatePayment = async (req, res, next) => {
+  const { paymentId } = req.params;
+  const { amount, currency, paymentDate, note, proofUrl } = req.body;
+  try {
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
+    }
+
+    await updatePaymentHistoryDB(paymentId, {
+      amount: numericAmount,
+      currency: currency || 'SAR',
+      paymentDate,
+      note,
+      proofUrl
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment updated successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deletePayment = async (req, res, next) => {
+  const { paymentId } = req.params;
+  try {
+    await deletePaymentHistoryDB(paymentId);
+    res.status(200).json({
+      success: true,
+      message: 'Payment deleted successfully'
     });
   } catch (error) {
     next(error);

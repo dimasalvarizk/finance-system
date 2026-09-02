@@ -91,6 +91,16 @@ export const getInvoicePayments = async (invoiceNo: string) => {
   return response.data.data;
 };
 
+export const updateInvoicePayment = async (paymentId: string, paymentData: { amount: number; currency?: string; paymentDate: string; note?: string; proofUrl?: string }) => {
+  const response = await invoiceAPI.put(`/payments/${paymentId}`, paymentData);
+  return response.data;
+};
+
+export const deleteInvoicePayment = async (paymentId: string) => {
+  const response = await invoiceAPI.delete(`/payments/${paymentId}`);
+  return response.data;
+};
+
 export const addCompanyCredit = async (code: string, creditAmount: number) => {
   const response = await companyAPI.put(`/${code}/credit`, { creditAmount });
   return response.data;

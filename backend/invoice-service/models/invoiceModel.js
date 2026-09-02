@@ -361,3 +361,97 @@ export const getPaymentHistoryDB = async (referenceId, moduleType = 'CONFIRMATIO
   );
   return rows;
 };
+
+const recalculateInvoiceBalance = async (connection, referenceId) => {
+  const [invoiceRows] = await connection.query('SELECT * FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [referenceId, referenceId]);
+  if (invoiceRows.length > 0) {
+    const inv = invoiceRows[0];
+    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const advPayment = parseFloat(inv.advancePayment || 0);
+
+    const [sumRows] = await connection.query(
+      "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
+      [referenceId]
+    );
+    const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
+    const newRemaining = Math.max(0, rawAmt - advPayment - totalInstallments);
+
+    let newStatus = inv.status;
+    if (newRemaining <= 0) {
+      newStatus = 'FULLY_PAID';
+    } else if (totalInstallments > 0) {
+      newStatus = 'PARTIAL';
+    } else if (advPayment > 0) {
+      newStatus = 'DEPOSIT_PAID';
+    }
+
+    await connection.query(
+      'UPDATE dst_invoices SET remainingBalance = ?, status = ? WHERE invoiceNo = ? OR id = ?',
+      [newRemaining, newStatus, referenceId, referenceId]
+    );
+  }
+};
+
+export const updatePaymentHistoryDB = async (paymentId, paymentData) => {
+  const pool = getPool();
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const [existing] = await connection.query('SELECT referenceId FROM dst_payment_history WHERE id = ?', [paymentId]);
+    if (existing.length === 0) {
+      throw new Error('Payment record not found');
+    }
+    const referenceId = existing[0].referenceId;
+
+    await connection.query(
+      `UPDATE dst_payment_history 
+       SET amount = ?, currency = ?, paymentDate = ?, note = ?, proofUrl = ?
+       WHERE id = ?`,
+      [
+        paymentData.amount,
+        paymentData.currency || 'SAR',
+        paymentData.paymentDate,
+        paymentData.note || null,
+        paymentData.proofUrl || null,
+        paymentId
+      ]
+    );
+
+    await recalculateInvoiceBalance(connection, referenceId);
+
+    await connection.commit();
+    return true;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
+export const deletePaymentHistoryDB = async (paymentId) => {
+  const pool = getPool();
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const [existing] = await connection.query('SELECT referenceId FROM dst_payment_history WHERE id = ?', [paymentId]);
+    if (existing.length === 0) {
+      throw new Error('Payment record not found');
+    }
+    const referenceId = existing[0].referenceId;
+
+    await connection.query('DELETE FROM dst_payment_history WHERE id = ?', [paymentId]);
+
+    await recalculateInvoiceBalance(connection, referenceId);
+
+    await connection.commit();
+    return true;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};

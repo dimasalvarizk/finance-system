@@ -6,7 +6,7 @@ import StatCard from '../../components/ui/StatCard';
 import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
-import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments } from '../../services/invoiceService';
+import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments, updateInvoicePayment, deleteInvoicePayment } from '../../services/invoiceService';
 import { createRequest } from '../../services/requestService';
 import { getExchangeRates, getServices, getTeamMembers, getTaxSetting, getCompanySetting } from '../../services/settingService';
 import { useAuth } from '../../context/AuthContext';
@@ -505,7 +505,10 @@ const Invoices: React.FC = () => {
     }
   };
 
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
+
   const handleOpenAddPayment = () => {
+    setEditingPaymentId(null);
     setAddPayAmount('');
     setAddPayCurrency(paymentHistoryModal.invoice?.currency || 'SAR');
     setAddPayDate(new Date().toISOString().split('T')[0]);
@@ -516,6 +519,34 @@ const Invoices: React.FC = () => {
     setIsAddPaymentModalOpen(true);
   };
 
+  const handleOpenEditPayment = (pay: any) => {
+    setEditingPaymentId(pay.id);
+    setAddPayAmount(String(pay.amount || ''));
+    setAddPayCurrency(pay.currency || paymentHistoryModal.invoice?.currency || 'SAR');
+    setAddPayDate(pay.paymentDate ? pay.paymentDate.split('T')[0] : new Date().toISOString().split('T')[0]);
+    setAddPayNote(pay.note || '');
+    setAddPayProof(pay.proofUrl || '');
+    setAddPayProofName(pay.proofUrl ? 'Existing_Proof_Attachment' : '');
+    setSaveOverpaymentCredit(false);
+    setIsAddPaymentModalOpen(true);
+  };
+
+  const handleDeletePayment = async (payId: string) => {
+    if (!paymentHistoryModal.invoice) return;
+    if (!window.confirm('Are you sure you want to delete this payment record? Balance will be recalculated.')) return;
+
+    try {
+      await deleteInvoicePayment(payId);
+      triggerAlert('Success', 'Payment deleted successfully!', 'success');
+      const history = await getInvoicePayments(paymentHistoryModal.invoice.invoiceNo);
+      setPaymentHistoryList(history || []);
+      await fetchInvoices(true);
+    } catch (err: any) {
+      console.error('Failed to delete payment:', err);
+      triggerAlert('Error', 'Failed to delete payment record.', 'info');
+    }
+  };
+
   const handleAddPaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!paymentHistoryModal.invoice || !addPayAmount || !addPayDate) return;
@@ -524,25 +555,37 @@ const Invoices: React.FC = () => {
 
     setIsSubmittingPayment(true);
     try {
-      await addInvoicePayment(paymentHistoryModal.invoice.invoiceNo, {
-        amount: numAmt,
-        currency: addPayCurrency,
-        paymentDate: addPayDate,
-        note: addPayNote,
-        proofUrl: addPayProof || undefined,
-        saveOverpaymentCredit,
-        companyCode: paymentHistoryModal.invoice.companyCode
-      });
+      if (editingPaymentId) {
+        await updateInvoicePayment(editingPaymentId, {
+          amount: numAmt,
+          currency: addPayCurrency,
+          paymentDate: addPayDate,
+          note: addPayNote,
+          proofUrl: addPayProof || undefined
+        });
+        triggerAlert('Success', 'Payment updated successfully!', 'success');
+      } else {
+        await addInvoicePayment(paymentHistoryModal.invoice.invoiceNo, {
+          amount: numAmt,
+          currency: addPayCurrency,
+          paymentDate: addPayDate,
+          note: addPayNote,
+          proofUrl: addPayProof || undefined,
+          saveOverpaymentCredit,
+          companyCode: paymentHistoryModal.invoice.companyCode
+        });
+        triggerAlert('Success', 'Payment recorded successfully!', 'success');
+      }
 
-      triggerAlert('Success', 'Payment recorded successfully!', 'success');
       setIsAddPaymentModalOpen(false);
+      setEditingPaymentId(null);
       
       // Refresh history and invoices list
       const history = await getInvoicePayments(paymentHistoryModal.invoice.invoiceNo);
       setPaymentHistoryList(history || []);
       await fetchInvoices(true);
     } catch (err: any) {
-      console.error('Failed to record payment:', err);
+      console.error('Failed to record/update payment:', err);
       triggerAlert('Error', err.response?.data?.message || 'Failed to record payment.', 'info');
     } finally {
       setIsSubmittingPayment(false);
@@ -3254,12 +3297,13 @@ const Invoices: React.FC = () => {
                             <th className="px-4 py-2.5">Amount</th>
                             <th className="px-4 py-2.5">Recorded By</th>
                             <th className="px-4 py-2.5">Proof</th>
+                            <th className="px-4 py-2.5 text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {loadingHistory ? (
                             <tr>
-                              <td colSpan={4} className="px-4 py-6 text-center text-slate-400 text-[12px] animate-pulse">
+                              <td colSpan={5} className="px-4 py-6 text-center text-slate-400 text-[12px] animate-pulse">
                                 Loading payment history...
                               </td>
                             </tr>
@@ -3291,11 +3335,31 @@ const Invoices: React.FC = () => {
                                     <span className="text-slate-300 font-mono text-[11px]">-</span>
                                   )}
                                 </td>
+                                <td className="px-4 py-3 text-right space-x-1">
+                                  {canAddPayment && (
+                                    <>
+                                      <button
+                                        onClick={() => handleOpenEditPayment(pay)}
+                                        title="Edit Payment"
+                                        className="p-1 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-600 transition-all inline-flex items-center"
+                                      >
+                                        <Edit3 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeletePayment(pay.id)}
+                                        title="Delete Payment"
+                                        className="p-1 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all inline-flex items-center"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </>
+                                  )}
+                                </td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={4} className="px-4 py-6 text-center text-slate-400 text-[12px]">
+                              <td colSpan={5} className="px-4 py-6 text-center text-slate-400 text-[12px]">
                                 No installment payments recorded yet.
                               </td>
                             </tr>
@@ -3311,12 +3375,12 @@ const Invoices: React.FC = () => {
         </div>
       )}
 
-      {/* Add Payment Sub-Modal */}
+      {/* Add / Edit Payment Sub-Modal */}
       {isAddPaymentModalOpen && paymentHistoryModal.invoice && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsAddPaymentModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-scale-up font-sans" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f]">Record New Payment</h3>
+              <h3 className="text-[16px] font-bold text-[#0c0d0f]">{editingPaymentId ? 'Edit Payment Record' : 'Record New Payment'}</h3>
               <button onClick={() => setIsAddPaymentModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
