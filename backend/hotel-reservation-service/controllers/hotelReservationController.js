@@ -267,6 +267,17 @@ export const updateStatus = async (req, res, next) => {
   }
 };
 
+// 5. Delete reservation
+export const deleteReservation = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const { id } = req.params;
+
+    const [existing] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Reservation not found' });
+    }
+
     await pool.query('DELETE FROM dst_hotel_reservations WHERE id = ?', [id]);
     res.status(200).json({ success: true, message: 'Reservation deleted successfully' });
   } catch (error) {
