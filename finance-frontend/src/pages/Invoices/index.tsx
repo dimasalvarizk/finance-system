@@ -1,14 +1,12 @@
 
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import StatCard from '../../components/ui/StatCard';
-import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload } from 'lucide-react';
+import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, DollarSign } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
-import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof } from '../../services/invoiceService';
+import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments } from '../../services/invoiceService';
 import { createRequest } from '../../services/requestService';
 import { getExchangeRates, getServices, getTeamMembers, getTaxSetting, getCompanySetting } from '../../services/settingService';
 import { useAuth } from '../../context/AuthContext';
@@ -26,6 +24,8 @@ export interface Invoice {
   usdToIdrRate?: number;
   sarToIdrRate?: number;
   dueDate?: string;
+  advancePayment?: number;
+  remainingBalance?: number;
   items?: {
     description: string;
     qty: number;
@@ -474,6 +474,72 @@ const Invoices: React.FC = () => {
   const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
   const [editInvoiceId, setEditInvoiceId] = useState<string | null>(null);
   const [globalTaxRate, setGlobalTaxRate] = useState<number>(0);
+
+  // Advance Payment & Payment History States
+  const [formHasAdvancePayment, setFormHasAdvancePayment] = useState(false);
+  const [formAdvancePayment, setFormAdvancePayment] = useState('');
+  const [paymentHistoryModal, setPaymentHistoryModal] = useState<{ isOpen: boolean; invoice: Invoice | null }>({ isOpen: false, invoice: null });
+  const [paymentHistoryList, setPaymentHistoryList] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
+  const [addPayAmount, setAddPayAmount] = useState('');
+  const [addPayDate, setAddPayDate] = useState('');
+  const [addPayNote, setAddPayNote] = useState('');
+  const [saveOverpaymentCredit, setSaveOverpaymentCredit] = useState(false);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+
+  const openPaymentHistoryModal = async (inv: Invoice) => {
+    setPaymentHistoryModal({ isOpen: true, invoice: inv });
+    setLoadingHistory(true);
+    try {
+      const history = await getInvoicePayments(inv.invoiceNo);
+      setPaymentHistoryList(history || []);
+    } catch (err) {
+      console.error('Failed to load payment history:', err);
+      setPaymentHistoryList([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleOpenAddPayment = () => {
+    setAddPayAmount('');
+    setAddPayDate(new Date().toISOString().split('T')[0]);
+    setAddPayNote('');
+    setSaveOverpaymentCredit(false);
+    setIsAddPaymentModalOpen(true);
+  };
+
+  const handleAddPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentHistoryModal.invoice || !addPayAmount || !addPayDate) return;
+    const numAmt = parseFloat(addPayAmount);
+    if (isNaN(numAmt) || numAmt <= 0) return;
+
+    setIsSubmittingPayment(true);
+    try {
+      await addInvoicePayment(paymentHistoryModal.invoice.invoiceNo, {
+        amount: numAmt,
+        paymentDate: addPayDate,
+        note: addPayNote,
+        saveOverpaymentCredit,
+        companyCode: paymentHistoryModal.invoice.companyCode
+      });
+
+      triggerAlert('Success', 'Payment recorded successfully!', 'success');
+      setIsAddPaymentModalOpen(false);
+      
+      // Refresh history and invoices list
+      const history = await getInvoicePayments(paymentHistoryModal.invoice.invoiceNo);
+      setPaymentHistoryList(history || []);
+      await fetchInvoices(true);
+    } catch (err: any) {
+      console.error('Failed to record payment:', err);
+      triggerAlert('Error', err.response?.data?.message || 'Failed to record payment.', 'info');
+    } finally {
+      setIsSubmittingPayment(false);
+    }
+  };
 
   // File Upload State & Reference for Payment Proof
   const [uploadingInvoiceNo, setUploadingInvoiceNo] = useState<string | null>(null);
@@ -1160,6 +1226,9 @@ const Invoices: React.FC = () => {
       return;
     }
 
+    const parsedAdv = formHasAdvancePayment ? (parseFloat(formAdvancePayment) || 0) : 0;
+    const initialRemaining = Math.max(0, calculatedTotal - parsedAdv);
+
     const newInvoice: Invoice = {
       invoiceNo: formInvoiceNo,
       company: selectedCompany.name,
@@ -1176,6 +1245,8 @@ const Invoices: React.FC = () => {
       taxRate: globalTaxRate,
       agent: formAgent || undefined,
       currency: formCurrency,
+      advancePayment: parsedAdv,
+      remainingBalance: initialRemaining
     };
 
     const saveInvoice = async () => {
@@ -1823,26 +1894,59 @@ const Invoices: React.FC = () => {
                                 return 'N/A';
                               })()}
                             </td>
-                            <td className="px-6 py-3.5">
-                              {(() => {
-                                const isOverdue = isInvoiceOverdue(inv);
-                                if (isOverdue) {
-                                  return (
-                                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]">
-                                      OVERDUE
-                                    </span>
-                                  );
-                                }
-                                return (
-                                  <span
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)}`}
-                                  >
-                                    {inv.status}
-                                  </span>
-                                );
-                              })()}
-                            </td>
-                            <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                             <td className="px-6 py-3.5">
+                               {(() => {
+                                 const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                                 const advAmt = parseFloat(String(inv.advancePayment || 0));
+                                 const remaining = inv.remainingBalance !== undefined && inv.remainingBalance !== null 
+                                   ? parseFloat(String(inv.remainingBalance)) 
+                                   : Math.max(0, rawAmt - advAmt);
+                                 
+                                 const isOverdue = inv.dueDate && new Date(inv.dueDate) < new Date(new Date().toISOString().split('T')[0]);
+
+                                 if (inv.status === 'FULLY_PAID' || inv.status === 'Paid' || (remaining <= 0 && rawAmt > 0)) {
+                                   return (
+                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider font-sans">
+                                       🟢 Fully Paid
+                                     </span>
+                                   );
+                                 }
+                                 if (inv.status === 'PARTIAL' || (remaining < rawAmt - advAmt && remaining > 0)) {
+                                   return (
+                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider font-sans">
+                                       🔵 Partial Payment
+                                     </span>
+                                   );
+                                 }
+                                 if (advAmt > 0 && remaining > 0) {
+                                   return (
+                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider font-sans">
+                                       🟡 Deposit Paid
+                                     </span>
+                                   );
+                                 }
+                                 if (isOverdue && remaining > 0) {
+                                   return (
+                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider font-sans">
+                                       🔴 Overdue
+                                     </span>
+                                   );
+                                 }
+                                 return (
+                                   <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)}`}>
+                                     {inv.status}
+                                   </span>
+                                 );
+                               })()}
+                             </td>
+                             <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                               <button
+                                 onClick={() => openPaymentHistoryModal(inv)}
+                                 title="Payment History & Balance Tracking"
+                                 className="p-1 hover:bg-amber-50 rounded text-amber-600 hover:text-amber-700 transition-all cursor-pointer"
+                               >
+                                 <DollarSign className="w-4 h-4" />
+                               </button>
                               {inv.status === 'Paid' ? (
                                 inv.paymentAttachment ? (
                                   <button
@@ -2608,6 +2712,55 @@ const Invoices: React.FC = () => {
                         {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * (1 + ((editInvoiceId ? (invoices.find(i => i.invoiceNo === editInvoiceId)?.taxRate || 0) : globalTaxRate) / 100)), formCurrency)}
                       </span>
                     </div>
+
+                    {/* Advance Payment (Deposit) Toggle & Input */}
+                    <div className="pt-2 space-y-2 border-t border-[#e2e8f0]">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[12px] font-bold text-[#0c0d0f] font-sans">Has Advance Payment?</span>
+                        <div className="flex items-center space-x-3 text-[12px] font-semibold">
+                          <label className="flex items-center space-x-1 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="hasAdvance"
+                              checked={formHasAdvancePayment}
+                              onChange={() => setFormHasAdvancePayment(true)}
+                              className="text-[#2563eb] focus:ring-[#2563eb]"
+                            />
+                            <span>Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-1 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="hasAdvance"
+                              checked={!formHasAdvancePayment}
+                              onChange={() => {
+                                setFormHasAdvancePayment(false);
+                                setFormAdvancePayment('');
+                              }}
+                              className="text-[#2563eb] focus:ring-[#2563eb]"
+                            />
+                            <span>No</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {formHasAdvancePayment && (
+                        <div className="pt-1 space-y-1">
+                          <label className="block text-[10px] font-semibold text-[#94a3b8]">
+                            Advance Payment Amount ({formCurrency})
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            placeholder="Enter DP / Deposit amount..."
+                            value={formAdvancePayment}
+                            onChange={(e) => setFormAdvancePayment(e.target.value)}
+                            className="w-full px-3 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-bold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2994,6 +3147,247 @@ const Invoices: React.FC = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment History & Installment Tracking Modal */}
+      {paymentHistoryModal.isOpen && paymentHistoryModal.invoice && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setPaymentHistoryModal({ isOpen: false, invoice: null })}>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-scale-up font-sans max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div>
+                <h3 className="text-[17px] font-bold text-[#0c0d0f]">
+                  Payment History & Balance Management
+                </h3>
+                <p className="text-[12px] text-[#64748b] font-medium">
+                  Confirmation #{paymentHistoryModal.invoice.invoiceNo} · {paymentHistoryModal.invoice.company}
+                </p>
+              </div>
+              <button
+                onClick={() => setPaymentHistoryModal({ isOpen: false, invoice: null })}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6 overflow-y-auto">
+              
+              {/* Metric Summary Cards */}
+              {(() => {
+                const inv = paymentHistoryModal.invoice!;
+                const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                const advAmt = parseFloat(String(inv.advancePayment || 0));
+                const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                const totalPaidSoFar = advAmt + totalInstallments;
+                const remaining = Math.max(0, rawAmt - totalPaidSoFar);
+                const currency = inv.currency || 'USD';
+
+                const canAddPayment = ['4/4 Approved', 'Approved', 'FULLY_PAID', 'PARTIAL', 'DEPOSIT_PAID'].includes(inv.status);
+
+                return (
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Billed</span>
+                        <span className="text-[15px] font-extrabold text-slate-800">{formatPrice(rawAmt, currency)}</span>
+                      </div>
+                      <div className="bg-amber-50/60 p-3.5 rounded-xl border border-amber-100">
+                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Advance Deposit</span>
+                        <span className="text-[15px] font-extrabold text-amber-800">{formatPrice(advAmt, currency)}</span>
+                      </div>
+                      <div className="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">
+                        <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">Total Paid</span>
+                        <span className="text-[15px] font-extrabold text-blue-800">{formatPrice(totalPaidSoFar, currency)}</span>
+                      </div>
+                      <div className="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-100">
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Remaining Due</span>
+                        <span className="text-[15px] font-extrabold text-emerald-800">{formatPrice(remaining, currency)}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="flex justify-between items-center pt-2">
+                      <h4 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider">Installments Ledger</h4>
+                      {canAddPayment ? (
+                        <button
+                          onClick={handleOpenAddPayment}
+                          className="px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[12px] rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Payment</span>
+                        </button>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-lg border border-amber-200">
+                          🔒 Add payment unlocks after Level 4 Approval
+                        </span>
+                      )}
+                    </div>
+
+                    {/* History Table */}
+                    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                      <table className="w-full text-left text-[12.5px]">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                          <tr>
+                            <th className="px-4 py-2.5">Date</th>
+                            <th className="px-4 py-2.5">Amount</th>
+                            <th className="px-4 py-2.5">Recorded By</th>
+                            <th className="px-4 py-2.5">Note</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {loadingHistory ? (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-6 text-center text-slate-400 text-[12px] animate-pulse">
+                                Loading payment history...
+                              </td>
+                            </tr>
+                          ) : paymentHistoryList.length > 0 ? (
+                            paymentHistoryList.map((pay, pIdx) => (
+                              <tr key={pay.id || pIdx} className="hover:bg-slate-50/50">
+                                <td className="px-4 py-3 font-semibold text-slate-700">
+                                  {pay.paymentDate ? pay.paymentDate.split('T')[0] : 'N/A'}
+                                </td>
+                                <td className="px-4 py-3 font-bold text-emerald-600">
+                                  {formatPrice(pay.amount, currency)}
+                                </td>
+                                <td className="px-4 py-3 text-slate-600 font-medium">
+                                  {pay.createdBy || 'System'}
+                                </td>
+                                <td className="px-4 py-3 text-slate-500 italic">
+                                  {pay.note || '-'}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-6 text-center text-slate-400 text-[12px]">
+                                No installment payments recorded yet.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Payment Sub-Modal */}
+      {isAddPaymentModalOpen && paymentHistoryModal.invoice && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsAddPaymentModalOpen(false)}>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-scale-up font-sans" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-[16px] font-bold text-[#0c0d0f]">Record New Payment</h3>
+              <button onClick={() => setIsAddPaymentModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddPaymentSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Amount ({paymentHistoryModal.invoice.currency || 'USD'})</label>
+                <input
+                  type="number"
+                  step="any"
+                  required
+                  placeholder="Enter amount paid..."
+                  value={addPayAmount}
+                  onChange={(e) => {
+                    setAddPayAmount(e.target.value);
+                    const inv = paymentHistoryModal.invoice!;
+                    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                    const advAmt = parseFloat(String(inv.advancePayment || 0));
+                    const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                    const rem = Math.max(0, rawAmt - advAmt - totalInstallments);
+                    if (parseFloat(e.target.value) > rem) {
+                      setSaveOverpaymentCredit(true);
+                    } else {
+                      setSaveOverpaymentCredit(false);
+                    }
+                  }}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Date</label>
+                <input
+                  type="date"
+                  required
+                  value={addPayDate}
+                  onChange={(e) => setAddPayDate(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-800 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Note (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Bank transfer, receipt reference..."
+                  value={addPayNote}
+                  onChange={(e) => setAddPayNote(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-800 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Overpayment Credit Prompt */}
+              {(() => {
+                const inv = paymentHistoryModal.invoice!;
+                const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                const advAmt = parseFloat(String(inv.advancePayment || 0));
+                const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                const rem = Math.max(0, rawAmt - advAmt - totalInstallments);
+                const numAdd = parseFloat(addPayAmount || '0');
+
+                if (numAdd > rem && rem > 0) {
+                  const overAmt = numAdd - rem;
+                  return (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
+                      <span className="text-[12px] font-bold text-amber-800 block">
+                        Overpayment Detected (+{formatPrice(overAmt, inv.currency || 'USD')})
+                      </span>
+                      <label className="flex items-center space-x-2 text-[12px] font-semibold text-amber-900 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={saveOverpaymentCredit}
+                          onChange={(e) => setSaveOverpaymentCredit(e.target.checked)}
+                          className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4"
+                        />
+                        <span>Save excess as credit balance for {inv.company}?</span>
+                      </label>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              <div className="flex space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddPaymentModalOpen(false)}
+                  className="flex-1 py-2.5 border border-slate-200 rounded-xl text-[12px] font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingPayment}
+                  className="flex-1 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[12px] font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingPayment ? 'Saving...' : 'Save Payment'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

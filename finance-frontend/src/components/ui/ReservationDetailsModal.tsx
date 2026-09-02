@@ -268,19 +268,32 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                 const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
                 return sum + ((room.pricePerNight + room.mealRate) * room.roomCount * nights);
               }, 0);
+              const advPayment = parseFloat(String(selectedBooking.advancePayment || 0));
+              const remaining = selectedBooking.remainingBalance !== undefined && selectedBooking.remainingBalance !== null 
+                ? parseFloat(String(selectedBooking.remainingBalance))
+                : Math.max(0, subtotalAmount - advPayment);
+
               return (
-                <div className="mt-4 flex flex-col items-end space-y-1.5 font-sans select-none px-2">
-                  <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-400 font-medium">
-                    <span>Subtotal:</span>
-                    <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, selectedBooking.currency)}</span>
-                  </div>
-                  <div className="flex items-center justify-end space-x-8 text-xs text-slate-400 font-medium">
-                    <span>Tax / VAT (0%):</span>
-                    <span className="font-bold text-slate-900">{formatCurrency(0, selectedBooking.currency)}</span>
-                  </div>
-                  <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200/80 min-w-[240px] justify-between">
-                    <span className="font-extrabold text-slate-900">Total Due:</span>
-                    <span className="font-black text-emerald-600 text-lg">{formatCurrency(subtotalAmount, selectedBooking.currency)}</span>
+                <div className="mt-4 flex flex-col space-y-3 font-sans select-none px-2">
+                  <div className="flex flex-col items-end space-y-1.5">
+                    <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-400 font-medium">
+                      <span>Subtotal:</span>
+                      <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, selectedBooking.currency)}</span>
+                    </div>
+                    {advPayment > 0 && (
+                      <div className="flex items-center justify-end space-x-8 text-[13px] text-amber-700 font-medium">
+                        <span>Advance Payment (Deposit):</span>
+                        <span className="font-extrabold text-amber-800 text-sm">-{formatCurrency(advPayment, selectedBooking.currency)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-end space-x-8 text-xs text-slate-400 font-medium">
+                      <span>Tax / VAT (0%):</span>
+                      <span className="font-bold text-slate-900">{formatCurrency(0, selectedBooking.currency)}</span>
+                    </div>
+                    <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200/80 min-w-[280px] justify-between">
+                      <span className="font-extrabold text-slate-900">Remaining Balance:</span>
+                      <span className="font-black text-emerald-600 text-lg">{formatCurrency(remaining, selectedBooking.currency)}</span>
+                    </div>
                   </div>
                 </div>
               );

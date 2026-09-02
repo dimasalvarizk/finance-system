@@ -46,3 +46,13 @@ export const deleteHotelReservation = async (id: string) => {
   const response = await hotelReservationAPI.delete(`/${id}`);
   return response.data;
 };
+
+export const addHotelPayment = async (id: string, paymentData: { amount: number; paymentDate: string; note?: string }) => {
+  const response = await hotelReservationAPI.post(`/${id}/payments`, paymentData);
+  return response.data;
+};
+
+export const getHotelPayments = async (id: string) => {
+  const response = await hotelReservationAPI.get(`/${id}/payments`);
+  return response.data.data;
+};

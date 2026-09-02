@@ -1,5 +1,5 @@
 import express from 'express';
-import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof } from '../controllers/invoiceController.js';
+import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof, addPaymentHistory, getPaymentHistory } from '../controllers/invoiceController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -10,6 +10,10 @@ router.use(protect);
 // Get is public to all authenticated users, Create is restricted to platform operators (non-Viewers)
 router.get('/', getInvoices);
 router.post('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), createInvoice);
+
+// Payment History routes
+router.get('/:invoiceNo/payments', getPaymentHistory);
+router.post('/:invoiceNo/payments', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), addPaymentHistory);
 
 // Admin-only route for deleting multiple invoices
 router.delete('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteInvoices);

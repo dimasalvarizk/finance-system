@@ -267,19 +267,98 @@ export const updateStatus = async (req, res, next) => {
   }
 };
 
-// 5. Delete reservation
-export const deleteReservation = async (req, res, next) => {
-  try {
-    const pool = getPool();
-    const { id } = req.params;
-
-    const [existing] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ?', [id]);
-    if (existing.length === 0) {
-      return res.status(404).json({ success: false, message: 'Reservation not found' });
-    }
-
     await pool.query('DELETE FROM dst_hotel_reservations WHERE id = ?', [id]);
     res.status(200).json({ success: true, message: 'Reservation deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 6. Add hotel payment history (Installment tracking)
+export const addHotelPaymentHistory = async (req, res, next) => {
+  const { id } = req.params;
+  const { amount, paymentDate, note } = req.body;
+
+  try {
+    if (!amount || !paymentDate) {
+      return res.status(400).json({ success: false, message: 'Please provide amount and paymentDate' });
+    }
+
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
+    }
+
+    const pool = getPool();
+    const paymentId = `pay_${Date.now()}`;
+    const insertQuery = `
+      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, paymentDate, note, createdBy)
+      VALUES (?, ?, 'HOTEL', ?, ?, ?, ?)
+    `;
+    await pool.query(insertQuery, [
+      paymentId,
+      id,
+      numericAmount,
+      paymentDate,
+      note || '',
+      req.user ? req.user.name : 'System'
+    ]);
+
+    // Calculate total rooms price for remaining balance
+    const [resvRows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ? OR reservationNo = ?', [id, id]);
+    if (resvRows.length > 0) {
+      const resv = resvRows[0];
+      let totalAmount = 0;
+      try {
+        const rooms = typeof resv.rooms === 'string' ? JSON.parse(resv.rooms) : resv.rooms;
+        totalAmount = rooms.reduce((acc, r) => acc + (parseFloat(r.totalPrice) || 0), 0);
+      } catch (e) {}
+
+      const advPayment = parseFloat(resv.advancePayment || 0);
+
+      const [sumRows] = await pool.query(
+        "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'HOTEL'",
+        [id]
+      );
+      const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
+      const newRemaining = Math.max(0, totalAmount - advPayment - totalInstallments);
+
+      let isPaidVal = newRemaining <= 0 ? 1 : 0;
+      let statusVal = resv.status;
+      if (newRemaining <= 0) {
+        statusVal = 'Paid and closed';
+      }
+
+      await pool.query(
+        'UPDATE dst_hotel_reservations SET remainingBalance = ?, isPaid = ?, status = ? WHERE id = ? OR reservationNo = ?',
+        [newRemaining, isPaidVal, statusVal, id, id]
+      );
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Hotel payment recorded successfully',
+      data: { id: paymentId, referenceId: id, moduleType: 'HOTEL', amount: numericAmount, paymentDate, note }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 7. Get hotel payment history
+export const getHotelPaymentHistory = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query(
+      "SELECT * FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'HOTEL' ORDER BY paymentDate DESC, createdAt DESC",
+      [id]
+    );
+    res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
   } catch (error) {
     next(error);
   }

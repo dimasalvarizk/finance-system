@@ -71,8 +71,8 @@ export const createInvoiceDB = async (invoiceData) => {
     await connection.beginTransaction();
 
     const insertInvoiceQuery = `
-      INSERT INTO dst_invoices (id, invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, branch, createdBy, taxRate, currency)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO dst_invoices (id, invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, branch, createdBy, taxRate, currency, advancePayment, remainingBalance)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await connection.query(insertInvoiceQuery, [
@@ -91,7 +91,9 @@ export const createInvoiceDB = async (invoiceData) => {
       invoiceData.branch || null,
       invoiceData.createdBy || null,
       invoiceData.taxRate || 0.00,
-      invoiceData.currency || 'USD'
+      invoiceData.currency || 'USD',
+      invoiceData.advancePayment || 0.00,
+      invoiceData.remainingBalance !== undefined ? invoiceData.remainingBalance : null
     ]);
 
     if (invoiceData.items && invoiceData.items.length > 0) {
@@ -286,4 +288,74 @@ export const savePaymentProofDB = async (invoiceNo, base64Data) => {
   const pool = getPool();
   const [result] = await pool.query('UPDATE dst_invoices SET paymentAttachment = ? WHERE invoiceNo = ? OR id = ?', [base64Data, invoiceNo, invoiceNo]);
   return result.affectedRows > 0;
+};
+
+// Payment History Helpers
+export const addPaymentHistoryDB = async (paymentData) => {
+  const pool = getPool();
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const insertQuery = `
+      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, paymentDate, note, createdBy)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    await connection.query(insertQuery, [
+      paymentData.id,
+      paymentData.referenceId,
+      paymentData.moduleType,
+      paymentData.amount,
+      paymentData.paymentDate,
+      paymentData.note || null,
+      paymentData.createdBy || null
+    ]);
+
+    // Recalculate total paid & update remaining balance
+    const [invoiceRows] = await connection.query('SELECT * FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [paymentData.referenceId, paymentData.referenceId]);
+    if (invoiceRows.length > 0) {
+      const inv = invoiceRows[0];
+      const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+      const advPayment = parseFloat(inv.advancePayment || 0);
+
+      const [sumRows] = await connection.query(
+        "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
+        [paymentData.referenceId]
+      );
+      const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
+
+      const newRemaining = Math.max(0, rawAmt - advPayment - totalInstallments);
+      
+      let newStatus = inv.status;
+      if (newRemaining <= 0) {
+        newStatus = 'FULLY_PAID';
+      } else if (totalInstallments > 0) {
+        newStatus = 'PARTIAL';
+      } else if (advPayment > 0) {
+        newStatus = 'DEPOSIT_PAID';
+      }
+
+      await connection.query(
+        'UPDATE dst_invoices SET remainingBalance = ?, status = ? WHERE invoiceNo = ? OR id = ?',
+        [newRemaining, newStatus, paymentData.referenceId, paymentData.referenceId]
+      );
+    }
+
+    await connection.commit();
+    return true;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
+export const getPaymentHistoryDB = async (referenceId, moduleType = 'CONFIRMATION') => {
+  const pool = getPool();
+  const [rows] = await pool.query(
+    'SELECT * FROM dst_payment_history WHERE referenceId = ? AND moduleType = ? ORDER BY paymentDate DESC, createdAt DESC',
+    [referenceId, moduleType]
+  );
+  return rows;
 };

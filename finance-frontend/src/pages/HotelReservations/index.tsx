@@ -75,6 +75,8 @@ export interface Booking {
   paymentInvoiceFile?: string;
   usdToIdrRate?: number;
   sarToIdrRate?: number;
+  advancePayment?: number;
+  remainingBalance?: number;
 }
 
 // Client Company Directory untuk dropdown Bill To

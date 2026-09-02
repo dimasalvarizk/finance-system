@@ -1,4 +1,4 @@
-import { getAllCompaniesDB, getCompanyByCodeDB, createCompanyDB, updateCompanyDB, deleteCompanyDB } from '../models/companyModel.js';
+import { getAllCompaniesDB, getCompanyByCodeDB, createCompanyDB, updateCompanyDB, deleteCompanyDB, updateCompanyCreditDB } from '../models/companyModel.js';
 
 export const getCompanies = async (req, res, next) => {
   try {
@@ -104,6 +104,26 @@ export const deleteCompany = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Company deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateCompanyCredit = async (req, res, next) => {
+  const { code } = req.params;
+  const { creditAmount } = req.body;
+  try {
+    const numericCredit = parseFloat(creditAmount);
+    if (isNaN(numericCredit) || numericCredit <= 0) {
+      return res.status(400).json({ success: false, message: 'creditAmount must be a positive number' });
+    }
+
+    await updateCompanyCreditDB(code, numericCredit);
+
+    res.status(200).json({
+      success: true,
+      message: `Credit balance updated for company ${code}`
     });
   } catch (error) {
     next(error);

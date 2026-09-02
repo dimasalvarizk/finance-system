@@ -121,6 +121,12 @@ const initializeDatabase = async () => {
       if (!existingCols.includes('sarToIdrRate')) {
         await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
       }
+      if (!existingCols.includes('advancePayment')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN advancePayment DECIMAL(15,2) DEFAULT 0.00');
+      }
+      if (!existingCols.includes('remainingBalance')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN remainingBalance DECIMAL(15,2) DEFAULT NULL');
+      }
     } catch (alterRatesErr) {
       console.error('Failed checking columns for dst_hotel_reservations:', alterRatesErr.message);
     }

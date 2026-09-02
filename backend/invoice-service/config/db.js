@@ -161,6 +161,34 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Alter table to add advancePayment and remainingBalance
+    try {
+      await pool.query('SELECT advancePayment FROM dst_invoices LIMIT 1');
+    } catch (err) {
+      console.log('Adding advancePayment and remainingBalance columns to dst_invoices...');
+      try {
+        await pool.query('ALTER TABLE dst_invoices ADD COLUMN advancePayment DECIMAL(15,2) DEFAULT 0.00, ADD COLUMN remainingBalance DECIMAL(15,2) DEFAULT NULL');
+      } catch (alterErr) {
+        console.error('Failed to add advancePayment/remainingBalance columns to dst_invoices:', alterErr.message);
+      }
+    }
+
+    // Create dst_payment_history table if not exists
+    const createPaymentHistoryTableQuery = `
+      CREATE TABLE IF NOT EXISTS dst_payment_history (
+        id VARCHAR(50) PRIMARY KEY,
+        referenceId VARCHAR(100) NOT NULL,
+        moduleType ENUM('CONFIRMATION', 'HOTEL') NOT NULL,
+        amount DECIMAL(15,2) NOT NULL,
+        paymentDate DATETIME NOT NULL,
+        note TEXT DEFAULT NULL,
+        createdBy VARCHAR(255) DEFAULT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createPaymentHistoryTableQuery);
+    console.log("Table 'dst_payment_history' is verified/ready");
+
   } catch (error) {
     console.error('Database schema failed for invoice-service:', error.message);
   }

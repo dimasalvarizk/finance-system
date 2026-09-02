@@ -4,7 +4,9 @@ import {
   createReservation,
   approveReservation,
   updateStatus,
-  deleteReservation
+  deleteReservation,
+  addHotelPaymentHistory,
+  getHotelPaymentHistory
 } from '../controllers/hotelReservationController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -15,6 +17,8 @@ router.use(protect);
 
 router.get('/', getReservations);
 router.post('/', createReservation);
+router.get('/:id/payments', getHotelPaymentHistory);
+router.post('/:id/payments', addHotelPaymentHistory);
 router.put('/:id/approve', approveReservation);
 router.put('/:id/status', updateStatus);
 router.delete('/:id', deleteReservation);

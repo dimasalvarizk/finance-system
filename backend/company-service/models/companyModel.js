@@ -52,3 +52,9 @@ export const deleteCompanyDB = async (code) => {
   await pool.query('DELETE FROM dst_companies WHERE code = ?', [code.toUpperCase()]);
   return { success: true };
 };
+
+export const updateCompanyCreditDB = async (code, creditAmount) => {
+  const pool = getPool();
+  await pool.query('UPDATE dst_companies SET creditBalance = creditBalance + ? WHERE code = ?', [creditAmount, code.toUpperCase()]);
+  return { success: true };
+};

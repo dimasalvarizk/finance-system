@@ -75,6 +75,9 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     type: 'success' as 'success' | 'error' | 'info'
   });
 
+  const [formHasAdvancePayment, setFormHasAdvancePayment] = useState(false);
+  const [formAdvancePayment, setFormAdvancePayment] = useState('');
+
   // Dynamic Companies database list from dst_companies
   const [dbCompanies, setDbCompanies] = useState<any[]>([]);
   const [selectedCompanyCode, setSelectedCompanyCode] = useState<string>('');
@@ -393,6 +396,13 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       });
     }
 
+    const parsedAdv = formHasAdvancePayment ? (parseFloat(formAdvancePayment) || 0) : 0;
+    const totalAmount = roomsToSubmit.reduce((acc, r) => {
+      const nights = ('nights' in r && typeof (r as any).nights === 'number') ? (r as any).nights : calculateNights(r.checkIn, r.checkOut);
+      return acc + ((r.pricePerNight + r.mealRate) * r.roomCount * nights);
+    }, 0);
+    const initialRemaining = Math.max(0, totalAmount - parsedAdv);
+
     const newBooking: Booking = {
       id: `hr-${Date.now()}`,
       reservationNo: invoiceMeta.invoiceNo,
@@ -417,7 +427,9 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       status: 'Tentative', // default
       type: formType,
       usdToIdrRate: configuredRates.usdToIdr,
-      sarToIdrRate: configuredRates.sarToIdr
+      sarToIdrRate: configuredRates.sarToIdr,
+      advancePayment: parsedAdv,
+      remainingBalance: initialRemaining
     };
 
     onSave(newBooking);
@@ -997,6 +1009,53 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                     <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200/80 min-w-[240px] justify-between">
                       <span className="font-extrabold text-slate-900">Total Due:</span>
                       <span className="font-black text-emerald-600 text-lg">{formatCurrency(subtotalAmount, formCurrency)}</span>
+                    </div>
+
+                    {/* Advance Payment (Deposit) Toggle */}
+                    <div className="w-full pt-3 mt-2 border-t border-slate-200/80 space-y-2">
+                      <div className="flex justify-between items-center text-[12.5px]">
+                        <span className="font-bold text-slate-700">Has Advance Payment?</span>
+                        <div className="flex items-center space-x-3 font-semibold">
+                          <label className="flex items-center space-x-1 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="hotelHasAdvance"
+                              checked={formHasAdvancePayment}
+                              onChange={() => setFormHasAdvancePayment(true)}
+                              className="text-amber-600 focus:ring-amber-500"
+                            />
+                            <span>Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-1 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="hotelHasAdvance"
+                              checked={!formHasAdvancePayment}
+                              onChange={() => {
+                                setFormHasAdvancePayment(false);
+                                setFormAdvancePayment('');
+                              }}
+                              className="text-amber-600 focus:ring-amber-500"
+                            />
+                            <span>No</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {formHasAdvancePayment && (
+                        <div className="flex justify-between items-center text-[12.5px] pt-1">
+                          <span className="font-medium text-slate-500">Advance Payment Amount ({formCurrency}):</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            placeholder="Enter DP / Deposit amount..."
+                            value={formAdvancePayment}
+                            onChange={(e) => setFormAdvancePayment(e.target.value)}
+                            className="w-48 px-3 py-1.5 border border-slate-200 rounded-lg text-[13px] font-bold text-slate-900 focus:outline-none focus:border-amber-500 text-right"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

@@ -1,5 +1,5 @@
 
-import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB } from '../models/invoiceModel.js';
+import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB } from '../models/invoiceModel.js';
 import { getPool } from '../config/db.js';
 
 const getAuthBaseUrl = (req) => {
@@ -34,7 +34,7 @@ export const getInvoices = async (req, res, next) => {
 // @route   POST /api/invoices
 // @access  Public (or Protected)
 export const createInvoice = async (req, res, next) => {
-  const { invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency } = req.body;
+  const { invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency, advancePayment } = req.body;
 
   try {
     if (!invoiceNo || !company || !amount) {
@@ -43,6 +43,10 @@ export const createInvoice = async (req, res, next) => {
         message: 'Please provide invoiceNo, company, and amount'
       });
     }
+
+    const rawAmt = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/[^0-9.-]/g, '')) || 0;
+    const advAmt = parseFloat(advancePayment || 0);
+    const initialRemaining = Math.max(0, rawAmt - advAmt);
 
     const newInvoiceData = {
       id: `inv_${Date.now()}`,
@@ -61,7 +65,9 @@ export const createInvoice = async (req, res, next) => {
       taxRate: taxRate ? parseFloat(taxRate) : 0.00,
       branch: req.user ? req.user.branch : null,
       createdBy: req.user ? req.user.name : null,
-      currency: currency || 'USD'
+      currency: currency || 'USD',
+      advancePayment: advAmt,
+      remainingBalance: initialRemaining
     };
 
     await createInvoiceDB(newInvoiceData);
@@ -321,6 +327,91 @@ export const uploadPaymentProof = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: paymentAttachment ? 'Payment proof uploaded successfully' : 'Payment proof cleared successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add installment payment history
+// @route   POST /api/invoices/:invoiceNo/payments
+// @access  Protected
+export const addPaymentHistory = async (req, res, next) => {
+  const { invoiceNo } = req.params;
+  const { amount, paymentDate, note, saveOverpaymentCredit, companyCode } = req.body;
+
+  try {
+    if (!amount || !paymentDate) {
+      return res.status(400).json({ success: false, message: 'Please provide amount and paymentDate' });
+    }
+
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
+    }
+
+    const paymentData = {
+      id: `pay_${Date.now()}`,
+      referenceId: invoiceNo,
+      moduleType: 'CONFIRMATION',
+      amount: numericAmount,
+      paymentDate,
+      note: note || '',
+      createdBy: req.user ? req.user.name : 'System'
+    };
+
+    await addPaymentHistoryDB(paymentData);
+
+    // If saveOverpaymentCredit is true, update company credit balance in company-service or MySQL
+    if (saveOverpaymentCredit && companyCode) {
+      try {
+        const pool = getPool();
+        // Get overpayment excess
+        const [invRows] = await pool.query('SELECT amount, advancePayment FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [invoiceNo, invoiceNo]);
+        if (invRows.length > 0) {
+          const inv = invRows[0];
+          const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+          const advPayment = parseFloat(inv.advancePayment || 0);
+
+          const [sumRows] = await pool.query(
+            "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
+            [invoiceNo]
+          );
+          const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
+          const totalPaidSoFar = advPayment + totalInstallments;
+
+          if (totalPaidSoFar > rawAmt) {
+            const overpaymentCredit = totalPaidSoFar - rawAmt;
+            await pool.query('UPDATE dst_companies SET creditBalance = creditBalance + ? WHERE code = ?', [overpaymentCredit, companyCode]);
+            console.log(`Credit of $${overpaymentCredit} saved for company ${companyCode}`);
+          }
+        }
+      } catch (creditErr) {
+        console.error('Failed to update company credit balance:', creditErr.message);
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Payment recorded successfully',
+      data: paymentData
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get payment history for confirmation
+// @route   GET /api/invoices/:invoiceNo/payments
+// @access  Protected
+export const getPaymentHistory = async (req, res, next) => {
+  const { invoiceNo } = req.params;
+  try {
+    const history = await getPaymentHistoryDB(invoiceNo, 'CONFIRMATION');
+    res.status(200).json({
+      success: true,
+      count: history.length,
+      data: history
     });
   } catch (error) {
     next(error);

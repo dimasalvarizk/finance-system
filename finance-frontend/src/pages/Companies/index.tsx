@@ -81,6 +81,7 @@ export interface Company {
   address: string;
   taxNumber: string;
   agent?: string;
+  creditBalance?: number | string;
 }
 
 const Companies: React.FC = () => {
@@ -673,6 +674,9 @@ const Companies: React.FC = () => {
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
                       TAX NUMBER
                     </th>
+                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
+                      CREDIT BALANCE
+                    </th>
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-center whitespace-nowrap">
                       ACTION
                     </th>
@@ -687,6 +691,7 @@ const Companies: React.FC = () => {
                         <td className="py-4 px-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
                         <td className="py-4 px-4"><div className="w-48 h-4 bg-gray-200 rounded"></div></td>
                         <td className="py-4 px-4"><div className="w-28 h-4 bg-gray-200 rounded"></div></td>
+                        <td className="py-4 px-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
                         <td className="py-4 px-4 text-center">
                           <div className="flex items-center justify-center space-x-2.5">
                             <div className="w-20 h-7 bg-gray-200/80 rounded-lg"></div>
@@ -697,7 +702,7 @@ const Companies: React.FC = () => {
                     ))
                   ) : displayedCompanies.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-[13px] font-semibold text-slate-400 font-sans">
+                      <td colSpan={7} className="py-12 text-center text-[13px] font-semibold text-slate-400 font-sans">
                         No companies found
                       </td>
                     </tr>
@@ -718,6 +723,9 @@ const Companies: React.FC = () => {
                         </td>
                         <td className="py-4 px-4 text-[13px] font-normal text-[#475569] font-mono">
                           {c.taxNumber}
+                        </td>
+                        <td className="py-4 px-4 text-[13px] font-bold text-emerald-600 font-mono">
+                          {c.creditBalance ? `$${parseFloat(String(c.creditBalance)).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '$0.00'}
                         </td>
                         <td className="py-4 px-4 text-center">
                           <div className="flex items-center justify-center space-x-2.5">

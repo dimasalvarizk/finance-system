@@ -97,6 +97,18 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Alter table to add creditBalance if it does not exist
+    try {
+      await pool.query('SELECT creditBalance FROM dst_companies LIMIT 1');
+    } catch (err) {
+      console.log('Adding creditBalance column to dst_companies...');
+      try {
+        await pool.query('ALTER TABLE dst_companies ADD COLUMN creditBalance DECIMAL(15,2) DEFAULT 0.00');
+      } catch (alterErr) {
+        console.error('Failed to add creditBalance column:', alterErr.message);
+      }
+    }
+
     // Seeding disabled by request
     return;
 

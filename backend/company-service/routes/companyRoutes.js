@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCompanies, getCompanyByCode, createCompany, updateCompany, deleteCompany } from '../controllers/companyController.js';
+import { getCompanies, getCompanyByCode, createCompany, updateCompany, deleteCompany, updateCompanyCredit } from '../controllers/companyController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -14,6 +14,7 @@ router.get('/:code', getCompanyByCode);
 // Modifying companies is restricted to Super Admin, Chief Accountant, Division Director, and Madinah Branch Accountant
 router.post('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), createCompany);
 router.put('/:code', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateCompany);
+router.put('/:code/credit', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), updateCompanyCredit);
 router.delete('/:code', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteCompany);
 
 export default router;
