@@ -58,7 +58,7 @@ const Settings: React.FC = () => {
           </div>
 
           {/* Navigation Tabs bar */}
-          <div className="border-b border-[#e2e8f0] flex flex-wrap gap-x-8 gap-y-2 pt-2 flex-shrink-0 text-[14px]">
+          <div className="border-b border-[#e2e8f0] flex items-center w-full pt-2 flex-shrink-0 text-[13.5px] overflow-x-auto">
             {[
               ...(isAuthorizedBackup ? [{ id: 'System Backup', label: 'System Backup' }] : []),
               ...(isSuperAdmin ? [{ id: 'Manage Team', label: 'Manage Team' }] : []),
@@ -78,7 +78,7 @@ const Settings: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`pb-3 font-medium transition-all relative cursor-pointer ${
+                  className={`flex-1 min-w-max px-3 pb-3 text-center font-bold transition-all relative cursor-pointer whitespace-nowrap ${
                     active ? 'text-[#f59e0b]' : 'text-[#64748b] hover:text-[#0c0d0f]'
                   }`}
                 >
