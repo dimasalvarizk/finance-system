@@ -12,8 +12,15 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://odstfin.io',
   'https://www.odstfin.io',
-  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [])
+  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(s => s.trim()) : [])
 ];
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (origin.endsWith('.vercel.app')) return true;
+  return false;
+};
 
 app.use((req, res, next) => {
   // Set Private Network Access header if requested
@@ -21,23 +28,24 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Private-Network', 'true');
   }
 
+  const origin = req.headers.origin;
+  if (origin && isAllowedOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', req.headers['access-control-request-headers'] || '*');
+  }
+
   // Handle preflight OPTIONS requests manually to guarantee correct headers
   if (req.method === 'OPTIONS') {
-    const origin = req.headers.origin;
-    if (origin && allowedOrigins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-      res.setHeader('Access-Control-Allow-Headers', req.headers['access-control-request-headers'] || '*');
-      return res.status(204).end();
-    }
+    return res.status(204).end();
   }
   next();
 });
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
