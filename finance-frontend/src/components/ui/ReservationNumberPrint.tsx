@@ -50,20 +50,19 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
   const termsAndConditions = companySettings.termsAndConditions;
   
   return (
-    <div id="reservation-confirmation-print-area" className="hidden print:block w-full bg-white p-6 font-sans text-slate-800">
-      <div className="w-full max-w-4xl mx-auto bg-white p-0 shadow-none border-none min-h-[260mm] flex flex-col justify-between">
+    <div id="reservation-confirmation-print-area" className="hidden print:block w-full bg-white p-2 font-sans text-slate-800">
+      <div className="w-full max-w-3xl mx-auto bg-white p-0 shadow-none border-none h-full flex flex-col justify-between" style={{ minHeight: '270mm' }}>
         <div>
           {/* Header */}
-          <div className="pb-4">
+          <div className="pb-3">
             <div className="flex items-start justify-between">
-              <div className="flex flex-col gap-1.5 w-1/2">
+              <div className="flex flex-col gap-1 w-1/2">
                 <img
                   src={odstLogo}
                   alt="Logo"
-                  className="h-14 w-auto object-contain self-start"
+                  className="h-12 w-auto object-contain self-start"
                 />
-                <div className="mt-2 text-[9px] text-slate-500 leading-[1.5] font-sans max-w-[280px]">
-                  {/* Keep the static address from Figma exactly */}
+                <div className="mt-1.5 text-[8px] text-slate-500 leading-snug font-sans max-w-[250px]">
                   Graha Al Badgel
                   <br />
                   Jl. Hajjah Tutty Alawiyah No.7, RT.2/RW.5, Kalibata, Kec.
@@ -73,7 +72,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
               </div>
 
               <div className="text-right flex flex-col items-end w-1/2">
-                <h1 className="text-[24px] font-extrabold text-[#0f172a] leading-[1.1] font-sans text-right uppercase w-48 mb-2">
+                <h1 className="text-[20px] font-extrabold text-[#0f172a] leading-tight font-sans text-right uppercase w-48 mb-1.5">
                   {isHotel ? (
                     <>HOTEL<br/>RESERVATION</>
                   ) : (
@@ -81,39 +80,39 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                   )}
                 </h1>
                 
-                <div className="flex flex-col items-end gap-1 text-[9px] text-slate-400 font-sans mt-1">
+                <div className="flex flex-col items-end gap-0.5 text-[8.5px] text-slate-400 font-sans mt-0.5">
                   <div className="flex justify-end gap-2">
                     <span>Reservation No:</span>
-                    <span className="text-slate-800 font-bold w-[100px] text-right">{invoice.invoiceNo}</span>
+                    <span className="text-slate-800 font-bold w-[90px] text-right">{invoice.invoiceNo}</span>
                   </div>
                   
                   {!isHotel ? (
                     <>
                       <div className="flex justify-end gap-2">
                         <span>Reference:</span>
-                        <span className="text-slate-600 font-medium w-[100px] text-right">{invoice.referenceNo}</span>
+                        <span className="text-slate-600 font-medium w-[90px] text-right">{invoice.referenceNo}</span>
                       </div>
                       <div className="flex justify-end gap-2">
                         <span>Serial:</span>
-                        <span className="text-slate-600 font-medium w-[100px] text-right">{invoice.serialNo}</span>
+                        <span className="text-slate-600 font-medium w-[90px] text-right">{invoice.serialNo}</span>
                       </div>
                     </>
                   ) : (
                     <>
                       {isTentative ? (
-                        <div className="mt-1 px-3 py-1 text-[9px] font-extrabold text-orange-600 border border-solid border-orange-300 bg-orange-50/60 rounded-xl">
+                        <div className="mt-1 px-3 py-0.5 text-[8.5px] font-extrabold text-orange-600 border border-solid border-orange-300 bg-orange-50/60 rounded-xl">
                           TENTATIVE RESERVATION
                         </div>
                       ) : (
                         <>
                           <div className="flex justify-end gap-2">
                             <span>Status:</span>
-                            <span className="text-emerald-600 font-bold w-[100px] text-right">CONFIRMED</span>
+                            <span className="text-emerald-600 font-bold w-[90px] text-right">CONFIRMED</span>
                           </div>
                           {((invoice as any).confirmationNo || (invoice as any).confirmation_number || (invoice.serialNo && invoice.serialNo.startsWith('CNF'))) && (
                             <div className="flex justify-end gap-2">
                               <span>Confirmation No:</span>
-                              <span className="text-slate-800 font-bold w-[100px] text-right">
+                              <span className="text-slate-800 font-bold w-[90px] text-right">
                                 {(invoice as any).confirmationNo || (invoice as any).confirmation_number || invoice.serialNo}
                               </span>
                             </div>
@@ -128,57 +127,57 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </div>
 
           {/* Bill From / Bill To */}
-          <section className="mt-4 grid grid-cols-2 gap-6">
+          <section className="mt-2.5 grid grid-cols-2 gap-4">
             <div>
-              <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
                 BILL FROM
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 grid grid-cols-2 gap-y-3 gap-x-4 h-full bg-white content-start">
+              <div className="rounded-xl border border-slate-200 p-3 grid grid-cols-2 gap-y-2 gap-x-3 h-full bg-white content-start">
                 <div className="flex flex-col">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Employee Name
                   </p>
-                  <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans">
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans">
                     {details.billFrom.name}
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Company Number
                   </p>
-                  <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans">
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans">
                     {details.billFrom.phone}
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Employee ID
                   </p>
-                  <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans">
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans">
                     {details.billFrom.id}
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Company Email
                   </p>
-                  <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans break-all">
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans break-all">
                     {details.billFrom.email}
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Entity / Company
                   </p>
-                  <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans">
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans">
                     {details.billFrom.entity}
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Company Tax Number
                   </p>
-                  <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans">
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans">
                     {details.billFrom.tax}
                   </p>
                 </div>
@@ -186,53 +185,51 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
             </div>
 
             <div>
-              <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
                 BILL TO
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 flex flex-col gap-3 h-full bg-white justify-start">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col">
-                    <p className="text-[8.5px] font-medium text-slate-400 font-sans">
-                      Company Name
-                    </p>
-                    <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans">
-                      {details.billTo.company}
-                    </p>
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="text-[8.5px] font-medium text-slate-400 font-sans">
-                      Company Tax Number
-                    </p>
-                    <p className="mt-0.5 text-[10.5px] text-slate-900 font-bold font-sans">
-                      {details.billTo.tax}
-                    </p>
-                  </div>
+              <div className="rounded-xl border border-slate-200 p-3 grid grid-cols-2 gap-y-2 gap-x-3 h-full bg-white content-start">
+                <div className="flex flex-col">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
+                    Company Name
+                  </p>
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans">
+                    {details.billTo.company}
+                  </p>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
+                    Company Tax Number
+                  </p>
+                  <p className="text-[9.5px] text-slate-900 font-bold font-sans">
+                    {details.billTo.tax}
+                  </p>
                 </div>
                 
                 {details.billTo.agent && (
-                  <div className="flex flex-col mt-1">
-                    <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                  <div className="flex flex-col col-span-2 mt-0.5">
+                    <p className="text-[8px] font-medium text-slate-400 font-sans">
                       Agent Details
                     </p>
-                    <p className="mt-0.5 text-[10.5px] text-amber-600 font-bold font-sans">
+                    <p className="text-[9.5px] text-amber-600 font-bold font-sans">
                       Agent: {details.billTo.agent}
                     </p>
                   </div>
                 )}
                 
-                <div className="flex flex-col mt-1">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                <div className="flex flex-col col-span-2 mt-0.5">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     Street Address
                   </p>
-                  <p className="mt-0.5 text-[10px] text-slate-700 font-medium font-sans leading-snug">
+                  <p className="text-[9px] text-slate-700 font-medium font-sans leading-tight">
                     {details.billTo.address}
                   </p>
                 </div>
-                <div className="flex flex-col">
-                  <p className="text-[8.5px] font-medium text-slate-400 font-sans">
+                <div className="flex flex-col col-span-2">
+                  <p className="text-[8px] font-medium text-slate-400 font-sans">
                     City / Country
                   </p>
-                  <p className="mt-0.5 text-[10px] text-slate-700 font-medium font-sans">
+                  <p className="text-[9px] text-slate-700 font-medium font-sans">
                     {details.billTo.cityCountry}
                   </p>
                 </div>
@@ -241,24 +238,24 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Itemized Charges */}
-          <section className="mt-6 font-sans">
-            <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+          <section className="mt-4 font-sans">
+            <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
               ITEMIZED CHARGES
             </h2>
             <div className="overflow-hidden border-t border-b border-slate-200">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 bg-white">
-                    <th className="text-left font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans">
+                    <th className="text-left font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans">
                       Description
                     </th>
-                    <th className="text-center font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans w-16">
+                    <th className="text-center font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-12">
                       Qty
                     </th>
-                    <th className="text-right font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans w-32">
+                    <th className="text-right font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-24">
                       Unit Price
                     </th>
-                    <th className="text-right font-bold text-slate-600 text-[8.5px] uppercase tracking-wider py-2.5 px-2 font-sans w-32">
+                    <th className="text-right font-bold text-slate-600 text-[8px] uppercase tracking-wider py-2 px-2 font-sans w-24">
                       Total
                     </th>
                   </tr>
@@ -266,16 +263,16 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                 <tbody>
                   {details.items.map((item, index) => (
                     <tr key={index} className="border-b border-slate-100 last:border-b-0 bg-white">
-                      <td className="py-3 px-2 font-bold text-slate-800 text-[10.5px]">
+                      <td className="py-2.5 px-2 font-bold text-slate-800 text-[9.5px]">
                         {item.description}
                       </td>
-                      <td className="py-3 px-2 text-center text-slate-700 font-sans text-[10px]">
+                      <td className="py-2.5 px-2 text-center text-slate-700 font-sans text-[9px]">
                         {item.qty}
                       </td>
-                      <td className="py-3 px-2 text-right text-slate-700 font-sans text-[10.5px]">
+                      <td className="py-2.5 px-2 text-right text-slate-700 font-sans text-[9.5px]">
                         {formatUnitPrice(item.price)}
                       </td>
-                      <td className="py-3 px-2 text-right font-bold text-slate-900 font-sans text-[11px]">
+                      <td className="py-2.5 px-2 text-right font-bold text-slate-900 font-sans text-[10px]">
                         {item.total}
                       </td>
                     </tr>
@@ -286,25 +283,25 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Payment Instructions / Invoice Summary */}
-          <section className="mt-6 grid grid-cols-2 gap-6 font-sans">
+          <section className="mt-4 grid grid-cols-2 gap-4 font-sans">
             <div>
-              <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
                 PAYMENT INSTRUCTIONS
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 space-y-2 bg-white h-full content-center">
-                <div className="flex items-center justify-between text-[10px]">
+              <div className="rounded-xl border border-slate-200 p-3 space-y-1.5 bg-white h-full content-center">
+                <div className="flex items-center justify-between text-[9px]">
                   <span className="text-slate-500 font-sans">Bank Name:</span>
                   <span className="font-bold text-slate-900 font-sans">{companySettings.bankName}</span>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
+                <div className="flex items-center justify-between text-[9px]">
                   <span className="text-slate-500 font-sans">Account Name:</span>
                   <span className="font-bold text-slate-900 font-sans">{companySettings.accountName}</span>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
+                <div className="flex items-center justify-between text-[9px]">
                   <span className="text-slate-500 font-sans">IDR Account Number:</span>
                   <span className="font-bold text-[#2563eb] font-sans">{companySettings.idrAccountNumber}</span>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
+                <div className="flex items-center justify-between text-[9px]">
                   <span className="text-slate-500 font-sans">USD Account Number:</span>
                   <span className="font-bold text-[#2563eb] font-sans">{companySettings.usdAccountNumber}</span>
                 </div>
@@ -312,25 +309,25 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
             </div>
 
             <div>
-              <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
                 {isHotel ? 'INVOICE SUMMARY' : 'INVOICE SUMMARY'}
               </h2>
-              <div className="rounded-xl border border-slate-200 p-4 space-y-2 bg-white h-full flex flex-col justify-center">
-                <div className="flex items-center justify-between text-[10.5px]">
+              <div className="rounded-xl border border-slate-200 p-3 space-y-1.5 bg-white h-full flex flex-col justify-center">
+                <div className="flex items-center justify-between text-[9.5px]">
                   <span className="text-slate-500 font-sans">Subtotal</span>
                   <span className="font-bold text-slate-900 font-sans">
                     {details.subtotal}
                   </span>
                 </div>
-                 <div className="flex items-center justify-between text-[10.5px]">
+                 <div className="flex items-center justify-between text-[9.5px]">
                   <span className="text-slate-500 font-sans">Tax / VAT ({details.taxRate || 0}%)</span>
                   <span className="font-bold text-slate-900 font-sans">
                     {details.tax}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-100">
-                  <span className="text-[11px] font-bold text-slate-900 font-sans">Total Due</span>
-                  <span className={`text-[14px] font-bold font-sans ${
+                <div className="flex items-center justify-between pt-2 mt-0.5 border-t border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-900 font-sans">Total Due</span>
+                  <span className={`text-[12.5px] font-bold font-sans ${
                     isHotel 
                       ? (isTentative ? 'text-[#f97316]' : 'text-[#2563eb]') 
                       : 'text-[#2563eb]'
@@ -343,12 +340,12 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Exchange Rate Card */}
-          <section className="mt-6 font-sans">
-            <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+          <section className="mt-4 font-sans">
+            <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
               EXCHANGE RATE
             </h2>
-            <div className="rounded-xl border border-slate-200 p-4 space-y-3 font-sans bg-white">
-              <div className="flex flex-col space-y-2 text-[10px] text-slate-500 pb-3 border-b border-slate-100">
+            <div className="rounded-xl border border-slate-200 p-3 space-y-2.5 font-sans bg-white">
+              <div className="flex flex-col space-y-1.5 text-[9px] text-slate-500 pb-2 border-b border-slate-100">
                 {getExchangeRatesToShow(
                   details.currency || 'USD',
                   details.usdToIdrRate || 18025,
@@ -373,18 +370,18 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                 const normCurr = (details.currency || 'USD').toUpperCase();
                 const isRp = normCurr === 'RP' || normCurr === 'IDR';
                 return (
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex flex-col space-y-1.5">
                     {normCurr === 'SAR' && (
                       <>
-                        <div className="flex justify-between items-center text-[10px]">
+                        <div className="flex justify-between items-center text-[9px]">
                           <span className="text-slate-500 font-medium font-sans">Total Due (IDR)</span>
-                          <span className="font-bold text-[#2563eb] text-[11.5px] font-sans">
+                          <span className="font-bold text-[#2563eb] text-[10.5px] font-sans">
                             {converted.idrTotal}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-[10px]">
+                        <div className="flex justify-between items-center text-[9px]">
                           <span className="text-slate-500 font-medium font-sans">Total Due (USD)</span>
-                          <span className="font-bold text-[#2563eb] text-[11.5px] font-sans">
+                          <span className="font-bold text-[#2563eb] text-[10.5px] font-sans">
                             {converted.usdTotal}
                           </span>
                         </div>
@@ -392,15 +389,15 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     )}
                     {isRp && (
                       <>
-                        <div className="flex justify-between items-center text-[10px]">
+                        <div className="flex justify-between items-center text-[9px]">
                           <span className="text-slate-500 font-medium font-sans">Total Due (USD)</span>
-                          <span className="font-bold text-[#2563eb] text-[11.5px] font-sans">
+                          <span className="font-bold text-[#2563eb] text-[10.5px] font-sans">
                             {converted.usdTotal}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-[10px]">
+                        <div className="flex justify-between items-center text-[9px]">
                           <span className="text-slate-500 font-medium font-sans">Total Due (SAR)</span>
-                          <span className="font-bold text-[#2563eb] text-[11.5px] font-sans">
+                          <span className="font-bold text-[#2563eb] text-[10.5px] font-sans">
                             {converted.sarTotal}
                           </span>
                         </div>
@@ -408,15 +405,15 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     )}
                     {normCurr === 'USD' && (
                       <>
-                        <div className="flex justify-between items-center text-[10px]">
+                        <div className="flex justify-between items-center text-[9px]">
                           <span className="text-slate-500 font-medium font-sans">Total Due (IDR)</span>
-                          <span className="font-bold text-[#2563eb] text-[11.5px] font-sans">
+                          <span className="font-bold text-[#2563eb] text-[10.5px] font-sans">
                             {converted.idrTotal}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-[10px]">
+                        <div className="flex justify-between items-center text-[9px]">
                           <span className="text-slate-500 font-medium font-sans">Total Due (SAR)</span>
-                          <span className="font-bold text-[#2563eb] text-[11.5px] font-sans">
+                          <span className="font-bold text-[#2563eb] text-[10.5px] font-sans">
                             {converted.sarTotal}
                           </span>
                         </div>
@@ -429,57 +426,57 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
           </section>
 
           {/* Notes / Terms & Conditions */}
-          <section className="mt-6 grid grid-cols-2 gap-6">
+          <section className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
                 NOTES
               </h2>
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 {notes.map((note: string, idx: number) => (
-                  <li key={idx} className="text-[8.5px] text-slate-600 leading-relaxed font-sans font-medium">
+                  <li key={idx} className="text-[8px] text-slate-600 leading-relaxed font-sans font-medium">
                     * {note}
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h2 className="text-[10px] font-bold tracking-wider text-slate-800 uppercase mb-2 font-sans">
+              <h2 className="text-[9px] font-bold tracking-wider text-slate-800 uppercase mb-1.5 font-sans">
                 TERMS &amp; CONDITIONS
               </h2>
-              <p className="text-[8.5px] text-slate-600 leading-relaxed font-sans font-medium">
+              <p className="text-[8px] text-slate-600 leading-relaxed font-sans font-medium">
                 {termsAndConditions}
               </p>
             </div>
           </section>
+        </div>
 
-          {/* Signature & Due Date Container */}
-          <section className="mt-8 flex justify-between items-end font-sans">
+        {/* Signature & Due Date Container (Avoid page break inside) */}
+        <div className="break-inside-avoid">
+          <section className="mt-6 flex justify-between items-end font-sans">
             <div className="ml-[5px] w-[200px]">
               {/* Label */}
-              <p className="text-[9.5px] font-bold tracking-wider text-slate-800 font-sans text-left uppercase">
+              <p className="text-[9px] font-bold tracking-wider text-slate-800 font-sans text-left uppercase">
                 FINANCIAL CONTROLLER SIGNATURE
               </p>
 
               {/* Name */}
-              <p className="mt-1 text-[9px] text-slate-600 font-sans text-left">
+              <p className="mt-0.5 text-[8.5px] text-slate-600 font-sans text-left">
                 Emad Moustafa
               </p>
 
               {/* Line */}
-              <div className="mt-12 border-t border-slate-300 w-[180px]" />
+              <div className="mt-10 border-t border-slate-300 w-[170px]" />
             </div>
 
             {/* Due Date */}
-            <div className="text-right font-sans text-[10.5px] pb-1">
+            <div className="text-right font-sans text-[9.5px] pb-1">
               <span className="text-[#94a3b8] font-medium font-sans">Due Date:</span>{" "}
               <span className="font-bold text-slate-900 font-sans ml-1">{details.dueDate}</span>
             </div>
           </section>
-        </div>
-
-        <div>
+          
           {/* Footer */}
-          <div className="mt-6 pt-3 flex items-center justify-between text-[8.5px] text-slate-400 font-sans font-medium">
+          <div className="mt-4 pt-2.5 flex items-center justify-between text-[8px] text-slate-400 font-sans font-medium">
             <span>{footerNote}</span>
             <span>Page 1 of 1</span>
           </div>
