@@ -1441,6 +1441,7 @@ const Invoices: React.FC = () => {
               subtext="Aggregated monthly ledger volume"
               badgeText="All Branches"
               badgeColorClass="bg-[#e0f2fe] text-[#0284c7]"
+              isLoading={loading}
             />
             <StatCard
               title="Approved"
@@ -1448,6 +1449,7 @@ const Invoices: React.FC = () => {
               subtext="Successfully processed & settled"
               badgeText={`${successRate}% success`}
               badgeColorClass="bg-[#ecfdf5] text-[#10b981]"
+              isLoading={loading}
             />
             <StatCard
               title="Pending Review"
@@ -1455,6 +1457,7 @@ const Invoices: React.FC = () => {
               subtext="Pending Chief Accountant verification"
               badgeText="Awaiting Clearance"
               badgeColorClass="bg-[#fff7ed] text-[#f97316]"
+              isLoading={loading}
             />
             <StatCard
               title="Overdue Balance"
@@ -1462,6 +1465,7 @@ const Invoices: React.FC = () => {
               subtext={`${dynamicOverdue} overdue confirmation${dynamicOverdue !== 1 ? 's' : ''}`}
               badgeText="Action Required"
               badgeColorClass="bg-[#fef2f2] text-[#ef4444]"
+              isLoading={loading}
             />
           </div>
 

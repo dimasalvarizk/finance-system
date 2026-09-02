@@ -6,6 +6,7 @@ interface StatCardProps {
   subtext: string;
   badgeText: string;
   badgeColorClass: string;
+  isLoading?: boolean;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -14,7 +15,23 @@ const StatCard: React.FC<StatCardProps> = ({
   subtext,
   badgeText,
   badgeColorClass,
+  isLoading = false,
 }) => {
+  if (isLoading) {
+    return (
+      <div className="bg-white p-6 rounded-xl border border-[#e2e8f0] flex flex-col justify-between shadow-sm animate-pulse select-none min-h-[125px]">
+        <div className="flex justify-between items-start">
+          <div className="h-3.5 bg-slate-200 rounded w-28"></div>
+          <div className="h-4 bg-slate-100 rounded-full w-16"></div>
+        </div>
+        <div className="mt-4 space-y-2">
+          <div className="h-7 bg-slate-200 rounded w-24"></div>
+          <div className="h-3 bg-slate-100 rounded w-36"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white p-6 rounded-xl border border-[#e2e8f0] flex flex-col justify-between shadow-sm">
       <div className="flex justify-between items-start">
