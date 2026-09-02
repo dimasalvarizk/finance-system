@@ -1894,7 +1894,7 @@ const Invoices: React.FC = () => {
                                 return 'N/A';
                               })()}
                             </td>
-                             <td className="px-6 py-3.5">
+                             <td className="px-6 py-3.5 whitespace-nowrap">
                                {(() => {
                                  const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
                                  const advAmt = parseFloat(String(inv.advancePayment || 0));
@@ -1906,99 +1906,108 @@ const Invoices: React.FC = () => {
 
                                  if (inv.status === 'FULLY_PAID' || inv.status === 'Paid' || (remaining <= 0 && rawAmt > 0)) {
                                    return (
-                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider font-sans">
-                                       🟢 Fully Paid
+                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+                                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                       Fully Paid
                                      </span>
                                    );
                                  }
                                  if (inv.status === 'PARTIAL' || (remaining < rawAmt - advAmt && remaining > 0)) {
                                    return (
-                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider font-sans">
-                                       🔵 Partial Payment
+                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+                                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                       Partial Payment
                                      </span>
                                    );
                                  }
                                  if (advAmt > 0 && remaining > 0) {
                                    return (
-                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider font-sans">
-                                       🟡 Deposit Paid
+                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+                                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                       Deposit Paid
                                      </span>
                                    );
                                  }
                                  if (isOverdue && remaining > 0) {
                                    return (
-                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider font-sans">
-                                       🔴 Overdue
+                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+                                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                       Overdue
                                      </span>
                                    );
                                  }
                                  return (
-                                   <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)}`}>
+                                   <span className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)} shadow-sm`}>
                                      {inv.status}
                                    </span>
                                  );
                                })()}
                              </td>
-                             <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                             <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                               {/* 1. Payment History & Installment Ledger Button ($) */}
                                <button
                                  onClick={() => openPaymentHistoryModal(inv)}
-                                 title="Payment History & Balance Tracking"
-                                 className="p-1 hover:bg-amber-50 rounded text-amber-600 hover:text-amber-700 transition-all cursor-pointer"
+                                 title="Payment History & Installments"
+                                 className="p-1.5 hover:bg-amber-50 rounded-lg text-amber-600 hover:text-amber-700 transition-all cursor-pointer"
                                >
                                  <DollarSign className="w-4 h-4" />
                                </button>
-                              {inv.status === 'Paid' ? (
-                                inv.paymentAttachment ? (
-                                  <button
-                                    onClick={() => handleViewPaymentProof(inv)}
-                                    title="View Payment Proof"
-                                    className="p-1 hover:bg-green-50 rounded text-green-600 hover:text-green-800 transition-all cursor-pointer flex items-center justify-center font-bold text-[14px]"
-                                  >
-                                    ✅
-                                  </button>
-                                ) : (
-                                  user?.role !== 'Viewer' && (
-                                    <button
-                                      onClick={() => handleTriggerUploadProof(inv)}
-                                      title="Upload Payment Proof"
-                                      className="p-1 hover:bg-blue-50 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
-                                    >
-                                      <Upload className="w-4 h-4" />
-                                    </button>
-                                  )
-                                )
-                              ) : (
-                                user?.role !== 'Viewer' && (
-                                  <>
-                                    <button
-                                      onClick={() => handleEditInvoiceClick(inv)}
-                                      title="Edit Invoice"
-                                      className="p-1 hover:bg-slate-100 rounded text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
-                                    >
-                                      <Edit3 className="w-4 h-4" />
-                                    </button>
-                                    {inv.status !== 'Cancelled' && inv.status !== 'Archived' && (
-                                      <button
-                                        onClick={() => handleCancelSingleInvoice(inv.invoiceNo)}
-                                        title="Cancel Invoice"
-                                        className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
-                                      >
-                                        <XCircle className="w-4 h-4" />
-                                      </button>
-                                    )}
-                                    {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director' || user?.role === 'Madinah Branch Accountant') && (
-                                      <button
-                                        onClick={() => handleDeleteSingleInvoice(inv.invoiceNo)}
-                                        title="Delete Invoice"
-                                        className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-all cursor-pointer"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
-                                    )}
-                                  </>
-                                )
-                              )}
-                            </td>
+
+                               {/* 2. Payment Proof Upload / View Button (ALWAYS VISIBLE) */}
+                               {inv.paymentAttachment ? (
+                                 <button
+                                   onClick={() => handleViewPaymentProof(inv)}
+                                   title="View Payment Proof Transfer Photo / PDF"
+                                   className="p-1.5 hover:bg-emerald-50 rounded-lg text-emerald-600 hover:text-emerald-700 transition-all cursor-pointer flex items-center justify-center font-bold relative"
+                                 >
+                                   <Upload className="w-4 h-4 text-emerald-600" />
+                                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
+                                 </button>
+                               ) : (
+                                 user?.role !== 'Viewer' && (
+                                   <button
+                                     onClick={() => handleTriggerUploadProof(inv)}
+                                     title="Upload Payment Proof Transfer"
+                                     className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
+                                   >
+                                     <Upload className="w-4 h-4" />
+                                   </button>
+                                 )
+                               )}
+
+                               {/* 3. Edit Confirmation Button (Pencil) */}
+                               {user?.role !== 'Viewer' && (
+                                 <button
+                                   onClick={() => handleEditInvoiceClick(inv)}
+                                   title="Edit Confirmation"
+                                   className="p-1.5 hover:bg-slate-100 rounded-lg text-blue-500 hover:text-blue-700 transition-all cursor-pointer"
+                                 >
+                                   <Edit3 className="w-4 h-4" />
+                                 </button>
+                               )}
+
+                               {/* 4. Cancel Confirmation Button (Cross in Circle) */}
+                               {user?.role !== 'Viewer' && inv.status !== 'Cancelled' && inv.status !== 'Archived' && (
+                                 <button
+                                   onClick={() => handleCancelSingleInvoice(inv.invoiceNo)}
+                                   title="Cancel Confirmation"
+                                   className="p-1.5 hover:bg-red-50 rounded-lg text-red-400 hover:text-red-600 transition-all cursor-pointer"
+                                 >
+                                   <XCircle className="w-4 h-4" />
+                                 </button>
+                               )}
+
+                               {/* 5. Delete Confirmation Button (Trash) */}
+                               {(user?.role === 'Super Admin' || user?.role === 'Chief Accountant' || user?.role === 'Division Director' || user?.role === 'Madinah Branch Accountant') && (
+                                 <button
+                                   onClick={() => handleDeleteSingleInvoice(inv.invoiceNo)}
+                                   title="Delete Confirmation"
+                                   className="p-1.5 hover:bg-red-50 rounded-lg text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                 >
+                                   <Trash2 className="w-4 h-4" />
+                                 </button>
+                               )}
+                             </td>
                           </tr>
                         ))
                       ) : (
