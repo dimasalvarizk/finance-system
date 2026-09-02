@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /dashboard
+Allow: /invoices
+Allow: /requests
+Allow: /companies
+Allow: /hotel-reservations
+
+Sitemap: https://odstfin.io/sitemap.xml
