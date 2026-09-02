@@ -3159,62 +3159,7 @@ const Invoices: React.FC = () => {
         style={{ display: 'none' }}
       />
 
-      {/* Payment Proof Viewer Modal */}
-      {viewingProofBase64 && (
-        <div className="fixed inset-0 bg-[#0c0d0f]/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animate-fade-in" onClick={() => setViewingProofBase64(null)}>
-          <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-up" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo / PDF</h3>
-              <button
-                onClick={() => setViewingProofBase64(null)}
-                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-4 overflow-auto max-h-[70vh] flex items-center justify-center bg-slate-50 w-full">
-              {viewingProofBase64.startsWith('data:application/pdf') ? (
-                <iframe
-                  src={viewingProofBase64}
-                  title="Payment Proof PDF"
-                  className="w-full h-[60vh] border border-slate-200 rounded-lg shadow-sm"
-                />
-              ) : (
-                <img
-                  src={viewingProofBase64}
-                  alt="Payment proof"
-                  className="max-w-full h-auto rounded-lg shadow-sm border border-slate-200"
-                />
-              )}
-            </div>
-            <div className="px-6 py-4 bg-white border-t border-slate-100 flex justify-between items-center">
-              {viewingProofBase64.startsWith('data:application/pdf') ? (
-                <a
-                  href={viewingProofBase64}
-                  download="payment-proof.pdf"
-                  className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-xl text-[12px] cursor-pointer transition-all shadow-sm font-sans"
-                >
-                  Download PDF
-                </a>
-              ) : (
-                <a
-                  href={viewingProofBase64}
-                  download="payment-proof.jpg"
-                  className="px-4 py-2 bg-[#007aff] hover:bg-[#006ee0] text-white font-bold rounded-xl text-[12px] cursor-pointer transition-all shadow-sm font-sans"
-                >
-                  Download Image
-                </a>
-              )}
-              <button
-                onClick={() => setViewingProofBase64(null)}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] cursor-pointer transition-all font-sans"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Payment History & Installment Tracking Modal */}
       {paymentHistoryModal.isOpen && paymentHistoryModal.invoice && (
@@ -3579,6 +3524,66 @@ const Invoices: React.FC = () => {
                 className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[12px] rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
               >
                 {isSubmittingPayment ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Payment Proof Viewer Modal - Placed at DOM root with z-index 99999 to guarantee rendering on top of all modals */}
+      {viewingProofBase64 && (
+        <div
+          className="fixed inset-0 bg-[#0c0d0f]/70 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+          style={{ zIndex: 99999 }}
+          onClick={() => setViewingProofBase64(null)}
+        >
+          <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-up" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo / PDF</h3>
+              <button
+                onClick={() => setViewingProofBase64(null)}
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 overflow-auto max-h-[70vh] flex items-center justify-center bg-slate-50 w-full">
+              {viewingProofBase64.startsWith('data:application/pdf') ? (
+                <iframe
+                  src={viewingProofBase64}
+                  title="Payment Proof PDF"
+                  className="w-full h-[60vh] border border-slate-200 rounded-lg shadow-sm"
+                />
+              ) : (
+                <img
+                  src={viewingProofBase64}
+                  alt="Payment proof"
+                  className="max-w-full h-auto rounded-lg shadow-sm border border-slate-200"
+                />
+              )}
+            </div>
+            <div className="px-6 py-4 bg-white border-t border-slate-100 flex justify-between items-center">
+              {viewingProofBase64.startsWith('data:application/pdf') ? (
+                <a
+                  href={viewingProofBase64}
+                  download="payment-proof.pdf"
+                  className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-xl text-[12px] cursor-pointer transition-all shadow-sm font-sans"
+                >
+                  Download PDF
+                </a>
+              ) : (
+                <a
+                  href={viewingProofBase64}
+                  download="payment-proof.jpg"
+                  className="px-4 py-2 bg-[#007aff] hover:bg-[#006ee0] text-white font-bold rounded-xl text-[12px] cursor-pointer transition-all shadow-sm font-sans"
+                >
+                  Download Image
+                </a>
+              )}
+              <button
+                onClick={() => setViewingProofBase64(null)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] cursor-pointer transition-all font-sans"
+              >
+                Close
               </button>
             </div>
           </div>
