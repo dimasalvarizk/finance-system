@@ -1,9 +1,12 @@
 User-agent: *
-Allow: /
-Allow: /dashboard
-Allow: /invoices
-Allow: /requests
-Allow: /companies
-Allow: /hotel-reservations
+Allow: /$
+Allow: /favicon.png
+Disallow: /dashboard
+Disallow: /invoices
+Disallow: /requests
+Disallow: /companies
+Disallow: /settings
+Disallow: /hotel-reservations
+Disallow: /api/
 
 Sitemap: https://odstfin.io/sitemap.xml

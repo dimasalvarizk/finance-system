@@ -1,15 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Login from '../pages/Auth/Login';
-import ResetPassword from '../pages/Auth/ResetPassword';
-import Dashboard from '../pages/Dashboard';
-import Invoices from '../pages/Invoices';
-import Requests from '../pages/Requests';
-import Companies from '../pages/Companies';
-import Settings from '../pages/Settings';
-import HotelReservations from '../pages/HotelReservations';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+
+// Lazy-loaded pages for fast initial bundle loading & high Lighthouse performance
+const Login = lazy(() => import('../pages/Auth/Login'));
+const ResetPassword = lazy(() => import('../pages/Auth/ResetPassword'));
+const Dashboard = lazy(() => import('../pages/Dashboard'));
+const Invoices = lazy(() => import('../pages/Invoices'));
+const Requests = lazy(() => import('../pages/Requests'));
+const Companies = lazy(() => import('../pages/Companies'));
+const Settings = lazy(() => import('../pages/Settings'));
+const HotelReservations = lazy(() => import('../pages/HotelReservations'));
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-[#f4f6fa]">
+    <div className="w-9 h-9 border-4 border-[#1d2857] border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const routeSeoMap: Record<string, { title: string; desc: string }> = {
   '/': {
@@ -70,33 +78,35 @@ const AppRoutes: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <Routes>
-      {/* Rute Publik */}
-      <Route path="/" element={<Login />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Rute Publik */}
+        <Route path="/" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Rute Terproteksi */}
-      <Route element={<ProtectedRoute />}>
-        <Route
-          path="/dashboard"
-          element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Dashboard />}
-        />
-        <Route path="/invoices" element={<Invoices />} />
-        <Route path="/requests" element={<Requests />} />
-        <Route
-          path="/companies"
-          element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Companies />}
-        />
-        <Route
-          path="/settings"
-          element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Settings />}
-        />
-        <Route path="/hotel-reservations" element={<HotelReservations />} />
-      </Route>
+        {/* Rute Terproteksi */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/dashboard"
+            element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Dashboard />}
+          />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/requests" element={<Requests />} />
+          <Route
+            path="/companies"
+            element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Companies />}
+          />
+          <Route
+            path="/settings"
+            element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Settings />}
+          />
+          <Route path="/hotel-reservations" element={<HotelReservations />} />
+        </Route>
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 };
 
