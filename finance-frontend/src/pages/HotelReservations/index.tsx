@@ -1005,12 +1005,9 @@ const HotelReservations: React.FC = () => {
                         {selectedBooking.paymentInvoiceFile ? (
                           <div className="space-y-3">
                             <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-[#d1fae5] flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="text-[14px]">📄</span>
-                                <div className="text-left">
-                                  <div className="text-xs font-bold">Payment Proof Uploaded</div>
-                                  <div className="text-[10px] text-emerald-600 font-sans">Ready to review</div>
-                                </div>
+                              <div className="text-left">
+                                <div className="text-xs font-bold">Payment Proof Uploaded</div>
+                                <div className="text-[10px] text-emerald-600 font-sans">Ready to review</div>
                               </div>
                               <button
                                 onClick={() => setViewingProof(selectedBooking.paymentInvoiceFile || null)}
