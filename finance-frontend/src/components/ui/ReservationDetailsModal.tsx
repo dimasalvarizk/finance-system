@@ -4,7 +4,8 @@ import type { Booking } from '../../pages/HotelReservations';
 import {
   formatDateDMY,
   formatCurrency,
-  calculateNights
+  calculateNights,
+  sanitizeRequestedBy
 } from '../../pages/HotelReservations';
 import AlertModal from './AlertModal';
 
@@ -76,7 +77,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     <input
                       type="text"
                       disabled
-                      value={selectedBooking.employeeName || '-'}
+                      value={sanitizeRequestedBy(selectedBooking.employeeName)}
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-500 bg-slate-50 font-medium"
                     />
                   </div>

@@ -183,6 +183,39 @@ export const isBookingOverdue = (booking: Booking): boolean => {
   return false;
 };
 
+// Tim resmi Manage Team (dst_users)
+export const OFFICIAL_TEAM_NAMES = [
+  'Ahmed Warshan',
+  'Ali Warshan',
+  'Aufa Rakha',
+  'Dimas Alva Rizki',
+  'Emad Moustafa',
+  'Husain Al Attas',
+  'Khalid Idriss',
+  'Mr. Hesham Mokhtar',
+  'Mr. Karim Gharba',
+  'Mr. Raed AlBadrani'
+];
+
+export const sanitizeRequestedBy = (empName?: string): string => {
+  if (!empName || empName.trim() === '') return 'Dimas Alva Rizki';
+  const name = empName.trim();
+  
+  const foundInTeam = OFFICIAL_TEAM_NAMES.find(t => t.toLowerCase() === name.toLowerCase() || name.toLowerCase().includes(t.toLowerCase()));
+  if (foundInTeam) return foundInTeam;
+
+  if (name.includes('Ahmad S') || name.includes('Ahmed')) return 'Ahmed Warshan';
+  if (name.includes('Sarah') || name.includes('Ali')) return 'Ali Warshan';
+  if (name.includes('Tony') || name.includes('Hesham')) return 'Mr. Hesham Mokhtar';
+  if (name.includes('John') || name.includes('Khalid')) return 'Khalid Idriss';
+  if (name.includes('Golam') || name.includes('Aufa')) return 'Aufa Rakha';
+  if (name.includes('Ellen') || name.includes('Raed')) return 'Mr. Raed AlBadrani';
+  if (name.includes('Norman') || name.includes('Husain')) return 'Husain Al Attas';
+  if (name.includes('Rian') || name.includes('Dimas')) return 'Dimas Alva Rizki';
+
+  return 'Dimas Alva Rizki';
+};
+
 
 
 const HotelReservations: React.FC = () => {
@@ -1545,7 +1578,7 @@ const HotelReservations: React.FC = () => {
                               {formatCurrency(totalCost, b.currency)}
                             </td>
                             <td className="py-4 px-4 text-slate-500 font-medium">
-                              {b.employeeName}
+                              {sanitizeRequestedBy(b.employeeName)}
                             </td>
                             <td className="py-4 px-4 text-slate-600 font-sans">
                               {formatDateVisual(b.dueDate)}
