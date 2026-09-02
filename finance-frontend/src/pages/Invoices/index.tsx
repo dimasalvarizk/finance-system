@@ -3326,7 +3326,7 @@ const Invoices: React.FC = () => {
                                       onClick={() => setViewingProofBase64(pay.proofUrl)}
                                       className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
                                     >
-                                      <span>📄 View Proof</span>
+                                      <span>View Proof</span>
                                     </button>
                                   ) : pay.note ? (
                                     <span className="text-slate-500 italic text-[11.5px]" title={pay.note}>
