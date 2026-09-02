@@ -239,6 +239,7 @@ const Dashboard: React.FC = () => {
   const totalInvoicesCount = Array.isArray(invoices) ? invoices.length : 0;
   const pendingCount = Object.values(branchStats).reduce((sum, b) => sum + b.pending, 0);
   const totalOutstanding = Object.values(branchStats).reduce((sum, b) => sum + b.outstanding, 0);
+  const totalOverdueCount = Object.values(branchStats).reduce((sum, b) => sum + b.overdue, 0);
 
   const formattedTotalRev = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -247,12 +248,39 @@ const Dashboard: React.FC = () => {
     maximumFractionDigits: 0
   }).format(totalRev);
 
-  const formattedOutstanding = new Intl.NumberFormat('en-US', {
+  let totalOverdueAmount = 0;
+  if (Array.isArray(invoices)) {
+    invoices.forEach(inv => {
+      if (!inv) return;
+      const status = String(inv.status || '').toLowerCase();
+      const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
+
+      let isOverdue = status === 'overdue' ||
+        status === 'cancelled due to overdue' ||
+        status === 'rejected' ||
+        status.includes('overdue') ||
+        (status === 'cancelled' && (notes.includes('overdue') || notes.includes('auto-cancelled') || notes.includes('unpaid past due date')));
+
+      if (!isOverdue && inv.dueDate && !status.includes('paid') && status !== 'approved' && status !== 'archived') {
+        const dueTime = new Date(inv.dueDate).getTime();
+        const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
+        if (dueTime < todayTime) {
+          isOverdue = true;
+        }
+      }
+
+      if (isOverdue) {
+        totalOverdueAmount += getInvoiceAmountInUsd(inv);
+      }
+    });
+  }
+
+  const formattedOverdueBalance = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(totalOutstanding);
+  }).format(totalOverdueAmount > 0 ? totalOverdueAmount : totalOutstanding);
 
   const metricsData = [
     {
@@ -277,11 +305,11 @@ const Dashboard: React.FC = () => {
       badgeColorClass: pendingCount > 0 ? 'bg-[#fef2f2] text-[#ef4444]' : 'bg-[#ecfdf5] text-[#10b981]',
     },
     {
-      title: 'Outstanding Balance',
-      value: formattedOutstanding,
-      subtext: 'Past due collections',
-      badgeText: '',
-      badgeColorClass: 'bg-[#fff7ed] text-[#f97316]',
+      title: 'Overdue Balance',
+      value: formattedOverdueBalance,
+      subtext: `${totalOverdueCount} overdue confirmation${totalOverdueCount !== 1 ? 's' : ''}`,
+      badgeText: 'Action Required',
+      badgeColorClass: 'bg-[#fef2f2] text-[#ef4444]',
     },
   ];
 
