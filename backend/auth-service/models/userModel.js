@@ -78,7 +78,8 @@ export const deleteUserDB = async (id) => {
   return { success: true };
 };
 
-export const updateLastActiveDB = async (id, statusText = 'Just now') => {
+export const updateLastActiveDB = async (id, statusText) => {
   const pool = getPool();
-  await pool.query('UPDATE dst_users SET lastActive = ? WHERE id = ?', [statusText, id]);
+  const val = statusText || new Date().toISOString();
+  await pool.query('UPDATE dst_users SET lastActive = ? WHERE id = ?', [val, id]);
 };

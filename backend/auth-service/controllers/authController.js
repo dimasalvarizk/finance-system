@@ -116,8 +116,10 @@ export const login = async (req, res, next) => {
     // Generate Token with sessionId
     const token = generateToken(user.id, sessionId);
 
-    // Update lastActive status to Just now on login
-    await updateLastActiveDB(user.id, 'Just now');
+    // Update lastActive status to real-time ISO timestamp on login
+    const nowIso = new Date().toISOString();
+    await updateLastActiveDB(user.id, nowIso);
+    user.lastActive = nowIso;
 
     // Send Token in cookie
     sendTokenCookie(res, token);
@@ -181,10 +183,11 @@ export const getMe = async (req, res, next) => {
     // req.user is populated by protect middleware
     const token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
     
-    // Update lastActive status to Just now on authentication request
+    // Update lastActive status to real-time ISO timestamp on authentication request
     if (req.user && req.user.id) {
-      await updateLastActiveDB(req.user.id, 'Just now');
-      req.user.lastActive = 'Just now';
+      const nowIso = new Date().toISOString();
+      await updateLastActiveDB(req.user.id, nowIso);
+      req.user.lastActive = nowIso;
     }
 
     res.status(200).json({

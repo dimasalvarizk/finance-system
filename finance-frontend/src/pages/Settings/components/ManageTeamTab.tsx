@@ -354,8 +354,25 @@ const ManageTeamTab: React.FC = () => {
                       {member.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-500 font-medium">
-                    {member.lastActive}
+                  <td className="px-6 py-4 text-slate-500 font-medium whitespace-nowrap">
+                    {(() => {
+                      const str = member.lastActive;
+                      if (!str) return 'Just now';
+                      const date = new Date(str);
+                      if (!isNaN(date.getTime())) {
+                        const now = new Date();
+                        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+                        if (diffInSeconds < 60) return 'Just now';
+                        const diffInMins = Math.floor(diffInSeconds / 60);
+                        if (diffInMins < 60) return `${diffInMins} min${diffInMins > 1 ? 's' : ''} ago`;
+                        const diffInHours = Math.floor(diffInMins / 60);
+                        if (diffInHours < 24) return `${diffInHours} hr${diffInHours > 1 ? 's' : ''} ago`;
+                        const diffInDays = Math.floor(diffInHours / 24);
+                        if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                      }
+                      return str;
+                    })()}
                   </td>
                   <td className="px-6 py-4 text-right space-x-2.5">
                     <button
