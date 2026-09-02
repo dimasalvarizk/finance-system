@@ -50,7 +50,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
   const termsAndConditions = companySettings.termsAndConditions;
   
   return (
-    <div id="reservation-confirmation-print-area" className="hidden print:block w-full bg-white px-[44px] py-[38px] font-sans text-slate-800">
+    <div id="reservation-confirmation-print-area" className="hidden print:block w-full bg-white px-[50px] pt-[35px] pb-[40px] font-sans text-slate-800">
       <div className="w-full max-w-3xl mx-auto bg-white p-0 shadow-none border-none h-full flex flex-col justify-between" style={{ minHeight: '250mm' }}>
         <div>
           {/* Header */}
