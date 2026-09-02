@@ -206,7 +206,7 @@ const SystemBackupTab: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-sans select-none animate-fade-in max-w-5xl">
+    <div className="space-y-6 font-sans select-none animate-fade-in w-full">
       
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#1d2857] to-[#111827] rounded-2xl p-6 text-white shadow-md flex items-center justify-between">
