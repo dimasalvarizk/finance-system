@@ -4,6 +4,7 @@ import { getInvoices, getCompanies } from '../../../services/invoiceService';
 import { getHotelReservations } from '../../../services/hotelReservationService';
 import { getExchangeRates, getFullDatabaseBackup, logBackupHistory, getBackupHistory } from '../../../services/settingService';
 import { Download, FileSpreadsheet, FileJson, Clock, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface BackupHistoryItem {
   id: string;
@@ -16,6 +17,7 @@ interface BackupHistoryItem {
 
 const SystemBackupTab: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
   const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
   const [exportSuccessMessage, setExportSuccessMessage] = useState<string | null>(null);
@@ -88,9 +90,9 @@ const SystemBackupTab: React.FC = () => {
   if (!isAuthorized) {
     return (
       <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center space-y-4 max-w-2xl mx-auto my-8 font-sans">
-        <h3 className="text-lg font-extrabold text-rose-900">Access Restricted</h3>
+        <h3 className="text-lg font-extrabold text-rose-900">{t('settings.accessRestricted')}</h3>
         <p className="text-xs text-rose-700 font-medium leading-relaxed">
-          This system backup section is strictly restricted. Only <strong>Super Admin (Mr. Emad Moustafa)</strong> and <strong>IT Administrators (Ali & Dimas)</strong> are authorized to access and download full database backups.
+          {t('settings.backupAccessRestrictedDesc')}
         </p>
       </div>
     );
@@ -182,11 +184,11 @@ const SystemBackupTab: React.FC = () => {
 
       const timeNow = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setLastBackupTime(timeNow);
-      setExportSuccessMessage(`Full Database Snapshot (All 18 Tables) exported successfully at ${timeNow}!`);
+      setExportSuccessMessage(`Snapshot Basis Data Lengkap (18 Tabel) berhasil diekspor pada ${timeNow}!`);
       setIsExporting(false);
     } catch (err) {
       console.error('Failed to generate system backup:', err);
-      alert('Failed to generate full system backup. Please check network connection.');
+      alert('Gagal menghasilkan cadangan sistem. Silakan periksa koneksi jaringan.');
       setIsExporting(false);
     }
   };
@@ -196,42 +198,72 @@ const SystemBackupTab: React.FC = () => {
     try {
       let data: any[] = [];
       let filename = `ODST_${type.toUpperCase()}_EXPORT_${new Date().toISOString().slice(0, 10)}.csv`;
+      let headers: string[] = [];
 
       if (type === 'invoices') {
-        data = await getInvoices();
+        const invoices = await getInvoices().catch(() => []);
+        headers = ['ID', 'Confirmation Number', 'Branch', 'Company', 'Agent', 'Issue Date', 'Due Date', 'Status', 'Grand Total', 'Currency'];
+        data = invoices.map((inv: any) => [
+          inv.id || '',
+          `"${inv.invoice_number || ''}"`,
+          `"${inv.branch || ''}"`,
+          `"${inv.client_company_name || inv.company_name || ''}"`,
+          `"${inv.agent_name || ''}"`,
+          inv.issue_date || '',
+          inv.due_date || '',
+          inv.status || '',
+          inv.grand_total || inv.total_amount || 0,
+          inv.currency || 'USD'
+        ]);
       } else if (type === 'reservations') {
-        data = await getHotelReservations();
+        const reservations = await getHotelReservations().catch(() => []);
+        headers = ['ID', 'Reservation Number', 'Hotel', 'Guest Name', 'Agency', 'Check-In', 'Check-Out', 'Room Type', 'Meal Plan', 'Selling Price', 'Currency'];
+        data = reservations.map((res: any) => [
+          res.id || '',
+          `"${res.reservation_number || ''}"`,
+          `"${res.hotel_name || ''}"`,
+          `"${res.guest_name || ''}"`,
+          `"${res.client_company_name || ''}"`,
+          res.check_in || '',
+          res.check_out || '',
+          `"${res.room_type || ''}"`,
+          `"${res.meal_plan || ''}"`,
+          res.selling_price || 0,
+          res.currency || 'SAR'
+        ]);
       } else if (type === 'companies') {
-        data = await getCompanies();
+        const companies = await getCompanies().catch(() => []);
+        headers = ['ID', 'Company Name', 'Agent Name', 'Email', 'Phone', 'City', 'Country', 'Tax Number', 'Created At'];
+        data = companies.map((c: any) => [
+          c.id || '',
+          `"${c.name || ''}"`,
+          `"${c.agent_name || ''}"`,
+          `"${c.email || ''}"`,
+          `"${c.phone || ''}"`,
+          `"${c.city || ''}"`,
+          `"${c.country || ''}"`,
+          `"${c.tax_number || ''}"`,
+          c.created_at || ''
+        ]);
       }
 
-      if (!data || data.length === 0) {
-        alert(`No ${type} records available to export.`);
+      if (data.length === 0) {
+        alert(`Tidak ada data ${type} untuk diekspor.`);
         return;
       }
 
-      const keys = Object.keys(data[0] || {});
-      const csvHeader = keys.join(',') + '\n';
-      const csvRows = data.map(row => {
-        return keys.map(k => {
-          let val = row[k];
-          if (typeof val === 'object') val = JSON.stringify(val);
-          return `"${String(val ?? '').replace(/"/g, '""')}"`;
-        }).join(',');
-      }).join('\n');
-
-      const blob = new Blob([csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', filename);
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...data.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
 
       const newItem: BackupHistoryItem = {
         id: `bkp_${Date.now()}`,
-        exportType: `${type.toUpperCase()}_CSV`,
+        exportType: `CSV_${type.toUpperCase()}`,
         filename,
         recordCount: data.length,
         exportedBy: user?.name ? `${user.name} (${user.email || ''})` : 'System Admin',
@@ -239,10 +271,10 @@ const SystemBackupTab: React.FC = () => {
       };
       addHistoryItem(newItem);
 
-      // Log to history audit log backend
+      // Log history to server in background
       try {
         await logBackupHistory({
-          exportType: `${type.toUpperCase()}_CSV`,
+          exportType: `CSV_${type.toUpperCase()}`,
           filename,
           recordCount: data.length
         });
@@ -251,7 +283,7 @@ const SystemBackupTab: React.FC = () => {
       }
     } catch (err) {
       console.error('Error exporting CSV:', err);
-      alert('Failed to export CSV file.');
+      alert('Gagal mengekspor file CSV.');
     }
   };
 
@@ -263,13 +295,13 @@ const SystemBackupTab: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center space-x-2.5">
             <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-extrabold text-[11px] border border-emerald-500/30 uppercase tracking-wider">
-              System Admin & IT Only
+              {t('settings.adminItOnly')}
             </span>
             <span className="text-slate-400 text-xs font-mono">Cloud MySQL Engine</span>
           </div>
-          <h2 className="text-xl font-black tracking-tight text-white">System Data Backup & Infrastructure Export</h2>
+          <h2 className="text-xl font-black tracking-tight text-white">{t('settings.backupInfrastructure')}</h2>
           <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-            Generate and download full database snapshot backups for offline disaster recovery. Access is strictly audited and limited to <strong>Super Admin (Mr. Emad Moustafa)</strong> and <strong>IT Administrators (Ali & Dimas)</strong>.
+            {t('settings.backupSubtitle')}
           </p>
         </div>
       </div>
@@ -282,7 +314,7 @@ const SystemBackupTab: React.FC = () => {
             onClick={() => setExportSuccessMessage(null)} 
             className="text-emerald-600 hover:text-emerald-800 font-bold border-none bg-transparent cursor-pointer text-xs"
           >
-            Dismiss
+            {t('common.close') || 'Tutup'}
           </button>
         </div>
       )}
@@ -294,17 +326,17 @@ const SystemBackupTab: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-800">Full System Backup (.json)</h3>
-              <p className="text-[11px] text-slate-400 font-medium">Includes Invoices, Reservations, Clients, and Settings</p>
+              <h3 className="text-sm font-extrabold text-slate-800">{t('settings.downloadFullBackup')}</h3>
+              <p className="text-[11px] text-slate-400 font-medium">{t('settings.fullBackupSubtitle')}</p>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed font-sans">
-              Exports a complete JSON payload containing all active ledger records, hotel reservations, client directory data, and exchange rate parameters for offline archival.
+              {t('settings.fullBackupDesc')}
             </p>
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
             <div className="text-[11px] text-slate-400 font-medium">
-              <span>{lastBackupTime ? `Last export: ${lastBackupTime}` : 'No export this session'}</span>
+              <span>{lastBackupTime ? t('settings.lastExport', { time: lastBackupTime }) : t('settings.noExportThisSession')}</span>
             </div>
             <button
               onClick={handleDownloadFullBackup}
@@ -312,7 +344,7 @@ const SystemBackupTab: React.FC = () => {
               className="px-5 py-2.5 bg-[#1d2857] hover:bg-[#111827] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-sm border-none disabled:opacity-50 flex items-center gap-2"
             >
               <FileJson className="w-4 h-4" />
-              <span>{isExporting ? 'Generating Backup...' : 'Download Full Backup'}</span>
+              <span>{isExporting ? t('settings.generatingBackup') : t('settings.downloadFullBackup')}</span>
             </button>
           </div>
         </div>
@@ -321,28 +353,28 @@ const SystemBackupTab: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-800">Hosting Infrastructure & Database Backup</h3>
-              <p className="text-[11px] text-slate-400 font-medium">Production Database & Web Server Deployment</p>
+              <h3 className="text-sm font-extrabold text-slate-800">{t('settings.hostingInfrastructure')}</h3>
+              <p className="text-[11px] text-slate-400 font-medium">{t('settings.productionDbDeployment')}</p>
             </div>
             
             <div className="space-y-2 text-xs font-sans text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Database Backup Engine:</span>
-                <span className="font-bold text-emerald-600">Active (Auto Snapshot)</span>
+                <span className="text-slate-500 font-medium">{t('settings.autoCloudBackup')}:</span>
+                <span className="font-bold text-emerald-600">{t('settings.activeSnapshot')}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Server Deployments:</span>
-                <span className="font-bold text-blue-600">Synchronized (Git Main)</span>
+                <span className="text-slate-500 font-medium">{t('settings.serverDeployments')}:</span>
+                <span className="font-bold text-blue-600">{t('settings.synchronizedGit')}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Authorized IT Controllers:</span>
+                <span className="text-slate-500 font-medium">{t('settings.authorizedControllers')}:</span>
                 <span className="font-bold text-slate-800">Mr. Emad, Ali, Dimas</span>
               </div>
             </div>
           </div>
 
           <div className="pt-2 text-[11px] text-slate-400 italic">
-            * Automatic cloud backups run continuously on your active production database server.
+            {t('settings.cloudBackupNote')}
           </div>
         </div>
 
@@ -351,8 +383,8 @@ const SystemBackupTab: React.FC = () => {
       {/* Modular CSV Exports Section */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
         <div>
-          <h3 className="text-sm font-extrabold text-slate-800">Individual Modular Data Exports (CSV)</h3>
-          <p className="text-[11px] text-slate-400 font-medium">Download specific datasets compatible with Microsoft Excel & Google Sheets</p>
+          <h3 className="text-sm font-extrabold text-slate-800">{t('settings.exportCsvData')}</h3>
+          <p className="text-[11px] text-slate-400 font-medium">Unduh dataset terpisah yang kompatibel dengan Microsoft Excel & Google Sheets</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -361,8 +393,8 @@ const SystemBackupTab: React.FC = () => {
             className="p-4 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl transition-all text-left flex items-center justify-between cursor-pointer bg-white"
           >
             <div>
-              <div className="text-xs font-bold text-slate-800">Invoices & Ledger</div>
-              <div className="text-[10px] text-slate-400">All invoice entries</div>
+              <div className="text-xs font-bold text-slate-800">{t('invoices.title')}</div>
+              <div className="text-[10px] text-slate-400">Semua entri konfirmasi keuangan</div>
             </div>
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
           </button>
@@ -372,8 +404,8 @@ const SystemBackupTab: React.FC = () => {
             className="p-4 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl transition-all text-left flex items-center justify-between cursor-pointer bg-white"
           >
             <div>
-              <div className="text-xs font-bold text-slate-800">Hotel Reservations</div>
-              <div className="text-[10px] text-slate-400">Bookings & room data</div>
+              <div className="text-xs font-bold text-slate-800">{t('hotelReservations.title')}</div>
+              <div className="text-[10px] text-slate-400">Data reservasi & kamar hotel</div>
             </div>
             <FileSpreadsheet className="w-4 h-4 text-blue-600" />
           </button>
@@ -383,8 +415,8 @@ const SystemBackupTab: React.FC = () => {
             className="p-4 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl transition-all text-left flex items-center justify-between cursor-pointer bg-white"
           >
             <div>
-              <div className="text-xs font-bold text-slate-800">Client Directory</div>
-              <div className="text-[10px] text-slate-400">Companies & agencies</div>
+              <div className="text-xs font-bold text-slate-800">{t('companies.title')}</div>
+              <div className="text-[10px] text-slate-400">Data perusahaan & mitra</div>
             </div>
             <FileSpreadsheet className="w-4 h-4 text-amber-600" />
           </button>
@@ -397,38 +429,38 @@ const SystemBackupTab: React.FC = () => {
           <div>
             <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
               <Clock className="w-4 h-4 text-indigo-600" />
-              Recent Export & Backup History Log
+              {t('settings.exportHistory')}
             </h3>
             <p className="text-[11px] text-slate-400 font-medium">
-              Audit log of past data exports. If a file was deleted or lost on your device, click "Re-Download" to extract a fresh backup.
+              Log riwayat ekspor data. Jika file hilang, klik "Unduh Ulang" untuk mengekstrak salinan cadangan baru.
             </p>
           </div>
           <button
             onClick={fetchHistory}
             className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-all cursor-pointer"
           >
-            Refresh History
+            {t('common.refresh') || 'Segarkan'}
           </button>
         </div>
 
         {loadingHistory ? (
           <div className="py-8 text-center text-xs text-slate-400 font-medium animate-pulse">
-            Loading export audit logs...
+            {t('common.loading') || 'Memuat log riwayat...'}
           </div>
         ) : historyList.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-400 font-medium border border-dashed border-slate-200 rounded-xl bg-slate-50">
-            No export history recorded yet. Generating a backup or CSV export will log entries here automatically.
+            Belum ada riwayat ekspor. Menghasilkan cadangan akan mencatat entri di sini secara otomatis.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs font-sans">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-                  <th className="px-4 py-3">Timestamp / Date</th>
-                  <th className="px-4 py-3">Export Type</th>
-                  <th className="px-4 py-3">Filename</th>
-                  <th className="px-4 py-3">Exported By</th>
-                  <th className="px-4 py-3 text-center">Action</th>
+                  <th className="px-4 py-3">{t('settings.timestamp')}</th>
+                  <th className="px-4 py-3">{t('settings.exportType')}</th>
+                  <th className="px-4 py-3">{t('settings.filename')}</th>
+                  <th className="px-4 py-3">{t('settings.exportedBy')}</th>
+                  <th className="px-4 py-3 text-center">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -475,10 +507,10 @@ const SystemBackupTab: React.FC = () => {
                             }
                           }}
                           className="px-3 py-1 bg-slate-100 hover:bg-indigo-50 text-indigo-700 hover:text-indigo-800 font-bold text-[11px] rounded-lg border border-slate-200 hover:border-indigo-200 transition-all cursor-pointer inline-flex items-center gap-1"
-                          title="Re-download a fresh copy of this backup"
+                          title="Unduh ulang salinan cadangan ini"
                         >
                           <Download className="w-3 h-3" />
-                          Re-Download
+                          Unduh Ulang
                         </button>
                       </td>
                     </tr>

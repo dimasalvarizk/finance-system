@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface Invoice {
   ref: string;
@@ -21,15 +22,29 @@ const getStatusStyles = (status: string) => {
     case 'approved':
     case 'fully paid':
     case 'paid':
+    case 'lunas':
+    case 'disetujui':
+    case 'معتمد':
+    case 'مدفوع بالكامل':
       return 'bg-[#ecfdf5] text-[#10b981]';
     case 'partial':
     case 'partial payment':
+    case 'bayar sebagian':
+    case 'دفعة جزئية':
       return 'bg-[#eff6ff] text-[#2563eb]';
     case 'deposit paid':
+    case 'dp diterima':
+    case 'تم دفع العربون':
       return 'bg-[#fffbeb] text-[#d97706]';
     case 'pending':
+    case 'menunggu':
+    case 'قيد الانتظار':
       return 'bg-[#fff7ed] text-[#f97316]';
     case 'overdue':
+    case 'jatuh tempo':
+    case 'lewat jatuh tempo':
+    case 'متأخر':
+    case 'متأخر السداد':
       return 'bg-[#fef2f2] text-[#ef4444]';
     default:
       return 'bg-gray-100 text-gray-800';
@@ -37,19 +52,21 @@ const getStatusStyles = (status: string) => {
 };
 
 const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = false }) => {
+  const { t, i18n } = useTranslation();
+
   return (
     <div className={`${isFullWidth ? 'lg:col-span-3' : 'lg:col-span-2'} bg-white rounded-xl border border-[#e2e8f0] py-6 shadow-sm flex flex-col justify-between`}>
       <div>
         {/* Header Section */}
         <div className="px-6 flex justify-between items-center mb-6">
           <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">
-            Recent Confirmations
+            {t('dashboard.recentConfirmations')}
           </h3>
           <Link
             to="/invoices"
             className="text-[13px] font-semibold text-[#007aff] hover:underline font-sans"
           >
-            See All Confirmations
+            {t('dashboard.seeAllConfirmations')}
           </Link>
         </div>
 
@@ -59,22 +76,22 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
             <thead>
               <tr className="bg-gray-50 border-y border-[#e2e8f0]">
                 <th className="pl-6 pr-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Ref #
+                  {t('dashboard.ref')}
                 </th>
                 <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Client
+                  {t('dashboard.client')}
                 </th>
                 <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Amount
+                  {t('common.amount')}
                 </th>
                 <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Status
+                  {t('common.status')}
                 </th>
                 <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Confirmation Date
+                  {t('dashboard.confDate')}
                 </th>
                 <th className="pl-4 pr-6 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                  Due Date
+                  {t('dashboard.dueDate')}
                 </th>
               </tr>
             </thead>
@@ -96,7 +113,24 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
                         invoice.status
                       )}`}
                     >
-                      {invoice.status}
+                      {(() => {
+                        const statusMap: Record<string, string> = {
+                          'Fully Paid': t('common.statusPaid'),
+                          'Paid': t('common.statusPaid'),
+                          'Partial Payment': t('common.statusPartial'),
+                          'Partial': t('common.statusPartial'),
+                          'Deposit Paid': t('common.statusDeposit'),
+                          'Deposit': t('common.statusDeposit'),
+                          'Overdue': t('common.statusOverdue'),
+                          'Pending': t('common.statusPending'),
+                          'Approved': t('common.statusApproved'),
+                          'Rejected': t('common.statusRejected'),
+                          'Cancelled': t('common.statusCancelled'),
+                          'Tentative': t('common.statusTentative'),
+                          'Confirmed': t('common.statusConfirmed'),
+                        };
+                        return statusMap[invoice.status] || invoice.status;
+                      })()}
                     </span>
                   </td>
                   <td className="px-4 py-3.5 text-[13px] font-medium text-[#94a3b8] font-inter">
@@ -112,7 +146,8 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
                             const month = parseInt(parts[1]) - 1;
                             const day = parseInt(parts[2]);
                             const dObj = new Date(year, month, day);
-                            return dObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                            const localeCode = i18n.language === 'id' ? 'id-ID' : i18n.language === 'ar' ? 'ar-SA' : 'en-US';
+                            return dObj.toLocaleDateString(localeCode, { month: 'short', day: '2-digit', year: 'numeric' });
                           }
                         }
                         return invoice.dueDate;

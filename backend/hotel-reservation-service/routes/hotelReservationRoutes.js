@@ -6,7 +6,8 @@ import {
   updateStatus,
   deleteReservation,
   addHotelPaymentHistory,
-  getHotelPaymentHistory
+  getHotelPaymentHistory,
+  sendReservationConfirmationEmail
 } from '../controllers/hotelReservationController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -19,8 +20,10 @@ router.get('/', getReservations);
 router.post('/', createReservation);
 router.get('/:id/payments', getHotelPaymentHistory);
 router.post('/:id/payments', addHotelPaymentHistory);
+router.post('/:id/send-email', sendReservationConfirmationEmail);
 router.put('/:id/approve', approveReservation);
 router.put('/:id/status', updateStatus);
 router.delete('/:id', deleteReservation);
 
 export default router;
+

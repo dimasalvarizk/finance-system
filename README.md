@@ -1,6 +1,6 @@
 # 💼 Manazil AL.Mukhtara Group - Finance System
 
-Sistem Keuangan Terintegrasi (Finance System) **Manazil AL.Mukhtara Group** adalah platform berbasis web enterprise yang dirancang khusus untuk mengelola operasional keuangan, pencatatan transaksi, reservasi hotel & akomodasi umrah/haji, katalog layanan pariwisata, manajemen kantor cabang, backup data sistem, riwayat pembayaran bertahap (*installments*), notifikasi otomatis (*In-App & Email*), serta sistem persetujuan faktur (*Confirmation Approval*) multi-tahap.
+Sistem Keuangan Terintegrasi (Finance System) **Manazil AL.Mukhtara Group** adalah platform berbasis web enterprise yang dirancang khusus untuk mengelola operasional keuangan, pencatatan transaksi, reservasi hotel & akomodasi umrah/haji, katalog layanan pariwisata, manajemen kantor cabang, backup data sistem, riwayat pembayaran bertahap (*installments*), notifikasi otomatis (*In-App & Email*), input klien manual (*one-off client*), dukungan multibahasa (*i18n*), serta sistem persetujuan faktur (*Confirmation Approval*) multi-tahap.
 
 Aplikasi ini menggunakan arsitektur **Microservices** di sisi backend untuk modularitas tinggi dan performa optimal, serta **Single Page Application (SPA)** di sisi frontend untuk antarmuka pengguna yang dinamis, interaktif, responsif, dan premium.
 
@@ -12,7 +12,7 @@ Sistem dibangun dengan menggunakan teknologi modern untuk menjamin performa, kea
 
 ```mermaid
 graph TD
-    Client[React Frontend - Vite / Tailwind CSS] -->|HTTP/REST| Gateway[API Gateway - Port 5000]
+    Client[React Frontend - Vite / Tailwind CSS / i18next] -->|HTTP/REST| Gateway[API Gateway - Port 5000]
     
     Gateway -->|/api/auth| AuthService[Auth Service - Port 5001]
     Gateway -->|/api/invoices| InvoiceService[Invoice Service - Port 5002]
@@ -33,9 +33,9 @@ graph TD
 Setiap layanan backend dibangun menggunakan **Node.js (Express framework, ESM)** dan berkomunikasi secara independen ke database Aiven Cloud MySQL bersama (`dst_tables`):
 * **`api-gateway` (Port 5000)**: Pintu masuk utama (*reverse proxy*) yang menyatukan seluruh layanan backend menggunakan `http-proxy-middleware` dan mengelola CORS untuk komunikasi dengan frontend.
 * **`auth-service` (Port 5001)**: Menangani registrasi, login, autentikasi berbasis JSON Web Token (JWT), enkripsi kata sandi menggunakan `bcryptjs`, audit log masuk, pelacakan sesi pengguna, serta pusat pengiriman email notifikasi (`nodemailer` / SMTP).
-* **`invoice-service` (Port 5002)**: Mengelola pencatatan invoice/konfirmasi masuk, rincian item transaksi belanja, riwayat pembayaran bertahap (*multi-payment installments*), serta kredit saldo overpayment perusahaan.
+* **`invoice-service` (Port 5002)**: Mengelola pencatatan invoice/konfirmasi masuk, klien *one-off* manual, rincian item transaksi belanja, riwayat pembayaran bertahap (*multi-payment installments*), serta kredit saldo overpayment perusahaan.
 * **`request-service` (Port 5003)**: Pusat logika bisnis untuk pengajuan dan pemrosesan approval bertingkat (4-level approval system) serta cron checker jatuh tempo untuk antrean persetujuan.
-* **`company-service` (Port 5004)**: Mengelola data entitas atau mitra bisnis/klien (perusahaan eksternal) serta saldo kredit (*credit balance*).
+* **`company-service` (Port 5004)**: Mengelola data entitas atau mitra bisnis/klien tetap (perusahaan terdaftar) serta saldo kredit (*credit balance*).
 * **`setting-service` (Port 5005)**: Mengelola konfigurasi sistem meliputi manajemen tim, kantor cabang operasional, preferensi notifikasi pengguna, nilai tukar mata uang asing harian (USD, SAR, IDR), profil pengguna, keamanan akun, backup sistem, dan katalog harga layanan standar.
 * **`hotel-reservation-service` (Port 5006)**: Mengelola seluruh siklus reservasi hotel, daftar kamar & akomodasi, verifikasi persetujuan oleh Mr. Karim Gharba, unggah bukti transfer/invoice, riwayat pembayaran kamar, serta cron checker jatuh tempo dan auto-cancellation hotel.
 
@@ -44,6 +44,7 @@ Aplikasi antarmuka pengguna dibangun dengan:
 * **React (v19)** & **TypeScript** untuk pengembangan antarmuka terstruktur, modular, dan type-safe.
 * **Vite** sebagai build tool ultra-cepat.
 * **Tailwind CSS** untuk desain tata letak UI yang modern, responsif, dan elegan.
+* **i18next** & **react-i18next** untuk sistem lokalisasi multibahasa (Indonesia, English, Arabic).
 * **React Router Dom** untuk navigasi halaman tanpa reload.
 * **Axios** untuk integrasi panggilan API terpusat dengan interceptor otentikasi JWT.
 * **Lucide React** sebagai pustaka ikon visual premium.
@@ -54,12 +55,26 @@ Aplikasi antarmuka pengguna dibangun dengan:
 
 Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong efisiensi tim internal dan keamanan data:
 
-### 1. Perhitungan Real-Time Total Revenue (Collected Cash Inflow)
+### 1. Fitur Custom Input Klien (One-Off / Tanpa Simpan ke Master Data)
+* **Opsi "Others / Custom Client"**: Dropdown pemilihan klien pada modal pembuatan konfirmasi baru kini menyediakan opsi "Others".
+* **Kolom "Bill To" Dinamis**:
+  * Jika memilih klien terdaftar dari database: Seluruh detail (nama perusahaan, agen, NPWP, alamat, kota) otomatis terisi dan berstatus *read-only*.
+  * Jika memilih "Others": Seluruh field *Bill To* seketika menjadi form input terbuka yang dapat diketik bebas (Nama Perusahaan Klien [Wajib], Agen, Email, NPWP, Alamat, Kota/Negara).
+* **Integritas Master Data Perusahaan**: Transaksi klien *one-off* disimpan khusus pada level transaksi saja dan **tidak disimpan ke tabel `dst_companies`**, sehingga halaman Master Perusahaan tetap bersih dan rapi.
+* **Format Penomoran Otomatis**: Transaksi klien manual otomatis menggunakan format nomor konfirmasi dengan prefix `OTH` (contoh: `OTH-0903-001`).
+
+### 2. Dukungan Multibahasa Penuh (Internationalization / i18n)
+* **3 Bahasa Resmi**: Sistem mendukung **Bahasa Indonesia (`id`)**, **English (`en`)**, dan **Arabic (`ar`)** di seluruh halaman aplikasi (Dashboard, Invoices, Requests, Companies, Hotel Reservations, Settings, dan Modals).
+* **Language Switcher Cepat**: Pengguna dapat mengganti bahasa kapan saja melalui dropdown pemilih bahasa di Header atas.
+* **Proteksi Integritas Cetak PDF**: Seluruh dokumen cetak resmi (Invoice, Konfirmasi, Laporan Finansial Cabang, Reservasi Hotel) **tetap 100% dalam bahasa Inggris standar internasional** tanpa terpengaruh oleh bahasa antarmuka UI.
+
+### 3. Perhitungan Real-Time Total Revenue (Collected Cash Inflow)
 * **Collected Cash Standard**: Kartu *Total Revenue* di dashboard menghitung arus kas riil yang telah diterima (100% dari invoice/konfirmasi yang telah approved/paid penuh **ditambah** porsi nominal yang telah dibayarkan pada invoice berstatus partial payment / deposit).
 * **Outstanding Balance Otomatis**: Tagihan dengan status partial payment secara otomatis hanya menghitung sisa saldo yang belum terbayar (*remaining balance*), bukan lagi menagih nominal kotor secara utuh.
+* **Format Mata Uang USD Standar**: Nominal dalam mata uang USD disajikan secara bersih dengan simbol `$` standar (contoh: `$53.33`).
 * **Status Badges Baru**: Tabel konfirmasi terbaru kini dilengkapi badge informatif: `Fully Paid` (hijau), `Partial Payment` (biru), dan `Deposit Paid` (amber/kuning).
 
-### 2. Sistem Notifikasi Otomatis Menyeluruh (In-App & Email)
+### 4. Sistem Notifikasi Otomatis Menyeluruh (In-App & Email)
 * **Kustomisasi Preferensi Mandiri**: Setiap pengguna dapat mengatur preferensi penerimaan notifikasi via In-App (lonceng header & audio alert) dan/atau Email resmi di menu **Settings ➔ Notifications** (`dst_notification_settings`).
 * **Kategori Notifikasi**:
   * **Confirmation Notifications**:
@@ -76,7 +91,7 @@ Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong
     * *Team member changes*: Notifikasi ke Super Admin saat ada penambahan atau penghapusan pengguna di sistem.
     * *System maintenance*: Pengumuman jadwal pemeliharaan platform.
 
-### 3. Background Cron Job Terjadwal (Dedicated Overdue Checkers)
+### 5. Background Cron Job Terjadwal (Dedicated Overdue Checkers)
 * **`request-service` Cron (`overdueChecker.js`)**:
   * Berjalan setiap hari pada pukul **08:00 AM** (`0 8 * * *`).
   * Memeriksa antrean approval invoice/konfirmasi (`dst_requests`) yang melewati tanggal `dueDate` dan mengirimkan alert `approvalOverdue` ke approver terkait.
@@ -85,7 +100,7 @@ Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong
   * Memindai reservasi hotel aktif (`dst_hotel_reservations`) yang belum lunas dan telah melewati batas `dueDate`.
   * Secara otomatis memperbarui status menjadi **Cancelled** (*Auto-Cancelled: Unpaid past due date*) dan mengirimkan alert `approvalOverdue` kepada Mr. Karim, Super Admin, dan pembuat reservasi dengan proteksi anti-duplikasi.
 
-### 4. Modul Hotel Reservations & Cetak PDF Presisi
+### 6. Modul Hotel Reservations & Cetak PDF Presisi
 * **Tab "Reservations" vs "Requests"**: Tab reservasi menampilkan data operasional aktif (`Confirmed`, `Tentative`, `Paid`, `Overdue`, `Cancelled`). Tab requests mencatat seluruh riwayat permintaan awal.
 * **Alur Approval Mandiri Mr. Karim**: Verifikasi khusus reservasi kamar hotel oleh Mr. Karim Gharba dengan penerbitan nomor konfirmasi (`CNF-...`).
 * **Format Dokumen Cetak Standar Internasional**:
@@ -93,16 +108,16 @@ Sistem keuangan ini telah dilengkapi dengan fitur-fitur mutakhir untuk menyokong
   * Posisi **Due Date** diletakkan tepat di bawah garis tanda tangan Financial Controller.
   * Alamat dan metadata resmi terstandarisasi: *Graha Al Badgel, Jakarta, Indonesia 12740*.
 
-### 5. Multi-Payment History & Overpayment Credit
+### 7. Multi-Payment History & Overpayment Credit
 * **Pencatatan Cicilan Bertahap**: Dukungan pencatatan pembayaran berulang/bertahap pada modul konfirmasi maupun reservasi hotel (`dst_payment_history`).
 * **Kredit Lebih Bayar (*Overpayment Credit*)**: Jika akumulasi pembayaran melebihi nilai tagihan kotor, kelebihan dana dapat otomatis dialokasikan ke saldo kredit klien (*credit balance*) di `dst_companies` untuk digunakan pada transaksi mendatang.
 
-### 6. Sistem Persetujuan 4-Level & Logika OR
+### 8. Sistem Persetujuan 4-Level & Logika OR
 * Alur persetujuan 4 Level terstruktur: `0/4 Pending -> 1/4 -> 2/4 -> 3/4 -> 4/4 Approved`.
 * Khusus pada **Level 2**, sistem menerapkan **Logika OR (ATAU)**: persetujuan dapat disahkan oleh Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani.
 * Setiap level divalidasi ketat terhadap peran pengguna (`role`) yang sedang login.
 
-### 7. Multi-Currency & Nilai Kurs Otomatis (USD, SAR, IDR)
+### 9. Multi-Currency & Nilai Kurs Otomatis (USD, SAR, IDR)
 * Dropdown Currency Selector (`USD`, `SAR`, `IDR`) pada pembuatan transaksi dengan konversi otomatis berdasarkan nilai kurs harian terkini.
 * Seluruh metrik agregat di dashboard secara otomatis dinormalisasi kembali ke nilai USD.
 
@@ -119,8 +134,8 @@ Sistem menggunakan database relasional **Aiven Cloud MySQL** dengan tabel berawa
 | `dst_login_logs` | Catatan audit aktivitas login (IP, User Agent, status). | `auth-service` |
 | `dst_notifications` | Pesan notifikasi in-app untuk pengguna (title, message, unread status). | `auth-service` |
 | `dst_notification_settings` | Preferensi toggle notifikasi tiap pengguna (Email & In-App per alert type). | `setting-service` |
-| `dst_companies` | Daftar mitra/klien, kode agen, dan saldo kredit (*credit balance*). | `company-service` |
-| `dst_invoices` | Header konfirmasi/invoice (nomor, total, kurs konversi, jatuh tempo, status, sisa saldo). | `invoice-service` |
+| `dst_companies` | Daftar mitra/klien terdaftar, kode agen, dan saldo kredit (*credit balance*). | `company-service` |
+| `dst_invoices` | Header konfirmasi/invoice (nomor, total, kurs konversi, jatuh tempo, status, sisa saldo, serta field klien custom *one-off*). | `invoice-service` |
 | `dst_invoice_items` | Baris detail rincian barang/layanan dalam setiap konfirmasi. | `invoice-service` |
 | `dst_payment_history` | Riwayat pencatatan pembayaran bertahap/cicilan untuk konfirmasi & hotel. | `invoice-service` / `hotel-reservation-service` |
 | `dst_requests` | Status alur persetujuan 4 level (`level1Note` - `level4Note`, timestamp, approver). | `request-service` |
@@ -144,7 +159,7 @@ sequenceDiagram
     actor DD as Division Director (Mr. Khalid)
     actor FC as Financial Controller (Mr. Emad)
 
-    Accountant->>Invoice Service: 1. Buat Konfirmasi Baru
+    Accountant->>Invoice Service: 1. Buat Konfirmasi Baru (Klien Tetap / One-Off "Others")
     Invoice Service->>Request Service: 2. Daftarkan Request Baru (Status: 0/4 Pending)
     Invoice Service-->>Auth Service: 3. Kirim Notifikasi Assignee ke CA
     
@@ -170,7 +185,7 @@ sequenceDiagram
     
     Note over Accountant: Selesai / Pembayaran
     Request Service->>Invoice Service: 8. Kunci Konfirmasi & Ubah Status menjadi "Approved"
-    Accountant->>Invoice Service: 9. Unduh/Cetak PDF Resmi & Eksekusi Pembayaran
+    Accountant->>Invoice Service: 9. Unduh/Cetak PDF Resmi (English Standard) & Eksekusi Pembayaran
 ```
 
 ---

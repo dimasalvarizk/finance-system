@@ -6,19 +6,23 @@ import {
   Search,
   Plus,
   ChevronDown,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { getCompanySetting, getExchangeRates, getTaxSetting } from '../../services/settingService';
 import NewReservationModal from '../../components/ui/NewReservationModal';
 import ReservationDetailsModal from '../../components/ui/ReservationDetailsModal';
 import AlertModal from '../../components/ui/AlertModal';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { formatLocalizedDate } from '../../i18n';
 import {
   getHotelReservations,
   createHotelReservation,
   approveHotelReservation,
   updateHotelReservationStatus,
-  deleteHotelReservation
+  deleteHotelReservation,
+  sendHotelReservationEmail
 } from '../../services/hotelReservationService';
 import { getCompanies } from '../../services/invoiceService';
 import HotelReservationPrint from '../../components/ui/HotelReservationPrint';
@@ -222,6 +226,7 @@ export const sanitizeRequestedBy = (empName?: string): string => {
 
 const HotelReservations: React.FC = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   // State data utama
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -254,6 +259,40 @@ const HotelReservations: React.FC = () => {
   const [isApprovedSuccessOpen, setIsApprovedSuccessOpen] = useState(false);
   const [lastConfirmationNo, setLastConfirmationNo] = useState('');
   const [lastApprovedBooking, setLastApprovedBooking] = useState<Booking | null>(null);
+
+  // State Send Confirmation Email Modal
+  const [showSendConfirmationModal, setShowSendConfirmationModal] = useState(false);
+  const [clientEmailInput, setClientEmailInput] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [sendEmailError, setSendEmailError] = useState('');
+
+  const handleOpenSendConfirmation = () => {
+    if (!selectedBooking) return;
+    const defaultEmail = selectedBooking.employeeEmail || `billing@${(selectedBooking.companyName || 'client').toLowerCase().replace(/\s+/g, '')}.com`;
+    setClientEmailInput(defaultEmail);
+    setSendEmailError('');
+    setShowSendConfirmationModal(true);
+  };
+
+  const handleSendConfirmationEmail = async () => {
+    if (!selectedBooking || !clientEmailInput) return;
+    setIsSendingEmail(true);
+    setSendEmailError('');
+    try {
+      await sendHotelReservationEmail(selectedBooking.id, clientEmailInput);
+      setShowSendConfirmationModal(false);
+      triggerAlert(
+        t('common.success') || 'Success',
+        `${t('hotelReservations.sendConfirmation')} ${t('common.success') || 'berhasil dikirim ke'} ${clientEmailInput}`,
+        'success'
+      );
+    } catch (err: any) {
+      console.error('Failed to send confirmation email:', err);
+      setSendEmailError(err.response?.data?.message || 'Failed to send confirmation email. Please check configuration.');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
 
   // State pencarian, filter & seleksi multi-row
   const [selectedBookingIds, setSelectedBookingIds] = useState<string[]>([]);
@@ -483,11 +522,10 @@ const HotelReservations: React.FC = () => {
     setIsDropdownOpen(false);
   };
 
-  // Format tanggal ke format visual (e.g. Oct 12, 2024) untuk list table
+  // Format tanggal ke format visual untuk list table
   const formatDateVisual = (dateStr: string) => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    return formatLocalizedDate(dateStr, i18n.language);
   };
 
   // Handler aksi Approve oleh Mr. Karim Gharba
@@ -714,10 +752,10 @@ const HotelReservations: React.FC = () => {
               {/* Breadcrumbs and Back link */}
               <div className="flex justify-between items-center print:hidden">
                 <div className="flex items-center space-x-2 text-[11px] font-bold text-slate-400 font-sans tracking-wide uppercase">
-                  <span>Hotel Reservation Requests</span>
+                  <span>{t('hotelReservations.hotelReservationRequests')}</span>
                   <span>/</span>
                   <span className="text-slate-800">
-                    Request REQ-2026-{104 - bookings.findIndex(b => b.id === selectedBooking.id)}
+                    {t('hotelReservations.request')} REQ-2026-{104 - bookings.findIndex(b => b.id === selectedBooking.id)}
                   </span>
                 </div>
                 <button
@@ -725,7 +763,7 @@ const HotelReservations: React.FC = () => {
                   className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors border-none bg-transparent cursor-pointer font-sans"
                 >
                   <span>&larr;</span>
-                  <span>Back to Listing</span>
+                  <span>{t('hotelReservations.backToListing')}</span>
                 </button>
               </div>
 
@@ -733,14 +771,14 @@ const HotelReservations: React.FC = () => {
               <div className="flex flex-col space-y-1 print:hidden">
                 <div className="flex items-center space-x-3">
                   <h1 className="text-[26px] font-extrabold text-[#0c0d0f] tracking-tight">
-                    Confirmed Reservation Details
+                    {selectedBooking.status === 'Confirmed' ? t('hotelReservations.confirmedReservationDetails') : t('hotelReservations.reservationDetails')}
                   </h1>
                   {(() => {
                     const isOverdue = isBookingOverdue(selectedBooking);
                     if (isOverdue) {
                       return (
                         <span className="inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]">
-                          OVERDUE
+                          {t('common.statusOverdue').toUpperCase()}
                         </span>
                       );
                     }
@@ -755,7 +793,15 @@ const HotelReservations: React.FC = () => {
                             ? 'bg-[#fef3c7] text-[#d97706]'
                             : 'bg-rose-50 text-rose-700'
                         }`}>
-                          {selectedBooking.status.toUpperCase()}
+                          {(selectedBooking.status === 'Paid and closed' || selectedBooking.isPaid)
+                            ? t('common.statusPaid').toUpperCase()
+                            : selectedBooking.status === 'Confirmed'
+                            ? t('common.statusConfirmed').toUpperCase()
+                            : selectedBooking.status === 'Tentative'
+                            ? t('common.statusTentative').toUpperCase()
+                            : selectedBooking.status === 'Cancelled'
+                            ? t('common.statusCancelled').toUpperCase()
+                            : String(selectedBooking.status).toUpperCase()}
                         </span>
                         {selectedBooking.confirmationNo && (
                           <span className="inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide bg-slate-100 text-slate-700 border border-slate-200 font-mono">
@@ -781,33 +827,33 @@ const HotelReservations: React.FC = () => {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-slate-800">Reservation Details</h3>
-                        <p className="text-[11px] text-slate-400 font-sans">Reservation Number: {selectedBooking.reservationNo}</p>
+                        <h3 className="text-sm font-bold text-slate-800">{t('hotelReservations.reservationDetails')}</h3>
+                        <p className="text-[11px] text-slate-400 font-sans">{t('hotelReservations.reservationNumber')}: {selectedBooking.reservationNo}</p>
                       </div>
                     </div>
 
                     {/* Metadata Readonly Inputs */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">Invoice Number</label>
+                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">{t('hotelReservations.invoiceNumber')}</label>
                         <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-lg text-xs font-bold text-slate-800 font-sans">
                           {selectedBooking.reservationNo}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">Reference Number</label>
+                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">{t('hotelReservations.referenceNumber')}</label>
                         <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-lg text-xs font-bold text-slate-800 font-sans">
                           {selectedBooking.referenceNo}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">Serial Number</label>
+                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">{t('hotelReservations.serialNumber')}</label>
                         <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-lg text-xs font-bold text-slate-800 font-sans">
                           {selectedBooking.serialNo}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">Due Date</label>
+                        <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-sans">{t('hotelReservations.dueDate')}</label>
                         <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-lg text-xs font-bold text-slate-800 font-sans">
                           {formatDateVisual(selectedBooking.dueDate)}
                         </div>
@@ -817,19 +863,19 @@ const HotelReservations: React.FC = () => {
                     {/* BILL FROM / BILL TO ROW */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
                       <div>
-                        <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2.5">BILL FROM</h4>
+                        <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2.5">{t('hotelReservations.billFrom')}</h4>
                         <div className="space-y-1 text-xs font-sans text-slate-600">
                           <p className="font-bold text-slate-800 text-[13px]">{selectedBooking.employeeName || 'Dimas Alva Rizki'}</p>
-                          <p>Employee ID: {selectedBooking.employeeId || 'UMP-111'}</p>
-                          <p>Phone: {selectedBooking.employeePhone || '+62 8111 1203 330'}</p>
+                          <p>{t('hotelReservations.employeeId')}: {selectedBooking.employeeId || 'UMP-111'}</p>
+                          <p>{t('invoices.phone')}: {selectedBooking.employeePhone || '+62 8111 1203 330'}</p>
                           <p>{selectedBooking.employeeEmail || 'alvarizkidimas@gmail.com'}</p>
                           <p>{selectedBooking.employeeEntity || 'PT.ODST AIRLINES IND'}</p>
-                          <p className="text-[11px] text-slate-400">Tax No: {selectedBooking.companyTaxNo || '0000-0000-0001'}</p>
+                          <p className="text-[11px] text-slate-400">{t('hotelReservations.companyTaxNumber')}: {selectedBooking.companyTaxNo || '0000-0000-0001'}</p>
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2.5">BILL TO</h4>
+                        <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2.5">{t('hotelReservations.billTo')}</h4>
                         <div className="space-y-1 text-xs font-sans text-slate-600">
                           <p className="font-bold text-slate-800 text-[13px]">{selectedBooking.companyName}</p>
                           <p className="leading-relaxed">{selectedBooking.clientAddress}</p>
@@ -841,49 +887,49 @@ const HotelReservations: React.FC = () => {
 
                   {/* Accommodations Breakdown Card */}
                   <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4 select-none">
-                    <h4 className="text-base font-extrabold text-[#0f172a] font-sans">Accommodations Breakdown</h4>
+                    <h4 className="text-base font-extrabold text-[#0f172a] font-sans">{t('hotelReservations.accommodationsBreakdown')}</h4>
                     
                     <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full shadow-sm">
-                      <table className="w-full text-left text-xs font-sans border-collapse table-fixed">
+                      <table className="w-full text-left font-sans border-collapse">
                         <thead>
                           <tr className="bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                             <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                              Hotel Details
+                              {t('hotelReservations.hotelDetails')}
                             </th>
                           </tr>
                           <tr className="bg-[#e0e8fe] text-[#1d2857] border-b border-slate-200 font-bold uppercase tracking-wider text-[8.5px] select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                            <th className="py-2.5 px-3 text-left whitespace-nowrap w-[20%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Hotel</th>
-                            <th className="py-2.5 px-1 text-center whitespace-nowrap w-[10%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Room Type</th>
-                            <th className="py-2.5 px-1 text-center whitespace-nowrap w-[10%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-In</th>
-                            <th className="py-2.5 px-1 text-center whitespace-nowrap w-[10%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-Out</th>
-                            <th className="py-2.5 px-0.5 text-center whitespace-nowrap w-[5%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Night</th>
-                            <th className="py-2.5 px-0.5 text-center whitespace-nowrap w-[5%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Room</th>
-                            <th className="py-2.5 px-0.5 text-center whitespace-nowrap w-[5%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Adult</th>
-                            <th className="py-2.5 px-0.5 text-center whitespace-nowrap w-[5%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Child</th>
-                            <th className="py-2.5 px-0.5 text-center whitespace-nowrap w-[5%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals</th>
-                            <th className="py-2.5 px-1 text-right font-sans whitespace-nowrap w-[8%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>DayRate</th>
-                            <th className="py-2.5 px-1 text-right font-sans whitespace-nowrap w-[8%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals Rate</th>
-                            <th className="py-2.5 px-3 text-right font-sans whitespace-nowrap w-[9%]" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Total</th>
+                            <th className="py-2 px-2 text-left">{t('hotelReservations.hotel')}</th>
+                            <th className="py-2 px-1.5 text-left">{t('hotelReservations.roomType')}</th>
+                            <th className="py-2 px-1 text-center whitespace-nowrap">{t('hotelReservations.checkIn')}</th>
+                            <th className="py-2 px-1 text-center whitespace-nowrap">{t('hotelReservations.checkOut')}</th>
+                            <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.numNight')}</th>
+                            <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.numRoom')}</th>
+                            <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.adult')}</th>
+                            <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.child')}</th>
+                            <th className="py-2 px-1 text-center whitespace-nowrap">{t('hotelReservations.meals')}</th>
+                            <th className="py-2 px-1.5 text-right font-sans leading-tight">{t('hotelReservations.dayRate')}</th>
+                            <th className="py-2 px-1.5 text-right font-sans leading-tight">{t('hotelReservations.mealsRate')}</th>
+                            <th className="py-2 px-2 text-right font-sans whitespace-nowrap">{t('hotelReservations.total')}</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[9.5px]">
+                        <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10px]">
                           {selectedBooking.rooms.map((room, idx) => {
                             const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
                             const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
                             return (
                               <tr key={idx} className="hover:bg-slate-50/40">
-                                <td className="py-2.5 px-3 text-left font-bold text-slate-900 uppercase whitespace-nowrap truncate">{room.hotelName}</td>
-                                <td className="py-2.5 px-1 text-center font-semibold text-slate-800 uppercase whitespace-nowrap">{room.roomType}</td>
+                                <td className="py-2.5 px-2 text-left font-bold text-slate-900 uppercase text-[11px] leading-tight break-words">{room.hotelName}</td>
+                                <td className="py-2.5 px-1.5 text-left font-semibold text-slate-800 uppercase text-[10px] leading-tight break-words">{room.roomType}</td>
                                 <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{formatDateDMY(room.checkIn)}</td>
                                 <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{formatDateDMY(room.checkOut)}</td>
                                 <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{nights}</td>
                                 <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.roomCount}</td>
                                 <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.adults}</td>
                                 <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.children}</td>
-                                <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 uppercase whitespace-nowrap">{formatMealPlan(room.mealPlan)}</td>
-                                <td className="py-2.5 px-1 text-right font-sans font-medium text-slate-800 whitespace-nowrap">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
-                                <td className="py-2.5 px-1 text-right font-sans font-medium text-slate-800 whitespace-nowrap">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
-                                <td className="py-2.5 px-3 text-right font-sans font-bold text-slate-900 whitespace-nowrap">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
+                                <td className="py-2.5 px-1 text-center font-bold text-slate-900 uppercase whitespace-nowrap">{formatMealPlan(room.mealPlan)}</td>
+                                <td className="py-2.5 px-1.5 text-right font-sans font-medium text-slate-800 whitespace-nowrap text-[9.5px]">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
+                                <td className="py-2.5 px-1.5 text-right font-sans font-medium text-slate-800 whitespace-nowrap text-[9.5px]">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
+                                <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap text-[10.5px]">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
                               </tr>
                             );
                           })}
@@ -894,15 +940,15 @@ const HotelReservations: React.FC = () => {
                     {/* Subtotal & Total aligned right */}
                     <div className="mt-4 flex flex-col items-end space-y-1.5 font-sans select-none px-2">
                       <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-400 font-medium">
-                        <span>Subtotal:</span>
+                        <span>{t('hotelReservations.subtotal')}:</span>
                         <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(calculateBookingTotal(selectedBooking), selectedBooking.currency)}</span>
                       </div>
                       <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-400 font-medium">
-                        <span>Tax / VAT ({selectedBooking.taxRate || 0}%):</span>
+                        <span>{t('hotelReservations.taxVat')} ({selectedBooking.taxRate || 0}%):</span>
                         <span className="font-bold text-slate-700 text-sm">{formatCurrency(0, selectedBooking.currency)}</span>
                       </div>
                       <div className="pt-2 border-t border-slate-100 w-64 flex justify-between items-center text-slate-800 font-extrabold text-base">
-                        <span className="text-slate-800">Total Due:</span>
+                        <span className="text-slate-800">{t('hotelReservations.totalDue')}:</span>
                         <span className="text-[#10b981] font-black text-lg tracking-tight">{formatCurrency(calculateBookingTotal(selectedBooking), selectedBooking.currency)}</span>
                       </div>
                     </div>
@@ -913,7 +959,7 @@ const HotelReservations: React.FC = () => {
                     
                     {/* Exchange Rate Block */}
                     <div className="space-y-2">
-                      <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">EXCHANGE RATE</h4>
+                      <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{t('hotelReservations.exchangeRate')}</h4>
                       <div className="border border-slate-100 rounded-xl p-4 bg-slate-50/50 space-y-2 text-xs font-sans text-slate-600">
                         <div className="flex justify-between items-center py-0.5">
                           <span>1 USD = {(selectedBooking.usdToIdrRate || configuredRates.usdToIdr).toLocaleString('id-ID')} IDR</span>
@@ -925,13 +971,13 @@ const HotelReservations: React.FC = () => {
                         </div>
                         <div className="border-t border-slate-200/60 my-2"></div>
                         <div className="flex justify-between items-center py-0.5">
-                          <span className="font-medium text-slate-500">Total Due (IDR)</span>
+                          <span className="font-medium text-slate-500">{t('hotelReservations.totalDueIdr')}</span>
                           <span className="font-extrabold text-[#2563eb] text-[13px]">
                             Rp {(calculateBookingTotal(selectedBooking) * (1 + taxRate / 100) * (selectedBooking.usdToIdrRate || configuredRates.usdToIdr)).toLocaleString('id-ID')}
                           </span>
                         </div>
                         <div className="flex justify-between items-center py-0.5">
-                          <span className="font-medium text-slate-500">Total Due (SAR)</span>
+                          <span className="font-medium text-slate-500">{t('hotelReservations.totalDueSar')}</span>
                           <span className="font-extrabold text-[#2563eb] text-[13px]">
                             SAR {((calculateBookingTotal(selectedBooking) * (1 + taxRate / 100) * (selectedBooking.usdToIdrRate || configuredRates.usdToIdr)) / (selectedBooking.sarToIdrRate || configuredRates.sarToIdr)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
@@ -941,24 +987,24 @@ const HotelReservations: React.FC = () => {
 
                     {/* Payment Instructions Block */}
                     <div className="space-y-2.5">
-                      <h3 className="text-sm font-bold text-slate-800">Payment Instructions</h3>
+                      <h3 className="text-sm font-bold text-slate-800">{t('hotelReservations.paymentInstructions')}</h3>
                       <div className="border border-slate-100 rounded-xl p-4 bg-slate-50/30 space-y-3 text-xs font-sans">
                         <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">Bank Name:</span>
+                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.bankName')}:</span>
                           <span className="text-slate-800 font-bold">
                             {companySettings.bankName.includes('Bank') ? companySettings.bankName : `${companySettings.bankName} Bank`}
                           </span>
                         </div>
                         <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">Account Name:</span>
+                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.accountName')}:</span>
                           <span className="text-slate-800 font-bold">{companySettings.accountName}</span>
                         </div>
                         <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">USD Account:</span>
+                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.usdAccount')}:</span>
                           <span className="text-slate-800 font-bold">{companySettings.usdAccountNumber}</span>
                         </div>
                         <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">IDR Account:</span>
+                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.idrAccount')}:</span>
                           <span className="text-slate-800 font-bold">{companySettings.idrAccountNumber}</span>
                         </div>
                       </div>
@@ -973,14 +1019,14 @@ const HotelReservations: React.FC = () => {
                       className="flex items-center space-x-2 px-4 py-2.5 border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                      <span>Print Invoice</span>
+                      <span>{t('hotelReservations.printInvoice')}</span>
                     </button>
                     <button
                       onClick={() => window.print()}
                       className="flex items-center space-x-2 px-4 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                      <span>Download PDF</span>
+                      <span>{t('hotelReservations.downloadPdf')}</span>
                     </button>
                   </div>
 
@@ -991,7 +1037,7 @@ const HotelReservations: React.FC = () => {
                   
                   {/* Approval Workflow Status */}
                   <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
-                    <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Approval Workflow Status</h3>
+                    <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{t('hotelReservations.approvalWorkflowStatus')}</h3>
                     
                     <div className="flex items-start space-x-3 pt-2">
                       {selectedBooking.approvedByKarim ? (
@@ -1010,18 +1056,18 @@ const HotelReservations: React.FC = () => {
                       
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-slate-800">Mr. Karim Gharba</p>
-                        <p className="text-[10px] text-slate-500 font-sans">Madinah Accountant</p>
+                        <p className="text-[10px] text-slate-500 font-sans">{t('hotelReservations.madinahAccountant')}</p>
                         {selectedBooking.approvedByKarim ? (
                           <div className="pt-0.5">
                             <span className="inline-block px-2.5 py-0.5 bg-[#dcfce7] text-[#15803d] text-[10px] font-bold rounded">
-                              Confirmed: {selectedBooking.approvedAtKarim || 'Oct 12, 2026 at 09:15 AM'}
+                              {t('hotelReservations.confirmedAt')}: {selectedBooking.approvedAtKarim || 'Oct 12, 2026 at 09:15 AM'}
                             </span>
                           </div>
                         ) : (
                           <p className={`text-[10.5px] font-bold ${selectedBooking.approvedByKarim ? 'text-emerald-600' : 'text-amber-600'}`}>
                             {user?.role === 'Level_3_Approver' || user?.role === 'Madinah Branch Accountant' || user?.name?.toLowerCase().includes('karim')
-                              ? 'Awaiting Review (Your Level)' 
-                              : 'Awaiting Review'}
+                              ? t('hotelReservations.awaitingReviewYourLevel') 
+                              : t('hotelReservations.awaitingReview')}
                           </p>
                         )}
                       </div>
@@ -1029,10 +1075,10 @@ const HotelReservations: React.FC = () => {
 
                     <div className="pt-3 border-t border-slate-100 space-y-1 text-xs">
                       <p className={`font-bold ${selectedBooking.approvedByKarim ? 'text-emerald-700' : 'text-amber-700'}`}>
-                        {selectedBooking.approvedByKarim ? '1 of 1 Approvals Complete — Reservation Confirmed' : '0 of 1 Approvals Complete — Reservation Pending'}
+                        {selectedBooking.approvedByKarim ? t('hotelReservations.approvalsComplete') : t('hotelReservations.approvalsPending')}
                       </p>
                       <p className="text-[10px] text-slate-400 font-sans">
-                        Ready for payment processing
+                        {t('hotelReservations.readyForPayment')}
                       </p>
                     </div>
                   </div>
@@ -1042,11 +1088,11 @@ const HotelReservations: React.FC = () => {
                     <>
                       {/* Available Operations */}
                       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
-                        <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Available Operations</h3>
+                        <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{t('hotelReservations.availableOperations')}</h3>
                         <div className="space-y-2.5 pt-1">
                           {selectedBooking.status === 'Paid and closed' ? (
                             <div className="w-full py-2 px-3 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold text-center border border-solid border-emerald-100">
-                              ✓ Payment Fully Settled (Closed)
+                              {t('hotelReservations.paymentSettled')}
                             </div>
                           ) : (
                             <button
@@ -1079,11 +1125,15 @@ const HotelReservations: React.FC = () => {
                               }}
                               className="w-full py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm text-center"
                             >
-                              Mark as Paid
+                              {t('hotelReservations.markAsPaid')}
                             </button>
                           )}
-                          <button className="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-xs transition-all cursor-pointer bg-white text-center">
-                            Send Confirmation
+                          <button
+                            onClick={handleOpenSendConfirmation}
+                            className="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-xs transition-all cursor-pointer bg-white text-center flex items-center justify-center gap-1.5"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-slate-500" />
+                            <span>{t('hotelReservations.sendConfirmation')}</span>
                           </button>
                         </div>
                       </div>
@@ -1098,10 +1148,10 @@ const HotelReservations: React.FC = () => {
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Upload Payment Invoice</h3>
+                          <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{t('hotelReservations.uploadPaymentInvoice')}</h3>
                           {uploadErrorHighlight && !selectedBooking.paymentInvoiceFile && (
                             <span className="text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded">
-                              ⚠️ Payment proof required
+                              {t('hotelReservations.paymentProofRequired')}
                             </span>
                           )}
                         </div>
@@ -1109,20 +1159,20 @@ const HotelReservations: React.FC = () => {
                           <div className="space-y-3">
                             <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-[#d1fae5] flex items-center justify-between">
                               <div className="text-left">
-                                <div className="text-xs font-bold">Payment Proof Uploaded</div>
-                                <div className="text-[10px] text-emerald-600 font-sans">Ready to review</div>
+                                <div className="text-xs font-bold">{t('hotelReservations.paymentProofUploaded')}</div>
+                                <div className="text-[10px] text-emerald-600 font-sans">{t('hotelReservations.readyToReview')}</div>
                               </div>
                               <button
                                 onClick={() => setViewingProof(selectedBooking.paymentInvoiceFile || null)}
                                 className="px-3 py-1 bg-white hover:bg-emerald-100 border border-[#a7f3d0] text-emerald-700 font-bold rounded-lg text-[11px] transition-all cursor-pointer"
                               >
-                                View Proof
+                                {t('hotelReservations.viewProof')}
                               </button>
                             </div>
                             
                             {/* Re-upload Option */}
                             <label className="block w-full py-2 bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold rounded-lg text-xs text-center transition-all cursor-pointer">
-                              Change Payment Proof
+                              {t('hotelReservations.changePaymentProof')}
                               <input
                                 type="file"
                                 accept="image/*,application/pdf"
@@ -1136,8 +1186,8 @@ const HotelReservations: React.FC = () => {
                             <div className="p-2.5 bg-blue-50 text-blue-600 rounded-full">
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                             </div>
-                            <div className="text-xs font-bold text-slate-700">Drag & drop or click to upload</div>
-                            <div className="text-[10px] text-slate-400 font-sans">Supports: PDF, JPG, PNG (max 10MB)</div>
+                            <div className="text-xs font-bold text-slate-700">{t('hotelReservations.dragDropUpload')}</div>
+                            <div className="text-[10px] text-slate-400 font-sans">{t('hotelReservations.uploadSupports')}</div>
                             <input
                               type="file"
                               accept="image/*,application/pdf"
@@ -1152,22 +1202,22 @@ const HotelReservations: React.FC = () => {
 
                   {/* Notes Card */}
                   <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
-                    <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Notes</h3>
+                    <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{t('hotelReservations.notes')}</h3>
                     <textarea
-                      placeholder="Add payment notes or special instructions..."
+                      placeholder={t('hotelReservations.notesPlaceholder')}
                       className="w-full p-3 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-sans text-slate-800 h-24 resize-none"
                     />
                     <button className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm">
-                      Save Note
+                      {t('hotelReservations.saveNote')}
                     </button>
                   </div>
 
                   {/* Your Decision Card */}
                   {!selectedBooking.approvedByKarim && selectedBooking.status !== 'Cancelled' && (
                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
-                      <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Your Decision</h3>
+                      <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">{t('hotelReservations.yourDecision')}</h3>
                       <p className="text-xs font-sans text-slate-600 leading-relaxed">
-                        As the Madinah Accountant, please confirm verification of the Requested Reservation.
+                        {t('hotelReservations.decisionDesc')}
                       </p>
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <button
@@ -1193,7 +1243,7 @@ const HotelReservations: React.FC = () => {
                           }}
                           className="py-2.5 border border-red-200 hover:border-red-300 text-red-600 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid text-center"
                         >
-                          Reject Request
+                          {t('hotelReservations.rejectRequest')}
                         </button>
                         <button
                           onClick={() => {
@@ -1206,7 +1256,7 @@ const HotelReservations: React.FC = () => {
                           }}
                           className="py-2.5 bg-[#10b981] hover:bg-[#059669] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none text-center shadow-sm"
                         >
-                          Approve
+                          {t('hotelReservations.approve')}
                         </button>
                       </div>
                     </div>
@@ -1225,12 +1275,10 @@ const HotelReservations: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
             <div className="flex flex-col space-y-1">
               <h1 className="text-[28px] font-extrabold text-[#0c0d0f] tracking-tight">
-                {activeTab === 'Reservations' ? 'Hotel Reservations' : 'Hotel Reservation Requests'}
+                {activeTab === 'Reservations' ? t('hotelReservations.title') : t('hotelReservations.tabRequests')}
               </h1>
               <p className="text-[13px] text-[#64748b] font-medium font-sans">
-                {activeTab === 'Reservations' 
-                  ? 'ODST Corporate Travel & Accommodations Management' 
-                  : 'Review and approve pending hotel reservation requests from corporate travel'}
+                {t('hotelReservations.subtitle')}
               </p>
             </div>
 
@@ -1243,7 +1291,7 @@ const HotelReservations: React.FC = () => {
                     className="flex items-center space-x-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-bold transition-all shadow-sm cursor-pointer border-none"
                   >
                     <Plus className="w-4 h-4 font-bold" />
-                    <span>New Reservation</span>
+                    <span>{t('hotelReservations.newReservation')}</span>
                     <ChevronDown className="w-3.5 h-3.5" />
                   </button>
 
@@ -1253,13 +1301,13 @@ const HotelReservations: React.FC = () => {
                         onClick={() => openNewReservationForm('Tentative')}
                         className="w-full text-left px-4 py-2.5 text-[#0f172a] hover:bg-slate-50 transition-colors font-medium border-none bg-transparent cursor-pointer"
                       >
-                        Tentative
+                        {t('common.statusTentative')}
                       </button>
                       <button
                         onClick={() => openNewReservationForm('Confirmation')}
                         className="w-full text-left px-4 py-2.5 text-[#0f172a] hover:bg-slate-50 transition-colors font-medium border-t border-slate-100 border-x-none border-b-none bg-transparent cursor-pointer"
                       >
-                        Confirmation
+                        {t('common.statusConfirmed')}
                       </button>
                     </div>
                   )}
@@ -1270,7 +1318,7 @@ const HotelReservations: React.FC = () => {
                   className="flex items-center space-x-2 px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-bold transition-all shadow-sm cursor-pointer border-none"
                 >
                   <Plus className="w-4 h-4 font-bold" />
-                  <span>New Request</span>
+                  <span>{t('hotelReservations.newReservation')}</span>
                 </button>
               )
             )}
@@ -1287,7 +1335,7 @@ const HotelReservations: React.FC = () => {
                 activeTab === 'Reservations' ? 'text-[#2563eb]' : 'text-[#64748b] hover:text-[#0f172a]'
               }`}
             >
-              <span>Reservations</span>
+              <span>{t('hotelReservations.tabReservations')}</span>
               {activeTab === 'Reservations' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563eb] rounded-full" />
               )}
@@ -1301,7 +1349,7 @@ const HotelReservations: React.FC = () => {
                 activeTab === 'Requests' ? 'text-[#2563eb]' : 'text-[#64748b] hover:text-[#0f172a]'
               }`}
             >
-              <span>Requests</span>
+              <span>{t('hotelReservations.tabRequests')}</span>
               {activeTab === 'Requests' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563eb] rounded-full" />
               )}
@@ -1359,56 +1407,56 @@ const HotelReservations: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 print:hidden">
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Total Bookings</span>
-                  <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">All</span>
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('hotelReservations.title')}</span>
+                  <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.all')}</span>
                 </div>
                 <div className="mt-1">
                   <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.totalReservations.toLocaleString()}</h3>
-                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Total booked</p>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('hotelReservations.totalBooked')}</p>
                 </div>
               </div>
 
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Confirmed</span>
-                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Active</span>
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.statusConfirmed')}</span>
+                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.active')}</span>
                 </div>
                 <div className="mt-1">
                   <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.confirmed.toLocaleString()}</h3>
-                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Finalized</p>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('common.finalized')}</p>
                 </div>
               </div>
 
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Tentative</span>
-                  <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.statusTentative')}</span>
+                  <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.statusPending')}</span>
                 </div>
                 <div className="mt-1">
                   <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.tentative.toLocaleString()}</h3>
-                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">In Progress</p>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('common.inProgress')}</p>
                 </div>
               </div>
 
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[11px] font-bold text-[#c2410c] uppercase tracking-wider">Overdue</span>
-                  <span className="bg-orange-50 text-[#c2410c] text-[10px] font-bold px-2 py-0.5 rounded-full">Past Due</span>
+                  <span className="text-[11px] font-bold text-[#c2410c] uppercase tracking-wider">{t('common.statusOverdue')}</span>
+                  <span className="bg-orange-50 text-[#c2410c] text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.pastDue')}</span>
                 </div>
                 <div className="mt-1">
                   <h3 className="text-2xl font-extrabold text-[#c2410c]">{stats.overdue.toLocaleString()}</h3>
-                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Expired payment</p>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('hotelReservations.expiredPayment')}</p>
                 </div>
               </div>
 
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
                 <div className="flex justify-between items-start">
-                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Cancelled</span>
-                  <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Voided</span>
+                  <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.statusCancelled')}</span>
+                  <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.voided')}</span>
                 </div>
                 <div className="mt-1">
                   <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.cancelled.toLocaleString()}</h3>
-                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">Manually cancelled</p>
+                  <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('hotelReservations.manuallyCancelled')}</p>
                 </div>
               </div>
             </div>
@@ -1420,7 +1468,7 @@ const HotelReservations: React.FC = () => {
                   requestStatusFilter === 'All' ? 'text-[#2563eb] border-b-2 border-solid border-[#2563eb]' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                All Requests {requestsCount.all}
+                {t('hotelReservations.allRequests')} {requestsCount.all}
               </button>
               <button
                 onClick={() => setRequestStatusFilter('Pending')}
@@ -1428,7 +1476,7 @@ const HotelReservations: React.FC = () => {
                   requestStatusFilter === 'Pending' ? 'text-[#2563eb] border-b-2 border-solid border-[#2563eb]' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                Pending {requestsCount.pending}
+                {t('hotelReservations.pendingRequests')} {requestsCount.pending}
               </button>
               <button
                 onClick={() => setRequestStatusFilter('Confirmed')}
@@ -1436,7 +1484,7 @@ const HotelReservations: React.FC = () => {
                   requestStatusFilter === 'Confirmed' ? 'text-[#2563eb] border-b-2 border-solid border-[#2563eb]' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                Confirmed {requestsCount.confirmed}
+                {t('hotelReservations.confirmedRequests')} {requestsCount.confirmed}
               </button>
               <button
                 onClick={() => setRequestStatusFilter('Rejected')}
@@ -1444,7 +1492,7 @@ const HotelReservations: React.FC = () => {
                   requestStatusFilter === 'Rejected' ? 'text-[#2563eb] border-b-2 border-solid border-[#2563eb]' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                Rejected {requestsCount.rejected}
+                {t('hotelReservations.rejectedRequests')} {requestsCount.rejected}
               </button>
             </div>
           )}
@@ -1455,7 +1503,7 @@ const HotelReservations: React.FC = () => {
             <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="flex flex-col space-y-1 self-start sm:self-center">
                 <h3 className="text-[15px] font-bold text-slate-800">
-                  {activeTab === 'Reservations' ? 'All Reservations Listing' : 'All Reservation Requests Listing'}
+                  {activeTab === 'Reservations' ? t('hotelReservations.allReservations') : t('requests.allRequestsListing')}
                 </h3>
               </div>
 
@@ -1464,7 +1512,7 @@ const HotelReservations: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
-                    placeholder={activeTab === 'Reservations' ? "Search guest, hotel, or ref..." : "Search Requests / Hotel"}
+                    placeholder={activeTab === 'Reservations' ? t('hotelReservations.searchPlaceholder') : t('requests.searchPlaceholder')}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-sans text-slate-800"
@@ -1477,12 +1525,12 @@ const HotelReservations: React.FC = () => {
                     onChange={e => setStatusFilter(e.target.value)}
                     className="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer font-medium text-slate-700"
                   >
-                    <option value="All">All Statuses</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Tentative">Tentative</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Overdue">Overdue</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option value="All">{t('invoices.allStatuses')}</option>
+                    <option value="Confirmed">{t('common.statusConfirmed')}</option>
+                    <option value="Tentative">{t('common.statusTentative')}</option>
+                    <option value="Paid">{t('common.statusPaid')}</option>
+                    <option value="Overdue">{t('common.statusOverdue')}</option>
+                    <option value="Cancelled">{t('common.statusCancelled')}</option>
                   </select>
                 )}
 
@@ -1490,7 +1538,7 @@ const HotelReservations: React.FC = () => {
                   onClick={handleExportCSV}
                   className="flex items-center space-x-1.5 px-3 py-2 border border-slate-200 hover:border-slate-300 text-blue-600 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid"
                 >
-                  <span>Export to CSV</span>
+                  <span>{t('invoices.exportCsv')}</span>
                 </button>
               </div>
             </div>
@@ -1506,7 +1554,7 @@ const HotelReservations: React.FC = () => {
                     className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
                   />
                   <span className="text-[13px] text-[#1d4ed8] font-bold">
-                    {selectedBookingIds.length} selected
+                    {selectedBookingIds.length} {t('common.selected')}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1514,14 +1562,14 @@ const HotelReservations: React.FC = () => {
                     onClick={handleBulkExportCSV}
                     className="px-4 py-1.5 bg-white border border-[#2563eb] text-[#2563eb] rounded-lg text-[12px] font-bold hover:bg-blue-50/50 transition-all cursor-pointer shadow-sm font-sans"
                   >
-                    Export Selected
+                    {t('common.exportSelected')}
                   </button>
                   {user?.role !== 'Viewer' && (
                     <button
                       onClick={handleBulkDelete}
                       className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-[12px] font-bold hover:bg-red-700 transition-all cursor-pointer shadow-sm font-sans"
                     >
-                      Delete Selected
+                      {t('common.deleteSelected')}
                     </button>
                   )}
                 </div>
@@ -1556,28 +1604,28 @@ const HotelReservations: React.FC = () => {
                             className="rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb] w-4 h-4 cursor-pointer"
                           />
                         </th>
-                        <th className="py-3 px-5">Ref #</th>
-                        <th className="py-3 px-4">Hotel Name</th>
-                        <th className="py-3 px-4">Guest Name</th>
-                        <th className="py-3 px-4">Check-In</th>
-                        <th className="py-3 px-4">Check-Out</th>
-                        <th className="py-3 px-4">Room Type</th>
-                        <th className="py-3 px-4">Due Date</th>
-                        <th className="py-3 px-4 text-center">Status</th>
-                        <th className="py-3 px-4 text-center">Proof</th>
-                        <th className="py-3 px-5 text-right">Total Price</th>
+                        <th className="py-3 px-5">{t('dashboard.ref')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.hotel')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.guestName')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.checkIn')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.checkOut')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.rooms')}</th>
+                        <th className="py-3 px-4">{t('dashboard.dueDate')}</th>
+                        <th className="py-3 px-4 text-center">{t('common.status')}</th>
+                        <th className="py-3 px-4 text-center">{t('invoices.paymentProof')}</th>
+                        <th className="py-3 px-5 text-right">{t('common.total')}</th>
                       </>
                     ) : (
                       <>
-                        <th className="py-3 px-5">Request #</th>
-                        <th className="py-3 px-4">Reservation #</th>
-                        <th className="py-3 px-4">Hotel Name</th>
-                        <th className="py-3 px-4">Room Type</th>
-                        <th className="py-3 px-4">Amount</th>
-                        <th className="py-3 px-4">Requested By</th>
-                        <th className="py-3 px-4">Submitted</th>
-                        <th className="py-3 px-4 text-center">Approval Status</th>
-                        <th className="py-3 px-5 text-center">Action</th>
+                        <th className="py-3 px-5">{t('hotelReservations.reqNo')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.resNo')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.hotel')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.rooms')}</th>
+                        <th className="py-3 px-4">{t('hotelReservations.amount')}</th>
+                        <th className="py-3 px-4">{t('requests.submittedBy')}</th>
+                        <th className="py-3 px-4">{t('requests.submissionDate')}</th>
+                        <th className="py-3 px-4 text-center">{t('common.status')}</th>
+                        <th className="py-3 px-5 text-center">{t('common.actions')}</th>
                       </>
                     )}
                   </tr>
@@ -1588,8 +1636,8 @@ const HotelReservations: React.FC = () => {
                       <td colSpan={activeTab === 'Reservations' ? 11 : 9} className="py-16 text-center text-[#64748b]">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <Bed className="w-8 h-8 text-slate-300" />
-                          <p className="font-semibold text-slate-600 text-sm">No bookings found</p>
-                          <p className="text-[11.5px] text-slate-400">There are no records matching your query.</p>
+                          <p className="font-semibold text-slate-600 text-sm">{t('hotelReservations.noBookingsFound')}</p>
+                          <p className="text-[11.5px] text-slate-400">{t('hotelReservations.noBookingsFoundDesc')}</p>
                         </div>
                       </td>
                     </tr>
@@ -1630,7 +1678,7 @@ const HotelReservations: React.FC = () => {
                               {b.reservationNo}
                             </td>
                             <td className="py-4 px-4 text-slate-900 font-bold font-sans">
-                              {firstRoom.hotelName} {b.rooms.length > 1 && `(+${b.rooms.length - 1} Kamar)`}
+                              {firstRoom.hotelName} {b.rooms.length > 1 && `(+${b.rooms.length - 1} ${t('hotelReservations.rooms')})`}
                             </td>
                             <td className="py-4 px-4 text-slate-500 font-medium">
                               {b.guestName}
@@ -1653,7 +1701,7 @@ const HotelReservations: React.FC = () => {
                                 if (isOverdue) {
                                   return (
                                     <span className="inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]">
-                                      OVERDUE
+                                      {t('common.statusOverdue').toUpperCase()}
                                     </span>
                                   );
                                 }
@@ -1667,7 +1715,15 @@ const HotelReservations: React.FC = () => {
                                       ? 'bg-[#fef3c7] text-[#d97706]'
                                       : 'bg-rose-50 text-rose-700'
                                   }`}>
-                                    {(b.status === 'Paid and closed' || b.isPaid) ? 'PAID' : b.status.toUpperCase()}
+                                    {(b.status === 'Paid and closed' || b.isPaid)
+                                      ? t('common.statusPaid').toUpperCase()
+                                      : b.status === 'Confirmed'
+                                      ? t('common.statusConfirmed').toUpperCase()
+                                      : b.status === 'Tentative'
+                                      ? t('common.statusTentative').toUpperCase()
+                                      : (b.status as string) === 'Overdue'
+                                      ? t('common.statusOverdue').toUpperCase()
+                                      : String(b.status).toUpperCase()}
                                   </span>
                                 );
                               })()}
@@ -1681,10 +1737,10 @@ const HotelReservations: React.FC = () => {
                                   }}
                                   className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#ecfdf5] hover:bg-[#d1fae5] border border-[#a7f3d0] text-[#065f46] font-bold text-[10px] cursor-pointer transition-all shadow-sm font-sans"
                                 >
-                                  View
+                                  {t('common.view')}
                                 </button>
                               ) : (
-                                <span className="text-[10px] text-slate-300 italic font-sans">No file</span>
+                                <span className="text-[10px] text-slate-300 italic font-sans">{t('common.noFile')}</span>
                               )}
                             </td>
                             <td className="py-4 px-5 text-right font-bold text-slate-950">
@@ -1738,7 +1794,13 @@ const HotelReservations: React.FC = () => {
                                   ? 'bg-[#fef3c7] text-[#d97706]'
                                   : 'bg-rose-50 text-rose-700'
                               }`}>
-                                {approvalStatus}
+                                {approvalStatus === 'Paid and closed'
+                                  ? t('common.statusPaid')
+                                  : approvalStatus === 'Confirmed'
+                                  ? t('common.statusConfirmed')
+                                  : approvalStatus === 'Pending'
+                                  ? t('common.statusPending')
+                                  : t('common.statusRejected')}
                               </span>
                             </td>
                             <td className="py-4 px-5 text-center">
@@ -1749,7 +1811,7 @@ const HotelReservations: React.FC = () => {
                                 }}
                                 className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-bold border-none bg-transparent cursor-pointer font-sans text-xs"
                               >
-                                <span>View Details</span>
+                                <span>{t('common.viewDetails')}</span>
                                 <span className="text-[12px] font-sans">&rarr;</span>
                               </button>
                             </td>
@@ -1764,10 +1826,10 @@ const HotelReservations: React.FC = () => {
 
             {/* Pagination Footer */}
             <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs font-sans text-slate-500 bg-white select-none">
-              <span>
+              <span className="text-xs text-slate-500 font-medium">
                 {finalFilteredBookings.length > 0
-                  ? `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, finalFilteredBookings.length)} of ${finalFilteredBookings.length.toLocaleString()} ${activeTab === 'Reservations' ? 'reservations' : 'requests'}`
-                  : `Showing 0 to 0 of 0 ${activeTab === 'Reservations' ? 'reservations' : 'requests'}`}
+                  ? `${t('hotelReservations.showing')} ${(currentPage - 1) * itemsPerPage + 1} ${t('invoices.to')} ${Math.min(currentPage * itemsPerPage, finalFilteredBookings.length)} ${t('invoices.of')} ${finalFilteredBookings.length.toLocaleString()} ${activeTab === 'Reservations' ? t('hotelReservations.reservations') : t('requests.totalRequests')}`
+                  : `${t('hotelReservations.showing')} 0 ${t('invoices.to')} 0 ${t('invoices.of')} 0`}
               </span>
               {totalPages > 1 && (
                 <div className="flex items-center space-x-1">
@@ -1776,7 +1838,7 @@ const HotelReservations: React.FC = () => {
                     disabled={currentPage === 1}
                     className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Previous
+                    {t('common.previous')}
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
@@ -1796,7 +1858,7 @@ const HotelReservations: React.FC = () => {
                     disabled={currentPage === totalPages}
                     className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-all bg-white text-slate-600 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Next
+                    {t('common.next')}
                   </button>
                 </div>
               )}
@@ -1847,7 +1909,7 @@ const HotelReservations: React.FC = () => {
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 p-6 space-y-4 font-sans text-[#0f172a]">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-800">Confirm Approval</h3>
+              <h3 className="text-base font-bold text-slate-800">{t('hotelReservations.confirmApproval')}</h3>
               <button
                 onClick={() => setIsConfirmApprovalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer"
@@ -1857,11 +1919,11 @@ const HotelReservations: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              Please enter the confirmation number to proceed with the approval of this reservation.
+              {t('hotelReservations.confirmApprovalDesc')}
             </p>
 
             <div className="space-y-1.5 pt-1">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confirmation Number</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('hotelReservations.reservationNumber')}</label>
               <input
                 type="text"
                 placeholder="e.g. CNF-2024-001"
@@ -1876,7 +1938,7 @@ const HotelReservations: React.FC = () => {
                 onClick={() => setIsConfirmApprovalOpen(false)}
                 className="px-5 py-2 border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold rounded-lg text-xs transition-all cursor-pointer bg-white"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -1889,7 +1951,7 @@ const HotelReservations: React.FC = () => {
                 }}
                 className="px-5 py-2 bg-[#10b981] hover:bg-[#059669] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm"
               >
-                Confirm & Approve
+                {t('hotelReservations.confirmAndApprove')}
               </button>
             </div>
           </div>
@@ -1909,24 +1971,24 @@ const HotelReservations: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-lg font-bold text-slate-800">Approved Successfully</h3>
+              <h3 className="text-lg font-bold text-slate-800">{t('hotelReservations.approvedSuccessfully')}</h3>
               <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                The reservation has been approved and confirmed. A notification has been sent to the requester.
+                {t('hotelReservations.approvedSuccessfullyDesc')}
               </p>
             </div>
 
             {/* Gray breakdown detail box */}
             <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs text-left space-y-2.5 font-sans">
               <div className="flex justify-between items-center">
-                <span className="text-slate-400 font-medium">Reservation No.</span>
+                <span className="text-slate-400 font-medium">{t('hotelReservations.resNo')}</span>
                 <span className="font-bold text-slate-800">{lastApprovedBooking.reservationNo}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400 font-medium">Confirmation No.</span>
+                <span className="text-slate-400 font-medium">{t('invoices.confirmationNumber')}</span>
                 <span className="font-bold text-slate-800">{lastConfirmationNo}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400 font-medium">Hotel</span>
+                <span className="text-slate-400 font-medium">{t('hotelReservations.hotel')}</span>
                 <span className="font-bold text-slate-800">
                   {lastApprovedBooking.rooms[0]?.hotelName || 'Safwat Al Madinah'}
                 </span>
@@ -1941,7 +2003,7 @@ const HotelReservations: React.FC = () => {
                 }}
                 className="flex-1 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-all cursor-pointer bg-white"
               >
-                Back to Listing
+                {t('hotelReservations.backToListing')}
               </button>
               <button
                 onClick={() => {
@@ -1949,7 +2011,7 @@ const HotelReservations: React.FC = () => {
                 }}
                 className="flex-1 py-2 bg-[#10b981] hover:bg-[#059669] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm"
               >
-                Done
+                {t('common.done')}
               </button>
             </div>
           </div>
@@ -1975,7 +2037,7 @@ const HotelReservations: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo / PDF</h3>
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('hotelReservations.paymentTransferPhotoPdf')}</h3>
               <button
                 onClick={() => setViewingProof(null)}
                 className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer border-none bg-transparent"
@@ -2005,7 +2067,7 @@ const HotelReservations: React.FC = () => {
                   download={`payment-proof-${selectedBooking?.reservationNo}.pdf`}
                   className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans no-underline"
                 >
-                  Download PDF
+                  {t('hotelReservations.downloadPdf')}
                 </a>
               ) : (
                 <a
@@ -2013,14 +2075,84 @@ const HotelReservations: React.FC = () => {
                   download={`payment-proof-${selectedBooking?.reservationNo}.jpg`}
                   className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans no-underline"
                 >
-                  Download Image
+                  {t('hotelReservations.downloadImage')}
                 </a>
               )}
               <button
                 onClick={() => setViewingProof(null)}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] cursor-pointer transition-all font-sans border-none"
               >
-                Close
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Confirmation Email Modal */}
+      {showSendConfirmationModal && (
+        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in select-none">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-[#e2e8f0]">
+            <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#f59e0b]" />
+                <span>{t('requests.sendConfirmationToClient') || 'Kirim Konfirmasi ke Klien'}</span>
+              </h3>
+              <button
+                onClick={() => setShowSendConfirmationModal(false)}
+                className="text-gray-400 hover:text-gray-600 font-bold border-none bg-transparent cursor-pointer p-1"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-3 font-sans">
+              <p className="text-[13px] text-slate-500 leading-relaxed">
+                {t('requests.sendConfirmationDesc') || 'Tindakan ini akan secara otomatis membuat dokumen konfirmasi yang berdesain rapi dan mengirimkannya langsung ke email penagihan pelanggan.'}
+              </p>
+              
+              <div className="space-y-1">
+                <label className="text-[12px] font-semibold text-slate-500">{t('requests.recipientEmailAddress') || 'Alamat Email Penerima'}</label>
+                <input
+                  type="email"
+                  placeholder="billing@client.com"
+                  value={clientEmailInput}
+                  onChange={(e) => setClientEmailInput(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl p-3 text-[13px] focus:outline-none focus:border-amber-500 font-sans text-slate-800"
+                />
+              </div>
+
+              {sendEmailError && (
+                <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-[12px] rounded-xl font-medium">
+                  {sendEmailError}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowSendConfirmationModal(false)}
+                disabled={isSendingEmail}
+                className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-200 transition-all cursor-pointer disabled:opacity-50 border-none"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleSendConfirmationEmail}
+                disabled={isSendingEmail || !clientEmailInput}
+                className="px-5 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[13px] font-bold transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-60 border-none"
+              >
+                {isSendingEmail ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>{t('requests.sending') || 'Mengirim...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4" />
+                    <span>{t('requests.sendEmail') || 'Kirim Email'}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, Monitor, Smartphone } from 'lucide-react';
 import { updatePassword } from '../../../services/settingService';
 import { getActiveSessions, revokeActiveSession, getLoginAttempts } from '../../../services/authService';
+import { useTranslation } from 'react-i18next';
 
 interface SessionItem {
   id: string;
@@ -13,6 +14,7 @@ interface SessionItem {
 }
 
 const SecurityTab: React.FC = () => {
+  const { t } = useTranslation();
   const [currPassword, setCurrPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confPassword, setConfPassword] = useState('');
@@ -84,7 +86,7 @@ const SecurityTab: React.FC = () => {
       {/* CARD 1: CHANGE PASSWORD */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-5 overflow-hidden flex flex-col">
         <div className="px-6 pb-4">
-          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Change Password</h3>
+          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.security')}</h3>
         </div>
         
         {/* Divider */}
@@ -93,7 +95,7 @@ const SecurityTab: React.FC = () => {
         <form onSubmit={handlePasswordUpdate} className="p-6 space-y-4">
           {/* Current Password */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Current Password</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.currentPassword')}</label>
             <input
               type="password"
               required
@@ -106,11 +108,11 @@ const SecurityTab: React.FC = () => {
 
           {/* New Password */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">New Password</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.newPassword')}</label>
             <input
               type="password"
               required
-              placeholder="Enter new password"
+              placeholder={t('settings.enterNewPassword')}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13px] text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
@@ -119,11 +121,11 @@ const SecurityTab: React.FC = () => {
 
           {/* Confirm Password */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Confirm Password</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.confirmPassword')}</label>
             <input
               type="password"
               required
-              placeholder="Re-enter new password"
+              placeholder={t('settings.reenterNewPassword')}
               value={confPassword}
               onChange={(e) => setConfPassword(e.target.value)}
               className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13px] text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
@@ -136,7 +138,7 @@ const SecurityTab: React.FC = () => {
               type="submit"
               className="px-5 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
             >
-              Update Password
+              {t('settings.updatePassword')}
             </button>
           </div>
         </form>
@@ -145,7 +147,7 @@ const SecurityTab: React.FC = () => {
       {/* CARD 2: ACTIVE OPERATOR SESSIONS */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-5 overflow-hidden flex flex-col">
         <div className="px-6 pb-4">
-          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Active Operator Sessions</h3>
+          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.activeSessions')}</h3>
         </div>
         
         {/* Divider */}
@@ -167,7 +169,7 @@ const SecurityTab: React.FC = () => {
                     <span className="font-bold text-[#0c0d0f] text-[14px]">{session.device}</span>
                     {session.isCurrent && (
                       <span className="bg-[#ecfdf5] text-[#10b981] text-[10px] font-bold px-2 py-0.5 rounded-md ml-2 inline-block">
-                        Current
+                        {t('settings.current')}
                       </span>
                     )}
                   </div>
@@ -183,7 +185,7 @@ const SecurityTab: React.FC = () => {
                   onClick={() => handleRevokeSession(session.id)}
                   className="px-3.5 py-1.5 bg-white border border-[#fee2e2] text-[#ef4444] hover:bg-[#fef2f2] font-bold text-[12px] rounded-lg transition-all cursor-pointer font-sans"
                 >
-                  Revoke
+                  {t('settings.revoke')}
                 </button>
               )}
             </div>
@@ -194,7 +196,7 @@ const SecurityTab: React.FC = () => {
       {/* CARD 3: LOGIN ACTIVITY LOGS */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-5 overflow-hidden flex flex-col">
         <div className="px-6 pb-4">
-          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Login Activity Logs (Last 5 attempts)</h3>
+          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.loginActivityLogs')}</h3>
         </div>
         
         {/* Divider */}
@@ -204,10 +206,10 @@ const SecurityTab: React.FC = () => {
           <table className="w-full text-left border-collapse text-[13px] font-sans">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Timestamp</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">IP Address</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Operating Agent</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">Status</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.timestamp')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.ipAddress')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.operatingAgent')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">{t('common.status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e2e8f0]">
@@ -220,7 +222,7 @@ const SecurityTab: React.FC = () => {
                     <span className={`inline-block font-bold text-[10px] px-2.5 py-0.5 rounded-md ${
                       log.status === 'Success' ? 'bg-[#ecfdf5] text-[#10b981]' : 'bg-[#fef2f2] text-[#ef4444]'
                     }`}>
-                      {log.status}
+                      {log.status === 'Success' ? t('common.success') : log.status}
                     </span>
                   </td>
                 </tr>

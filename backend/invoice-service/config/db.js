@@ -173,6 +173,26 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Alter table to add custom client columns for one-off invoices (Others)
+    try {
+      await pool.query('SELECT custom_company_name FROM dst_invoices LIMIT 1');
+    } catch (err) {
+      console.log('Adding custom client columns to dst_invoices...');
+      try {
+        await pool.query(`
+          ALTER TABLE dst_invoices 
+          ADD COLUMN company_id VARCHAR(50) DEFAULT NULL,
+          ADD COLUMN custom_company_name VARCHAR(255) DEFAULT NULL,
+          ADD COLUMN custom_company_email VARCHAR(255) DEFAULT NULL,
+          ADD COLUMN custom_agent VARCHAR(255) DEFAULT NULL,
+          ADD COLUMN custom_address TEXT DEFAULT NULL,
+          ADD COLUMN custom_tax_number VARCHAR(100) DEFAULT NULL
+        `);
+      } catch (alterErr) {
+        console.error('Failed to add custom client columns to dst_invoices:', alterErr.message);
+      }
+    }
+
     // Create dst_payment_history table if not exists
     const createPaymentHistoryTableQuery = `
       CREATE TABLE IF NOT EXISTS dst_payment_history (

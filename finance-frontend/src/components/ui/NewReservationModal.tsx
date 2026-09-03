@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Booking, BookingRoom } from '../../pages/HotelReservations';
 import {
   CLIENT_COMPANIES,
@@ -44,6 +45,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   configuredRates,
   onSave
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const previewSectionRef = useRef<HTMLDivElement>(null);
 
@@ -445,10 +447,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
         <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex flex-col space-y-0.5">
             <h3 className="text-lg font-black text-slate-800 font-sans">
-              Create New Hotel Reservation
+              {t('hotelReservations.createNewHotelReservation')}
             </h3>
             <p className="text-xs text-slate-400 font-semibold font-sans">
-              Stay Type: <span className="text-blue-600 font-bold uppercase">{formType} Reservation</span>
+              {t('hotelReservations.stayType')}: <span className="text-blue-600 font-bold uppercase">{formType === 'Confirmation' ? t('hotelReservations.confirmReservation') : `${t('common.statusTentative')} ${t('hotelReservations.reservation')}`}</span>
             </p>
           </div>
           <button
@@ -467,7 +469,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
             {/* BILL TO (CLIENT) SELECT BLOCK */}
             <div className="space-y-1.5">
               <label className="block text-slate-400 font-bold text-[9px] uppercase tracking-wider">
-                BILL TO (CLIENT)
+                {t('hotelReservations.billToClient')}
               </label>
               <select
                 value={selectedCompanyCode}
@@ -495,12 +497,12 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               
               {/* BILL FROM */}
               <div className="space-y-2">
-                <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">BILL FROM</h4>
+                <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">{t('hotelReservations.billFrom')}</h4>
                 <div className="border border-slate-100 rounded-xl p-5 bg-white space-y-3.5">
                   <div className="grid grid-cols-2 gap-3.5 text-[13px] font-sans">
                     <div>
                       <label className="block text-slate-400 font-bold text-[9px] mb-1">
-                        Employee Name
+                        {t('hotelReservations.employeeName')}
                       </label>
                       <input
                         type="text"
@@ -512,7 +514,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                     </div>
                     <div>
                       <label className="block text-slate-400 font-bold text-[9px] mb-1">
-                        Company Number
+                        {t('hotelReservations.companyNumber')}
                       </label>
                       <input
                         type="text"
@@ -524,7 +526,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                     </div>
                     <div>
                       <label className="block text-slate-400 font-bold text-[9px] mb-1">
-                        Employee ID
+                        {t('hotelReservations.employeeId')}
                       </label>
                       <input
                         type="text"
@@ -536,7 +538,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                     </div>
                     <div>
                       <label className="block text-slate-400 font-bold text-[9px] mb-1">
-                        Company Email
+                        {t('hotelReservations.companyEmail')}
                       </label>
                       <input
                         type="email"
@@ -548,7 +550,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                     </div>
                     <div>
                       <label className="block text-slate-400 font-bold text-[9px] mb-1">
-                        Entity / Company
+                        {t('hotelReservations.entityCompany')}
                       </label>
                       <input
                         type="text"
@@ -560,7 +562,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                     </div>
                     <div>
                       <label className="block text-slate-400 font-bold text-[9px] mb-1">
-                        Company Tax Number
+                        {t('hotelReservations.companyTaxNumber')}
                       </label>
                       <input
                         type="text"
@@ -576,23 +578,23 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
               {/* BILL TO Client Text Box */}
               <div className="space-y-2 text-xs text-slate-800">
-                <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">BILL TO</h4>
+                <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">{t('hotelReservations.billTo')}</h4>
                 <div className="border border-slate-100 rounded-xl p-5 bg-white space-y-3.5">
                   <div className="space-y-3">
                     <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">Client Company</p>
+                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.clientCompany')}</p>
                       <p className="font-bold text-slate-800 text-[13px] mt-0.5">{client.companyName}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">Company Tax Number</p>
+                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.companyTaxNumber')}</p>
                       <p className="font-bold text-slate-800 mt-0.5">{client.taxNo}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">Street Address</p>
+                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.streetAddress')}</p>
                       <p className="font-medium text-slate-700 mt-0.5 leading-relaxed">{client.address}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">City / Country</p>
+                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.cityCountry')}</p>
                       <p className="font-bold text-slate-800 mt-0.5">{client.cityCountry}</p>
                     </div>
                   </div>
@@ -601,12 +603,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
             </div>
 
-
-
             {/* SECTION: METADATA INPUTS */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Invoice Number</label>
+                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.invoiceNumber')}</label>
                 <input
                   type="text"
                   required
@@ -616,7 +616,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Reference Number</label>
+                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.referenceNumber')}</label>
                 <input
                   type="text"
                   required
@@ -626,7 +626,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Serial Number</label>
+                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.serialNumber')}</label>
                 <input
                   type="text"
                   required
@@ -636,7 +636,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Due Date</label>
+                <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.dueDate')}</label>
                 <input
                   type="date"
                   required
@@ -649,11 +649,11 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
             {/* SECTION: RESERVATION DETAILS */}
             <div className="border-t border-slate-100 pt-6 space-y-4">
-              <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">RESERVATION DETAILS</h4>
+              <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">{t('hotelReservations.reservationDetails').toUpperCase()}</h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Hotel Name</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.hotelName')}</label>
                   <input
                     type="text"
                     required={formAddedRooms.length === 0}
@@ -664,7 +664,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Room Type</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.roomType')}</label>
                   <select
                     value={currentRoom.roomType}
                     onChange={e => setCurrentRoom(prev => ({ ...prev, roomType: e.target.value }))}
@@ -689,7 +689,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               {/* Check-In / Check-Out */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Check-In Date</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.checkInDate')}</label>
                   <input
                     type="date"
                     required={formAddedRooms.length === 0}
@@ -699,7 +699,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Check-Out Date</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.checkOutDate')}</label>
                   <input
                     type="date"
                     required={formAddedRooms.length === 0}
@@ -713,7 +713,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               {/* Counts */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">#Nights (Duration)</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.nightsDuration')}</label>
                   <input
                     type="text"
                     disabled
@@ -722,7 +722,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">#Rooms</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.rooms')}</label>
                   <input
                     type="number"
                     min={1}
@@ -732,7 +732,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Adults Count</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.adultsCount')}</label>
                   <input
                     type="number"
                     min={1}
@@ -742,7 +742,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Children Count</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.childrenCount')}</label>
                   <input
                     type="number"
                     min={0}
@@ -756,7 +756,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               {/* Meals & Rates */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Meal Plan</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.mealPlan')}</label>
                   <select
                     value={currentRoom.mealPlan}
                     onChange={e => setCurrentRoom(prev => ({ ...prev, mealPlan: e.target.value }))}
@@ -777,7 +777,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">DayRate (Price / Night)</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.dayRatePricePerNight')}</label>
                   <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
                     <span className="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-50 border-r border-slate-200 select-none">
                       {formCurrency}
@@ -794,7 +794,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Meal Rate</label>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.mealsRate')}</label>
                   <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
                     <span className="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-50 border-r border-slate-200 select-none">
                       {formCurrency}
@@ -819,14 +819,14 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 className="w-48 py-2.5 border-2 border-dashed border-blue-200 hover:border-blue-500 hover:bg-blue-50/50 text-blue-600 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center space-x-1.5 cursor-pointer bg-white"
               >
                 <Plus className="w-4 h-4 font-bold" />
-                <span>Add Room</span>
+                <span>{t('hotelReservations.addRoom')}</span>
               </button>
             </div>
 
             {/* SECTION: HOTEL DETAILS */}
             <div ref={previewSectionRef} className="space-y-4 select-none mt-6">
               <div className="flex justify-between items-center">
-                <h4 className="text-xs font-black text-slate-800 tracking-tight uppercase">HOTEL DETAILS</h4>
+                <h4 className="text-xs font-black text-slate-800 tracking-tight uppercase">{t('hotelReservations.hotelDetails').toUpperCase()}</h4>
                 <select
                   value={formCurrency}
                   onChange={e => setFormCurrency(e.target.value as any)}
@@ -840,41 +840,41 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
               {/* Preview Table */}
               <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full shadow-sm">
-                <table className="w-full text-left text-xs font-sans border-collapse">
+                <table className="w-full text-left font-sans border-collapse">
                   <thead>
                     <tr className="bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                       <th colSpan={13} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                        Hotel Details
+                        {t('hotelReservations.hotelDetails')}
                       </th>
                     </tr>
-                    <tr className="bg-[#e0e8fe] text-[#1d2857] border-b border-slate-200 font-bold uppercase tracking-wider text-[9.5px] select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                      <th className="py-2.5 px-3 whitespace-nowrap">Hotel</th>
-                      <th className="py-2.5 px-2 whitespace-nowrap">Room Type</th>
-                      <th className="py-2.5 px-2 whitespace-nowrap">Check-In</th>
-                      <th className="py-2.5 px-2 whitespace-nowrap">Check-Out</th>
-                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Night</th>
-                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">#Room</th>
-                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Adult</th>
-                      <th className="py-2.5 px-1.5 text-center whitespace-nowrap">Child</th>
-                      <th className="py-2.5 px-2 whitespace-nowrap">Meals</th>
-                      <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">DayRate</th>
-                      <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap">Meals Rate</th>
-                      <th className="py-2.5 px-3 text-right font-sans whitespace-nowrap">Total</th>
-                      <th className="py-2.5 px-2 text-center whitespace-nowrap">Action</th>
+                    <tr className="bg-[#e0e8fe] text-[#1d2857] border-b border-slate-200 font-bold uppercase tracking-wider text-[8.5px] select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                      <th className="py-2 px-2 text-left">{t('hotelReservations.hotel')}</th>
+                      <th className="py-2 px-1.5 text-left">{t('hotelReservations.roomType')}</th>
+                      <th className="py-2 px-1 text-center whitespace-nowrap">{t('hotelReservations.checkIn')}</th>
+                      <th className="py-2 px-1 text-center whitespace-nowrap">{t('hotelReservations.checkOut')}</th>
+                      <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.numNight')}</th>
+                      <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.numRoom')}</th>
+                      <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.adult')}</th>
+                      <th className="py-2 px-0.5 text-center whitespace-nowrap">{t('hotelReservations.child')}</th>
+                      <th className="py-2 px-1 text-center whitespace-nowrap">{t('hotelReservations.meals')}</th>
+                      <th className="py-2 px-1.5 text-right font-sans leading-tight">{t('hotelReservations.dayRate')}</th>
+                      <th className="py-2 px-1.5 text-right font-sans leading-tight">{t('hotelReservations.mealsRate')}</th>
+                      <th className="py-2 px-2 text-right font-sans whitespace-nowrap">{t('hotelReservations.total')}</th>
+                      <th className="py-2 px-1.5 text-center whitespace-nowrap">{t('common.actions')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
+                  <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10px]">
                     {formAddedRooms.length === 0 ? (
                       <tr className="hover:bg-slate-50/20">
-                        <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{currentRoom.hotelName}</td>
-                        <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{currentRoom.roomType}</td>
-                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkIn ? formatDateDMY(currentRoom.checkIn) : '-'}</td>
-                        <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{currentRoom.checkOut ? formatDateDMY(currentRoom.checkOut) : '-'}</td>
-                        <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{calculateNights(currentRoom.checkIn, currentRoom.checkOut)}</td>
-                        <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.roomCount}</td>
-                        <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.adults}</td>
-                        <td className="py-2.5 px-1 text-center font-semibold">{currentRoom.children}</td>
-                        <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{currentRoom.mealPlan}</td>
+                        <td className="py-2.5 px-2 text-left font-bold text-slate-900 uppercase text-[11px] leading-tight break-words">{currentRoom.hotelName}</td>
+                        <td className="py-2.5 px-1.5 text-left font-semibold text-slate-800 uppercase text-[10px] leading-tight break-words">{currentRoom.roomType}</td>
+                        <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{currentRoom.checkIn ? formatDateDMY(currentRoom.checkIn) : '-'}</td>
+                        <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{currentRoom.checkOut ? formatDateDMY(currentRoom.checkOut) : '-'}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{calculateNights(currentRoom.checkIn, currentRoom.checkOut)}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{currentRoom.roomCount}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{currentRoom.adults}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{currentRoom.children}</td>
+                        <td className="py-2.5 px-1 text-center font-bold text-slate-900 uppercase whitespace-nowrap">{currentRoom.mealPlan}</td>
                         <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end space-x-1">
                             <input
@@ -883,12 +883,12 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                               step="0.01"
                               value={currentRoom.pricePerNight}
                               onChange={e => setCurrentRoom(prev => ({ ...prev, pricePerNight: Math.max(0, Number(e.target.value)) }))}
-                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                              className="w-14 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10px] bg-white"
                             />
-                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                            <span className="text-[9px] font-bold text-slate-500">{formCurrency}</span>
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 text-right whitespace-nowrap">
+                        <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end space-x-1">
                             <input
                               type="number"
@@ -896,15 +896,15 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                               step="0.01"
                               value={currentRoom.mealRate}
                               onChange={e => setCurrentRoom(prev => ({ ...prev, mealRate: Math.max(0, Number(e.target.value)) }))}
-                              className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                              className="w-14 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10px] bg-white"
                             />
-                            <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                            <span className="text-[9px] font-bold text-slate-500">{formCurrency}</span>
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
+                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap text-[10.5px]">
                           {formatCurrency((currentRoom.pricePerNight + currentRoom.mealRate) * currentRoom.roomCount * calculateNights(currentRoom.checkIn, currentRoom.checkOut), formCurrency)}
                         </td>
-                        <td className="py-2.5 px-1 text-center">
+                        <td className="py-2.5 px-1.5 text-center whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => {
@@ -914,10 +914,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                                 mealRate: 0
                               }));
                             }}
-                            className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
+                            className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1 rounded transition-colors border-none bg-transparent cursor-pointer"
                             title="Remove room"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -927,15 +927,15 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                         const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
                         return (
                           <tr key={idx} className="hover:bg-slate-50/40">
-                            <td className="py-2.5 px-2 font-bold text-slate-900 leading-tight">{room.hotelName}</td>
-                            <td className="py-2.5 px-1.5 text-slate-700 leading-tight">{room.roomType}</td>
-                            <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkIn)}</td>
-                            <td className="py-2.5 px-1 font-sans text-slate-600 text-[10px]">{formatDateDMY(room.checkOut)}</td>
-                            <td className="py-2.5 px-1 text-center text-blue-600 font-bold">{nights}</td>
-                            <td className="py-2.5 px-1 text-center font-semibold">{room.roomCount}</td>
-                            <td className="py-2.5 px-1 text-center font-semibold">{room.adults}</td>
-                            <td className="py-2.5 px-1 text-center font-semibold">{room.children}</td>
-                            <td className="py-2.5 px-1.5 text-slate-600 text-[10px] leading-tight">{room.mealPlan}</td>
+                            <td className="py-2.5 px-2 text-left font-bold text-slate-900 uppercase text-[11px] leading-tight break-words">{room.hotelName}</td>
+                            <td className="py-2.5 px-1.5 text-left font-semibold text-slate-800 uppercase text-[10px] leading-tight break-words">{room.roomType}</td>
+                            <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{formatDateDMY(room.checkIn)}</td>
+                            <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{formatDateDMY(room.checkOut)}</td>
+                            <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{nights}</td>
+                            <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.roomCount}</td>
+                            <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.adults}</td>
+                            <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.children}</td>
+                            <td className="py-2.5 px-1 text-center font-bold text-slate-900 uppercase whitespace-nowrap">{room.mealPlan}</td>
                             <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
                               <div className="flex items-center justify-end space-x-1">
                                 <input
@@ -947,12 +947,12 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                                     const newPrice = Math.max(0, Number(e.target.value));
                                     setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, pricePerNight: newPrice } : r));
                                   }}
-                                  className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                                  className="w-14 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10px] bg-white"
                                 />
-                                <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                                <span className="text-[9px] font-bold text-slate-500">{formCurrency}</span>
                               </div>
                             </td>
-                            <td className="py-2.5 px-2 text-right whitespace-nowrap">
+                            <td className="py-2.5 px-1.5 text-right whitespace-nowrap">
                               <div className="flex items-center justify-end space-x-1">
                                 <input
                                   type="number"
@@ -963,22 +963,22 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                                     const newRate = Math.max(0, Number(e.target.value));
                                     setFormAddedRooms(prev => prev.map((r, i) => i === idx ? { ...r, mealRate: newRate } : r));
                                   }}
-                                  className="w-16 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10.5px] bg-white"
+                                  className="w-14 px-1 py-0.5 border border-slate-200 rounded text-right font-sans font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 text-[10px] bg-white"
                                 />
-                                <span className="text-[9.5px] font-bold text-slate-500">{formCurrency}</span>
+                                <span className="text-[9px] font-bold text-slate-500">{formCurrency}</span>
                               </div>
                             </td>
-                            <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap">
+                            <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap text-[10.5px]">
                               {formatCurrency(roomTotal, formCurrency)}
                             </td>
-                            <td className="py-2.5 px-1 text-center">
+                            <td className="py-2.5 px-1.5 text-center whitespace-nowrap">
                               <button
                                 type="button"
                                 onClick={() => handleDeleteRoom(idx)}
-                                className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded transition-colors border-none bg-transparent cursor-pointer"
+                                className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1 rounded transition-colors border-none bg-transparent cursor-pointer"
                                 title="Delete room"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </td>
                           </tr>
@@ -999,22 +999,22 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 return (
                   <div className="mt-4 flex flex-col items-end space-y-1.5 font-sans select-none px-2">
                     <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-400 font-medium">
-                      <span>Subtotal:</span>
+                      <span>{t('hotelReservations.subtotal')}:</span>
                       <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, formCurrency)}</span>
                     </div>
                     <div className="flex items-center justify-end space-x-8 text-xs text-slate-400 font-medium">
-                      <span>Tax / VAT (0%):</span>
+                      <span>{t('hotelReservations.taxVat')} (0%):</span>
                       <span className="font-bold text-slate-900">{formatCurrency(0, formCurrency)}</span>
                     </div>
                     <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200/80 min-w-[240px] justify-between">
-                      <span className="font-extrabold text-slate-900">Total Due:</span>
+                      <span className="font-extrabold text-slate-900">{t('hotelReservations.totalDue')}:</span>
                       <span className="font-black text-emerald-600 text-lg">{formatCurrency(subtotalAmount, formCurrency)}</span>
                     </div>
 
                     {/* Advance Payment (Deposit) Toggle */}
                     <div className="w-full pt-3 mt-2 border-t border-slate-200/80 space-y-2">
                       <div className="flex justify-between items-center text-[12.5px]">
-                        <span className="font-bold text-slate-700">Has Advance Payment?</span>
+                        <span className="font-bold text-slate-700">{t('hotelReservations.hasAdvancePayment')}</span>
                         <div className="flex items-center space-x-3 font-semibold">
                           <label className="flex items-center space-x-1 cursor-pointer">
                             <input
@@ -1024,7 +1024,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                               onChange={() => setFormHasAdvancePayment(true)}
                               className="text-amber-600 focus:ring-amber-500"
                             />
-                            <span>Yes</span>
+                            <span>{t('common.yes')}</span>
                           </label>
                           <label className="flex items-center space-x-1 cursor-pointer">
                             <input
@@ -1037,19 +1037,19 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                               }}
                               className="text-amber-600 focus:ring-amber-500"
                             />
-                            <span>No</span>
+                            <span>{t('common.no')}</span>
                           </label>
                         </div>
                       </div>
 
                       {formHasAdvancePayment && (
                         <div className="flex justify-between items-center text-[12.5px] pt-1">
-                          <span className="font-medium text-slate-500">Advance Payment Amount ({formCurrency}):</span>
+                          <span className="font-medium text-slate-500">{t('hotelReservations.advancePaymentAmount')} ({formCurrency}):</span>
                           <input
                             type="number"
                             min="0"
                             step="any"
-                            placeholder="Enter DP / Deposit amount..."
+                            placeholder={t('hotelReservations.advancePaymentPlaceholder')}
                             value={formAdvancePayment}
                             onChange={(e) => setFormAdvancePayment(e.target.value)}
                             className="w-48 px-3 py-1.5 border border-slate-200 rounded-lg text-[13px] font-bold text-slate-900 focus:outline-none focus:border-amber-500 text-right"
@@ -1064,23 +1064,23 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
             {/* SECTION: PAYMENT INSTRUCTIONS Rekening DST */}
             <div className="border-t border-slate-100 pt-6 space-y-4">
-              <h4 className="text-[13px] font-extrabold text-[#0f172a] uppercase tracking-wider">PAYMENT INSTRUCTIONS</h4>
+              <h4 className="text-[13px] font-extrabold text-[#0f172a] uppercase tracking-wider">{t('hotelReservations.paymentInstructions').toUpperCase()}</h4>
               
               <div className="bg-[#f8fafc] p-6 border border-slate-200/80 rounded-xl space-y-3.5 text-[13px]">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">Bank Name:</span>
+                  <span className="text-slate-500 font-medium">{t('hotelReservations.bankName')}:</span>
                   <span className="font-bold text-slate-800">{companySettings.bankName}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">Account Name:</span>
+                  <span className="text-slate-500 font-medium">{t('hotelReservations.accountName')}:</span>
                   <span className="font-bold text-slate-800">{companySettings.accountName}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">IDR Account Number:</span>
+                  <span className="text-slate-500 font-medium">{t('hotelReservations.idrAccount')}:</span>
                   <span className="font-bold text-blue-600 font-sans">{companySettings.idrAccountNumber}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">USD Account Number:</span>
+                  <span className="text-slate-500 font-medium">{t('hotelReservations.usdAccount')}:</span>
                   <span className="font-bold text-blue-600 font-sans">{companySettings.usdAccountNumber}</span>
                 </div>
               </div>
@@ -1096,13 +1096,13 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 onClick={onClose}
                 className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-lg transition-all cursor-pointer bg-white"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 className="px-6 py-2.5 bg-[#242e69] hover:bg-[#1a2353] text-white font-bold rounded-lg transition-all shadow-sm hover:shadow cursor-pointer border-none"
               >
-                {formType === 'Confirmation' ? 'Send Confirmation Request' : 'Create Tentative Reservation'}
+                {formType === 'Confirmation' ? t('hotelReservations.sendConfirmationRequest') : t('hotelReservations.createTentativeReservation')}
               </button>
             </div>
           </div>

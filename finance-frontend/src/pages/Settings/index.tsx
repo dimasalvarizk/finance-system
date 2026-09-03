@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 import ManageTeamTab from './components/ManageTeamTab';
 import BranchOfficeTab from './components/BranchOfficeTab';
@@ -17,6 +18,7 @@ import SystemBackupTab from './components/SystemBackupTab';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const isSuperAdmin = user?.role === 'Super Admin';
   const isAdminOrDirector = ['Super Admin', 'Chief Accountant', 'Division Director'].includes(user?.role || '');
 
@@ -50,27 +52,27 @@ const Settings: React.FC = () => {
           {/* Header Title */}
           <div className="flex flex-col space-y-1">
             <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight font-sans">
-              Settings
+              {t('settings.title')}
             </h1>
             <p className="text-[13px] text-[#64748b] font-medium font-sans">
-              Configure system roles, notifications, and profile details
+              {t('settings.subtitle')}
             </p>
           </div>
 
           {/* Navigation Tabs bar */}
-          <div className="border-b border-[#e2e8f0] flex items-center w-full pt-2 flex-shrink-0 text-[13.5px] overflow-x-auto">
+          <div className="border-b border-[#e2e8f0] flex items-center w-full pt-1 flex-shrink-0 text-[13px] overflow-x-auto no-scrollbar scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {[
-              ...(isAuthorizedBackup ? [{ id: 'System Backup', label: 'System Backup' }] : []),
-              ...(isSuperAdmin ? [{ id: 'Manage Team', label: 'Manage Team' }] : []),
-              ...(isAdminOrDirector ? [{ id: 'Branch / Office', label: 'Branch / Office' }] : []),
-              { id: 'Notifications', label: 'Notifications' },
-              { id: 'Edit Profile', label: 'Edit Profile' },
-              { id: 'Security', label: 'Security' },
+              ...(isAuthorizedBackup ? [{ id: 'System Backup', label: t('settings.dataBackup') }] : []),
+              ...(isSuperAdmin ? [{ id: 'Manage Team', label: t('settings.team') }] : []),
+              ...(isAdminOrDirector ? [{ id: 'Branch / Office', label: t('settings.branches') }] : []),
+              { id: 'Notifications', label: t('settings.notifications') },
+              { id: 'Edit Profile', label: t('settings.profile') },
+              { id: 'Security', label: t('settings.security') },
               ...(isAdminOrDirector ? [
-                { id: 'Exchange Rate', label: 'Exchange Rate' },
-                { id: 'Services', label: 'Services' },
-                { id: 'Company Info', label: 'Company Info' },
-                { id: 'HB Management', label: 'HB Management' }
+                { id: 'Exchange Rate', label: t('settings.exchangeRates') },
+                { id: 'Services', label: t('settings.services') },
+                { id: 'Company Info', label: t('settings.companyInfo') },
+                { id: 'HB Management', label: t('settings.hbManagement') }
               ] : []),
             ].map(tab => {
               const active = activeTab === tab.id;
@@ -78,13 +80,13 @@ const Settings: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 min-w-max px-3 pb-3 text-center font-bold transition-all relative cursor-pointer whitespace-nowrap ${
+                  className={`px-4 pb-3 pt-1 text-center font-bold transition-all relative cursor-pointer whitespace-nowrap flex-shrink-0 border-none bg-transparent ${
                     active ? 'text-[#f59e0b]' : 'text-[#64748b] hover:text-[#0c0d0f]'
                   }`}
                 >
                   <span>{tab.label}</span>
                   {active && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f59e0b] rounded-full" />
+                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#f59e0b] rounded-full" />
                   )}
                 </button>
               );

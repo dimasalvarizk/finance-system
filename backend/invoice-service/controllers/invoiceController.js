@@ -34,10 +34,15 @@ export const getInvoices = async (req, res, next) => {
 // @route   POST /api/invoices
 // @access  Public (or Protected)
 export const createInvoice = async (req, res, next) => {
-  const { invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency, advancePayment } = req.body;
+  const { 
+    invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, 
+    usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency, advancePayment,
+    company_id, custom_company_name, custom_company_email, custom_agent, custom_address, custom_tax_number
+  } = req.body;
 
   try {
-    if (!invoiceNo || !company || !amount) {
+    const finalCompanyName = custom_company_name || company;
+    if (!invoiceNo || !finalCompanyName || !amount) {
       return res.status(400).json({
         success: false,
         message: 'Please provide invoiceNo, company, and amount'
@@ -51,8 +56,8 @@ export const createInvoice = async (req, res, next) => {
     const newInvoiceData = {
       id: `inv_${Date.now()}`,
       invoiceNo,
-      company,
-      companyCode: companyCode || 'GEN',
+      company: finalCompanyName,
+      companyCode: companyCode || (custom_company_name ? 'OTH' : 'GEN'),
       referenceNo: referenceNo || `REF-${Date.now()}`,
       serialNo: serialNo || `SR-${Date.now()}`,
       amount,
@@ -67,7 +72,13 @@ export const createInvoice = async (req, res, next) => {
       createdBy: req.user ? req.user.name : null,
       currency: currency || 'USD',
       advancePayment: advAmt,
-      remainingBalance: initialRemaining
+      remainingBalance: initialRemaining,
+      company_id: company_id || null,
+      custom_company_name: custom_company_name || null,
+      custom_company_email: custom_company_email || null,
+      custom_agent: custom_agent || null,
+      custom_address: custom_address || null,
+      custom_tax_number: custom_tax_number || null
     };
 
     await createInvoiceDB(newInvoiceData);

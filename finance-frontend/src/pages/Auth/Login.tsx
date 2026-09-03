@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, AlertCircle, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { forgotPassword as forgotPasswordAPI } from '../../services/authService';
 import heroSignIn from '../../assets/heroSigin.png';
 import odstLogo from '../../assets/odstlogo.png';
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const [view, setView] = useState<'login' | 'forgot'>('login');
   const [email, setEmail] = useState(() => {
     return localStorage.getItem('rememberedEmail') || '';
@@ -155,7 +157,7 @@ const Login: React.FC = () => {
 
               {/* Greeting */}
               <h2 className="text-[20px] font-semibold text-[#0c0d0f] font-sans tracking-tight">
-                Nice to see you again
+                {t('auth.welcomeBack')}
               </h2>
 
               {/* Form Fields Stack */}
@@ -163,11 +165,11 @@ const Login: React.FC = () => {
                 {/* Login Input */}
                 <div className="flex flex-col space-y-1.5 font-inter">
                   <label className="text-[11px] font-medium text-[#75777c] tracking-wide">
-                    Login
+                    {t('auth.emailOrPhone')}
                   </label>
                   <input
                     type="text"
-                    placeholder="Email or phone number"
+                    placeholder={t('auth.emailOrPhone')}
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -187,12 +189,12 @@ const Login: React.FC = () => {
                 {/* Password Input */}
                 <div className="flex flex-col space-y-1.5 font-inter">
                   <label className="text-[11px] font-medium text-[#75777c] tracking-wide">
-                    Password
+                    {t('settings.password')}
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter password"
+                      placeholder={t('auth.enterPassword')}
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
@@ -237,7 +239,7 @@ const Login: React.FC = () => {
                     />
                   </button>
                   <span className="text-[12px] text-[#75777c] font-normal font-sfpro">
-                    Remember me
+                    {t('auth.rememberMe')}
                   </span>
                 </div>
 
@@ -253,7 +255,7 @@ const Login: React.FC = () => {
                     }}
                     className="text-[13px] text-[#007aff] font-medium underline focus:outline-none transition-all block text-left"
                   >
-                    Forgot Password?
+                    {t('auth.forgotPassword')}
                   </button>
                 </div>
               </div>
@@ -266,7 +268,7 @@ const Login: React.FC = () => {
                 disabled={loading}
                 className="w-full py-2.5 bg-[#007aff] text-white font-semibold rounded-[6px] hover:bg-[#006ee0] active:scale-[0.99] disabled:bg-[#a0cfff] disabled:cursor-not-allowed transition-all text-[14px] font-roboto"
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                {loading ? t('auth.signingIn') : t('auth.signIn')}
               </button>
             </div>
           </form>

@@ -474,9 +474,9 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     }
 
     const mailOptions = {
-      from: '"ODST Group Finance" <billing@odst.id>',
+      from: process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <billing@odst.id>',
       to: toEmail,
-      subject: `Invoice ${invoiceNo} from ODST Group`,
+      subject: `Invoice / Confirmation ${invoiceNo} from ODST Group`,
       html: `
         <!DOCTYPE html>
         <html>

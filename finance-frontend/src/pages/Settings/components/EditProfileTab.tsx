@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { updateProfile } from '../../../services/settingService';
+import { useTranslation } from 'react-i18next';
 
 const EditProfileTab: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { t } = useTranslation();
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -132,8 +134,8 @@ const EditProfileTab: React.FC = () => {
         )}
         <div className="flex-1 space-y-3">
           <div>
-            <h4 className="text-[16px] font-bold text-[#0f172a] font-sans">Profile Display Picture</h4>
-            <p className="text-[11px] text-[#64748b] font-normal font-sans mt-0.5">PNG, JPG or GIF up to 5MB. 400×400px recommended.</p>
+            <h4 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.profileDisplayPicture')}</h4>
+            <p className="text-[11px] text-[#64748b] font-normal font-sans mt-0.5">{t('settings.photoGuidelines')}</p>
           </div>
           <div className="flex space-x-3">
             <button
@@ -141,14 +143,14 @@ const EditProfileTab: React.FC = () => {
               onClick={() => fileInputRef.current?.click()}
               className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[13px] rounded-xl transition-all cursor-pointer font-sans shadow-sm"
             >
-              Change Photo
+              {t('settings.changePhoto')}
             </button>
             <button
               type="button"
               onClick={handleDeletePhoto}
               className="px-4 py-2 bg-white border border-[#e2e8f0] text-[#475569] hover:bg-slate-50 font-bold text-[13px] rounded-xl transition-all cursor-pointer font-sans"
             >
-              Delete
+              {t('common.delete')}
             </button>
           </div>
         </div>
@@ -157,7 +159,7 @@ const EditProfileTab: React.FC = () => {
       {/* CARD 2: PERSONAL DETAILS */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-5 overflow-hidden flex flex-col">
         <div className="px-6 pb-4">
-          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Personal Details</h3>
+          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.personalDetails')}</h3>
         </div>
 
         {/* Horizontal Divider Line stretching edge-to-edge */}
@@ -166,7 +168,7 @@ const EditProfileTab: React.FC = () => {
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           {/* Full Name */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Full Name</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.name')}</label>
             <input
               type="text"
               required
@@ -178,7 +180,7 @@ const EditProfileTab: React.FC = () => {
 
           {/* Email Address (Read-only) */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Email Address</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.email')}</label>
             <input
               type="email"
               readOnly
@@ -190,7 +192,7 @@ const EditProfileTab: React.FC = () => {
 
           {/* Phone Number */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Phone Number</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.phone')}</label>
             <input
               type="text"
               required
@@ -202,7 +204,7 @@ const EditProfileTab: React.FC = () => {
 
           {/* Employee ID (Read-only) */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Employee ID</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.employeeId')}</label>
             <input
               type="text"
               readOnly
@@ -214,7 +216,7 @@ const EditProfileTab: React.FC = () => {
 
           {/* Department (Read-only) */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Department</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.department')}</label>
             <input
               type="text"
               readOnly
@@ -226,7 +228,7 @@ const EditProfileTab: React.FC = () => {
 
           {/* Job Title (Read-only) */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Job Title</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.jobTitle')}</label>
             <input
               type="text"
               readOnly
@@ -241,7 +243,7 @@ const EditProfileTab: React.FC = () => {
       {/* CARD 3: COMPANY ASSIGNMENT */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-5 overflow-hidden flex flex-col">
         <div className="px-6 pb-4">
-          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Company Assignment (Read-Only)</h3>
+          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.companyAssignment')}</h3>
         </div>
 
         {/* Horizontal Divider Line stretching edge-to-edge */}
@@ -250,7 +252,7 @@ const EditProfileTab: React.FC = () => {
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           {/* Registered Company (Read-only) */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Registered Company</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.registeredCompany')}</label>
             <input
               type="text"
               readOnly
@@ -262,7 +264,7 @@ const EditProfileTab: React.FC = () => {
 
           {/* Default Branch (Read-only) */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-[13px] font-semibold text-[#475569]">Default Branch</label>
+            <label className="block text-[13px] font-semibold text-[#475569]">{t('settings.defaultBranch')}</label>
             <input
               type="text"
               readOnly
@@ -280,13 +282,13 @@ const EditProfileTab: React.FC = () => {
           type="button"
           className="px-6 py-2.5 bg-white border border-[#e2e8f0] text-[#475569] hover:bg-slate-50 font-bold text-[13px] rounded-xl transition-all cursor-pointer font-sans"
         >
-          Cancel
+          {t('common.cancel')}
         </button>
         <button
           type="submit"
           className="px-6 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
         >
-          Save Changes
+          {t('common.saveChanges')}
         </button>
       </div>
 

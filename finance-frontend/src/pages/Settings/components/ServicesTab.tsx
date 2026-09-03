@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Check, X, AlertCircle } from 'lucide-react';
 import { getServices, createService, updateService, deleteService, getTaxSetting, updateTaxSetting } from '../../../services/settingService';
+import { useTranslation } from 'react-i18next';
 
 export interface Service {
   id: string;
@@ -11,6 +12,7 @@ export interface Service {
 }
 
 const ServicesTab: React.FC = () => {
+  const { t } = useTranslation();
   const [services, setServices] = useState<Service[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -205,10 +207,10 @@ const ServicesTab: React.FC = () => {
           <table className="w-full text-left border-collapse text-[13px] font-sans">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider w-[280px]">Service Name</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-left w-[160px]">Unit Price</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-left w-[120px]">Status</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right">Actions</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider w-[280px]">{t('settings.services')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-left w-[160px]">{t('invoices.unitPrice') || 'Harga Satuan'}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-left w-[120px]">{t('common.status')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e2e8f0] font-medium text-slate-700">
@@ -249,13 +251,13 @@ const ServicesTab: React.FC = () => {
                       onClick={() => handleOpenEdit(service)}
                       className="px-3.5 py-1.5 bg-[#f1f5f9] hover:bg-slate-200 text-[#475569] hover:text-[#0c0d0f] font-bold text-[12px] rounded-lg transition-all cursor-pointer font-sans"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     <button
                       onClick={() => handleRemoveService(service.id)}
                       className="px-3.5 py-1.5 bg-white border border-[#fee2e2] text-[#ef4444] hover:bg-[#fef2f2] hover:text-[#dc2626] font-bold text-[12px] rounded-lg transition-all cursor-pointer font-sans"
                     >
-                      Remove
+                      {t('common.delete')}
                     </button>
                   </td>
                 </tr>
@@ -266,15 +268,15 @@ const ServicesTab: React.FC = () => {
 
         {/* Card Footer pagination/stat */}
         <div className="px-6 pt-4 text-[12px] text-[#94a3b8] font-medium border-t border-[#e2e8f0] text-left">
-          Showing {services.length} of {services.length} services
+          {t('common.showing') || 'Menampilkan'} {services.length} {t('settings.services')}
         </div>
       </div>
 
       {/* CARD 1.5: TAX / VAT CONFIGURATION */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 flex flex-col w-full text-left space-y-4">
         <div className="space-y-1">
-          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Tax / VAT Configuration</h3>
-          <p className="text-[12px] text-slate-400 font-medium font-sans">Set the default tax or VAT percentage applied to Confirmations</p>
+          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.taxVatConfig')}</h3>
+          <p className="text-[12px] text-slate-400 font-medium font-sans">{t('settings.taxVatSubtitle')}</p>
         </div>
 
         {taxFeedback && (
@@ -286,7 +288,7 @@ const ServicesTab: React.FC = () => {
 
         <form onSubmit={handleSaveTax} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-[13px] font-bold text-[#334155]">Tax / VAT (%)</label>
+            <label className="block text-[13px] font-bold text-[#334155]">{t('settings.taxVatConfig')} (%)</label>
             <input
               type="number"
               step="0.01"
@@ -302,25 +304,25 @@ const ServicesTab: React.FC = () => {
             disabled={savingTax}
             className="px-5 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#cbd5e1] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
           >
-            {savingTax ? 'Saving...' : 'Save'}
+            {savingTax ? '...' : t('common.save')}
           </button>
         </form>
       </div>
 
       {/* CARD 2: CATALOG STATISTICS */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 flex flex-col w-full text-left space-y-4">
-        <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Catalog Statistics</h3>
+        <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Statistik Layanan</h3>
 
         <div className="flex items-center space-x-16 pt-1">
           {/* Total Offered Services */}
           <div className="flex flex-col text-left space-y-1">
-            <span className="text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider font-sans">Total Offered Services</span>
+            <span className="text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider font-sans">Total Layanan</span>
             <span className="text-3xl font-bold text-[#0c0d0f] font-sans">{services.length}</span>
           </div>
 
           {/* Active Offerings */}
           <div className="flex flex-col text-left space-y-1">
-            <span className="text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider font-sans">Active Offerings</span>
+            <span className="text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider font-sans">Layanan Aktif</span>
             <span className="text-3xl font-bold text-[#10b981] font-sans">
               {services.filter(s => s.status === 'Active').length}
             </span>
@@ -335,7 +337,7 @@ const ServicesTab: React.FC = () => {
 
             {/* Modal Header */}
             <div className="flex justify-between items-center text-left pb-4 border-b border-[#e2e8f0] px-6">
-              <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">Add Service</h3>
+              <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">{t('common.add')} {t('settings.services')}</h3>
               <button
                 onClick={() => setIsAddOpen(false)}
                 className="w-8 h-8 rounded-full bg-[#f1f5f9] text-[#64748b] hover:text-[#0c0d0f] flex items-center justify-center hover:bg-gray-200 transition-all cursor-pointer"
@@ -351,7 +353,7 @@ const ServicesTab: React.FC = () => {
                 {showValidation && getServiceErrorsCount() > 0 && (
                   <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in text-left">
                     <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                    <span>{getServiceErrorsCount()} errors found. Please fix them before submitting.</span>
+                    <span>{t('settings.errorsFound', { count: getServiceErrorsCount() })}</span>
                   </div>
                 )}
                 {formError && !showValidation && (
@@ -363,7 +365,7 @@ const ServicesTab: React.FC = () => {
 
                 {/* Service Name */}
                 <div className="space-y-1.5 text-left">
-                  <label className="block text-[13px] font-bold text-[#334155]">Service Name</label>
+                  <label className="block text-[13px] font-bold text-[#334155]">{t('settings.services')}</label>
                   <input
                     type="text"
                     required
@@ -376,17 +378,12 @@ const ServicesTab: React.FC = () => {
                         : 'border-[#e2e8f0] text-[#0c0d0f] bg-white focus:border-[#f59e0b] focus:ring-[#f59e0b]'
                     }`}
                   />
-                  {showValidation && !nameInput.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Service Name is required
-                    </span>
-                  )}
                 </div>
 
                 {/* Price and Currency Row */}
                 <div className="grid grid-cols-3 gap-4 text-left">
                   <div className="col-span-2 space-y-1.5">
-                    <label className="block text-[13px] font-bold text-[#334155]">Price</label>
+                    <label className="block text-[13px] font-bold text-[#334155]">{t('invoices.unitPrice') || 'Harga'}</label>
                     <input
                       type="number"
                       required
@@ -403,7 +400,7 @@ const ServicesTab: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[13px] font-bold text-[#334155]">Currency</label>
+                    <label className="block text-[13px] font-bold text-[#334155]">{t('invoices.currency') || 'Mata Uang'}</label>
                     <select
                       value={currencyInput}
                       onChange={(e) => setCurrencyInput(e.target.value)}
@@ -415,15 +412,6 @@ const ServicesTab: React.FC = () => {
                     </select>
                   </div>
                 </div>
-                {showValidation && (!priceInput || Number(priceInput) <= 0) ? (
-                  <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans text-left">
-                    Price must be greater than 0
-                  </span>
-                ) : (
-                  <p className="text-[11px] text-[#64748b] font-normal leading-normal mt-1 text-left">
-                    Specify the default unit price charged to clients.
-                  </p>
-                )}
 
                 {/* Divider Line above Toggle */}
                 <div className="h-px bg-[#e2e8f0] w-full my-1" />
@@ -432,12 +420,12 @@ const ServicesTab: React.FC = () => {
                 <div className="flex items-center justify-between text-left py-1">
                   <div className="flex flex-col space-y-0.5">
                     <span className="text-[13px] font-bold text-[#0c0d0f]">
-                      {statusInput === 'Active' ? 'Active Status' : 'Inactive'}
+                      {statusInput === 'Active' ? 'Status Aktif' : 'Tidak Aktif'}
                     </span>
                     <span className="text-[11px] text-[#64748b] font-normal leading-normal max-w-sm">
                       {statusInput === 'Active'
-                        ? 'Enable to make this service orderable immediately'
-                        : 'Hide this service from active confirmations and selection catalogs'}
+                        ? 'Aktifkan agar layanan ini dapat langsung dipilih saat membuat konfirmasi'
+                        : 'Sembunyikan layanan ini dari katalog pemilihan'}
                     </span>
                   </div>
                   <button
@@ -468,7 +456,7 @@ const ServicesTab: React.FC = () => {
                   }}
                   className="px-5 py-2.5 bg-white border border-[#e2e8f0] text-[#334155] font-bold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -479,7 +467,7 @@ const ServicesTab: React.FC = () => {
                       : 'bg-[#f59e0b] hover:bg-[#d97706]'
                   }`}
                 >
-                  Add Service
+                  {t('common.add')}
                 </button>
               </div>
             </form>
@@ -494,7 +482,7 @@ const ServicesTab: React.FC = () => {
 
             {/* Modal Header */}
             <div className="flex justify-between items-center text-left pb-4 border-b border-[#e2e8f0] px-6">
-              <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">Edit Service</h3>
+              <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">{t('common.edit')} {t('settings.services')}</h3>
               <button
                 onClick={() => setEditingService(null)}
                 className="w-8 h-8 rounded-full bg-[#f1f5f9] text-[#64748b] hover:text-[#0c0d0f] flex items-center justify-center hover:bg-gray-200 transition-all cursor-pointer"
@@ -510,7 +498,7 @@ const ServicesTab: React.FC = () => {
                 {showValidation && getServiceErrorsCount() > 0 && (
                   <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in text-left">
                     <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                    <span>{getServiceErrorsCount()} errors found. Please fix them before submitting.</span>
+                    <span>{t('settings.errorsFound', { count: getServiceErrorsCount() })}</span>
                   </div>
                 )}
                 {formError && !showValidation && (
@@ -522,7 +510,7 @@ const ServicesTab: React.FC = () => {
 
                 {/* Service Name */}
                 <div className="space-y-1.5 text-left">
-                  <label className="block text-[13px] font-bold text-[#334155]">Service Name</label>
+                  <label className="block text-[13px] font-bold text-[#334155]">{t('settings.services')}</label>
                   <input
                     type="text"
                     required
@@ -534,17 +522,12 @@ const ServicesTab: React.FC = () => {
                         : 'border-[#e2e8f0] text-[#0c0d0f] bg-white focus:border-[#f59e0b] focus:ring-[#f59e0b]'
                     }`}
                   />
-                  {showValidation && !nameInput.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Service Name is required
-                    </span>
-                  )}
                 </div>
 
                 {/* Price and Currency Row */}
                 <div className="grid grid-cols-3 gap-4 text-left">
                   <div className="col-span-2 space-y-1.5">
-                    <label className="block text-[13px] font-bold text-[#334155]">Unit Price</label>
+                    <label className="block text-[13px] font-bold text-[#334155]">{t('invoices.unitPrice') || 'Harga Satuan'}</label>
                     <input
                       type="number"
                       required
@@ -560,7 +543,7 @@ const ServicesTab: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[13px] font-bold text-[#334155]">Currency</label>
+                    <label className="block text-[13px] font-bold text-[#334155]">{t('invoices.currency') || 'Mata Uang'}</label>
                     <select
                       value={currencyInput}
                       onChange={(e) => setCurrencyInput(e.target.value)}
@@ -572,11 +555,6 @@ const ServicesTab: React.FC = () => {
                     </select>
                   </div>
                 </div>
-                {showValidation && (!priceInput || Number(priceInput) <= 0) && (
-                  <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans text-left">
-                    Price must be greater than 0
-                  </span>
-                )}
 
                 {/* Divider Line above Toggle */}
                 <div className="h-px bg-[#e2e8f0] w-full my-1" />
@@ -585,12 +563,12 @@ const ServicesTab: React.FC = () => {
                 <div className="flex items-center justify-between text-left py-1">
                   <div className="flex flex-col space-y-0.5">
                     <span className="text-[13px] font-bold text-[#0c0d0f]">
-                      {statusInput === 'Active' ? 'Active Status' : 'Inactive'}
+                      {statusInput === 'Active' ? 'Status Aktif' : 'Tidak Aktif'}
                     </span>
                     <span className="text-[11px] text-[#64748b] font-normal leading-normal max-w-sm">
                       {statusInput === 'Active'
-                        ? 'Enable to make this service orderable immediately'
-                        : 'Hide this service from active confirmations and selection catalogs'}
+                        ? 'Aktifkan agar layanan ini dapat langsung dipilih saat membuat konfirmasi'
+                        : 'Sembunyikan layanan ini dari katalog pemilihan'}
                     </span>
                   </div>
                   <button
@@ -621,7 +599,7 @@ const ServicesTab: React.FC = () => {
                   }}
                   className="px-5 py-2.5 bg-white border border-[#e2e8f0] text-[#334155] font-bold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -632,7 +610,7 @@ const ServicesTab: React.FC = () => {
                       : 'bg-[#f59e0b] hover:bg-[#d97706]'
                   }`}
                 >
-                  Save Changes
+                  {t('common.saveChanges') || 'Simpan Perubahan'}
                 </button>
               </div>
             </form>

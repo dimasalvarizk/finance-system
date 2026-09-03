@@ -1,9 +1,74 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut } from 'lucide-react';
+import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut, ChevronDown, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../services/authService';
 import notificationSound from '../../assets/notification.mp3';
+
+const USFlag: React.FC<{ className?: string }> = ({ className = 'w-5 h-3.5' }) => (
+  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} viewBox="0 0 640 480">
+    <g fillRule="evenodd">
+      <path fill="#bd3d44" d="M0 0h640v480H0z"/>
+      <path stroke="#fff" strokeWidth="37" d="M0 55.4h640M0 129.2h640M0 203h640M0 277h640M0 350.8h640M0 424.6h640"/>
+      <path fill="#192f5d" d="M0 0h295.4v258.5H0z"/>
+      <g fill="#fff">
+        <circle cx="30" cy="25" r="7"/>
+        <circle cx="80" cy="25" r="7"/>
+        <circle cx="130" cy="25" r="7"/>
+        <circle cx="180" cy="25" r="7"/>
+        <circle cx="230" cy="25" r="7"/>
+        <circle cx="55" cy="50" r="7"/>
+        <circle cx="105" cy="50" r="7"/>
+        <circle cx="155" cy="50" r="7"/>
+        <circle cx="205" cy="50" r="7"/>
+        <circle cx="30" cy="75" r="7"/>
+        <circle cx="80" cy="75" r="7"/>
+        <circle cx="130" cy="75" r="7"/>
+        <circle cx="180" cy="75" r="7"/>
+        <circle cx="230" cy="75" r="7"/>
+        <circle cx="55" cy="100" r="7"/>
+        <circle cx="105" cy="100" r="7"/>
+        <circle cx="155" cy="100" r="7"/>
+        <circle cx="205" cy="100" r="7"/>
+        <circle cx="30" cy="125" r="7"/>
+        <circle cx="80" cy="125" r="7"/>
+        <circle cx="130" cy="125" r="7"/>
+        <circle cx="180" cy="125" r="7"/>
+        <circle cx="230" cy="125" r="7"/>
+      </g>
+    </g>
+  </svg>
+);
+
+const IDFlag: React.FC<{ className?: string }> = ({ className = 'w-5 h-3.5' }) => (
+  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 border border-slate-200`} viewBox="0 0 640 480">
+    <g fillRule="evenodd">
+      <path fill="#e70011" d="M0 0h640v240H0z"/>
+      <path fill="#ffffff" d="M0 240h640v240H0z"/>
+    </g>
+  </svg>
+);
+
+const SAFlag: React.FC<{ className?: string }> = ({ className = 'w-5 h-3.5' }) => (
+  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0`} viewBox="0 0 640 480">
+    <g fillRule="evenodd">
+      <path fill="#006c35" d="M0 0h640v480H0z"/>
+      <g fill="#ffffff">
+        <path d="M190 285h260v12H190zm20-15l-15 21 15 21v-42zm220 0v42l15-21-15-21z"/>
+        <text x="320" y="240" fontSize="72" fontWeight="bold" fontFamily="serif" textAnchor="middle" fill="#ffffff">
+          لا إله إلا الله
+        </text>
+      </g>
+    </g>
+  </svg>
+);
+
+const LANGUAGES = [
+  { code: 'en' as const, label: 'English', short: 'EN', Flag: USFlag },
+  { code: 'id' as const, label: 'Indonesia', short: 'ID', Flag: IDFlag },
+  { code: 'ar' as const, label: 'العربية (Arabic)', short: 'AR', Flag: SAFlag },
+];
 
 interface NotificationItem {
   id: string;
@@ -17,10 +82,20 @@ interface NotificationItem {
 const Header: React.FC = () => {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'log'>('all');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  const currentLang = (i18n.language?.substring(0, 2) as 'en' | 'id' | 'ar') || 'en';
+  const selectedLang = LANGUAGES.find((l) => l.code === currentLang) || LANGUAGES[0];
+
+  const handleSelectLang = (code: 'en' | 'id' | 'ar') => {
+    i18n.changeLanguage(code);
+    setIsLangOpen(false);
+  };
 
   const popoverRef = useRef<HTMLDivElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
@@ -128,6 +203,7 @@ const Header: React.FC = () => {
         !avatarRef.current.contains(event.target as Node)
       ) {
         setIsProfileOpen(false);
+        setIsLangOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -201,7 +277,7 @@ const Header: React.FC = () => {
       {/* Left Dropdown */}
       <div className="flex items-center space-x-2">
         <span className="text-[13px] text-[#94a3b8] font-normal font-sans">
-          Operating Branch:
+          {t('header.operatingBranch')}
         </span>
         <button className="flex items-center space-x-2 px-3 py-1.5 border border-[#e2e8f0] rounded-full hover:bg-gray-50 transition-all">
           <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
@@ -253,7 +329,7 @@ const Header: React.FC = () => {
             <div className="px-4 py-3.5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50">
               <div className="flex items-center space-x-2">
                 <h4 className="text-[15px] font-bold text-[#0c0d0f]">
-                  Notifications
+                  {t('header.notifications')}
                 </h4>
                 {unreadCount > 0 && (
                   <span className="px-2 py-0.5 bg-[#e0f2fe] text-[#0284c7] text-[11px] font-bold rounded-full font-inter">
@@ -266,7 +342,7 @@ const Header: React.FC = () => {
                 disabled={unreadCount === 0}
                 className="text-[12px] font-bold text-[#2563eb] hover:text-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed font-inter transition-all"
               >
-                Mark all as read
+                {t('header.markAllRead')}
               </button>
             </div>
 
@@ -279,7 +355,7 @@ const Header: React.FC = () => {
                   : 'bg-white border-[#e2e8f0] text-[#475569] hover:bg-gray-50'
                   }`}
               >
-                All
+                {t('header.all')}
               </button>
               <button
                 onClick={() => setActiveTab('requests')}
@@ -288,7 +364,7 @@ const Header: React.FC = () => {
                   : 'bg-white border-[#e2e8f0] text-[#475569] hover:bg-gray-50'
                   }`}
               >
-                Requests
+                {t('nav.requests')}
               </button>
               <button
                 onClick={() => setActiveTab('log')}
@@ -297,7 +373,7 @@ const Header: React.FC = () => {
                   : 'bg-white border-[#e2e8f0] text-[#475569] hover:bg-gray-50'
                   }`}
               >
-                Activity Log
+                {t('header.systemLog')}
               </button>
             </div>
 
@@ -335,7 +411,7 @@ const Header: React.FC = () => {
                 ))
               ) : (
                 <div className="p-8 text-center text-gray-400 text-[12px] font-medium">
-                  No notifications in this category.
+                  {t('header.noNotifications')}
                 </div>
               )}
             </div>
@@ -376,15 +452,61 @@ const Header: React.FC = () => {
                 className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-left text-[13px] font-semibold text-[#1e293b] hover:bg-gray-50 transition-all cursor-pointer"
               >
                 <Settings className="w-4 h-4 text-[#64748b]" />
-                <span>Settings</span>
+                <span>{t('header.settings')}</span>
               </button>
               <button
                 onClick={handleLogoutClick}
                 className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-left text-[13px] font-semibold text-[#1e293b] hover:bg-gray-50 transition-all cursor-pointer"
               >
                 <Users className="w-4 h-4 text-[#64748b]" />
-                <span>Switch Account</span>
+                <span>{t('header.switchAccount')}</span>
               </button>
+
+              {/* Language Selector */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsLangOpen(!isLangOpen)}
+                  className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-left text-[13px] font-semibold text-[#1e293b] hover:bg-gray-50 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <selectedLang.Flag className="w-5 h-3.5" />
+                    <span>{t('header.language')}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2 py-0.5 bg-[#f1f5f9] group-hover:bg-gray-200/80 text-[#475569] text-[11px] font-bold rounded-md uppercase font-inter transition-colors">
+                      {selectedLang.short}
+                    </span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-[#94a3b8] transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+
+                {/* Submenu for 3 languages */}
+                {isLangOpen && (
+                  <div className="mt-1 p-1.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl space-y-1 animate-fade-in shadow-xs">
+                    {LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => handleSelectLang(lang.code)}
+                        className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-left text-[12px] font-medium transition-all cursor-pointer ${
+                          currentLang === lang.code
+                            ? 'bg-white text-[#2563eb] font-bold shadow-xs border border-[#e2e8f0]'
+                            : 'text-[#475569] hover:bg-white/70'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <lang.Flag className="w-4 h-3" />
+                          <span>{lang.label}</span>
+                        </div>
+                        {currentLang === lang.code && (
+                          <Check className="w-3.5 h-3.5 text-[#2563eb]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="h-px bg-[#f1f5f9]"></div>
@@ -395,7 +517,7 @@ const Header: React.FC = () => {
               className="flex items-center space-x-3 w-full px-3 py-2.5 bg-[#f8fafc] hover:bg-red-50/50 rounded-xl text-left text-[13px] font-bold text-[#ef4444] transition-all border border-[#f1f5f9] hover:border-red-100 cursor-pointer"
             >
               <LogOut className="w-4 h-4 text-[#ef4444]" />
-              <span>Log Out</span>
+              <span>{t('header.logOut')}</span>
             </button>
           </div>
         )}

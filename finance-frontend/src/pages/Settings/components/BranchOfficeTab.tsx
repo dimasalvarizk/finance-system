@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Check, AlertCircle } from 'lucide-react';
 import { getBranches, createBranch, updateBranch, deleteBranch } from '../../../services/settingService';
+import { useTranslation } from 'react-i18next';
 
 export interface Branch {
   id: string;
@@ -12,6 +13,7 @@ export interface Branch {
 }
 
 const BranchOfficeTab: React.FC = () => {
+  const { t } = useTranslation();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(false);
   const [isAddBranchOpen, setIsAddBranchOpen] = useState(false);
@@ -168,9 +170,9 @@ const BranchOfficeTab: React.FC = () => {
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-6 space-y-4 overflow-hidden">
         <div className="flex justify-between items-center pb-2 px-6">
           <div className="flex items-center space-x-2.5">
-            <h3 className="text-[17px] font-bold text-[#0f172a] font-sans">Branch & Office Management</h3>
+            <h3 className="text-[17px] font-bold text-[#0f172a] font-sans">{t('settings.branchManagement')}</h3>
             <span className="bg-[#f1f5f9] text-[#64748b] text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-100 font-sans">
-              {branches.length} Branches
+              {branches.length} {t('settings.branches')}
             </span>
           </div>
           <button
@@ -178,7 +180,7 @@ const BranchOfficeTab: React.FC = () => {
             className="px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[13px] font-bold flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer font-sans"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Branch</span>
+            <span>{t('settings.addBranch')}</span>
           </button>
         </div>
 
@@ -186,12 +188,12 @@ const BranchOfficeTab: React.FC = () => {
           <table className="w-full text-left border-collapse text-[13px] font-sans">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Branch Name</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Location / Address</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Phone Number</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Country</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Team Count</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right">Actions</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.branchName')}</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.locationAddress')}</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.phone')}</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('companies.country')}</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.team')}</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e2e8f0]">
@@ -225,13 +227,13 @@ const BranchOfficeTab: React.FC = () => {
                       onClick={() => handleStartEdit(branch)}
                       className="px-3.5 py-1.5 bg-[#f1f5f9] hover:bg-slate-200 text-[#475569] hover:text-[#0c0d0f] font-bold text-[12px] rounded-lg transition-all cursor-pointer font-sans"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     <button
                       onClick={() => setBranchToDelete(branch)}
                       className="px-3.5 py-1.5 bg-white border border-[#fee2e2] text-[#ef4444] hover:bg-[#fef2f2] hover:text-[#dc2626] font-bold text-[12px] rounded-lg transition-all cursor-pointer font-sans whitespace-nowrap"
                     >
-                      Remove
+                      {t('common.delete')}
                     </button>
                   </td>
                 </tr>
@@ -243,18 +245,18 @@ const BranchOfficeTab: React.FC = () => {
 
       {/* Statistics card below */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
-        <h4 className="text-[14px] font-bold text-[#0f172a] font-sans">Branch Statistics</h4>
+        <h4 className="text-[14px] font-bold text-[#0f172a] font-sans">{t('settings.branchStats')}</h4>
         <div className="flex flex-wrap gap-x-16 gap-y-4 font-sans text-left pt-1">
           <div className="space-y-1">
-            <span className="block text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider">Total Branches</span>
+            <span className="block text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider">{t('settings.totalBranches')}</span>
             <span className="text-[32px] font-bold text-[#0c0d0f] block leading-none">{branches.length}</span>
           </div>
           <div className="space-y-1">
-            <span className="block text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider">Active Branches</span>
+            <span className="block text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider">{t('settings.activeBranches')}</span>
             <span className="text-[32px] font-bold text-[#10b981] block leading-none">{branches.length}</span>
           </div>
           <div className="space-y-1">
-            <span className="block text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider">Total Staff Across Branches</span>
+            <span className="block text-[10px] font-normal text-[#94a3b8] uppercase tracking-wider">{t('settings.totalStaffAcrossBranches')}</span>
             <span className="text-[32px] font-bold text-[#f59e0b] block leading-none">
               {branches.reduce((acc, b) => acc + b.teamCount, 0)}
             </span>
@@ -269,9 +271,9 @@ const BranchOfficeTab: React.FC = () => {
 
             {/* Modal Header */}
             <div className="space-y-1.5 text-left">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] tracking-tight">Create new branch</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] tracking-tight">{t('settings.createBranch')}</h3>
               <p className="text-[13px] text-[#64748b] font-medium leading-normal">
-                A branch contains all your working file history.
+                {t('settings.createBranchSubtitle')}
               </p>
             </div>
 
@@ -280,7 +282,7 @@ const BranchOfficeTab: React.FC = () => {
               {showValidation && getAddBranchErrorsCount() > 0 && (
                 <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in text-left">
                   <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                  <span>{getAddBranchErrorsCount()} errors found. Please fix them before submitting.</span>
+                  <span>{t('settings.errorsFound', { count: getAddBranchErrorsCount() })}</span>
                 </div>
               )}
               {formError && !showValidation && (
@@ -292,11 +294,11 @@ const BranchOfficeTab: React.FC = () => {
 
               {/* Branch Name */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">Branch Name</label>
+                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">{t('settings.branchName')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. graha al badegel"
+                  placeholder="e.g. Kantor Jakarta"
                   value={newBranchName}
                   onChange={(e) => setNewBranchName(e.target.value)}
                   className={`w-full px-3.5 py-2.5 border rounded-xl text-[13px] transition-all font-sans focus:outline-none ${showValidation && !newBranchName.trim()
@@ -306,18 +308,18 @@ const BranchOfficeTab: React.FC = () => {
                 />
                 {showValidation && !newBranchName.trim() && (
                   <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                    Branch Name is required
+                    {t('settings.branchRequired')}
                   </span>
                 )}
               </div>
 
               {/* Address */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">Adress</label>
+                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">{t('settings.locationAddress')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. jakarta selatan"
+                  placeholder="e.g. Jakarta Selatan"
                   value={newBranchAddress}
                   onChange={(e) => setNewBranchAddress(e.target.value)}
                   className={`w-full px-3.5 py-2.5 border rounded-xl text-[13px] transition-all font-sans focus:outline-none ${showValidation && !newBranchAddress.trim()
@@ -325,20 +327,15 @@ const BranchOfficeTab: React.FC = () => {
                       : 'border-[#e2e8f0] text-[#0c0d0f] placeholder:text-slate-400/80 bg-white focus:border-[#f59e0b] focus:ring-[#f59e0b]'
                     }`}
                 />
-                {showValidation && !newBranchAddress.trim() && (
-                  <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                    Address is required
-                  </span>
-                )}
               </div>
 
               {/* Phone Number */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">Phone Number</label>
+                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">{t('settings.phone')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. e.g. +62 888 888 88"
+                  placeholder="e.g. +62 888 888 88"
                   value={newBranchPhone}
                   onChange={(e) => setNewBranchPhone(e.target.value)}
                   className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13px] text-[#0c0d0f] placeholder:text-slate-400/80 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
@@ -347,11 +344,11 @@ const BranchOfficeTab: React.FC = () => {
 
               {/* Country */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">Country</label>
+                <label className="block text-[11px] font-bold text-[#64748b] tracking-wider uppercase">{t('companies.country')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. indonesia"
+                  placeholder="e.g. Indonesia"
                   value={newBranchCountry}
                   onChange={(e) => setNewBranchCountry(e.target.value)}
                   className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13px] text-[#0c0d0f] placeholder:text-slate-400/80 bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
@@ -372,7 +369,7 @@ const BranchOfficeTab: React.FC = () => {
                   }}
                   className="text-[#64748b] hover:text-[#0c0d0f] font-bold text-[14px] transition-all cursor-pointer font-sans"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -382,7 +379,7 @@ const BranchOfficeTab: React.FC = () => {
                       : 'bg-[#f59e0b] hover:bg-[#d97706]'
                     }`}
                 >
-                  Create Branch
+                  {t('settings.addBranch')}
                 </button>
               </div>
             </form>
@@ -397,7 +394,7 @@ const BranchOfficeTab: React.FC = () => {
 
             {/* Modal Header */}
             <div className="flex justify-between items-center text-left pb-4 border-b border-[#e2e8f0] px-6">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] tracking-tight">Edit Branch</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] tracking-tight">{t('common.edit')} {t('settings.branches')}</h3>
               <button
                 onClick={() => setEditingBranch(null)}
                 className="w-8 h-8 rounded-full bg-[#f1f5f9] text-[#64748b] hover:text-[#0c0d0f] flex items-center justify-center hover:bg-gray-200 transition-all cursor-pointer"
@@ -414,7 +411,7 @@ const BranchOfficeTab: React.FC = () => {
                 {showValidation && getUpdateBranchErrorsCount() > 0 && (
                   <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in text-left">
                     <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                    <span>{getUpdateBranchErrorsCount()} errors found. Please fix them before submitting.</span>
+                    <span>{t('settings.errorsFound', { count: getUpdateBranchErrorsCount() })}</span>
                   </div>
                 )}
                 {formError && !showValidation && (
@@ -426,7 +423,7 @@ const BranchOfficeTab: React.FC = () => {
 
                 {/* Branch Name */}
                 <div className="space-y-1.5 text-left">
-                  <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">Branch Name</label>
+                  <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">{t('settings.branchName')}</label>
                   <input
                     type="text"
                     required
@@ -438,16 +435,11 @@ const BranchOfficeTab: React.FC = () => {
                         : 'border-[#e2e8f0] text-[#0c0d0f] bg-white focus:border-[#f59e0b] focus:ring-[#f59e0b]'
                       }`}
                   />
-                  {showValidation && !editBranchName.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Branch Name is required
-                    </span>
-                  )}
                 </div>
 
                 {/* Address / Location */}
                 <div className="space-y-1.5 text-left">
-                  <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">Address / Location</label>
+                  <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">{t('settings.locationAddress')}</label>
                   <textarea
                     required
                     rows={3}
@@ -459,16 +451,11 @@ const BranchOfficeTab: React.FC = () => {
                         : 'border-[#e2e8f0] text-[#0c0d0f] bg-white focus:border-[#f59e0b] focus:ring-[#f59e0b]'
                       }`}
                   />
-                  {showValidation && !editBranchAddress.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Address is required
-                    </span>
-                  )}
                 </div>
 
                 {/* Phone Number */}
                 <div className="space-y-1.5 text-left">
-                  <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">Phone Number</label>
+                  <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">{t('settings.phone')}</label>
                   <input
                     type="text"
                     required
@@ -482,7 +469,7 @@ const BranchOfficeTab: React.FC = () => {
                 {/* Country & Team Count Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5 text-left relative">
-                    <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">Country</label>
+                    <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">{t('companies.country')}</label>
                     <select
                       value={editBranchCountry}
                       onChange={(e) => setEditBranchCountry(e.target.value)}
@@ -498,7 +485,7 @@ const BranchOfficeTab: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-1.5 text-left">
-                    <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">Team Count</label>
+                    <label className="block text-[13px] font-semibold text-[#334155] mb-0.5">{t('settings.team')}</label>
                     <input
                       type="number"
                       min="0"
@@ -525,7 +512,7 @@ const BranchOfficeTab: React.FC = () => {
                   }}
                   className="px-5 py-2.5 bg-white border border-[#e2e8f0] text-[#334155] font-bold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -535,7 +522,7 @@ const BranchOfficeTab: React.FC = () => {
                       : 'bg-[#2563eb] hover:bg-[#1d4ed8]'
                     }`}
                 >
-                  Save Changes
+                  {t('common.saveChanges') || 'Simpan Perubahan'}
                 </button>
               </div>
             </form>
@@ -557,12 +544,12 @@ const BranchOfficeTab: React.FC = () => {
 
             {/* Title */}
             <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">
-              Remove Branch Office?
+              {t('settings.confirmDeletion')}
             </h3>
 
             {/* Text */}
             <p className="text-[13px] text-[#475569] leading-relaxed">
-              Are you sure you want to remove the <span className="font-bold text-[#0c0d0f]">{branchToDelete.name}</span>? This action will immediately de-allocate all {branchToDelete.teamCount} staff members and cannot be undone.
+              {t('settings.confirmDeletionDesc', { name: branchToDelete.name, email: branchToDelete.phone })}
             </p>
 
             {/* Footer Buttons */}
@@ -572,14 +559,14 @@ const BranchOfficeTab: React.FC = () => {
                 onClick={() => setBranchToDelete(null)}
                 className="flex-1 py-2.5 bg-white border border-[#e2e8f0] text-[#334155] font-bold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 onClick={confirmDeleteBranch}
                 className="flex-1 py-2.5 bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
               >
-                Yes, Remove
+                {t('settings.yesRemove')}
               </button>
             </div>
 
@@ -601,13 +588,8 @@ const BranchOfficeTab: React.FC = () => {
 
             {/* Title */}
             <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">
-              Successfully Removed
+              {t('common.success') || 'Berhasil'}
             </h3>
-
-            {/* Text */}
-            <p className="text-[13px] text-[#475569] leading-relaxed">
-              The branch details have been securely purged from the system. Team members have been moved to unassigned branch status.
-            </p>
 
             {/* Done Button */}
             <div className="pt-2">
@@ -616,7 +598,7 @@ const BranchOfficeTab: React.FC = () => {
                 onClick={() => setShowSuccessRemoved(false)}
                 className="w-full py-2.5 bg-[#059669] hover:bg-[#047857] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
               >
-                Done
+                {t('common.done') || 'Selesai'}
               </button>
             </div>
 

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { getCompanySetting, updateCompanySetting } from '../../../services/settingService';
+import { useTranslation } from 'react-i18next';
 
 const CompanyInfoTab: React.FC = () => {
+  const { t } = useTranslation();
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
   const [taxNumber, setTaxNumber] = useState('');
@@ -185,14 +187,14 @@ const CompanyInfoTab: React.FC = () => {
       {/* 0. Company Identity Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
         <div className="space-y-1">
-          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Company Identity</h3>
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('settings.companyIdentity')}</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Update your company or entity name displayed on confirmations
+            {t('settings.companyIdentitySubtitle')}
           </p>
         </div>
         <form onSubmit={handleSaveCompanyName} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-[13px] font-bold text-[#334155] font-sans">Company Name</label>
+            <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('companies.companyName') || 'Nama Perusahaan'}</label>
             <input
               type="text"
               placeholder="e.g. ODST Group"
@@ -208,7 +210,7 @@ const CompanyInfoTab: React.FC = () => {
               className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingCompanyName ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
             >
-              {savingCompanyName ? 'Saving...' : 'Save'}
+              {savingCompanyName ? '...' : t('common.save')}
             </button>
             {companyNameFeedback && (
               <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
@@ -223,14 +225,14 @@ const CompanyInfoTab: React.FC = () => {
       {/* 1. Contact Information Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
         <div className="space-y-1">
-          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Contact Information</h3>
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('settings.contactInfo')}</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Update your company's phone number and contact details
+            {t('settings.contactInfoSubtitle')}
           </p>
         </div>
         <form onSubmit={handleSavePhone} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-[13px] font-bold text-[#334155] font-sans">Phone Number</label>
+            <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.phone')}</label>
             <input
               type="text"
               placeholder="+62 000-0000-0000"
@@ -246,7 +248,7 @@ const CompanyInfoTab: React.FC = () => {
               className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingPhone ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
             >
-              {savingPhone ? 'Saving...' : 'Save'}
+              {savingPhone ? '...' : t('common.save')}
             </button>
             {phoneFeedback && (
               <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
@@ -261,14 +263,14 @@ const CompanyInfoTab: React.FC = () => {
       {/* 2. Tax Information Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
         <div className="space-y-1">
-          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Tax Information</h3>
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('settings.taxInfo')}</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Set your company tax identification number for confirmations
+            {t('settings.taxInfoSubtitle')}
           </p>
         </div>
         <form onSubmit={handleSaveTax} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-[13px] font-bold text-[#334155] font-sans">Tax Number</label>
+            <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.taxNumber')}</label>
             <input
               type="text"
               placeholder="Enter your tax identification number"
@@ -284,7 +286,7 @@ const CompanyInfoTab: React.FC = () => {
               className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingTax ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
             >
-              {savingTax ? 'Saving...' : 'Save'}
+              {savingTax ? '...' : t('common.save')}
             </button>
             {taxFeedback && (
               <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
@@ -299,15 +301,15 @@ const CompanyInfoTab: React.FC = () => {
       {/* 2.5 Bank Info Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4 text-left">
         <div className="space-y-1">
-          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Bank Info</h3>
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('settings.bankInfo')}</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Add your company bank account details for confirmations
+            {t('settings.bankAccountSubtitle')}
           </p>
         </div>
         <form onSubmit={handleSaveBank} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-[13px] font-bold text-[#334155] font-sans">Bank Name</label>
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.bankName')}</label>
               <input
                 type="text"
                 placeholder="Enter your bank name"
@@ -317,7 +319,7 @@ const CompanyInfoTab: React.FC = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-[13px] font-bold text-[#334155] font-sans">Account Name</label>
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.accountHolderName')}</label>
               <input
                 type="text"
                 placeholder="Enter account holder name"
@@ -327,7 +329,7 @@ const CompanyInfoTab: React.FC = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-[13px] font-bold text-[#334155] font-sans">IDR Account Number</label>
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.idrAccountNumber')}</label>
               <input
                 type="text"
                 placeholder="Enter IDR account number"
@@ -337,7 +339,7 @@ const CompanyInfoTab: React.FC = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-[13px] font-bold text-[#334155] font-sans">USD Account Number</label>
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.usdAccountNumber')}</label>
               <input
                 type="text"
                 placeholder="Enter USD account number"
@@ -354,7 +356,7 @@ const CompanyInfoTab: React.FC = () => {
               className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingBank ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
             >
-              {savingBank ? 'Saving...' : 'Save'}
+              {savingBank ? '...' : t('common.save')}
             </button>
             {bankFeedback && (
               <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
@@ -369,14 +371,14 @@ const CompanyInfoTab: React.FC = () => {
       {/* 3. Notes Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
         <div className="space-y-1">
-          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Notes</h3>
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('settings.defaultNotes')}</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Add default notes that will appear on your confirmations
+            {t('settings.defaultNotesSubtitle')}
           </p>
         </div>
         <form onSubmit={handleSaveNotes} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-[13px] font-bold text-[#334155] font-sans">Default Notes</label>
+            <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.defaultNotes')}</label>
             <textarea
               rows={3}
               placeholder="Enter default notes for confirmations..."
@@ -392,7 +394,7 @@ const CompanyInfoTab: React.FC = () => {
               className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingNotes ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
             >
-              {savingNotes ? 'Saving...' : 'Save'}
+              {savingNotes ? '...' : t('common.save')}
             </button>
             {notesFeedback && (
               <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">
@@ -407,9 +409,9 @@ const CompanyInfoTab: React.FC = () => {
       {/* 4. Terms & Conditions Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
         <div className="space-y-1">
-          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Terms & Conditions</h3>
+          <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('settings.termsAndConditions')}</h3>
           <p className="text-[12.5px] text-[#64748b] font-medium font-sans">
-            Define the default terms and conditions included on confirmations
+            {t('settings.termsAndConditionsSubtitle')}
           </p>
         </div>
         <form onSubmit={handleSaveTerms} className="space-y-4">
@@ -429,7 +431,7 @@ const CompanyInfoTab: React.FC = () => {
               className={`px-6 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer ${savingTerms ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
             >
-              {savingTerms ? 'Saving...' : 'Save'}
+              {savingTerms ? '...' : t('common.save')}
             </button>
             {termsFeedback && (
               <span className="flex items-center gap-1 text-[#10b981] text-[12.5px] font-semibold font-sans animate-fade-in">

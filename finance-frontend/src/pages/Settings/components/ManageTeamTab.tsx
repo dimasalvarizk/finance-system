@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Check, X, AlertCircle } from 'lucide-react';
 import { getTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember, getBranches } from '../../../services/settingService';
 import { useAuth } from '../../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export interface TeamMember {
   id: string;
@@ -19,6 +20,7 @@ export interface TeamMember {
 
 const ManageTeamTab: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { t } = useTranslation();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [availableBranches, setAvailableBranches] = useState<any[]>([]);
@@ -268,9 +270,9 @@ const ManageTeamTab: React.FC = () => {
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-6 space-y-4 overflow-hidden">
         <div className="flex justify-between items-center pb-2 px-6">
           <div className="flex items-center space-x-2.5">
-            <h3 className="text-[17px] font-bold text-[#0f172a] font-sans">Team Members</h3>
+            <h3 className="text-[17px] font-bold text-[#0f172a] font-sans">{t('settings.team')}</h3>
             <span className="bg-[#f1f5f9] text-[#64748b] text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-100 font-sans">
-              {loading ? <span className="inline-block w-4 h-3 bg-slate-300 animate-pulse rounded"></span> : `${members.length} Members`}
+              {loading ? <span className="inline-block w-4 h-3 bg-slate-300 animate-pulse rounded"></span> : `${members.length} ${t('settings.members') || 'Members'}`}
             </span>
           </div>
           <button
@@ -284,7 +286,7 @@ const ManageTeamTab: React.FC = () => {
             className="px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[13px] font-bold flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer font-sans"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Member</span>
+            <span>{t('settings.addMember')}</span>
           </button>
         </div>
 
@@ -292,11 +294,11 @@ const ManageTeamTab: React.FC = () => {
           <table className="w-full text-left border-collapse text-[13px] font-sans">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Name & Email</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Last Active</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right">Actions</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.name')} & {t('settings.email')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.role')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.status')}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.timestamp') || 'Waktu Aktivitas'}</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e2e8f0]">
@@ -364,11 +366,11 @@ const ManageTeamTab: React.FC = () => {
                         const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
                         if (diffInSeconds < 60) return 'Just now';
                         const diffInMins = Math.floor(diffInSeconds / 60);
-                        if (diffInMins < 60) return `${diffInMins} min${diffInMins > 1 ? 's' : ''} ago`;
+                        if (diffInMins < 60) return `${diffInMins}m`;
                         const diffInHours = Math.floor(diffInMins / 60);
-                        if (diffInHours < 24) return `${diffInHours} hr${diffInHours > 1 ? 's' : ''} ago`;
+                        if (diffInHours < 24) return `${diffInHours}h`;
                         const diffInDays = Math.floor(diffInHours / 24);
-                        if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+                        if (diffInDays < 7) return `${diffInDays}d`;
                         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                       }
                       return str;
@@ -379,14 +381,14 @@ const ManageTeamTab: React.FC = () => {
                       onClick={() => handleOpenEdit(member)}
                       className="px-3.5 py-1.5 bg-[#f1f5f9] hover:bg-slate-200 text-[#475569] hover:text-[#0c0d0f] font-bold text-[12px] rounded-lg transition-all cursor-pointer font-sans"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     {member.id !== user?.id && (
                       <button
                         onClick={() => setMemberToDelete(member)}
                         className="px-3.5 py-1.5 bg-white border border-[#fee2e2] text-[#ef4444] hover:bg-[#fef2f2] hover:text-[#dc2626] font-bold text-[12px] rounded-lg transition-all cursor-pointer font-sans"
                       >
-                        Remove
+                        {t('common.delete')}
                       </button>
                     )}
                   </td>
@@ -400,14 +402,14 @@ const ManageTeamTab: React.FC = () => {
       {/* Roles & Permissions Matrix Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-6 space-y-4 overflow-hidden">
         <div className="px-6 pb-2">
-          <h3 className="text-[17px] font-bold text-[#0f172a] font-sans">Roles & Permissions Matrix</h3>
-          <p className="text-[11px] text-[#64748b] font-medium font-sans">Overview of default permission credentials across system roles</p>
+          <h3 className="text-[17px] font-bold text-[#0f172a] font-sans">{t('settings.rolesMatrix')}</h3>
+          <p className="text-[11px] text-[#64748b] font-medium font-sans">{t('settings.rolesMatrixSubtitle')}</p>
         </div>
         <div className="overflow-x-auto font-sans text-[13px]">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Permission</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.permission')}</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center">Super Admin</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center">Chief Accountant</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center">Division Director</th>
@@ -416,11 +418,11 @@ const ManageTeamTab: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-[#e2e8f0] font-medium text-slate-700">
               {[
-                { name: 'Create Confirmations', sa: true, ca: true, dd: true, ac: true },
-                { name: 'Approve Confirmations', sa: true, ca: true, dd: true, ac: false },
-                { name: 'Manage Companies', sa: true, ca: true, dd: true, ac: false },
-                { name: 'View Reports', sa: true, ca: true, dd: true, ac: true },
-                { name: 'Manage Team', sa: true, ca: false, dd: false, ac: false },
+                { name: t('settings.createConfirmations'), sa: true, ca: true, dd: true, ac: true },
+                { name: t('settings.approveConfirmations'), sa: true, ca: true, dd: true, ac: false },
+                { name: t('settings.manageCompanies'), sa: true, ca: true, dd: true, ac: false },
+                { name: t('settings.viewReports'), sa: true, ca: true, dd: true, ac: true },
+                { name: t('settings.manageTeam'), sa: true, ca: false, dd: false, ac: false },
               ].map((row, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50">
                   <td className="px-6 py-3.5 text-slate-800 font-bold">{row.name}</td>
@@ -459,7 +461,7 @@ const ManageTeamTab: React.FC = () => {
           {addMemberStep === 1 && (
             <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col font-sans">
               <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
-                <h3 className="text-[17px] font-bold text-[#0c0d0f]">Add New Team Member</h3>
+                <h3 className="text-[17px] font-bold text-[#0c0d0f]">{t('settings.addNewMember')}</h3>
                 <button
                   onClick={() => handleResetAddMember()}
                   className="w-8 h-8 rounded-full bg-[#f1f5f9] text-[#64748b] hover:text-[#0c0d0f] flex items-center justify-center hover:bg-gray-200 transition-all cursor-pointer"
@@ -471,7 +473,7 @@ const ManageTeamTab: React.FC = () => {
                 {showValidation && getAddMemberErrorsCount() > 0 && (
                   <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in text-left">
                     <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                    <span>{getAddMemberErrorsCount()} errors found. Please fix them before submitting.</span>
+                    <span>{t('settings.errorsFound', { count: getAddMemberErrorsCount() })}</span>
                   </div>
                 )}
                 {formError && !showValidation && (
@@ -485,7 +487,7 @@ const ManageTeamTab: React.FC = () => {
                   
                   {/* Full Name */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Full Name</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.name')}</label>
                     <input
                       type="text"
                       required
@@ -500,18 +502,18 @@ const ManageTeamTab: React.FC = () => {
                     />
                     {showValidation && !newMemberName.trim() && (
                       <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                        Full Name is required
+                        {t('settings.fullNameRequired')}
                       </span>
                     )}
                   </div>
 
                   {/* Email Address */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Email Address</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.email')}</label>
                     <input
                       type="email"
                       required
-                      placeholder="e.g. khalid@odst.id"
+                      placeholder="e.g. user@odst.id"
                       value={newMemberEmail}
                       onChange={(e) => setNewMemberEmail(e.target.value)}
                       className={`w-full px-3.5 py-2.5 border rounded-xl text-[13px] font-medium transition-all font-sans focus:outline-none ${
@@ -522,14 +524,14 @@ const ManageTeamTab: React.FC = () => {
                     />
                     {showValidation && !newMemberEmail.trim() && (
                       <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                        Email Address is required
+                        {t('settings.emailRequired')}
                       </span>
                     )}
                   </div>
 
                   {/* Phone Number */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Phone Number</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.phone')}</label>
                     <input
                       type="text"
                       placeholder="e.g. +62 812..."
@@ -541,7 +543,7 @@ const ManageTeamTab: React.FC = () => {
 
                   {/* Employee ID */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Employee ID</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.employeeId')}</label>
                     <input
                       type="text"
                       placeholder="e.g. EMP-104"
@@ -550,13 +552,13 @@ const ManageTeamTab: React.FC = () => {
                       className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13px] font-medium text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
                     />
                     <span className="block text-[10px] text-slate-400 font-medium font-sans">
-                      Auto-generated if left blank
+                      {t('settings.autoGeneratedEmpId')}
                     </span>
                   </div>
 
                   {/* Role */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Role</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.role')}</label>
                     <select
                       value={newMemberRole}
                       onChange={(e) => setNewMemberRole(e.target.value)}
@@ -572,7 +574,7 @@ const ManageTeamTab: React.FC = () => {
 
                   {/* Assigned Branch / Office */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Assigned Branch / Office</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.assignedBranch')}</label>
                     <select
                       value={newMemberBranch}
                       onChange={(e) => setNewMemberBranch(e.target.value)}
@@ -586,14 +588,14 @@ const ManageTeamTab: React.FC = () => {
                     </select>
                     {showValidation && !newMemberBranch.trim() && (
                       <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                        Branch is required. Add in settings first.
+                        {t('settings.branchRequired')}
                       </span>
                     )}
                   </div>
 
                   {/* Department */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Department</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.department')}</label>
                     <input
                       type="text"
                       placeholder="e.g. Finance"
@@ -605,7 +607,7 @@ const ManageTeamTab: React.FC = () => {
 
                   {/* Job Title */}
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-bold text-[#64748b]">Job Title</label>
+                    <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.jobTitle')}</label>
                     <input
                       type="text"
                       placeholder="e.g. Senior Associate"
@@ -624,7 +626,7 @@ const ManageTeamTab: React.FC = () => {
                     onClick={() => handleResetAddMember()}
                     className="px-5 py-2.5 bg-white border border-[#e2e8f0] text-[#64748b] hover:text-[#0c0d0f] font-semibold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
@@ -635,7 +637,7 @@ const ManageTeamTab: React.FC = () => {
                         : 'bg-[#f59e0b] hover:bg-[#d97706]'
                     }`}
                   >
-                    Add Member
+                    {t('settings.addMember')}
                   </button>
                 </div>
               </form>
@@ -646,7 +648,7 @@ const ManageTeamTab: React.FC = () => {
           {addMemberStep === 2 && (
             <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col font-sans animate-scale-up">
               <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
-                <h3 className="text-[17px] font-bold text-[#0c0d0f]">Confirm Action</h3>
+                <h3 className="text-[17px] font-bold text-[#0c0d0f]">{t('settings.confirmAction')}</h3>
                 <button
                   onClick={() => setAddMemberStep(1)}
                   className="w-8 h-8 rounded-full bg-[#f1f5f9] text-[#64748b] hover:text-[#0c0d0f] flex items-center justify-center hover:bg-gray-200 transition-all cursor-pointer"
@@ -654,13 +656,13 @@ const ManageTeamTab: React.FC = () => {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 text-left">
                 <div className="space-y-2">
                   <h4 className="text-[18px] font-bold text-[#0c0d0f]">
-                    Are you sure you want to add this member?
+                    {t('settings.confirmAddMember')}
                   </h4>
                   <p className="text-[13px] text-[#64748b] leading-relaxed">
-                    This action will send an invitation email to the new team member so they can access the platform.
+                    {t('settings.confirmAddMemberDesc')}
                   </p>
                 </div>
                 
@@ -670,14 +672,14 @@ const ManageTeamTab: React.FC = () => {
                     onClick={() => setAddMemberStep(1)}
                     className="px-5 py-2.5 bg-white border border-[#e2e8f0] text-[#64748b] hover:text-[#0c0d0f] font-semibold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="button"
                     onClick={handleConfirmAddMember}
                     className="px-5 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
                   >
-                    Yes, Add Member
+                    {t('settings.yesAddMember')}
                   </button>
                 </div>
               </div>
@@ -696,10 +698,10 @@ const ManageTeamTab: React.FC = () => {
 
                 <div className="space-y-2">
                   <h4 className="text-[18px] font-bold text-[#0c0d0f]">
-                    Member Added Successfully!
+                    {t('settings.memberAddedSuccess')}
                   </h4>
                   <p className="text-[13px] text-[#64748b] leading-relaxed">
-                    The new team member has been added and an invitation email has been sent.
+                    {t('settings.memberAddedSuccessDesc')}
                   </p>
                 </div>
 
@@ -709,7 +711,7 @@ const ManageTeamTab: React.FC = () => {
                     onClick={handleResetAddMember}
                     className="px-8 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
                   >
-                    Done
+                    {t('common.done') || 'Selesai'}
                   </button>
                 </div>
               </div>
@@ -724,7 +726,7 @@ const ManageTeamTab: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col font-sans text-left">
             <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
-              <h3 className="text-[17px] font-bold text-[#0c0d0f]">Edit Team Member</h3>
+              <h3 className="text-[17px] font-bold text-[#0c0d0f]">{t('settings.editMember')}</h3>
               <button
                 onClick={() => {
                   setIsEditMemberOpen(false);
@@ -740,7 +742,7 @@ const ManageTeamTab: React.FC = () => {
               {showValidation && getUpdateMemberErrorsCount() > 0 && (
                 <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in text-left">
                   <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                  <span>{getUpdateMemberErrorsCount()} errors found. Please fix them before submitting.</span>
+                  <span>{t('settings.errorsFound', { count: getUpdateMemberErrorsCount() })}</span>
                 </div>
               )}
               {formError && !showValidation && (
@@ -754,7 +756,7 @@ const ManageTeamTab: React.FC = () => {
                 
                 {/* Full Name */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Full Name</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.name')}</label>
                   <input
                     type="text"
                     required
@@ -768,14 +770,14 @@ const ManageTeamTab: React.FC = () => {
                   />
                   {showValidation && !newMemberName.trim() && (
                     <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Full Name is required
+                      {t('settings.fullNameRequired')}
                     </span>
                   )}
                 </div>
 
                 {/* Email Address */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Email Address (Read-only)</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.email')} ({t('settings.readOnly') || 'Hanya Baca'})</label>
                   <input
                     type="email"
                     disabled
@@ -786,7 +788,7 @@ const ManageTeamTab: React.FC = () => {
 
                 {/* Phone Number */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Phone Number</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.phone')}</label>
                   <input
                     type="text"
                     className="w-full px-4 py-2.5 bg-white border border-[#e2e8f0] rounded-xl text-[#0c0d0f] font-sans font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all"
@@ -797,7 +799,7 @@ const ManageTeamTab: React.FC = () => {
 
                 {/* Employee ID */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Employee ID</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.employeeId')}</label>
                   <input
                     type="text"
                     required
@@ -809,7 +811,7 @@ const ManageTeamTab: React.FC = () => {
 
                 {/* Role */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Role</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.role')}</label>
                   <select
                     className="w-full px-4 py-2.5 bg-white border border-[#e2e8f0] rounded-xl text-[#0c0d0f] font-sans font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all cursor-pointer"
                     value={newMemberRole}
@@ -825,7 +827,7 @@ const ManageTeamTab: React.FC = () => {
 
                 {/* Assigned Branch / Office */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Assigned Branch / Office</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.assignedBranch')}</label>
                   <select
                     className="w-full px-4 py-2.5 bg-white border border-[#e2e8f0] rounded-xl text-[#0c0d0f] font-sans font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all cursor-pointer"
                     value={newMemberBranch}
@@ -837,7 +839,7 @@ const ManageTeamTab: React.FC = () => {
 
                 {/* Department */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Department</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.department')}</label>
                   <input
                     type="text"
                     className="w-full px-4 py-2.5 bg-white border border-[#e2e8f0] rounded-xl text-[#0c0d0f] font-sans font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all"
@@ -848,7 +850,7 @@ const ManageTeamTab: React.FC = () => {
 
                 {/* Job Title */}
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-[#64748b]">Job Title</label>
+                  <label className="block text-[11px] font-bold text-[#64748b]">{t('settings.jobTitle')}</label>
                   <input
                     type="text"
                     className="w-full px-4 py-2.5 bg-white border border-[#e2e8f0] rounded-xl text-[#0c0d0f] font-sans font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all"
@@ -870,7 +872,7 @@ const ManageTeamTab: React.FC = () => {
                   }}
                   className="px-5 py-2.5 bg-white border border-[#e2e8f0] text-[#64748b] hover:text-[#0c0d0f] font-semibold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -881,7 +883,7 @@ const ManageTeamTab: React.FC = () => {
                       : 'bg-[#f59e0b] hover:bg-[#d97706]'
                   }`}
                 >
-                  Save Changes
+                  {t('common.saveChanges') || 'Simpan Perubahan'}
                 </button>
               </div>
             </form>
@@ -896,7 +898,7 @@ const ManageTeamTab: React.FC = () => {
             <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
               <h3 className="text-[17px] font-bold text-[#991b1b] flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-[#ef4444]" />
-                Confirm Deletion
+                {t('settings.confirmDeletion')}
               </h3>
               <button
                 onClick={() => setMemberToDelete(null)}
@@ -908,10 +910,10 @@ const ManageTeamTab: React.FC = () => {
             
             <div className="p-6 space-y-4 text-left">
               <p className="text-[14px] text-[#334155] leading-relaxed">
-                Are you sure you want to remove <strong>{memberToDelete.name}</strong> ({memberToDelete.email}) from the team?
+                {t('settings.confirmDeletionDesc', { name: memberToDelete.name, email: memberToDelete.email })}
               </p>
               <div className="p-3 bg-[#fffbeb] border border-[#fef3c7] text-[#92400e] rounded-xl text-[12px] font-medium leading-relaxed">
-                <strong>Warning:</strong> This action cannot be undone. This user will lose all access to the system immediately.
+                {t('settings.deleteWarning')}
               </div>
             </div>
 
@@ -921,7 +923,7 @@ const ManageTeamTab: React.FC = () => {
                 onClick={() => setMemberToDelete(null)}
                 className="px-5 py-2.5 bg-white border border-[#e2e8f0] text-[#64748b] hover:text-[#0c0d0f] font-semibold text-[13px] rounded-xl hover:bg-gray-50 transition-all cursor-pointer font-sans"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -931,7 +933,7 @@ const ManageTeamTab: React.FC = () => {
                 }}
                 className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
               >
-                Yes, Remove
+                {t('settings.yesRemove')}
               </button>
             </div>
           </div>

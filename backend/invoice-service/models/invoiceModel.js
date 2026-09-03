@@ -32,7 +32,7 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
   }
   
   let query = `
-    SELECT i.*, c.agent AS agent 
+    SELECT i.*, COALESCE(c.agent, i.custom_agent, i.agent) AS agent 
     FROM dst_invoices i
     LEFT JOIN dst_companies c ON i.companyCode = c.code
     ORDER BY i.createdAt DESC
@@ -41,7 +41,7 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
   
   if (createdByFilter) {
     query = `
-      SELECT i.*, c.agent AS agent 
+      SELECT i.*, COALESCE(c.agent, i.custom_agent, i.agent) AS agent 
       FROM dst_invoices i
       LEFT JOIN dst_companies c ON i.companyCode = c.code
       WHERE i.createdBy = ? OR i.createdBy IS NULL 
@@ -71,8 +71,13 @@ export const createInvoiceDB = async (invoiceData) => {
     await connection.beginTransaction();
 
     const insertInvoiceQuery = `
-      INSERT INTO dst_invoices (id, invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, usdToIdrRate, sarToIdrRate, dueDate, branch, createdBy, taxRate, currency, advancePayment, remainingBalance)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO dst_invoices (
+        id, invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, 
+        usdToIdrRate, sarToIdrRate, dueDate, branch, createdBy, taxRate, currency, 
+        advancePayment, remainingBalance, company_id, custom_company_name, custom_company_email, 
+        custom_agent, custom_address, custom_tax_number
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await connection.query(insertInvoiceQuery, [
@@ -93,7 +98,13 @@ export const createInvoiceDB = async (invoiceData) => {
       invoiceData.taxRate || 0.00,
       invoiceData.currency || 'USD',
       invoiceData.advancePayment || 0.00,
-      invoiceData.remainingBalance !== undefined ? invoiceData.remainingBalance : null
+      invoiceData.remainingBalance !== undefined ? invoiceData.remainingBalance : null,
+      invoiceData.company_id || null,
+      invoiceData.custom_company_name || null,
+      invoiceData.custom_company_email || null,
+      invoiceData.custom_agent || null,
+      invoiceData.custom_address || null,
+      invoiceData.custom_tax_number || null
     ]);
 
     if (invoiceData.items && invoiceData.items.length > 0) {
@@ -271,7 +282,7 @@ export const updateInvoiceDB = async (id, data) => {
 export const getInvoiceByIdDB = async (id) => {
   const pool = getPool();
   const [rows] = await pool.query(`
-    SELECT i.*, c.agent AS agent 
+    SELECT i.*, COALESCE(c.agent, i.custom_agent, i.agent) AS agent 
     FROM dst_invoices i
     LEFT JOIN dst_companies c ON i.companyCode = c.code
     WHERE i.id = ? OR i.invoiceNo = ?

@@ -56,3 +56,9 @@ export const getHotelPayments = async (id: string) => {
   const response = await hotelReservationAPI.get(`/${id}/payments`);
   return response.data.data;
 };
+
+export const sendHotelReservationEmail = async (id: string, email: string) => {
+  const response = await hotelReservationAPI.post(`/${id}/send-email`, { email });
+  return response.data;
+};
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { getNotifSettings, updateNotifSettings } from '../../../services/settingService';
+import { useTranslation } from 'react-i18next';
 
 interface NotifItem {
   email: boolean;
@@ -38,6 +39,7 @@ const DEFAULT_SETTINGS: NotifSettings = {
 };
 
 const NotificationsTab: React.FC = () => {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<NotifSettings>(DEFAULT_SETTINGS);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -100,23 +102,23 @@ const NotificationsTab: React.FC = () => {
 
       {/* SECTION 1: INVOICE NOTIFICATIONS */}
       <div className="space-y-3">
-        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">Confirmation Notifications</h3>
+        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">{t('settings.confirmationNotifications')}</h3>
         <div className="bg-white rounded-t-none rounded-b-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-[13px] font-sans">
               <thead>
                 <tr className="bg-white border-b border-[#e2e8f0]">
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Alert Type</th>
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">Email</th>
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">In-App</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.alertType')}</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">{t('settings.emailChannel')}</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">{t('settings.inAppChannel')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e2e8f0]">
                 {[
-                  { key: 'newInvoiceSubmitted' as const, title: 'New confirmation submitted', desc: 'Notify when a branch team submits a new confirmation.' },
-                  { key: 'invoiceApproved' as const, title: 'Confirmation approved', desc: 'Notify when a confirmation has passed final review and is cleared.' },
-                  { key: 'invoiceRejected' as const, title: 'Confirmation rejected', desc: 'Notify if a confirmation is rejected or returned for corrections.' },
-                  { key: 'paymentReceived' as const, title: 'Payment received', desc: 'Receive confirmation when payment transitions succeed.' },
+                  { key: 'newInvoiceSubmitted' as const, title: t('settings.notifNewInvoiceTitle'), desc: t('settings.notifNewInvoiceDesc') },
+                  { key: 'invoiceApproved' as const, title: t('settings.notifApprovedTitle'), desc: t('settings.notifApprovedDesc') },
+                  { key: 'invoiceRejected' as const, title: t('settings.notifRejectedTitle'), desc: t('settings.notifRejectedDesc') },
+                  { key: 'paymentReceived' as const, title: t('settings.notifPaymentTitle'), desc: t('settings.notifPaymentDesc') },
                 ].map(item => (
                   <tr key={item.key} className="hover:bg-slate-50/50">
                     <td className="px-6 py-3.5">
@@ -141,22 +143,22 @@ const NotificationsTab: React.FC = () => {
 
       {/* SECTION 2: APPROVAL NOTIFICATIONS */}
       <div className="space-y-3">
-        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">Approval Notifications</h3>
+        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">{t('settings.approvalNotifications')}</h3>
         <div className="bg-white rounded-t-none rounded-b-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-[13px] font-sans">
               <thead>
                 <tr className="bg-white border-b border-[#e2e8f0]">
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Alert Type</th>
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">Email</th>
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">In-App</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.alertType')}</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">{t('settings.emailChannel')}</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">{t('settings.inAppChannel')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e2e8f0]">
                 {[
-                  { key: 'approvalRequestAssigned' as const, title: 'Approval request assigned', desc: 'Receive alerts when a new queue item lands in your desk.' },
-                  { key: 'approvalCompleted' as const, title: 'Approval completed', desc: 'Notification when downstream team processes your cleared queues.' },
-                  { key: 'approvalOverdue' as const, title: 'Approval overdue', desc: 'Receive critical notification if action queue items cross due limits.' },
+                  { key: 'approvalRequestAssigned' as const, title: t('settings.notifAssignedTitle'), desc: t('settings.notifAssignedDesc') },
+                  { key: 'approvalCompleted' as const, title: t('settings.notifApprovalDoneTitle'), desc: t('settings.notifApprovalDoneDesc') },
+                  { key: 'approvalOverdue' as const, title: t('settings.notifApprovalOverdueTitle'), desc: t('settings.notifApprovalOverdueDesc') },
                 ].map(item => (
                   <tr key={item.key} className="hover:bg-slate-50/50">
                     <td className="px-6 py-3.5">
@@ -181,22 +183,22 @@ const NotificationsTab: React.FC = () => {
 
       {/* SECTION 3: SYSTEM NOTIFICATIONS */}
       <div className="space-y-3">
-        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">System Notifications</h3>
+        <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans pl-1">{t('settings.systemNotifications')}</h3>
         <div className="bg-white rounded-t-none rounded-b-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-[13px] font-sans">
               <thead>
                 <tr className="bg-white border-b border-[#e2e8f0]">
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Alert Type</th>
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">Email</th>
-                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">In-App</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('settings.alertType')}</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">{t('settings.emailChannel')}</th>
+                  <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center w-28">{t('settings.inAppChannel')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e2e8f0]">
                 {[
-                  { key: 'securityAlerts' as const, title: 'Security alerts', desc: 'Get notified about login attempts from unknown IP locations.' },
-                  { key: 'teamMemberChanges' as const, title: 'Team member changes', desc: 'Notify when super admins add or remove platform operators.' },
-                  { key: 'systemMaintenance' as const, title: 'System maintenance', desc: 'Get alerts before scheduled system upgrades and offlines.' },
+                  { key: 'securityAlerts' as const, title: t('settings.notifSecurityTitle'), desc: t('settings.notifSecurityDesc') },
+                  { key: 'teamMemberChanges' as const, title: t('settings.notifTeamChangesTitle'), desc: t('settings.notifTeamChangesDesc') },
+                  { key: 'systemMaintenance' as const, title: t('settings.notifMaintenanceTitle'), desc: t('settings.notifMaintenanceDesc') },
                 ].map(item => (
                   <tr key={item.key} className="hover:bg-slate-50/50">
                     <td className="px-6 py-3.5">

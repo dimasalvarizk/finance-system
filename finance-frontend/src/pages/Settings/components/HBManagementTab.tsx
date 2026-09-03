@@ -5,6 +5,7 @@ import {
   getMealTypes, createMealType, updateMealType, deleteMealType
 } from '../../../services/settingService';
 import ConfirmModal from '../../../components/ui/ConfirmModal';
+import { useTranslation } from 'react-i18next';
 
 export interface RoomType {
   id: string;
@@ -19,6 +20,7 @@ export interface MealType {
 }
 
 const HBManagementTab: React.FC = () => {
+  const { t } = useTranslation();
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [mealTypes, setMealTypes] = useState<MealType[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
@@ -231,15 +233,15 @@ const HBManagementTab: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-[16px] font-bold text-slate-800">Room Type</h3>
-            <p className="text-[11px] text-slate-400 font-sans mt-0.5">Manage the types of rooms available in your property</p>
+            <h3 className="text-[16px] font-bold text-slate-800">{t('settings.roomTypes')}</h3>
+            <p className="text-[11px] text-slate-400 font-sans mt-0.5">{t('settings.roomTypeSubtitle')}</p>
           </div>
           <button
             onClick={handleOpenAddRoom}
             className="flex items-center space-x-1.5 px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer border-none"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Room Type</span>
+            <span>{t('settings.addRoomType')}</span>
           </button>
         </div>
 
@@ -247,19 +249,19 @@ const HBManagementTab: React.FC = () => {
           <table className="w-full text-left text-xs font-sans">
             <thead>
               <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[9px] select-none">
-                <th className="py-2.5 px-4">Name</th>
-                <th className="py-2.5 px-4 text-center w-24">Status</th>
-                <th className="py-2.5 px-4 text-center w-36">Actions</th>
+                <th className="py-2.5 px-4">{t('settings.name')}</th>
+                <th className="py-2.5 px-4 text-center w-24">{t('common.status')}</th>
+                <th className="py-2.5 px-4 text-center w-36">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-[#334155] font-medium">
               {loadingRooms ? (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">Loading room types...</td>
+                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">{t('common.loading') || 'Memuat...'}</td>
                 </tr>
               ) : roomTypes.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">No room types configured.</td>
+                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">Belum ada tipe kamar.</td>
                 </tr>
               ) : (
                 roomTypes.map(room => (
@@ -279,13 +281,13 @@ const HBManagementTab: React.FC = () => {
                           onClick={() => handleOpenEditRoom(room)}
                           className="text-[#f59e0b] hover:text-[#d97706] font-bold text-[11px] border-none bg-transparent cursor-pointer font-sans"
                         >
-                          Edit
+                          {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleDeleteRoom(room.id)}
                           className="text-rose-600 hover:text-rose-800 font-bold text-[11px] border-none bg-transparent cursor-pointer font-sans"
                         >
-                          Delete
+                          {t('common.delete')}
                         </button>
                       </div>
                     </td>
@@ -301,15 +303,15 @@ const HBManagementTab: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-[16px] font-bold text-slate-800">Meal Type</h3>
-            <p className="text-[11px] text-slate-400 font-sans mt-0.5">Manage meal plan options for guests</p>
+            <h3 className="text-[16px] font-bold text-slate-800">{t('settings.mealPlans')}</h3>
+            <p className="text-[11px] text-slate-400 font-sans mt-0.5">{t('settings.mealPlanSubtitle')}</p>
           </div>
           <button
             onClick={handleOpenAddMeal}
             className="flex items-center space-x-1.5 px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer border-none"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Meal Type</span>
+            <span>{t('settings.addMealPlan')}</span>
           </button>
         </div>
 
@@ -317,19 +319,19 @@ const HBManagementTab: React.FC = () => {
           <table className="w-full text-left text-xs font-sans">
             <thead>
               <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[9px] select-none">
-                <th className="py-2.5 px-4">Name</th>
-                <th className="py-2.5 px-4 text-center w-24">Status</th>
-                <th className="py-2.5 px-4 text-center w-36">Actions</th>
+                <th className="py-2.5 px-4">{t('settings.name')}</th>
+                <th className="py-2.5 px-4 text-center w-24">{t('common.status')}</th>
+                <th className="py-2.5 px-4 text-center w-36">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-[#334155] font-medium">
               {loadingMeals ? (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">Loading meal types...</td>
+                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">{t('common.loading') || 'Memuat...'}</td>
                 </tr>
               ) : mealTypes.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">No meal types configured.</td>
+                  <td colSpan={3} className="py-8 text-center text-slate-400 font-sans italic">Belum ada paket makan.</td>
                 </tr>
               ) : (
                 mealTypes.map(meal => (
@@ -349,13 +351,13 @@ const HBManagementTab: React.FC = () => {
                           onClick={() => handleOpenEditMeal(meal)}
                           className="text-[#f59e0b] hover:text-[#d97706] font-bold text-[11px] border-none bg-transparent cursor-pointer font-sans"
                         >
-                          Edit
+                          {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleDeleteMeal(meal.id)}
                           className="text-rose-600 hover:text-rose-800 font-bold text-[11px] border-none bg-transparent cursor-pointer font-sans"
                         >
-                          Delete
+                          {t('common.delete')}
                         </button>
                       </div>
                     </td>
@@ -373,7 +375,7 @@ const HBManagementTab: React.FC = () => {
           <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 p-6 space-y-5 font-sans text-[#0f172a]">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
-                {editingRoom ? 'Edit Room Type' : 'Add Room Type'}
+                {editingRoom ? `${t('common.edit')} ${t('settings.roomTypes')}` : t('settings.addRoomType')}
               </h3>
               <button
                 onClick={() => setIsRoomModalOpen(false)}
@@ -385,10 +387,10 @@ const HBManagementTab: React.FC = () => {
 
             <form onSubmit={handleSaveRoom} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Room Type Name</label>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('settings.roomTypeName')}</label>
                 <input
                   type="text"
-                  placeholder="e.g. Deluxe Ocean View Suite"
+                  placeholder="e.g. Deluxe Room"
                   value={roomNameInput}
                   onChange={(e) => setRoomNameInput(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-800"
@@ -397,8 +399,8 @@ const HBManagementTab: React.FC = () => {
 
               <div className="flex items-center justify-between py-2 border-t border-b border-slate-50">
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Status</label>
-                  <span className="text-[10px] text-slate-400">Set whether this room type is immediately available for booking</span>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('common.status')}</label>
+                  <span className="text-[10px] text-slate-400">Atur ketersediaan tipe kamar ini</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className={`text-[10px] font-bold ${roomStatusInput === 'Active' ? 'text-amber-500' : 'text-slate-400'}`}>
@@ -424,13 +426,13 @@ const HBManagementTab: React.FC = () => {
                   onClick={() => setIsRoomModalOpen(false)}
                   className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm"
                 >
-                  {editingRoom ? 'Save Changes' : 'Add Room Type'}
+                  {editingRoom ? (t('common.saveChanges') || 'Simpan') : t('common.add')}
                 </button>
               </div>
             </form>
@@ -444,7 +446,7 @@ const HBManagementTab: React.FC = () => {
           <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 p-6 space-y-5 font-sans text-[#0f172a]">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
-                {editingMeal ? 'Edit Meal Type' : 'Add Meal Type'}
+                {editingMeal ? `${t('common.edit')} ${t('settings.mealPlans')}` : t('settings.addMealPlan')}
               </h3>
               <button
                 onClick={() => setIsMealModalOpen(false)}
@@ -456,10 +458,10 @@ const HBManagementTab: React.FC = () => {
 
             <form onSubmit={handleSaveMeal} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Meal Type Name</label>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('settings.mealPlanName')}</label>
                 <input
                   type="text"
-                  placeholder="e.g. Ultra All Inclusive"
+                  placeholder="e.g. Full Board"
                   value={mealNameInput}
                   onChange={(e) => setMealNameInput(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-800"
@@ -468,8 +470,8 @@ const HBManagementTab: React.FC = () => {
 
               <div className="flex items-center justify-between py-2 border-t border-b border-slate-50">
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Status</label>
-                  <span className="text-[10px] text-slate-400">Set whether this meal plan is active and selectable</span>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('common.status')}</label>
+                  <span className="text-[10px] text-slate-400">Atur ketersediaan paket makan ini</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className={`text-[10px] font-bold ${mealStatusInput === 'Active' ? 'text-amber-500' : 'text-slate-400'}`}>
@@ -495,13 +497,13 @@ const HBManagementTab: React.FC = () => {
                   onClick={() => setIsMealModalOpen(false)}
                   className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-xs transition-all cursor-pointer border-none shadow-sm"
                 >
-                  {editingMeal ? 'Save Changes' : 'Add Meal Type'}
+                  {editingMeal ? (t('common.saveChanges') || 'Simpan') : t('common.add')}
                 </button>
               </div>
             </form>

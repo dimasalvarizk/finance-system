@@ -4,6 +4,7 @@ import { type Invoice, getInvoiceDetails, calculateConvertedTotals, getExchangeR
 import { checkDownloadPermission } from '../../services/requestService';
 import { uploadPaymentProof } from '../../services/invoiceService';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   selectedInvoice: Invoice | null;
@@ -12,6 +13,7 @@ interface Props {
 
 const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isVerifying, setIsVerifying] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [viewingProof, setViewingProof] = React.useState<string | null>(null);
@@ -156,17 +158,17 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             </div>
             <div className="flex flex-col">
               <h3 className="text-[18px] font-bold text-[#0c0d0f] tracking-tight">
-                Confirmation Details
+                {t('invoices.confirmationDetails')}
               </h3>
               <span className="text-[12px] text-[#64748b] font-medium mt-0.5">
-                Review billing details
+                {t('invoices.reviewBillingDetails')}
               </span>
             </div>
           </div>
           <button
             id="invoice-details-close-btn"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -180,7 +182,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Invoice Number */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Confirmation Number
+                {t('invoices.confirmationNumber')}
               </label>
               <input
                 type="text"
@@ -192,7 +194,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Reference Number */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Reference Number
+                {t('invoices.referenceNumber')}
               </label>
               <input
                 type="text"
@@ -204,7 +206,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Serial Number */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Serial Number
+                {t('invoices.serialNumber')}
               </label>
               <input
                 type="text"
@@ -216,7 +218,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Confirmation Date */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Confirmation Date
+                {t('invoices.confirmationDate')}
               </label>
               <input
                 type="text"
@@ -228,7 +230,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Due Date */}
             <div>
               <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-inter">
-                Due Date
+                {t('invoices.dueDate')}
               </label>
               <input
                 type="text"
@@ -244,12 +246,12 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             {/* Bill From */}
             <div className="bg-[#f8fafc] p-6 rounded-2xl border border-[#e2e8f0] space-y-4">
               <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-                Bill From
+                {t('invoices.billFrom')}
               </h4>
               <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-[13px] font-sans">
                 <div>
                   <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
-                    Employee Name
+                    {t('settings.name')}
                   </label>
                   <input
                     type="text"
@@ -260,7 +262,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
-                    Company Number
+                    {t('settings.phone')}
                   </label>
                   <input
                     type="text"
@@ -271,7 +273,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
-                    Employee ID
+                    {t('settings.employeeId')}
                   </label>
                   <input
                     type="text"
@@ -282,7 +284,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
-                    Company Email
+                    {t('settings.email')}
                   </label>
                   <input
                     type="email"
@@ -293,7 +295,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
-                    Entity / Company
+                    {t('invoices.entityCompany')}
                   </label>
                   <input
                     type="text"
@@ -304,7 +306,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
-                    Company Tax Number
+                    {t('invoices.companyTaxNumber')}
                   </label>
                   <input
                     type="text"
@@ -320,13 +322,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             <div className="bg-[#f8fafc] p-6 rounded-2xl border border-[#e2e8f0] flex flex-col justify-between">
               <div>
                 <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter mb-4">
-                  Bill To
+                  {t('invoices.billTo')}
                 </h4>
                 <div className="space-y-3.5 text-[13px] font-sans">
                   <div className="flex justify-between items-start gap-4">
                     <div>
                       <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                        Client Company
+                        {t('invoices.clientCompany')}
                       </span>
                       <span className="font-bold text-[14px] text-[#0c0d0f]">
                         {details.billTo.company}
@@ -335,7 +337,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                     {details.billTo.agent && (
                       <div className="text-right">
                         <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                          Agent
+                          {t('invoices.agent')}
                         </span>
                         <span className="font-semibold text-amber-600 font-bold text-[13px]">
                           {details.billTo.agent}
@@ -345,7 +347,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   </div>
                   <div>
                     <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                      Company Tax Number
+                      {t('invoices.companyTaxNumber')}
                     </span>
                     <span className="font-semibold text-[#1e293b]">
                       {details.billTo.tax}
@@ -353,7 +355,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   </div>
                   <div>
                     <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                      Street Address
+                      {t('invoices.streetAddress')}
                     </span>
                     <span className="font-semibold text-[#1e293b] block">
                       {details.billTo.address}
@@ -361,7 +363,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   </div>
                   <div>
                     <span className="block text-[10px] font-semibold text-[#94a3b8] mb-0.5">
-                      City / Country
+                      {t('invoices.cityCountry')}
                     </span>
                     <span className="font-semibold text-[#1e293b]">
                       {details.billTo.cityCountry}
@@ -375,23 +377,23 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
           {/* Itemized Charges Section */}
           <div className="space-y-3">
             <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-              Itemized Charges
+              {t('invoices.itemizedCharges')}
             </h4>
             <div className="overflow-x-auto border border-[#e2e8f0] rounded-xl">
               <table className="w-full text-left border-collapse text-[13px] font-sans">
                 <thead>
                   <tr className="bg-gray-50 border-b border-[#e2e8f0]">
                     <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                      Description
+                      {t('invoices.description')}
                     </th>
                     <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-center font-inter">
-                      Qty
+                      {t('invoices.qty')}
                     </th>
                     <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right font-inter">
-                      Unit Price
+                      {t('invoices.unitPrice')}
                     </th>
                     <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right font-inter">
-                      Total
+                      {t('common.total')}
                     </th>
                   </tr>
                 </thead>
@@ -422,7 +424,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             <div className="w-full max-w-md bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-4 space-y-3 font-sans text-[13px]">
               <div className="flex justify-between items-center">
                 <span className="text-[#64748b] font-semibold font-sans">
-                  Subtotal
+                  {t('invoices.subtotal')}
                 </span>
                 <span className="font-bold text-[#0c0d0f] font-roboto">
                   {details.subtotal}
@@ -430,7 +432,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748b] font-semibold font-sans">
-                  Tax / VAT ({details.taxRate || 0}%)
+                  {t('invoices.taxVat')} ({details.taxRate || 0}%)
                 </span>
                 <span className="font-bold text-[#0c0d0f] font-roboto">
                   {details.tax}
@@ -438,7 +440,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
               </div>
               <div className="h-px bg-[#e2e8f0] my-2" />
               <div className="flex justify-between items-center text-[14px]">
-                <span className="text-[#0c0d0f] font-bold">Total Due</span>
+                <span className="text-[#0c0d0f] font-bold">{t('invoices.totalDue')}</span>
                 <span className="font-extrabold text-[#2563eb] font-roboto text-[16px]">
                   {details.total}
                 </span>
@@ -452,24 +454,24 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
           {/* Payment Instructions Section */}
           <div className="space-y-3 mt-6">
             <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-              Payment Instructions
+              {t('invoices.paymentInstructions')}
             </h4>
             <div className="bg-[#f8fafc] p-5 rounded-2xl border border-[#e2e8f0] font-sans">
               <div className="space-y-3 text-[13px] font-sans">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#64748b] font-semibold">Bank Name:</span>
+                  <span className="text-[#64748b] font-semibold">{t('invoices.bankName')}:</span>
                   <span className="font-bold text-[#0c0d0f]">{companySettings.bankName}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#64748b] font-semibold">Account Name:</span>
+                  <span className="text-[#64748b] font-semibold">{t('invoices.accountName')}:</span>
                   <span className="font-bold text-[#0c0d0f]">{companySettings.accountName}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#64748b] font-semibold">IDR Account Number:</span>
+                  <span className="text-[#64748b] font-semibold">{t('invoices.idrAccountNumber')}:</span>
                   <span className="font-bold text-[#2563eb] font-inter">{companySettings.idrAccountNumber}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#64748b] font-semibold">USD Account Number:</span>
+                  <span className="text-[#64748b] font-semibold">{t('invoices.usdAccountNumber')}:</span>
                   <span className="font-bold text-[#2563eb] font-inter">{companySettings.usdAccountNumber}</span>
                 </div>
               </div>
@@ -482,7 +484,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
           {/* Exchange Rate Card */}
           <div className="space-y-3">
             <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-              Exchange Rate
+              {t('settings.exchangeRates')}
             </h4>
             <div className="bg-[#f8fafc] p-5 rounded-2xl border border-[#e2e8f0] font-sans space-y-4">
               <div className="flex flex-col space-y-2 text-[13px] font-sans text-slate-600 pb-3 border-b border-[#e2e8f0]">
@@ -515,13 +517,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                     {normCurr === 'SAR' && (
                       <>
                         <div className="flex justify-between items-center">
-                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (USD)</span>
+                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">{t('invoices.totalDue')} (USD)</span>
                           <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
                             {converted.usdTotal}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (IDR)</span>
+                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">{t('invoices.totalDue')} (IDR)</span>
                           <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
                             {converted.idrTotal}
                           </span>
@@ -531,13 +533,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                     {isRp && (
                       <>
                         <div className="flex justify-between items-center">
-                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (USD)</span>
+                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">{t('invoices.totalDue')} (USD)</span>
                           <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
                             {converted.usdTotal}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (SAR)</span>
+                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">{t('invoices.totalDue')} (SAR)</span>
                           <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
                             {converted.sarTotal}
                           </span>
@@ -547,13 +549,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                     {normCurr === 'USD' && (
                       <>
                         <div className="flex justify-between items-center">
-                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (SAR)</span>
+                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">{t('invoices.totalDue')} (SAR)</span>
                           <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
                             {converted.sarTotal}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">Total Due (IDR)</span>
+                          <span className="text-[13px] text-[#64748b] font-semibold font-sans">{t('invoices.totalDue')} (IDR)</span>
                           <span className="font-bold text-[#2563eb] text-[15px] font-roboto">
                             {converted.idrTotal}
                           </span>
@@ -573,7 +575,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 text-[12px] text-[#64748b] leading-relaxed font-sans">
             <div>
               <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter mb-2">
-                Notes
+                {t('invoices.notes')}
               </h4>
               {companySettings.defaultNotes.split('\n').map((note: string, idx: number) => (
                 <p key={idx} className={idx > 0 ? "mt-1" : ""}>
@@ -583,7 +585,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             </div>
             <div>
               <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter mb-2">
-                Terms & Conditions
+                {t('invoices.termsAndConditions')}
               </h4>
               <p className="whitespace-pre-wrap">
                 {companySettings.termsAndConditions}
@@ -597,7 +599,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
         <div id="invoice-details-footer-container" className="flex items-center justify-between px-6 py-4 border-t border-[#e2e8f0] bg-gray-50 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <span className="text-[12px] text-[#94a3b8] font-medium font-sans">
-              System status: <span className="font-bold text-[#64748b]">{selectedInvoice.status}</span>
+              {t('invoices.systemStatus')}: <span className="font-bold text-[#64748b]">{selectedInvoice.status}</span>
             </span>
             {(selectedInvoice.status === 'Paid' || selectedInvoice.status === 'Awaiting Payment Approval') && (
               localPaymentAttachment ? (
@@ -607,12 +609,12 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 font-bold rounded-lg text-[11px] font-sans transition-all cursor-pointer shadow-sm"
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  <span>View Payment Proof</span>
+                  <span>{t('invoices.viewPaymentProof')}</span>
                 </button>
               ) : (
                 user?.role !== 'Viewer' && (
                   <label className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f59e0b] border border-[#d97706] text-white hover:bg-[#d97706] font-bold rounded-lg text-[11px] font-sans transition-all cursor-pointer shadow-sm">
-                    <span>Upload Proof</span>
+                    <span>{t('invoices.uploadProof')}</span>
                     <input
                       type="file"
                       accept="image/*,application/pdf"
@@ -633,7 +635,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 }`}
             >
               <Printer className="w-4 h-4 text-[#475569]" />
-              <span>{isVerifying ? 'Verifying...' : 'Print'}</span>
+              <span>{isVerifying ? t('invoices.verifying') : t('invoices.print')}</span>
             </button>
             <button
               type="button"
@@ -643,7 +645,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                 }`}
             >
               <Download className="w-4 h-4" />
-              <span>{isVerifying ? 'Verifying...' : 'Download PDF'}</span>
+              <span>{isVerifying ? t('invoices.verifying') : t('invoices.downloadPdf')}</span>
             </button>
           </div>
         </div>
@@ -711,7 +713,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   download={`payment-proof-${selectedInvoice.invoiceNo}.pdf`}
                   className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans"
                 >
-                  Download PDF
+                  {t('invoices.downloadPdf')}
                 </a>
               ) : (
                 <a
@@ -719,14 +721,14 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   download={`payment-proof-${selectedInvoice.invoiceNo}.jpg`}
                   className="px-4 py-2 bg-[#007aff] hover:bg-[#006ee0] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans"
                 >
-                  Download Image
+                  {t('common.downloadImage')}
                 </a>
               )}
               <button
                 onClick={() => setViewingProof(null)}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] cursor-pointer transition-all font-sans"
               >
-                Close
+                {t('common.close')}
               </button>
             </div>
           </div>

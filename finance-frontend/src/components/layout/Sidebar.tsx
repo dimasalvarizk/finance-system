@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   FileText,
@@ -14,6 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const getInitials = (name?: string) => {
     if (!name) return '??';
@@ -51,7 +53,7 @@ const Sidebar: React.FC = () => {
               }`}
             >
               <LayoutDashboard className="w-5 h-5" />
-              <span>Dashboard</span>
+              <span>{t('nav.dashboard')}</span>
             </Link>
           )}
 
@@ -64,7 +66,7 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <FileText className="w-5 h-5" />
-            <span>Confirmations</span>
+            <span>{t('nav.confirmations')}</span>
           </Link>
 
           <Link
@@ -76,7 +78,7 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <CheckSquare className="w-5 h-5" />
-            <span>Requests</span>
+            <span>{t('nav.requests')}</span>
           </Link>
 
           {['Super Admin', 'Chief Accountant', 'Division Director'].includes(user?.role || '') && (
@@ -89,7 +91,7 @@ const Sidebar: React.FC = () => {
               }`}
             >
               <Briefcase className="w-5 h-5" />
-              <span>Companies</span>
+              <span>{t('nav.companies')}</span>
             </Link>
           )}
 
@@ -102,7 +104,7 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <Bed className="w-5 h-5" />
-            <span>Hotel Reservations</span>
+            <span>{t('nav.hotelReservations')}</span>
           </Link>
 
           {user?.role !== 'Viewer' && (
@@ -115,7 +117,7 @@ const Sidebar: React.FC = () => {
               }`}
             >
               <SettingsIcon className="w-5 h-5" />
-              <span>Settings</span>
+              <span>{t('nav.settings')}</span>
             </Link>
           )}
         </nav>

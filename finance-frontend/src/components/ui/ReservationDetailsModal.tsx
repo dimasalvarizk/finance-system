@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Booking } from '../../pages/HotelReservations';
 import {
   formatDateDMY,
@@ -29,6 +30,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
   selectedBooking,
   companySettings
 }) => {
+  const { t } = useTranslation();
   const [alertModal, setAlertModal] = useState({
     isOpen: false,
     title: '',
@@ -46,10 +48,10 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
         <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex flex-col space-y-0.5">
             <h3 className="text-lg font-black text-slate-800 font-sans">
-              Reservation Details
+              {t('hotelReservations.reservationDetails')}
             </h3>
             <p className="text-xs text-slate-400 font-semibold font-sans">
-              Detail Invoice Ref: {selectedBooking.reservationNo}
+              {t('hotelReservations.reservationNumber')}: {selectedBooking.reservationNo}
             </p>
           </div>
           <button
@@ -69,11 +71,11 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
             
             {/* BILL FROM (Read Only) */}
             <div className="space-y-2">
-              <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">BILL FROM</h4>
+              <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">{t('hotelReservations.billFrom')}</h4>
               <div className="border border-slate-100 rounded-xl p-5 bg-white space-y-3.5">
                 <div className="grid grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-slate-400 font-bold text-[9px] mb-1">Employee Name</label>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1">{t('hotelReservations.employeeName')}</label>
                     <input
                       type="text"
                       disabled
@@ -82,7 +84,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold text-[9px] mb-1">Company Number</label>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1">{t('hotelReservations.companyNumber')}</label>
                     <input
                       type="text"
                       disabled
@@ -91,7 +93,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold text-[9px] mb-1">Employee ID</label>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1">{t('hotelReservations.employeeId')}</label>
                     <input
                       type="text"
                       disabled
@@ -100,7 +102,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold text-[9px] mb-1">Company Email</label>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1">{t('hotelReservations.companyEmail')}</label>
                     <input
                       type="text"
                       disabled
@@ -109,7 +111,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold text-[9px] mb-1">Entity / Company</label>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1">{t('hotelReservations.entityCompany')}</label>
                     <input
                       type="text"
                       disabled
@@ -118,7 +120,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold text-[9px] mb-1">Company Tax Number</label>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1">{t('hotelReservations.companyTaxNumber')}</label>
                     <input
                       type="text"
                       disabled
@@ -132,23 +134,23 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
 
             {/* BILL TO Summary */}
             <div className="space-y-2 text-xs text-slate-800">
-              <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">BILL TO</h4>
+              <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">{t('hotelReservations.billTo')}</h4>
               <div className="border border-slate-100 rounded-xl p-5 bg-white space-y-3.5">
                 <div className="space-y-3">
                   <div>
-                    <p className="text-[9px] font-medium text-slate-400 uppercase">Client Company</p>
+                    <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.clientCompany')}</p>
                     <p className="font-bold text-slate-800 text-[13px] mt-0.5">{selectedBooking.companyName}</p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-medium text-slate-400 uppercase">Company Tax Number</p>
+                    <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.companyTaxNumber')}</p>
                     <p className="font-bold text-slate-800 mt-0.5">{selectedBooking.clientTaxNo || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-medium text-slate-400 uppercase">Street Address</p>
+                    <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.streetAddress')}</p>
                     <p className="font-medium text-slate-700 mt-0.5 leading-relaxed">{selectedBooking.clientAddress || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-medium text-slate-400 uppercase">City / Country</p>
+                    <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.cityCountry')}</p>
                     <p className="font-medium text-slate-700 mt-0.5 font-sans">{selectedBooking.clientCityCountry || '-'}</p>
                   </div>
                 </div>
@@ -160,7 +162,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
           {/* SECTION: METADATA INPUTS */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Invoice Number</label>
+              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.invoiceNumber')}</label>
               <input
                 type="text"
                 disabled
@@ -169,7 +171,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Reference Number</label>
+              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.referenceNumber')}</label>
               <input
                 type="text"
                 disabled
@@ -178,7 +180,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Serial Number</label>
+              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.serialNumber')}</label>
               <input
                 type="text"
                 disabled
@@ -187,7 +189,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">Due Date</label>
+              <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('hotelReservations.dueDate')}</label>
               <input
                 type="text"
                 disabled
@@ -203,58 +205,58 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               <div className="w-full border-t border-slate-200 border-solid"></div>
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Preview</span>
+              <span className="bg-white px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('hotelReservations.preview')}</span>
             </div>
           </div>
 
           {/* SECTION: HOTEL DETAILS */}
           <div className="space-y-4 select-none mt-6">
-            <h4 className="text-xs font-black text-slate-800 tracking-tight uppercase">HOTEL DETAILS</h4>
+            <h4 className="text-xs font-black text-slate-800 tracking-tight uppercase">{t('hotelReservations.hotelDetails').toUpperCase()}</h4>
             
             {/* Table */}
             <div className="border border-slate-200/70 rounded-2xl overflow-hidden bg-white w-full shadow-sm">
-              <table className="w-full text-left text-xs font-sans border-collapse">
+              <table className="w-full text-left font-sans border-collapse">
                 <thead>
                   <tr className="bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                     <th colSpan={12} className="py-2.5 px-3 text-center font-bold text-[12px] tracking-wider select-none bg-[#1d2857] text-white" style={{ backgroundColor: '#1d2857', color: '#ffffff', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                      Hotel Details
+                      {t('hotelReservations.hotelDetails')}
                     </th>
                   </tr>
-                  <tr className="bg-[#e0e8fe] text-[#1d2857] border-b border-slate-200 font-bold uppercase tracking-wider text-[9.5px] select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                    <th className="py-2.5 px-3 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Hotel</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Room Type</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-In</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Check-Out</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Night</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>#Room</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Adult</th>
-                    <th className="py-2.5 px-1.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Child</th>
-                    <th className="py-2.5 px-2 whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals</th>
-                    <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>DayRate</th>
-                    <th className="py-2.5 px-2 text-right font-sans whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Meals Rate</th>
-                    <th className="py-2.5 px-3 text-right font-sans whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>Total</th>
+                  <tr className="bg-[#e0e8fe] text-[#1d2857] border-b border-slate-200 font-bold uppercase tracking-wider text-[8.5px] select-none" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                    <th className="py-2 px-2 text-left" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.hotel')}</th>
+                    <th className="py-2 px-1.5 text-left" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.roomType')}</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.checkIn')}</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.checkOut')}</th>
+                    <th className="py-2 px-0.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.numNight')}</th>
+                    <th className="py-2 px-0.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.numRoom')}</th>
+                    <th className="py-2 px-0.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.adult')}</th>
+                    <th className="py-2 px-0.5 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.child')}</th>
+                    <th className="py-2 px-1 text-center whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.meals')}</th>
+                    <th className="py-2 px-1.5 text-right font-sans leading-tight" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.dayRate')}</th>
+                    <th className="py-2 px-1.5 text-right font-sans leading-tight" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.mealsRate')}</th>
+                    <th className="py-2 px-2 text-right font-sans whitespace-nowrap" style={{ backgroundColor: '#e0e8fe', color: '#1d2857', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{t('hotelReservations.total')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10.5px]">
+                <tbody className="divide-y divide-slate-100 text-[#334155] font-semibold text-[10px]">
                   {selectedBooking.rooms.map((room, idx) => {
                     const nights = room.nights || calculateNights(room.checkIn, room.checkOut);
                     const roomTotal = (room.pricePerNight + room.mealRate) * room.roomCount * nights;
                     return (
                       <tr key={idx} className="hover:bg-slate-50/40">
-                        <td className="py-2.5 px-3 font-bold text-slate-900 uppercase whitespace-nowrap">{room.hotelName}</td>
-                        <td className="py-2.5 px-2 font-semibold text-slate-800 uppercase whitespace-nowrap">{room.roomType}</td>
-                        <td className="py-2.5 px-2 font-sans text-slate-700 text-[10.5px] whitespace-nowrap">{formatDateDMY(room.checkIn)}</td>
-                        <td className="py-2.5 px-2 font-sans text-slate-700 text-[10.5px] whitespace-nowrap">{formatDateDMY(room.checkOut)}</td>
-                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{nights}</td>
-                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.roomCount}</td>
-                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.adults}</td>
-                        <td className="py-2.5 px-1.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.children}</td>
-                        <td className="py-2.5 px-2 text-center font-bold text-slate-900 uppercase whitespace-nowrap">
+                        <td className="py-2.5 px-2 text-left font-bold text-slate-900 uppercase text-[11px] leading-tight break-words">{room.hotelName}</td>
+                        <td className="py-2.5 px-1.5 text-left font-semibold text-slate-800 uppercase text-[10px] leading-tight break-words">{room.roomType}</td>
+                        <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{formatDateDMY(room.checkIn)}</td>
+                        <td className="py-2.5 px-1 text-center font-sans text-slate-700 text-[9.5px] whitespace-nowrap">{formatDateDMY(room.checkOut)}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{nights}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.roomCount}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.adults}</td>
+                        <td className="py-2.5 px-0.5 text-center font-bold text-slate-900 whitespace-nowrap">{room.children}</td>
+                        <td className="py-2.5 px-1 text-center font-bold text-slate-900 uppercase whitespace-nowrap">
                           {room.mealPlan ? (room.mealPlan.includes('FB') || room.mealPlan.includes('FULL') ? 'FB' : room.mealPlan.includes('HB') || room.mealPlan.includes('HALF') ? 'HB' : room.mealPlan.includes('BB') || room.mealPlan.includes('BREAKFAST') ? 'BB' : 'RO') : 'RO'}
                         </td>
-                        <td className="py-2.5 px-2 text-right font-sans font-medium text-slate-800 whitespace-nowrap">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
-                        <td className="py-2.5 px-2 text-right font-sans font-medium text-slate-800 whitespace-nowrap">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
-                        <td className="py-2.5 px-3 text-right font-sans font-bold text-slate-900 whitespace-nowrap">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-1.5 text-right font-sans font-medium text-slate-800 whitespace-nowrap text-[9.5px]">{formatCurrency(room.pricePerNight, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-1.5 text-right font-sans font-medium text-slate-800 whitespace-nowrap text-[9.5px]">{formatCurrency(room.mealRate, selectedBooking.currency)}</td>
+                        <td className="py-2.5 px-2 text-right font-sans font-bold text-slate-900 whitespace-nowrap text-[10.5px]">{formatCurrency(roomTotal, selectedBooking.currency)}</td>
                       </tr>
                     );
                   })}
@@ -277,21 +279,21 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                 <div className="mt-4 flex flex-col space-y-3 font-sans select-none px-2">
                   <div className="flex flex-col items-end space-y-1.5">
                     <div className="flex items-center justify-end space-x-8 text-[13px] text-slate-400 font-medium">
-                      <span>Subtotal:</span>
+                      <span>{t('hotelReservations.subtotal')}:</span>
                       <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(subtotalAmount, selectedBooking.currency)}</span>
                     </div>
                     {advPayment > 0 && (
                       <div className="flex items-center justify-end space-x-8 text-[13px] text-amber-700 font-medium">
-                        <span>Advance Payment (Deposit):</span>
+                        <span>{t('hotelReservations.advancePayment')}:</span>
                         <span className="font-extrabold text-amber-800 text-sm">-{formatCurrency(advPayment, selectedBooking.currency)}</span>
                       </div>
                     )}
                     <div className="flex items-center justify-end space-x-8 text-xs text-slate-400 font-medium">
-                      <span>Tax / VAT (0%):</span>
+                      <span>{t('hotelReservations.taxVat')} (0%):</span>
                       <span className="font-bold text-slate-900">{formatCurrency(0, selectedBooking.currency)}</span>
                     </div>
                     <div className="flex items-center justify-end space-x-8 text-base pt-2 border-t border-slate-200/80 min-w-[280px] justify-between">
-                      <span className="font-extrabold text-slate-900">Remaining Balance:</span>
+                      <span className="font-extrabold text-slate-900">{t('hotelReservations.remainingBalance')}:</span>
                       <span className="font-black text-emerald-600 text-lg">{formatCurrency(remaining, selectedBooking.currency)}</span>
                     </div>
                   </div>
@@ -302,23 +304,23 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
 
           {/* SECTION: PAYMENT INSTRUCTIONS Rekening DST */}
           <div className="border-t border-slate-100 pt-6 space-y-4">
-            <h4 className="text-[13px] font-extrabold text-[#0f172a] uppercase tracking-wider">PAYMENT INSTRUCTIONS</h4>
+            <h4 className="text-[13px] font-extrabold text-[#0f172a] uppercase tracking-wider">{t('hotelReservations.paymentInstructions').toUpperCase()}</h4>
             
             <div className="bg-[#f8fafc] p-6 border border-slate-200/80 rounded-xl space-y-3.5 text-[13px]">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Bank Name:</span>
+                <span className="text-slate-500 font-medium">{t('hotelReservations.bankName')}:</span>
                 <span className="font-bold text-slate-800">{companySettings.bankName}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Account Name:</span>
+                <span className="text-slate-500 font-medium">{t('hotelReservations.accountName')}:</span>
                 <span className="font-bold text-slate-800">{companySettings.accountName}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">IDR Account Number:</span>
+                <span className="text-slate-500 font-medium">{t('hotelReservations.idrAccount')}:</span>
                 <span className="font-bold text-blue-600 font-sans">{companySettings.idrAccountNumber}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">USD Account Number:</span>
+                <span className="text-slate-500 font-medium">{t('hotelReservations.usdAccount')}:</span>
                 <span className="font-bold text-blue-600 font-sans">{companySettings.usdAccountNumber}</span>
               </div>
             </div>
@@ -334,21 +336,21 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               onClick={onClose}
               className="px-5 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-lg transition-all cursor-pointer bg-white"
             >
-              Close
+              {t('common.close')}
             </button>
             <button
               type="button"
               onClick={() => {
                 setAlertModal({
                   isOpen: true,
-                  title: 'Success',
-                  message: 'Confirmation email sent successfully to guest!',
+                  title: t('common.success') || 'Success',
+                  message: `${t('hotelReservations.sendConfirmation')} ${t('common.success') || 'berhasil dikirim!'}`,
                   type: 'success'
                 });
               }}
               className="px-5 py-2 border border-blue-200 text-blue-600 hover:bg-blue-50 font-bold rounded-lg transition-all cursor-pointer bg-white"
             >
-              Send Confirmation Request
+              {t('hotelReservations.sendConfirmationRequest')}
             </button>
             <button
               type="button"
@@ -357,7 +359,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
               }}
               className="px-6 py-2 bg-[#242e69] hover:bg-[#1a2353] text-white font-bold rounded-lg transition-all shadow-sm cursor-pointer border-none"
             >
-              View PDF
+              {t('hotelReservations.viewPdf')}
             </button>
           </div>
         </div>

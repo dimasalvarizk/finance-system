@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { getExchangeRates, updateExchangeRates, getExchangeRatesHistory } from '../../../services/settingService';
+import { useTranslation } from 'react-i18next';
+import { formatLocalizedDate } from '../../../i18n';
 
 interface ExchangeRates {
   usdToIdr: string;
@@ -15,6 +17,7 @@ const DEFAULT_RATES: ExchangeRates = {
 };
 
 const ExchangeRateTab: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [rates, setRates] = useState<ExchangeRates>(DEFAULT_RATES);
   const [history, setHistory] = useState<any[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -62,8 +65,8 @@ const ExchangeRateTab: React.FC = () => {
 
       {/* Title Header */}
       <div className="space-y-1">
-        <h2 className="text-[18px] font-bold text-[#0c0d0f] font-sans">Daily Exchange Rate</h2>
-        <p className="text-[11px] text-[#64748b] font-normal font-sans">Manually update exchange rates daily for confirmation calculations</p>
+        <h2 className="text-[18px] font-bold text-[#0c0d0f] font-sans">{t('settings.dailyExchangeRate')}</h2>
+        <p className="text-[11px] text-[#64748b] font-normal font-sans">{t('settings.exchangeRateSubtitle')}</p>
       </div>
 
       {feedback && (
@@ -80,11 +83,11 @@ const ExchangeRateTab: React.FC = () => {
           {/* Card Header */}
           <div className="px-6 pb-4 flex justify-between items-center">
             <div className="flex items-center space-x-1.5">
-              <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Today's Exchange Rate</h3>
-              <span className="text-[12px] text-[#94a3b8] font-medium font-sans">(Aug 21, 2026)</span>
+              <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.todayExchangeRate')}</h3>
+              <span className="text-[12px] text-[#94a3b8] font-medium font-sans">({formatLocalizedDate(new Date(), i18n.language)})</span>
             </div>
             <span className="bg-[#ecfdf5] text-[#10b981] text-[10px] font-bold px-2 py-0.5 rounded-md">
-              Updated
+              {t('settings.updated')}
             </span>
           </div>
 
@@ -221,13 +224,13 @@ const ExchangeRateTab: React.FC = () => {
             type="button"
             className="px-6 py-2.5 bg-white border border-[#e2e8f0] text-[#475569] hover:bg-slate-50 font-bold text-[13px] rounded-xl transition-all cursor-pointer font-sans"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
             className="px-6 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer font-sans"
           >
-            Save Rates
+            {t('settings.saveRates')}
           </button>
         </div>
       </form>
@@ -235,7 +238,7 @@ const ExchangeRateTab: React.FC = () => {
       {/* CARD 2: RATE HISTORY */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm py-5 overflow-hidden flex flex-col mt-4">
         <div className="px-6 pb-4">
-          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">Rate History</h3>
+          <h3 className="text-[16px] font-bold text-[#0f172a] font-sans">{t('settings.rateHistory')}</h3>
         </div>
 
         {/* Horizontal Divider Line */}
@@ -245,11 +248,11 @@ const ExchangeRateTab: React.FC = () => {
           <table className="w-full text-left border-collapse text-[13px] font-sans">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.date')}</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">USD → IDR</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">SAR → IDR</th>
                 <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">USD → SAR</th>
-                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Updated By</th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.updatedBy')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e2e8f0] font-medium text-[#475569]">

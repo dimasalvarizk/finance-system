@@ -36,7 +36,7 @@ export const getAllRequestsDB = async () => {
   // Enrich requests with details from dst_invoices and dst_invoice_items
   for (const req of requests) {
     const [invRows] = await pool.query(`
-      SELECT i.referenceNo, i.serialNo, i.dueDate, i.usdToIdrRate, i.sarToIdrRate, i.id, i.branch, i.taxRate, i.paymentAttachment, i.currency, c.agent AS agent
+      SELECT i.referenceNo, i.serialNo, i.dueDate, i.usdToIdrRate, i.sarToIdrRate, i.id, i.branch, i.taxRate, i.paymentAttachment, i.currency, COALESCE(c.agent, i.custom_agent, i.agent) AS agent
       FROM dst_invoices i
       LEFT JOIN dst_companies c ON i.companyCode = c.code
       WHERE i.invoiceNo = ?
@@ -72,7 +72,7 @@ export const getRequestByInvoiceNoDB = async (invoiceNo) => {
   if (!req) return null;
 
   const [invRows] = await pool.query(`
-    SELECT i.referenceNo, i.serialNo, i.dueDate, i.usdToIdrRate, i.sarToIdrRate, i.id, i.branch, i.taxRate, i.paymentAttachment, i.currency, c.agent AS agent
+    SELECT i.referenceNo, i.serialNo, i.dueDate, i.usdToIdrRate, i.sarToIdrRate, i.id, i.branch, i.taxRate, i.paymentAttachment, i.currency, COALESCE(c.agent, i.custom_agent, i.agent) AS agent
     FROM dst_invoices i
     LEFT JOIN dst_companies c ON i.companyCode = c.code
     WHERE i.invoiceNo = ?

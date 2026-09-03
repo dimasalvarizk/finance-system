@@ -7,6 +7,8 @@ import InvoiceTable from '../../components/ui/InvoiceTable';
 import QueueCard from '../../components/ui/QueueCard';
 import BranchCard from '../../components/ui/BranchCard';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatNumber, formatLocalizedDate } from '../../i18n';
 import { X, FileText, Folder } from 'lucide-react';
 import BranchFinancialReportPrint, { type ReportMeta, type BranchReport } from '../../components/ui/BranchFinancialReportPrint';
 import { getInvoices } from '../../services/invoiceService';
@@ -51,6 +53,7 @@ const getInvoiceBranch = (inv: any, dbBranches: any[]): string => {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
 
   const isAuthorizedForConsolidated = useMemo(() => {
@@ -304,12 +307,7 @@ const Dashboard: React.FC = () => {
   const totalOutstanding = Object.values(branchStats).reduce((sum, b) => sum + b.outstanding, 0);
   const totalOverdueCount = Object.values(branchStats).reduce((sum, b) => sum + b.overdue, 0);
 
-  const formattedTotalRev = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(totalRev);
+  const formattedTotalRev = formatCurrency(totalRev, 'USD', i18n.language, 0);
 
   let totalOverdueAmount = 0;
   if (Array.isArray(invoices)) {
@@ -338,40 +336,40 @@ const Dashboard: React.FC = () => {
     });
   }
 
-  const formattedOverdueBalance = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(totalOverdueAmount > 0 ? totalOverdueAmount : totalOutstanding);
+  const formattedOverdueBalance = formatCurrency(
+    totalOverdueAmount > 0 ? totalOverdueAmount : totalOutstanding,
+    'USD',
+    i18n.language,
+    0
+  );
 
   const metricsData = [
     {
-      title: 'Total Revenue',
+      title: t('dashboard.totalRevenue'),
       value: formattedTotalRev,
-      subtext: 'This quarter so far',
+      subtext: t('dashboard.acrossAllOffices'),
       badgeText: totalInvoicesCount > 0 ? '+12.4%' : '',
       badgeColorClass: 'bg-[#ecfdf5] text-[#10b981]',
     },
     {
-      title: 'Total Invoices',
-      value: `${totalInvoicesCount} Sent`,
-      subtext: 'Across all active branches',
-      badgeText: totalInvoicesCount > 0 ? 'Q3 Target' : '',
+      title: t('dashboard.totalConfirmations'),
+      value: `${formatNumber(totalInvoicesCount, i18n.language)} ${t('common.total')}`,
+      subtext: t('dashboard.activeLedgerRecords'),
+      badgeText: totalInvoicesCount > 0 ? `${t('common.target')} Q3` : '',
       badgeColorClass: 'bg-[#e0f2fe] text-[#0284c7]',
     },
     {
-      title: 'Pending Approvals',
-      value: `${pendingCount} Invoices`,
-      subtext: 'Awaiting final clearance',
-      badgeText: totalInvoicesCount > 0 ? (pendingCount > 0 ? `${pendingCount} Critical` : '0 Critical') : '',
+      title: t('dashboard.pendingApprovals'),
+      value: `${formatNumber(pendingCount, i18n.language)} ${t('common.statusPending')}`,
+      subtext: t('dashboard.requiresReview'),
+      badgeText: totalInvoicesCount > 0 ? `${pendingCount} ${t('common.critical')}` : '',
       badgeColorClass: pendingCount > 0 ? 'bg-[#fef2f2] text-[#ef4444]' : 'bg-[#ecfdf5] text-[#10b981]',
     },
     {
-      title: 'Overdue Balance',
+      title: t('dashboard.overdueBalance'),
       value: formattedOverdueBalance,
-      subtext: `${totalOverdueCount} overdue confirmation${totalOverdueCount !== 1 ? 's' : ''}`,
-      badgeText: 'Action Required',
+      subtext: `${totalOverdueCount} ${totalOverdueCount !== 1 ? t('dashboard.overdueConfirmations') : t('dashboard.overdueConfirmation')}`,
+      badgeText: t('dashboard.actionRequired'),
       badgeColorClass: 'bg-[#fef2f2] text-[#ef4444]',
     },
   ];
@@ -381,17 +379,17 @@ const Dashboard: React.FC = () => {
     let status = String(inv.status || 'Pending');
     const statusLower = status.toLowerCase();
     if (statusLower === 'fully_paid' || statusLower === 'paid' || statusLower === 'paid and closed') {
-      status = 'Fully Paid';
+      status = t('common.statusPaid');
     } else if (statusLower.includes('partial') || statusLower === 'partial') {
-      status = 'Partial Payment';
+      status = t('common.statusPartial');
     } else if (statusLower.includes('deposit')) {
-      status = 'Deposit Paid';
+      status = t('common.statusDeposit');
     } else if (statusLower.includes('approved')) {
-      status = 'Approved';
+      status = t('common.statusApproved');
     } else if (statusLower.includes('pending') || statusLower === 'pending review') {
-      status = 'Pending';
+      status = t('common.statusPending');
     } else if (statusLower === 'rejected' || statusLower === 'cancelled' || statusLower.includes('overdue')) {
-      status = 'Overdue';
+      status = t('common.statusOverdue');
     }
     return {
       ref: inv.invoiceNo || '',
@@ -399,25 +397,25 @@ const Dashboard: React.FC = () => {
       amount: inv.amount || '$0',
       status: status,
       statusColor: '',
-      date: inv.date || '',
-      dueDate: inv.dueDate || ''
+      date: inv.date ? formatLocalizedDate(inv.date, i18n.language) : '',
+      dueDate: inv.dueDate ? formatLocalizedDate(inv.dueDate, i18n.language) : ''
     };
   });
 
   const approvalQueue = pendingInvoices.slice(0, 3).map(inv => {
-    if (!inv) return { client: '', refNo: '', amount: '$0', due: 'Awaiting review' };
-    let dueText = 'Awaiting review';
+    if (!inv) return { client: '', refNo: '', amount: '$0', due: t('dashboard.awaitingReview') };
+    let dueText = t('dashboard.awaitingReview');
     if (inv.dueDate) {
       const today = new Date();
       const due = new Date(inv.dueDate);
       const diffTime = due.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays < 0) {
-        dueText = `Overdue by ${Math.abs(diffDays)} days`;
+        dueText = `${t('common.statusOverdue')} (${Math.abs(diffDays)} d)`;
       } else if (diffDays === 0) {
         dueText = 'Due today';
       } else {
-        dueText = `Due in ${diffDays} days`;
+        dueText = `Due in ${diffDays} d`;
       }
     }
     return {
@@ -439,7 +437,7 @@ const Dashboard: React.FC = () => {
       return {
         office: formatBranchName(name),
         officeKey: name,
-        share: `Revenue Share: ${((stats.revenue / totalRevenueForShare) * 100).toFixed(0)}%`,
+        share: `${t('dashboard.revenueShareLabel')}: ${((stats.revenue / totalRevenueForShare) * 100).toFixed(0)}%`,
         amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(stats.revenue),
         dotColor: COLORS[idx % COLORS.length]
       };
@@ -583,14 +581,14 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col space-y-1">
             <div className="flex items-center space-x-3">
               <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">
-                Welcome, {getFirstName(user?.name)}
+                {t('dashboard.welcome')}, {getFirstName(user?.name)}
               </h1>
               <span className="px-2.5 py-0.5 bg-[#dbeafe] text-[#2563eb] font-semibold text-[11px] rounded-full">
                 {user?.role || 'Guest'}
               </span>
             </div>
             <p className="text-[13px] text-[#64748b] font-medium font-sans">
-              ODST Group Finance System
+              {t('dashboard.systemName')}
             </p>
           </div>
 
@@ -719,10 +717,10 @@ const Dashboard: React.FC = () => {
                         <div>
                           <div className="flex justify-between items-center mb-6">
                             <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">
-                              Approval Queue
+                              {t('dashboard.approvalQueue')}
                             </h3>
                             <span className="px-2 py-0.5 bg-[#fef2f2] text-[#ef4444] font-bold text-[11px] rounded-full font-inter">
-                              Awaiting Me
+                              {t('dashboard.awaitingReview')}
                             </span>
                           </div>
 
@@ -744,7 +742,7 @@ const Dashboard: React.FC = () => {
                   {isAuthorizedForConsolidated && consolidatedBranches.length > 0 && (
                     <div className="space-y-4 pt-8">
                       <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">
-                        Consolidated Branch Performance
+                        {t('dashboard.branchPerformance')}
                       </h3>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -776,15 +774,15 @@ const Dashboard: React.FC = () => {
             <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50">
               <div className="flex flex-col">
                 <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans">
-                  {formatBranchName(selectedBranch)} — Financial Report
+                  {formatBranchName(selectedBranch)} — {t('companies.financialReport')}
                 </h3>
                 <span className="text-[12px] text-[#64748b] font-medium mt-0.5">
-                  Q3 2024 Performance Summary
+                  Q3 2024 {t('dashboard.performanceSummary')}
                 </span>
               </div>
               <button
                 onClick={() => setSelectedBranch(null)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -797,7 +795,7 @@ const Dashboard: React.FC = () => {
                 {/* Total Revenue */}
                 <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0]">
                   <span className="block text-[10px] font-bold text-[#64748b] uppercase tracking-wider mb-1 font-inter">
-                    Total Revenue
+                    {t('dashboard.totalRevenue')}
                   </span>
                   <span className="text-[20px] font-bold text-[#0c0d0f] font-roboto">
                     {selectedBranchReport.revenue}
@@ -806,7 +804,7 @@ const Dashboard: React.FC = () => {
                 {/* Revenue Share */}
                 <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0]">
                   <span className="block text-[10px] font-bold text-[#64748b] uppercase tracking-wider mb-1 font-inter">
-                    Revenue Share
+                    {t('dashboard.revenueShare')}
                   </span>
                   <span className="text-[20px] font-bold text-[#0c0d0f] font-roboto">
                     {selectedBranchReport.share}
@@ -815,7 +813,7 @@ const Dashboard: React.FC = () => {
                 {/* Growth */}
                 <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0]">
                   <span className="block text-[10px] font-bold text-[#64748b] uppercase tracking-wider mb-1 font-inter">
-                    Growth (QoQ)
+                    {t('dashboard.growthQoQ')}
                   </span>
                   <div className="flex items-center space-x-1.5">
                     <span className={`text-[20px] font-bold font-roboto ${selectedBranchReport.growth.startsWith('-') ? 'text-red-600' : 'text-emerald-600'
@@ -831,7 +829,7 @@ const Dashboard: React.FC = () => {
                 {/* Outstanding */}
                 <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0]">
                   <span className="block text-[10px] font-bold text-[#64748b] uppercase tracking-wider mb-1 font-inter">
-                    Outstanding
+                    {t('dashboard.outstanding')}
                   </span>
                   <span className="text-[20px] font-bold text-[#c2410c] font-roboto">
                     {selectedBranchReport.outstanding}
@@ -842,23 +840,23 @@ const Dashboard: React.FC = () => {
               {/* Quarterly Financial Comparison Table */}
               <div className="space-y-3">
                 <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-                  Quarterly Financial Comparison
+                  {t('dashboard.quarterlyFinancialComparison')}
                 </h4>
                 <div className="overflow-x-auto border border-[#e2e8f0] rounded-xl">
                   <table className="w-full text-left border-collapse text-[13px] font-sans">
                     <thead>
                       <tr className="bg-gray-50 border-b border-[#e2e8f0]">
                         <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">
-                          Metric
+                          {t('dashboard.metric')}
                         </th>
                         <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right font-inter">
-                          Q3 2024 (Curr)
+                          Q3 2024 ({t('common.current')})
                         </th>
                         <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right font-inter">
-                          Q2 2024 (Prev)
+                          Q2 2024 ({t('common.previous')})
                         </th>
                         <th className="px-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider text-right font-inter">
-                          Change
+                          {t('dashboard.change')}
                         </th>
                       </tr>
                     </thead>
@@ -866,7 +864,13 @@ const Dashboard: React.FC = () => {
                       {selectedBranchReport.comparison.map((row, idx) => (
                         <tr key={idx} className="hover:bg-gray-50/50">
                           <td className="px-4 py-3 font-semibold text-[#1e293b]">
-                            {row.metric}
+                            {row.metric === 'Revenue'
+                              ? t('dashboard.revenue')
+                              : row.metric === 'Net Profit'
+                              ? t('dashboard.netProfit')
+                              : row.metric === 'Profit Margin'
+                              ? t('dashboard.profitMargin')
+                              : row.metric}
                           </td>
                           <td className="px-4 py-3 text-right font-bold text-[#0c0d0f] font-roboto">
                             {row.curr}
@@ -888,13 +892,13 @@ const Dashboard: React.FC = () => {
               {/* Invoice Distribution Overview */}
               <div className="space-y-3 font-sans">
                 <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
-                  Invoice Distribution Overview
+                  {t('dashboard.invoiceDistributionOverview')}
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {/* Total Sent */}
                   <div className="bg-white px-4 py-3.5 border border-[#e2e8f0] rounded-xl flex items-center justify-between shadow-sm">
                     <span className="text-[13px] text-[#64748b] font-semibold font-sans">
-                      Total Sent
+                      {t('dashboard.totalSent')}
                     </span>
                     <span className="px-2.5 py-0.5 bg-[#f1f5f9] text-[#475569] font-bold text-[13px] rounded-lg font-inter">
                       {selectedBranchReport.distribution.sent}
@@ -903,7 +907,7 @@ const Dashboard: React.FC = () => {
                   {/* Approved */}
                   <div className="bg-white px-4 py-3.5 border border-[#e2e8f0] rounded-xl flex items-center justify-between shadow-sm">
                     <span className="text-[13px] text-[#64748b] font-semibold font-sans">
-                      Approved
+                      {t('common.statusApproved')}
                     </span>
                     <span className="px-2.5 py-0.5 bg-[#ecfdf5] text-[#10b981] font-bold text-[13px] rounded-lg font-inter">
                       {selectedBranchReport.distribution.approved}
@@ -912,7 +916,7 @@ const Dashboard: React.FC = () => {
                   {/* Pending */}
                   <div className="bg-white px-4 py-3.5 border border-[#e2e8f0] rounded-xl flex items-center justify-between shadow-sm">
                     <span className="text-[13px] text-[#64748b] font-semibold font-sans">
-                      Pending
+                      {t('common.statusPending')}
                     </span>
                     <span className="px-2.5 py-0.5 bg-[#fff7ed] text-[#f97316] font-bold text-[13px] rounded-lg font-inter">
                       {selectedBranchReport.distribution.pending}
@@ -921,7 +925,7 @@ const Dashboard: React.FC = () => {
                   {/* Overdue */}
                   <div className="bg-white px-4 py-3.5 border border-[#e2e8f0] rounded-xl flex items-center justify-between shadow-sm">
                     <span className="text-[13px] text-[#64748b] font-semibold font-sans">
-                      Overdue
+                      {t('common.statusOverdue')}
                     </span>
                     <span className="px-2.5 py-0.5 bg-[#fef2f2] text-[#ef4444] font-bold text-[13px] rounded-lg font-inter">
                       {selectedBranchReport.distribution.overdue}
@@ -936,22 +940,22 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
                 <span className="text-[12px] text-[#64748b] font-semibold">
-                  Data consolidated for {formatBranchName(selectedBranch)}
+                  {t('dashboard.dataConsolidatedFor')} {formatBranchName(selectedBranch)}
                 </span>
               </div>
               <div className="flex items-center space-x-3 self-end sm:self-auto">
                 <button
                   onClick={() => setSelectedBranch(null)}
-                  className="px-4 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-semibold text-[#1e293b] hover:bg-gray-100 transition-all font-inter"
+                  className="px-4 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-semibold text-[#1e293b] hover:bg-gray-100 transition-all font-inter cursor-pointer"
                 >
-                  Close
+                  {t('common.close')}
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="flex items-center space-x-2 px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter"
+                  className="flex items-center space-x-2 px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[13px] rounded-lg shadow-sm transition-all font-inter cursor-pointer"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Export PDF Report</span>
+                  <span>{t('dashboard.exportPdfReport')}</span>
                 </button>
               </div>
             </div>

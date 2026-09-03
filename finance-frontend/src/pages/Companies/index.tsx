@@ -73,6 +73,7 @@ import {
 import { getCompanies, createCompany, updateCompany, getInvoices, deleteCompany } from "../../services/invoiceService";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export interface Company {
   name: string;
@@ -86,6 +87,7 @@ export interface Company {
 
 const Companies: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   if (user && user.role === 'Accountant') {
     return <Navigate to="/dashboard" replace />;
@@ -402,13 +404,13 @@ const Companies: React.FC = () => {
     setShowValidation(true);
 
     if (getAddCompanyErrorsCount() > 0) {
-      setFormError("Validation failed: Fix errors to proceed");
+      setFormError(t('invoices.validationFailed'));
       return;
     }
 
     // Check duplicate code
     if (companies.some(c => c.code.toUpperCase() === newCompCode.toUpperCase())) {
-      setFormError("Company code already exists");
+      setFormError(t('companies.codeAlreadyExists'));
       return;
     }
 
@@ -472,7 +474,7 @@ const Companies: React.FC = () => {
     setShowValidation(true);
 
     if (getEditCompanyErrorsCount() > 0) {
-      setFormError("Validation failed: Fix errors to proceed");
+      setFormError(t('invoices.validationFailed'));
       return;
     }
 
@@ -481,7 +483,7 @@ const Companies: React.FC = () => {
       editCode.toUpperCase() !== selectedCompany.code.toUpperCase() &&
       companies.some(c => c.code.toUpperCase() === editCode.toUpperCase())
     ) {
-      setFormError("Company code already exists");
+      setFormError(t('companies.codeAlreadyExists'));
       return;
     }
 
@@ -542,10 +544,10 @@ const Companies: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex flex-col space-y-1">
               <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
-                Partner Companies
+                {t('companies.title')}
               </h1>
               <p className="text-[13px] text-[#64748b] font-medium font-sans">
-                Manage partner companies and their billing information
+                {t('companies.subtitle')}
               </p>
             </div>
             <button
@@ -557,7 +559,7 @@ const Companies: React.FC = () => {
               className="px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg text-[13px] font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer font-sans"
             >
               <Plus className="w-4 h-4" />
-              <span>Add New Company</span>
+              <span>{t('companies.addCompany')}</span>
             </button>
           </div>
 
@@ -566,21 +568,21 @@ const Companies: React.FC = () => {
             <div className="flex justify-between items-start w-full">
               <div>
                 <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block font-sans">
-                  Total Partners
+                  {t('companies.title')}
                 </span>
                 <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight mt-0.5 font-sans">
-                  {loading ? <div className="h-7 w-32 bg-slate-200 rounded mt-1"></div> : `${companies.length} Companies`}
+                  {loading ? <div className="h-7 w-32 bg-slate-200 rounded mt-1"></div> : `${companies.length} ${t('companies.title')}`}
                 </div>
               </div>
               <div
                 className="text-[10px] px-3.5 py-1 font-bold rounded-md uppercase tracking-wider font-sans flex items-center justify-center"
                 style={{ backgroundColor: 'rgba(219, 234, 254, 1)', color: 'rgba(37, 99, 235, 1)' }}
               >
-                Corporate
+                {t('common.corporate')}
               </div>
             </div>
             <span className="text-[11px] text-[#64748B] font-normal block font-sans">
-              Registered across all regions
+              {t('companies.registeredRegions')}
             </span>
           </div>
 
@@ -596,12 +598,12 @@ const Companies: React.FC = () => {
                 {/* Header & Search */}
             <div className="p-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-[#e2e8f0]">
               <h2 className="text-[16px] font-bold text-[#0c0d0f] font-sans whitespace-nowrap">
-                Partner Companies Listing
+                {t('companies.title')}
               </h2>
               <div className="relative w-72">
                 <input
                   type="text"
-                  placeholder="Search company name or code..."
+                  placeholder={t('companies.searchPlaceholder')}
                   value={searchQuery}
                   onChange={handleSearchChange}
                   className="w-full pl-10 pr-4 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] placeholder-gray-400 focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
@@ -619,11 +621,11 @@ const Companies: React.FC = () => {
                 </div>
                 {/* Title */}
                 <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
-                  No companies registered yet
+                  {t('companies.noCompaniesRegistered')}
                 </h4>
                 {/* Description */}
                 <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
-                  Add your first partner company to start generating invoices.
+                  {t('companies.noCompaniesRegisteredDesc')}
                 </p>
                 {/* Add New Company Button */}
                 <button
@@ -634,7 +636,7 @@ const Companies: React.FC = () => {
                   }}
                   className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-lg shadow-sm transition-all cursor-pointer font-sans"
                 >
-                  Add New Company
+                  {t('companies.addNewCompany')}
                 </button>
               </div>
             ) : !loading && displayedCompanies.length === 0 ? (
@@ -645,11 +647,11 @@ const Companies: React.FC = () => {
                 </div>
                 {/* Title */}
                 <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
-                  No companies found
+                  {t('companies.noCompaniesFound')}
                 </h4>
                 {/* Description */}
                 <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
-                  Try adjusting your search query.
+                  {t('companies.noCompaniesFoundDesc')}
                 </p>
               </div>
             ) : (
@@ -660,25 +662,25 @@ const Companies: React.FC = () => {
                 <thead>
                   <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      COMPANY NAME
+                      {t('companies.companyName')}
                     </th>
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      CODE
+                      {t('companies.companyCode')}
                     </th>
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      PHONE NUMBER
+                      {t('settings.phone')}
                     </th>
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      ADDRESS
+                      {t('companies.address')}
                     </th>
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      TAX NUMBER
+                      {t('companies.taxNo')}
                     </th>
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      CREDIT BALANCE
+                      {t('companies.creditBalance')}
                     </th>
                     <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-center whitespace-nowrap">
-                      ACTION
+                      {t('common.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -703,7 +705,7 @@ const Companies: React.FC = () => {
                   ) : displayedCompanies.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-[13px] font-semibold text-slate-400 font-sans">
-                        No companies found
+                        {t('companies.noCompaniesFound')}
                       </td>
                     </tr>
                   ) : (
@@ -734,19 +736,19 @@ const Companies: React.FC = () => {
                               className="px-3 py-1.5 text-[#334155] hover:bg-slate-200/80 rounded-lg text-[11px] font-bold transition-all cursor-pointer font-sans shadow-sm"
                               style={{ backgroundColor: 'rgba(241, 245, 249, 1)' }}
                             >
-                              View Details
+                              {t('common.viewDetails')}
                             </button>
                             <button
                               onClick={() => handleOpenReport(c)}
                               className="px-3 py-1.5 text-white hover:opacity-90 rounded-lg text-[11px] font-semibold transition-all cursor-pointer font-sans shadow-sm"
                               style={{ backgroundColor: 'rgba(46, 84, 176, 1)' }}
                             >
-                              Financial Report
+                              {t('companies.financialReport')}
                             </button>
                             <button
                               onClick={() => handleOpenDeleteConfirm(c)}
                               className="p-1.5 text-[#ef4444] hover:bg-red-50 hover:text-red-700 rounded-lg transition-all cursor-pointer shadow-sm border border-red-100 bg-white"
-                              title="Delete Company"
+                              title={t('companies.deleteCompany')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -763,7 +765,7 @@ const Companies: React.FC = () => {
             {totalItems > 0 && (
               <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] font-sans">
                 <span className="text-[12px] text-[#64748b] font-normal font-sans">
-                  Showing {(validCurrentPage - 1) * itemsPerPage + 1} to {Math.min(validCurrentPage * itemsPerPage, totalItems)} of {totalItems} registered companies
+                  {t('companies.showing')} {(validCurrentPage - 1) * itemsPerPage + 1} {t('invoices.to')} {Math.min(validCurrentPage * itemsPerPage, totalItems)} {t('invoices.of')} {totalItems} {t('companies.registeredCompanies')}
                 </span>
                 <div className="flex items-center space-x-1.5 text-[12px] font-bold font-sans">
                   <button
@@ -774,7 +776,7 @@ const Companies: React.FC = () => {
                       : "text-[#475569] hover:bg-gray-50 cursor-pointer"
                       }`}
                   >
-                    Previous
+                    {t('common.previous')}
                   </button>
 
                   {Array.from({ length: totalPages }).map((_, i) => {
@@ -812,7 +814,7 @@ const Companies: React.FC = () => {
                       : "text-[#475569] hover:bg-gray-50 cursor-pointer"
                       }`}
                   >
-                    Next
+                    {t('common.next')}
                   </button>
                 </div>
               </div>
@@ -827,140 +829,163 @@ const Companies: React.FC = () => {
 
       {/* Modal: Add New Company */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans">
+        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-[540px] shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans animate-scale-up">
             {/* Header */}
-            <div className="pl-6 pr-4 py-5 flex justify-between items-center bg-white">
-              <h3 className="text-[18px] font-bold text-[#1e293b]">Add New Company</h3>
+            <div className="px-6 py-4 flex justify-between items-center bg-white border-b border-[#e2e8f0]">
+              <h3 className="text-[16px] font-bold text-[#1e293b]">{t('companies.addNewCompany')}</h3>
               <button
+                type="button"
                 onClick={() => {
                   setIsAddModalOpen(false);
                   setFormError("");
                 }}
-                className="w-6 h-6 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+                className="w-7 h-7 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div className="mx-6 border-b border-[#e2e8f0]" />
 
             {/* Form Body */}
             <form onSubmit={handleAddCompanySubmit} noValidate>
-              <div className="p-6 space-y-4">
+              <div className="p-5 sm:p-6 space-y-3.5">
                 {showValidation && getAddCompanyErrorsCount() > 0 && (
-                  <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in">
-                    <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                    <span>{getAddCompanyErrorsCount()} errors found. Please fix them before submitting.</span>
+                  <div className="p-2.5 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-lg text-[11.5px] font-semibold flex items-center gap-2 animate-fade-in">
+                    <AlertCircle className="w-4 h-4 text-[#ef4444] flex-shrink-0" />
+                    <span>{getAddCompanyErrorsCount()} {t('invoices.errorsFound')}</span>
                   </div>
                 )}
                 {formError && !showValidation && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[12px] font-medium flex items-center gap-2">
+                  <div className="p-2.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[11.5px] font-medium flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     <span>{formError}</span>
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                    Company Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Stark Industries"
-                    value={newCompName}
-                    onChange={(e) => setNewCompName(e.target.value)}
-                    className={`w-full h-[40px] px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-sans focus:outline-none ${
-                      showValidation && !newCompName.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-[#f59e0b]'
-                    }`}
-                  />
-                  {showValidation && !newCompName.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Company Name is required
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                    Company Code
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={5}
-                    placeholder="e.g. STI"
-                    value={newCompCode}
-                    onChange={(e) => setNewCompCode(e.target.value.replace(/[^a-zA-Z]/g, ""))}
-                    className={`w-full h-[40px] px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-sans focus:outline-none ${
-                      showValidation && !newCompCode.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-[#f59e0b]'
-                    }`}
-                  />
-                  {showValidation && !newCompCode.trim() ? (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Company Code is required
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-slate-400 font-normal mt-1 block font-sans">
-                      Unique 3-letter identifier
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                    Phone Number
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. +1 310 555 0147"
-                    value={newCompPhone}
-                    onChange={(e) => setNewCompPhone(e.target.value)}
-                    className={`w-full h-[40px] px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-sans focus:outline-none ${
-                      showValidation && !newCompPhone.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-[#f59e0b]'
-                    }`}
-                  />
-                  {showValidation && !newCompPhone.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Phone Number is required
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 10880 Malibu Point"
-                    value={newCompStreet}
-                    onChange={(e) => setNewCompStreet(e.target.value)}
-                    className={`w-full h-[40px] px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-sans focus:outline-none ${
-                      showValidation && !newCompStreet.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-[#f59e0b]'
-                    }`}
-                  />
-                  {showValidation && !newCompStreet.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Street Address is required
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                      City
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.companyName')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Stark Industries"
+                      value={newCompName}
+                      onChange={(e) => setNewCompName(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
+                        showValidation && !newCompName.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                      }`}
+                    />
+                    {showValidation && !newCompName.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.nameRequired')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.companyCode')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={5}
+                      placeholder="e.g. STI"
+                      value={newCompCode}
+                      onChange={(e) => setNewCompCode(e.target.value.replace(/[^a-zA-Z]/g, ""))}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${
+                        showValidation && !newCompCode.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                      }`}
+                    />
+                    {showValidation && !newCompCode.trim() ? (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.codeRequired')}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-normal mt-0.5 block">
+                        {t('companies.unique3LetterIdentifier')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.phoneNumber')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. +1 310 555 0147"
+                      value={newCompPhone}
+                      onChange={(e) => setNewCompPhone(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
+                        showValidation && !newCompPhone.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                      }`}
+                    />
+                    {showValidation && !newCompPhone.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.phoneRequired')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.taxIdentificationNumber')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="87.654.321.0-087.000"
+                      value={newCompTax}
+                      onChange={(e) => setNewCompTax(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${
+                        showValidation && !newCompTax.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                      }`}
+                    />
+                    {showValidation && !newCompTax.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.taxRequired')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.streetAddress')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 10880 Malibu Point"
+                      value={newCompStreet}
+                      onChange={(e) => setNewCompStreet(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
+                        showValidation && !newCompStreet.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                      }`}
+                    />
+                    {showValidation && !newCompStreet.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.addressRequired')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.city')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -968,21 +993,22 @@ const Companies: React.FC = () => {
                       placeholder="Malibu"
                       value={newCompCity}
                       onChange={(e) => setNewCompCity(e.target.value)}
-                      className={`w-full h-[40px] px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-sans focus:outline-none ${
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
                         showValidation && !newCompCity.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-[#f59e0b]'
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                       }`}
                     />
                     {showValidation && !newCompCity.trim() && (
-                      <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                        City is required
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.cityRequired')}
                       </span>
                     )}
                   </div>
+
                   <div>
-                    <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                      Postal Code
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.postalCode')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -990,29 +1016,27 @@ const Companies: React.FC = () => {
                       placeholder="90265"
                       value={newCompPostal}
                       onChange={(e) => setNewCompPostal(e.target.value)}
-                      className={`w-full h-[40px] px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-sans focus:outline-none ${
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
                         showValidation && !newCompPostal.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-[#f59e0b]'
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                       }`}
                     />
                     {showValidation && !newCompPostal.trim() && (
-                      <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                        Postal Code is required
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.postalRequired')}
                       </span>
                     )}
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                      Country
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.country')}
                     </label>
                     <select
                       value={newCompCountry}
                       onChange={(e) => setNewCompCountry(e.target.value)}
-                      className="w-full h-[40px] px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white cursor-pointer font-sans"
+                      className="w-full h-[38px] px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-[12.5px] font-medium text-[#1e293b] focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white cursor-pointer"
                     >
                       <option value="United States">United States</option>
                       <option value="Indonesia">Indonesia</option>
@@ -1021,48 +1045,26 @@ const Companies: React.FC = () => {
                       <option value="Singapore">Singapore</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                      Tax Identification Number
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="87.654.321.0-087.000"
-                      value={newCompTax}
-                      onChange={(e) => setNewCompTax(e.target.value)}
-                      className={`w-full h-[40px] px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-sans focus:outline-none ${
-                        showValidation && !newCompTax.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-[#f59e0b]'
-                      }`}
-                    />
-                    {showValidation && !newCompTax.trim() && (
-                      <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                        Tax ID is required
-                      </span>
-                    )}
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-[12px] font-semibold text-slate-700 mb-1.5 font-sans">
-                    Agent
-                  </label>
-                  <select
-                    value={newCompAgent}
-                    onChange={(e) => setNewCompAgent(e.target.value)}
-                    className="w-full h-[40px] px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white cursor-pointer font-sans"
-                  >
-                    <option value="">None (No Agent)</option>
-                    <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
-                    <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
-                  </select>
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.agent')}
+                    </label>
+                    <select
+                      value={newCompAgent}
+                      onChange={(e) => setNewCompAgent(e.target.value)}
+                      className="w-full h-[38px] px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-[12.5px] font-medium text-[#1e293b] focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white cursor-pointer"
+                    >
+                      <option value="">{t('companies.noAgent')}</option>
+                      <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
+                      <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
               {/* Footer Actions */}
-              <div className="px-6 py-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end space-x-3">
+              <div className="px-6 py-3.5 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -1070,20 +1072,20 @@ const Companies: React.FC = () => {
                     setFormError("");
                     setShowValidation(false);
                   }}
-                  className="px-5 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-bold text-[#334155] hover:bg-slate-50 transition-all cursor-pointer bg-white"
+                  className="px-4 py-2 border border-[#cbd5e1] rounded-lg text-[12.5px] font-bold text-[#334155] hover:bg-slate-100 transition-all cursor-pointer bg-white"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={showValidation && getAddCompanyErrorsCount() > 0}
-                  className={`px-5 py-2 text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer ${
+                  className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer ${
                     showValidation && getAddCompanyErrorsCount() > 0
                       ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
-                      : 'bg-[#f59e0b] hover:bg-[#d97706]'
+                      : 'bg-[#f59e0b] hover:bg-[#d97706] shadow-sm'
                   }`}
                 >
-                  Add Company
+                  {t('companies.addCompany')}
                 </button>
               </div>
             </form>
@@ -1096,7 +1098,7 @@ const Companies: React.FC = () => {
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-inter">
             {/* Header */}
             <div className="pl-6 pr-4 py-5 flex justify-between items-center bg-white">
-              <h3 className="text-[18px] font-bold text-[#1e293b]">Company Details</h3>
+              <h3 className="text-[18px] font-bold text-[#1e293b] font-sans">{t('companies.companyDetails')}</h3>
               <button
                 onClick={() => setIsDetailsModalOpen(false)}
                 className="w-6 h-6 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
@@ -1107,53 +1109,53 @@ const Companies: React.FC = () => {
             <div className="mx-6 border-b border-[#e2e8f0]" />
 
             {/* Profile Content */}
-            <div className="p-6 space-y-4 text-[13px]">
+            <div className="p-6 space-y-4 text-[13px] font-sans">
               <div>
-                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">COMPANY NAME</span>
-                <span className="font-medium text-[#1e293b] text-[14px] font-inter">{selectedCompany.name}</span>
+                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-sans">{t('companies.companyName')}</span>
+                <span className="font-medium text-[#1e293b] text-[14px] font-sans">{selectedCompany.name}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">CODE</span>
-                <span className="font-medium text-[#1e293b] text-[14px] font-inter">{selectedCompany.code}</span>
+                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-sans">{t('companies.companyCode')}</span>
+                <span className="font-medium text-[#1e293b] text-[14px] font-mono">{selectedCompany.code}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">PHONE</span>
-                <span className="font-medium text-[#1e293b] text-[14px] font-inter">{selectedCompany.phone}</span>
+                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-sans">{t('settings.phone')}</span>
+                <span className="font-medium text-[#1e293b] text-[14px] font-sans">{selectedCompany.phone}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">ADDRESS</span>
-                <span className="font-medium text-[#1e293b] text-[14px] font-inter block leading-relaxed">{selectedCompany.address}</span>
+                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-sans">{t('companies.address')}</span>
+                <span className="font-medium text-[#1e293b] text-[14px] font-sans block leading-relaxed">{selectedCompany.address}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">TAX ID</span>
-                <span className="font-medium text-[#1e293b] text-[14px] font-inter font-mono">{selectedCompany.taxNumber}</span>
+                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-sans">{t('companies.taxId')}</span>
+                <span className="font-medium text-[#1e293b] text-[14px] font-mono">{selectedCompany.taxNumber}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-inter">AGENT</span>
-                <span className="font-medium text-[#1e293b] text-[14px] font-inter">{selectedCompany.agent || "N/A"}</span>
+                <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-sans">{t('companies.agent')}</span>
+                <span className="font-medium text-[#1e293b] text-[14px] font-sans">{selectedCompany.agent || "N/A"}</span>
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end gap-3 font-sans">
               <button
                 type="button"
                 onClick={() => handleOpenDeleteConfirm(selectedCompany)}
-                className="mr-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[13px] font-semibold transition-all cursor-pointer font-inter shadow-sm flex items-center gap-1.5"
+                className="mr-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[13px] font-semibold transition-all cursor-pointer font-sans shadow-sm flex items-center gap-1.5"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Delete Company</span>
+                <span>{t('companies.deleteCompany')}</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleOpenReport(selectedCompany)}
-                className="px-4 py-2 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg text-[13px] font-semibold transition-all cursor-pointer font-inter bg-white shadow-sm"
+                className="px-4 py-2 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg text-[13px] font-semibold transition-all cursor-pointer font-sans bg-white shadow-sm"
               >
-                Financial Report
+                {t('companies.financialReport')}
               </button>
               <button
                 type="button"
@@ -1167,10 +1169,10 @@ const Companies: React.FC = () => {
                   setIsDetailsModalOpen(false);
                   setIsEditModalOpen(true);
                 }}
-                className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-semibold flex items-center gap-2 cursor-pointer transition-all shadow-sm font-inter"
+                className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-semibold flex items-center gap-2 cursor-pointer transition-all shadow-sm font-sans"
               >
                 <Edit className="w-4 h-4" />
-                <span>Edit Details</span>
+                <span>{t('companies.editDetails')}</span>
               </button>
             </div>
           </div>
@@ -1180,154 +1182,169 @@ const Companies: React.FC = () => {
       {/* Modal: Edit Details */}
       {isEditModalOpen && selectedCompany && (
         <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-inter">
+          <div className="bg-white rounded-2xl w-full max-w-[540px] shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans animate-scale-up">
             {/* Header */}
-            <div className="pl-6 pr-4 py-5 flex justify-between items-center bg-white">
-              <h3 className="text-[18px] font-bold text-[#1e293b]">Edit Company Details</h3>
+            <div className="px-6 py-4 flex justify-between items-center bg-white border-b border-[#e2e8f0]">
+              <h3 className="text-[16px] font-bold text-[#1e293b]">{t('companies.editCompanyDetails')}</h3>
               <button
+                type="button"
                 onClick={() => {
                   setIsEditModalOpen(false);
                   setIsDetailsModalOpen(true);
                 }}
-                className="w-6 h-6 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+                className="w-7 h-7 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div className="mx-6 border-b border-[#e2e8f0]" />
 
             {/* Form Body */}
             <form onSubmit={handleEditCompanySubmit} noValidate>
-              <div className="p-6 space-y-4 text-[13px]">
+              <div className="p-5 sm:p-6 space-y-3.5">
                 {showValidation && getEditCompanyErrorsCount() > 0 && (
-                  <div className="p-3 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl text-[12px] font-semibold flex items-center gap-2 animate-fade-in">
-                    <AlertCircle className="w-4.5 h-4.5 text-[#ef4444] flex-shrink-0" />
-                    <span>{getEditCompanyErrorsCount()} errors found. Please fix them before submitting.</span>
+                  <div className="p-2.5 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-lg text-[11.5px] font-semibold flex items-center gap-2 animate-fade-in font-sans">
+                    <AlertCircle className="w-4 h-4 text-[#ef4444] flex-shrink-0" />
+                    <span>{getEditCompanyErrorsCount()} {t('invoices.errorsFound')}</span>
                   </div>
                 )}
                 {formError && !showValidation && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[12px] font-medium flex items-center gap-2">
-                    <AlertCircle className="w-4.5 h-4.5 text-red-600 flex-shrink-0" />
+                  <div className="p-2.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[11.5px] font-medium flex items-center gap-2 font-sans">
+                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
                     <span>{formError}</span>
                   </div>
                 )}
 
-                <div>
-                  <label className="text-slate-500 block text-[12px] font-medium mb-1.5 font-inter">Company Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-inter focus:outline-none ${
-                      showValidation && !editName.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-[#2563eb]'
-                    }`}
-                  />
-                  {showValidation && !editName.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Company Name is required
-                    </span>
-                  )}
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.companyName')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
+                        showValidation && !editName.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                      }`}
+                    />
+                    {showValidation && !editName.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.nameRequired')}
+                      </span>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="text-slate-500 block text-[12px] font-medium mb-1.5 font-inter">Code</label>
-                  <input
-                    type="text"
-                    required
-                    value={editCode}
-                    onChange={(e) => setEditCode(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-inter focus:outline-none ${
-                      showValidation && !editCode.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-[#2563eb]'
-                    }`}
-                  />
-                  {showValidation && !editCode.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Company Code is required
-                    </span>
-                  )}
-                </div>
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.companyCode')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={5}
+                      value={editCode}
+                      onChange={(e) => setEditCode(e.target.value.replace(/[^a-zA-Z]/g, ""))}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${
+                        showValidation && !editCode.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                      }`}
+                    />
+                    {showValidation && !editCode.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.codeRequired')}
+                      </span>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="text-slate-500 block text-[12px] font-medium mb-1.5 font-inter">Phone</label>
-                  <input
-                    type="text"
-                    required
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-inter focus:outline-none ${
-                      showValidation && !editPhone.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-[#2563eb]'
-                    }`}
-                  />
-                  {showValidation && !editPhone.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Phone Number is required
-                    </span>
-                  )}
-                </div>
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.phoneNumber')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
+                        showValidation && !editPhone.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                      }`}
+                    />
+                    {showValidation && !editPhone.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.phoneRequired')}
+                      </span>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="text-slate-500 block text-[12px] font-medium mb-1.5 font-inter">Address</label>
-                  <input
-                    type="text"
-                    required
-                    value={editAddress}
-                    onChange={(e) => setEditAddress(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-inter focus:outline-none ${
-                      showValidation && !editAddress.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-[#2563eb]'
-                    }`}
-                  />
-                  {showValidation && !editAddress.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Address is required
-                    </span>
-                  )}
-                </div>
+                  <div>
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.taxId')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editTaxId}
+                      onChange={(e) => setEditTaxId(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${
+                        showValidation && !editTaxId.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                      }`}
+                    />
+                    {showValidation && !editTaxId.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.taxRequired')}
+                      </span>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="text-slate-500 block text-[12px] font-medium mb-1.5 font-inter">Tax ID</label>
-                  <input
-                    type="text"
-                    required
-                    value={editTaxId}
-                    onChange={(e) => setEditTaxId(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg text-[13px] font-medium transition-all font-inter focus:outline-none ${
-                      showValidation && !editTaxId.trim()
-                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]'
-                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-[#2563eb]'
-                    }`}
-                  />
-                  {showValidation && !editTaxId.trim() && (
-                    <span className="block text-[11px] text-[#ef4444] font-semibold mt-1 animate-fade-in font-sans">
-                      Tax ID is required
-                    </span>
-                  )}
-                </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.streetAddress')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editAddress}
+                      onChange={(e) => setEditAddress(e.target.value)}
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
+                        showValidation && !editAddress.trim()
+                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                      }`}
+                    />
+                    {showValidation && !editAddress.trim() && (
+                      <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
+                        {t('companies.addressRequired')}
+                      </span>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="text-slate-500 block text-[12px] font-medium mb-1.5 font-inter">Agent</label>
-                  <select
-                    value={editAgent}
-                    onChange={(e) => setEditAgent(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] bg-white cursor-pointer font-sans"
-                  >
-                    <option value="">None (No Agent)</option>
-                    <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
-                    <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
-                  </select>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11.5px] font-semibold text-slate-700 mb-1">
+                      {t('companies.agent')}
+                    </label>
+                    <select
+                      value={editAgent}
+                      onChange={(e) => setEditAgent(e.target.value)}
+                      className="w-full h-[38px] px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-[12.5px] font-medium text-[#1e293b] focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] bg-white cursor-pointer"
+                    >
+                      <option value="">{t('companies.noAgent')}</option>
+                      <option value="Hasoob Technology Trading - 2067">Hasoob Technology Trading - 2067</option>
+                      <option value="ODST Travel and Tourism - 2114">ODST Travel and Tourism - 2114</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end gap-3">
+              <div className="px-6 py-3.5 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end gap-2.5 font-sans">
                 <button
                   type="button"
                   onClick={() => {
@@ -1336,20 +1353,20 @@ const Companies: React.FC = () => {
                     setShowValidation(false);
                     setFormError("");
                   }}
-                  className="px-4 py-2 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg text-[13px] font-bold transition-all cursor-pointer font-inter bg-white shadow-sm"
+                  className="px-4 py-2 border border-[#cbd5e1] hover:bg-slate-100 text-[#334155] rounded-lg text-[12.5px] font-bold transition-all cursor-pointer font-sans bg-white shadow-sm"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={showValidation && getEditCompanyErrorsCount() > 0}
-                  className={`px-4 py-2 text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-inter shadow-sm ${
+                  className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer font-sans shadow-sm ${
                     showValidation && getEditCompanyErrorsCount() > 0
                       ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
                       : 'bg-[#2563eb] hover:bg-[#1d4ed8]'
                   }`}
                 >
-                  Save Changes
+                  {t('companies.saveChanges')}
                 </button>
               </div>
             </form>
@@ -1360,12 +1377,12 @@ const Companies: React.FC = () => {
       {/* Modal: Financial Report */}
       {isReportModalOpen && selectedCompany && (
         <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-inter">
+          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans">
             {/* Header */}
             <div className="pl-6 pr-4 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
               <div>
-                <h3 className="text-[18px] font-bold text-[#1e293b]">Company Financial Report</h3>
-                <p className="text-[11px] text-slate-400 font-medium font-inter mt-0.5">Financial Summary — {reportData.period}</p>
+                <h3 className="text-[18px] font-bold text-[#1e293b] font-sans">{t('companies.companyFinancialReport')}</h3>
+                <p className="text-[11px] text-slate-400 font-medium font-sans mt-0.5">{t('companies.financialSummary')} — {reportData.period}</p>
               </div>
               <button
                 onClick={() => setIsReportModalOpen(false)}
@@ -1380,37 +1397,37 @@ const Companies: React.FC = () => {
               {/* Stat Grid */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-inter">TOTAL REVENUE</span>
-                  <div className="text-[20px] font-bold text-[#0c0d0f] font-inter mt-1.5">{"$" + reportData.summary.totalRevenue.toLocaleString()}</div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.totalRevenue')}</span>
+                  <div className="text-[20px] font-bold text-[#0c0d0f] font-mono mt-1.5">{"$" + reportData.summary.totalRevenue.toLocaleString()}</div>
                 </div>
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-inter">NET PROFIT</span>
-                  <div className="text-[20px] font-bold text-[#10b981] font-inter mt-1.5">{"$" + reportData.summary.netProfit.toLocaleString()}</div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.netProfit')}</span>
+                  <div className="text-[20px] font-bold text-[#10b981] font-mono mt-1.5">{"$" + reportData.summary.netProfit.toLocaleString()}</div>
                 </div>
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-inter">OUTSTANDING</span>
-                  <div className="text-[20px] font-bold text-[#ef4444] font-inter mt-1.5">{"$" + reportData.summary.outstanding.toLocaleString()}</div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.outstanding')}</span>
+                  <div className="text-[20px] font-bold text-[#ef4444] font-mono mt-1.5">{"$" + reportData.summary.outstanding.toLocaleString()}</div>
                 </div>
               </div>
 
               {/* Monthly Financial Overview */}
               <div className="space-y-2">
-                <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">MONTHLY FINANCIAL OVERVIEW</h4>
-                <div className="overflow-hidden border border-[#e2e8f0] rounded-xl text-[12px] font-inter">
+                <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans">{t('companies.monthlyFinancialOverview')}</h4>
+                <div className="overflow-hidden border border-[#e2e8f0] rounded-xl text-[12px] font-sans">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#223F6E] border-b border-[#223F6E] text-white">
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">MONTH</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">REVENUE</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">INVOICES SENT</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">INVOICES PAID</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.month')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.revenue')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.invoicesSent')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.invoicesPaid')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[#475569]">
                       {reportData.monthlyOverview.map((row, idx) => (
                         <tr key={row.month} className={idx % 2 === 1 ? "bg-slate-50/20 hover:bg-slate-50/50" : "hover:bg-slate-50/50"}>
                           <td className="py-3 px-4 font-semibold text-[#0c0d0f]">{row.month}</td>
-                          <td className="py-3 px-4">{"$" + row.revenue.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-mono">{"$" + row.revenue.toLocaleString()}</td>
                           <td className="py-3 px-4">{row.sent}</td>
                           <td className="py-3 px-4">{row.paid}</td>
                         </tr>
@@ -1422,17 +1439,17 @@ const Companies: React.FC = () => {
 
               {/* Company Financial Breakdown */}
               <div className="space-y-2">
-                <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">COMPANY FINANCIAL BREAKDOWN</h4>
-                <div className="overflow-hidden border border-[#e2e8f0] rounded-xl text-[12px] font-inter">
+                <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans">{t('companies.companyFinancialBreakdown')}</h4>
+                <div className="overflow-hidden border border-[#e2e8f0] rounded-xl text-[12px] font-sans">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#223F6E] border-b border-[#223F6E] text-white">
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">COMPANY</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">CODE</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">REVENUE</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">AMOUNT PAID</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">PENDING</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">OVERDUE</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.companyName')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.companyCode')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.revenue')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.amountPaid')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.pending')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.overdue')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[#475569] font-medium">
@@ -1440,10 +1457,10 @@ const Companies: React.FC = () => {
                         <tr key={row.code} className={idx % 2 === 1 ? "bg-slate-50/20 hover:bg-slate-50/50" : "hover:bg-slate-50/50"}>
                           <td className="py-3 px-4 font-bold text-[#0c0d0f]">{row.company}</td>
                           <td className="py-3 px-4 text-slate-400 font-mono">{row.code}</td>
-                          <td className="py-3 px-4">{"$" + row.revenue.toLocaleString()}</td>
-                          <td className="py-3 px-4">{"$" + row.amtPaid.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-[#f59e0b] font-bold">{"$" + row.pending.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-[#ef4444] font-bold">{"$" + row.overdue.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-mono">{"$" + row.revenue.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-mono">{"$" + row.amtPaid.toLocaleString()}</td>
+                          <td className="py-3 px-4 text-[#f59e0b] font-bold font-mono">{"$" + row.pending.toLocaleString()}</td>
+                          <td className="py-3 px-4 text-[#ef4444] font-bold font-mono">{"$" + row.overdue.toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1454,25 +1471,25 @@ const Companies: React.FC = () => {
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-between items-center">
-              <div className="flex items-center gap-2 text-[12px] text-slate-400 font-medium font-inter">
+              <div className="flex items-center gap-2 text-[12px] text-slate-400 font-medium font-sans">
                 <span className="w-2 h-2 rounded-full bg-[#10b981]" />
-                <span>Data consolidated for all companies</span>
+                <span>{t('companies.dataConsolidated')}</span>
               </div>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsReportModalOpen(false)}
-                  className="px-4 py-2 border border-[#cbd5e1] hover:bg-slate-50 text-slate-600 rounded-lg text-[13px] font-bold transition-all cursor-pointer font-inter bg-white shadow-sm"
+                  className="px-4 py-2 border border-[#cbd5e1] hover:bg-slate-50 text-slate-600 rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans bg-white shadow-sm"
                 >
-                  Close
+                  {t('common.close')}
                 </button>
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-inter flex items-center gap-1.5 shadow-sm"
+                  className="px-4 py-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans flex items-center gap-1.5 shadow-sm"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Export PDF Report</span>
+                  <span>{t('companies.exportPdfReport')}</span>
                 </button>
               </div>
             </div>
@@ -1483,30 +1500,30 @@ const Companies: React.FC = () => {
       {/* Modal: Add Confirmation */}
       {showAddConfirm && (
         <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-inter">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#fffbeb] text-[#f59e0b] rounded-full flex items-center justify-center mx-auto border border-[#fef3c7]">
               <HelpCircle className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-inter">Are you sure?</h3>
-              <p className="text-[14px] text-slate-500 font-inter leading-relaxed">
-                Are you sure that you want to add <span className="font-semibold text-slate-800">{newCompName}</span> to the system list?
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">{t('requests.areYouSure')}</h3>
+              <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
+                {t('companies.confirmAddCompany', { name: newCompName })}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setShowAddConfirm(false)}
-                className="py-2.5 border border-[#cbd5e1] hover:bg-slate-50 text-slate-600 rounded-xl text-[13px] font-bold transition-all cursor-pointer font-inter bg-white shadow-sm"
+                className="py-2.5 border border-[#cbd5e1] hover:bg-slate-50 text-slate-600 rounded-xl text-[13px] font-bold transition-all cursor-pointer font-sans bg-white shadow-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAddCompany}
-                className="py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[13px] font-bold transition-all cursor-pointer font-inter shadow-sm"
+                className="py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[13px] font-bold transition-all cursor-pointer font-sans shadow-sm"
               >
-                Yes, Confirm
+                {t('requests.yesConfirm')}
               </button>
             </div>
           </div>
@@ -1516,30 +1533,30 @@ const Companies: React.FC = () => {
       {/* Modal: Delete Confirmation */}
       {showDeleteConfirm && companyToDelete && (
         <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-inter">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-100">
               <AlertCircle className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-inter">Delete Company?</h3>
-              <p className="text-[14px] text-slate-500 font-inter leading-relaxed">
-                Are you sure you want to delete <span className="font-semibold text-slate-800">{companyToDelete.name}</span> ({companyToDelete.code})? This will permanently remove the company.
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">{t('companies.deleteCompanyTitle')}</h3>
+              <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
+                {t('companies.deleteCompanyConfirm', { name: companyToDelete.name, code: companyToDelete.code })}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="py-2.5 border border-[#cbd5e1] hover:bg-slate-50 text-slate-600 rounded-xl text-[13px] font-bold transition-all cursor-pointer font-inter bg-white shadow-sm"
+                className="py-2.5 border border-[#cbd5e1] hover:bg-slate-50 text-slate-600 rounded-xl text-[13px] font-bold transition-all cursor-pointer font-sans bg-white shadow-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDeleteCompany}
-                className="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[13px] font-bold transition-all cursor-pointer font-inter shadow-sm"
+                className="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[13px] font-bold transition-all cursor-pointer font-sans shadow-sm"
               >
-                Yes, Delete
+                {t('companies.yesDelete')}
               </button>
             </div>
           </div>
@@ -1549,14 +1566,14 @@ const Companies: React.FC = () => {
       {/* Modal: Delete Success */}
       {showDeleteSuccess && companyToDelete && (
         <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-inter">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#e6f4ea] text-[#137333] rounded-full flex items-center justify-center mx-auto border border-[#ceead6]">
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-inter">Successfully Deleted</h3>
-              <p className="text-[14px] text-slate-500 font-inter leading-relaxed">
-                <span className="font-semibold text-slate-800">{companyToDelete.name}</span> has been successfully removed from the system.
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">{t('companies.successfullyDeleted')}</h3>
+              <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
+                {t('companies.deletedDesc', { name: companyToDelete.name })}
               </p>
             </div>
             <button
@@ -1566,31 +1583,31 @@ const Companies: React.FC = () => {
                 setCompanyToDelete(null);
                 setCurrentPage(1);
               }}
-              className="w-full py-3 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[14px] font-bold transition-all cursor-pointer font-inter shadow-sm"
+              className="w-full py-3 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[14px] font-bold transition-all cursor-pointer font-sans shadow-sm"
             >
-              Done
+              {t('common.close')}
             </button>
           </div>
         </div>
       )}
       {showAddSuccess && (
         <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-inter">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#e6f4ea] text-[#137333] rounded-full flex items-center justify-center mx-auto border border-[#ceead6]">
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-inter">Successfully Added</h3>
-              <p className="text-[14px] text-slate-500 font-inter leading-relaxed">
-                <span className="font-semibold text-slate-800">{newCompName}</span> has been added to the system list.
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">{t('companies.successfullyAdded')}</h3>
+              <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
+                {t('companies.addedDesc', { name: newCompName })}
               </p>
             </div>
             <button
               type="button"
               onClick={handleCloseAddSuccess}
-              className="w-full py-3 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[14px] font-bold transition-all cursor-pointer font-inter shadow-sm"
+              className="w-full py-3 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[14px] font-bold transition-all cursor-pointer font-sans shadow-sm"
             >
-              Done
+              {t('common.close')}
             </button>
           </div>
         </div>

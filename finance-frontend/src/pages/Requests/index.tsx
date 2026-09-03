@@ -9,6 +9,8 @@ import { Search, AlertCircle, Check, Clock, Lock, FileText, Printer, Download, C
 import { getRequests, approveRequest as approveRequestAPI, rejectRequest as rejectRequestAPI, sendInvoiceEmail, saveRequestNote } from "../../services/requestService";
 import { updateInvoiceStatus as updateInvoiceStatusAPI, getCompanies, uploadPaymentProof } from "../../services/invoiceService";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "react-i18next";
+import { formatLocalizedDate } from "../../i18n";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
 import { getTeamMembers, getCompanySetting } from "../../services/settingService";
 
@@ -116,6 +118,7 @@ const compareDates = (dateAStr: string, dateBStr: string): boolean => {
 const Requests: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const companySettings = getLocalCompanySettings();
   const [allRequests, setAllRequests] = useState<InvoiceRequest[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "approved" | "rejected">("pending");
@@ -687,14 +690,18 @@ const Requests: React.FC = () => {
               {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") && (
                 <div className="bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-4 flex items-center gap-3 text-[#065f46] text-[13px] font-medium font-sans">
                   <div className="w-5 h-5 bg-[#10b981] rounded-full flex items-center justify-center text-white text-[10px] font-bold">✓</div>
-                  <span>This invoice has been fully approved and is ready for payment. All necessary signatures have been consolidated.</span>
+                  <span>{t('requests.fullyApprovedBanner')}</span>
                 </div>
               )}
               {selectedRequest.status === "Rejected" && (
                 <div className="bg-[#fef2f2] border border-[#fecaca] rounded-xl p-4 flex items-center gap-3 text-[#ef4444] text-[13px] font-medium font-sans shadow-sm">
                   <div className="w-5 h-5 bg-[#ef4444] rounded-full flex items-center justify-center text-white text-[10px] font-bold">✕</div>
                   <span>
-                    This invoice has been rejected by {selectedRequest.rejectedBy || 'Mr. Hesham Mokhtar'} on {selectedRequest.rejectedAt ? selectedRequest.rejectedAt.split(' at ')[0] : 'Oct 12, 2026'}.
+                    {i18n.language === 'id'
+                      ? `Faktur ini telah ditolak oleh ${selectedRequest.rejectedBy || 'Mr. Hesham Mokhtar'} pada ${selectedRequest.rejectedAt ? selectedRequest.rejectedAt.split(' at ')[0] : 'Oct 12, 2026'}.`
+                      : i18n.language === 'ar'
+                        ? `تم رفض هذا التأكيد بواسطة ${selectedRequest.rejectedBy || 'Mr. Hesham Mokhtar'} في ${selectedRequest.rejectedAt ? selectedRequest.rejectedAt.split(' at ')[0] : 'Oct 12, 2026'}.`
+                        : `This invoice has been rejected by ${selectedRequest.rejectedBy || 'Mr. Hesham Mokhtar'} on ${selectedRequest.rejectedAt ? selectedRequest.rejectedAt.split(' at ')[0] : 'Oct 12, 2026'}.`}
                   </span>
                 </div>
               )}
@@ -703,19 +710,19 @@ const Requests: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-1.5 text-[12px] text-slate-400 font-medium">
-                    <span className="text-[#f59e0b] hover:underline cursor-pointer" onClick={() => setSelectedRequest(null)}>Confirmation Requests</span>
+                    <span className="text-[#f59e0b] hover:underline cursor-pointer" onClick={() => setSelectedRequest(null)}>{t('requests.confirmationRequests')}</span>
                     <span>/</span>
-                    <span>Request {selectedRequest.reqNo}</span>
+                    <span>{t('requests.requestNumber')} {selectedRequest.reqNo}</span>
                   </div>
                   <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight font-sans text-left">
-                    {selectedRequest.status === "Rejected" ? "Rejected Confirmation Details" : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? "Fully Approved Confirmation Details" : `Review Request - ${selectedRequest.company}`}
+                    {selectedRequest.status === "Rejected" ? t('requests.rejectedConfirmationDetails') : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? t('requests.fullyApprovedConfirmationDetails') : `${t('requests.reviewRequest')} - ${selectedRequest.company}`}
                   </h1>
                 </div>
                 <button
                   onClick={() => setSelectedRequest(null)}
                   className="px-4 py-2 bg-white border border-[#cbd5e1] rounded-lg text-[13px] font-bold text-[#334155] hover:bg-slate-50 transition-all cursor-pointer font-inter shadow-sm"
                 >
-                  Back to Listing
+                  {t('requests.backToListing')}
                 </button>
               </div>
 
@@ -726,9 +733,9 @@ const Requests: React.FC = () => {
                   {/* Rejection Reason Card */}
                   {selectedRequest.status === "Rejected" && (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 text-left space-y-2">
-                      <h4 className="text-[13px] font-bold text-[#ef4444] font-sans uppercase tracking-wider">Rejection Reason</h4>
+                      <h4 className="text-[13px] font-bold text-[#ef4444] font-sans uppercase tracking-wider">{t('requests.rejectionReason')}</h4>
                       <p className="text-[13.5px] text-[#475569] font-medium leading-relaxed font-sans">
-                        {selectedRequest.rejectionReason || "The billing amounts do not match the agreed contract rates. Please verify and resubmit."}
+                        {selectedRequest.rejectionReason || (i18n.language === 'id' ? "Nominal tagihan tidak sesuai dengan tarif kontrak yang disepakati. Harap verifikasi dan ajukan ulang." : i18n.language === 'ar' ? "مبالغ الفوترة لا تتطابق مع أسعار العقود المتفق عليها. يرجى التحقق وإعادة الإرسال." : "The billing amounts do not match the agreed contract rates. Please verify and resubmit.")}
                       </p>
                     </div>
                   )}
@@ -750,8 +757,8 @@ const Requests: React.FC = () => {
                                 <FileText className="w-5 h-5" style={{ color: "rgba(245, 158, 11, 1)" }} />
                               </div>
                               <div>
-                                <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Confirmation Details</h3>
-                                <p className="text-[12px] text-slate-400 font-medium font-sans">Review billing details</p>
+                                <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('invoices.confirmationDetails')}</h3>
+                                <p className="text-[12px] text-slate-400 font-medium font-sans">{t('invoices.reviewBillingDetails')}</p>
                               </div>
                             </div>
                             <div className="text-right">
@@ -763,23 +770,23 @@ const Requests: React.FC = () => {
                           {/* Metadata Grid */}
                           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmation Number</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{t('invoices.confirmationNumber')}</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{displayInvoiceNo}</div>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Reference Number</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{t('invoices.referenceNumber')}</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{requestAsInvoice?.referenceNo}</div>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Serial Number</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{t('invoices.serialNumber')}</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{requestAsInvoice?.serialNo}</div>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmation Date</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{t('invoices.confirmationDate')}</span>
                               <div className="px-3 py-2 bg-[#fcfdfe] border border-[#e2e8f0] rounded-lg text-[13px] font-bold text-[#0c0d0f] font-mono">{requestAsInvoice?.date}</div>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Due Date</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{t('invoices.dueDate')}</span>
                               <div
                                 className="px-3 py-2 bg-[#fffbeb] border border-[#fde68a] rounded-lg text-[13px] font-bold font-mono"
                                 style={{ color: "rgba(180, 83, 9, 1)" }}
@@ -799,7 +806,7 @@ const Requests: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* BILL FROM Column */}
                       <div className="space-y-3">
-                        <h4 className="text-[14px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">BILL FROM</h4>
+                        <h4 className="text-[14px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">{t('invoices.billFrom')}</h4>
                         <div className="p-6 bg-[#f8fafc] rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5">
                           <div className="flex items-center gap-4">
                             <div
@@ -815,31 +822,31 @@ const Requests: React.FC = () => {
                               {selectedDetails?.billFrom.name ? selectedDetails.billFrom.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'EM'}
                             </div>
                             <div className="space-y-0.5">
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">Employee Name</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">{t('requests.employeeName')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billFrom.name || 'Emad Moustafa'}</span>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-2 gap-x-4 gap-y-4 pt-1">
                             <div>
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">Employee ID</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('requests.employeeId')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billFrom.id}</span>
                             </div>
                             <div>
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">Company Email</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('requests.companyEmail')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans truncate block">{selectedDetails?.billFrom.email}</span>
                             </div>
                             <div>
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">Entity / Company</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('invoices.entityCompany')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billFrom.entity}</span>
                             </div>
                             <div>
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">Phone</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('invoices.phone')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billFrom.phone}</span>
                             </div>
                           </div>
                           <div className="pt-1">
-                            <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">Company Tax Number</span>
+                            <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('invoices.companyTaxNumber')}</span>
                             <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billFrom.tax}</span>
                           </div>
                         </div>
@@ -847,16 +854,16 @@ const Requests: React.FC = () => {
 
                       {/* BILL TO Column */}
                       <div className="space-y-3">
-                        <h4 className="text-[14px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">BILL TO</h4>
+                        <h4 className="text-[14px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">{t('invoices.billTo')}</h4>
                         <div className="p-6 bg-[#f8fafc] rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5">
                           <div className="flex justify-between items-start gap-4">
                             <div className="space-y-0.5">
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">Client Company</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">{t('invoices.clientCompany')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billTo.company}</span>
                             </div>
                             {selectedDetails?.billTo.agent && (
                               <div className="text-right space-y-0.5">
-                                <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">Agent</span>
+                                <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">{t('invoices.agent')}</span>
                                 <span className="font-bold text-amber-600 text-[14px] font-sans">{selectedDetails.billTo.agent}</span>
                               </div>
                             )}
@@ -864,15 +871,15 @@ const Requests: React.FC = () => {
 
                           <div className="grid grid-cols-1 gap-y-4 pt-1">
                             <div>
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">Company Tax Number</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('invoices.companyTaxNumber')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billTo.tax}</span>
                             </div>
                             <div>
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">Street Address</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('invoices.streetAddress')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans block leading-relaxed">{selectedDetails?.billTo.address}</span>
                             </div>
                             <div>
-                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">City / Country</span>
+                              <span className="text-[#94a3b8] block text-[12px] font-medium font-sans mb-0.5">{t('invoices.cityCountry')}</span>
                               <span className="font-bold text-[#0c0d0f] text-[15px] font-sans">{selectedDetails?.billTo.cityCountry}</span>
                             </div>
                           </div>
@@ -885,15 +892,15 @@ const Requests: React.FC = () => {
 
                     {/* Itemized Charges */}
                     <div>
-                      <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider mb-3">ITEMIZED CHARGES</h4>
+                      <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider mb-3">{t('invoices.itemizedCharges')}</h4>
                       <div className="border border-[#cbd5e1]/40 rounded-xl overflow-hidden">
                         <table className="w-full text-left border-collapse text-[12px] font-sans">
                           <thead>
                             <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider">Description</th>
-                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider text-center">QTY</th>
-                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider text-right">Unit Price</th>
-                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider text-right">Total</th>
+                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider">{t('invoices.itemDescription')}</th>
+                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider text-center">{t('invoices.qty')}</th>
+                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider text-right">{t('invoices.unitPrice')}</th>
+                              <th className="py-2.5 px-4 font-bold text-slate-400 uppercase text-[9px] tracking-wider text-right">{t('invoices.total')}</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#e2e8f0]/60">
@@ -916,15 +923,15 @@ const Requests: React.FC = () => {
                     <div className="flex justify-end">
                       <div className="w-80 p-4 bg-[#f8fafc] rounded-xl border border-[#cbd5e1]/30 space-y-2 text-[12px] font-sans">
                         <div className="flex justify-between text-slate-500">
-                          <span>Subtotal</span>
+                          <span>{t('invoices.subtotal')}</span>
                           <span className="font-bold text-[#1e293b] font-mono">{selectedDetails?.subtotal}</span>
                         </div>
                         <div className="flex justify-between text-slate-500 pb-2 border-b border-[#cbd5e1]/40">
-                          <span>Tax / VAT ({selectedDetails?.taxRate || 0}%)</span>
+                          <span>{t('invoices.taxVat')} ({selectedDetails?.taxRate || 0}%)</span>
                           <span className="font-bold text-[#1e293b] font-mono">{selectedDetails?.tax}</span>
                         </div>
                         <div className="flex justify-between text-[13px] font-bold pt-1">
-                          <span>Total Due</span>
+                          <span>{t('invoices.totalDue')}</span>
                           <span className="text-[#2563eb] font-mono font-extrabold text-[14px]">{selectedDetails?.total}</span>
                         </div>
                       </div>
@@ -938,22 +945,22 @@ const Requests: React.FC = () => {
                       const settings = getLocalCompanySettings();
                       return (
                         <div className="space-y-3">
-                          <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">PAYMENT INSTRUCTIONS</h4>
+                          <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans ml-1">{t('invoices.paymentInstructions')}</h4>
                           <div className="p-5 bg-[#f8fafc] rounded-2xl border border-[#e2e8f0] text-[12px] font-sans space-y-2.5">
                             <div className="flex justify-between text-[#475569]">
-                              <span>Bank Name:</span>
+                              <span>{t('invoices.bankName')}:</span>
                               <span className="font-bold text-[#1e293b]">{settings.bankName}</span>
                             </div>
                             <div className="flex justify-between text-[#475569]">
-                              <span>Account Name:</span>
+                              <span>{t('invoices.accountName')}:</span>
                               <span className="font-bold text-[#1e293b]">{settings.accountName}</span>
                             </div>
                             <div className="flex justify-between text-[#475569]">
-                              <span>IDR Account Number:</span>
+                              <span>{t('invoices.idrAccountNumber')}:</span>
                               <span className="font-bold text-[#2563eb] font-mono">{settings.idrAccountNumber}</span>
                             </div>
                             <div className="flex justify-between text-[#475569]">
-                              <span>USD Account Number:</span>
+                              <span>{t('invoices.usdAccountNumber')}:</span>
                               <span className="font-bold text-[#2563eb] font-mono">{settings.usdAccountNumber}</span>
                             </div>
                           </div>
@@ -961,11 +968,10 @@ const Requests: React.FC = () => {
                       );
                     })()}
 
-
                     {/* Notes and Terms */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px] text-slate-400 font-sans border-t border-[#e2e8f0]/60 pt-4 leading-relaxed font-sans">
                       <div>
-                        <span className="font-bold block mb-1 uppercase text-[#64748b] text-[9px] tracking-wider font-inter">NOTES</span>
+                        <span className="font-bold block mb-1 uppercase text-[#64748b] text-[9px] tracking-wider font-inter">{t('invoices.notes')}</span>
                         {companySettings.defaultNotes.split('\n').map((note: string, idx: number) => (
                           <p key={idx}>
                             {note.startsWith('*') ? note : `* ${note}`}
@@ -973,7 +979,7 @@ const Requests: React.FC = () => {
                         ))}
                       </div>
                       <div>
-                        <span className="font-bold block mb-1 uppercase text-[#64748b] text-[9px] tracking-wider font-inter">TERMS & CONDITIONS</span>
+                        <span className="font-bold block mb-1 uppercase text-[#64748b] text-[9px] tracking-wider font-inter">{t('invoices.termsAndConditions')}</span>
                         <p className="whitespace-pre-wrap">{companySettings.termsAndConditions}</p>
                       </div>
                     </div>
@@ -995,7 +1001,7 @@ const Requests: React.FC = () => {
                         }`}
                     >
                       <Printer className="w-4 h-4" />
-                      <span>Print</span>
+                      <span>{t('invoices.print')}</span>
                     </button>
                     <button
                       disabled={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "Paid and closed"}
@@ -1010,7 +1016,7 @@ const Requests: React.FC = () => {
                         }`}
                     >
                       {selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "Paid and closed" && <Lock className="w-3.5 h-3.5" />}
-                      <span>Download PDF</span>
+                      <span>{t('invoices.downloadPdf')}</span>
                     </button>
                   </div>
 
@@ -1021,7 +1027,7 @@ const Requests: React.FC = () => {
                   {/* Approval Workflow Card */}
                   <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-6">
                     <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">
-                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? "Approval Workflow Status" : "Approval Workflow"}
+                      {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? t('requests.approvalWorkflowStatus') : t('requests.approvalWorkflow')}
                     </h3>
 
                     <div className="space-y-6 pt-1">
@@ -1045,31 +1051,31 @@ const Requests: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 1</span>
                             {selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt ? (
-                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
+                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.rejected')}</span>
                             ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
-                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
+                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.approved')}</span>
                             ) : (
-                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
+                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.awaitingReview')}</span>
                             )}
                           </div>
                           <h4 className="text-[14px] font-bold text-[#0c0d0f] leading-snug">Mr. Hesham Mokhtar</h4>
-                          <p className="text-[12px] text-slate-400 font-sans">Chief Accountant</p>
+                          <p className="text-[12px] text-slate-400 font-sans">{t('requests.chiefAccountant')}</p>
                           {selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
-                              Rejected: {selectedRequest.rejectedAt || 'Oct 12, 2026 at 09:15 AM'}
+                              {t('requests.rejected')}: {selectedRequest.rejectedAt || 'Oct 12, 2026 at 09:15 AM'}
                             </p>
                           ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
-                              Approved: {selectedRequest.level1ApprovedAt || 'Oct 12, 2026 at 09:15 AM'}
+                              {t('requests.approved')}: {selectedRequest.level1ApprovedAt || 'Oct 12, 2026 at 09:15 AM'}
                             </p>
                           ) : (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
-                              {user?.role === 'Chief Accountant' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
+                              {user?.role === 'Chief Accountant' ? t('requests.awaitingReviewYourLevel') : t('requests.awaitingReview')}
                             </p>
                           )}
                           {selectedRequest.level1Note && (
                             <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
-                              Note: "{selectedRequest.level1Note}"
+                              {t('requests.approvalNote')}: "{selectedRequest.level1Note}"
                             </div>
                           )}
                         </div>
@@ -1099,36 +1105,36 @@ const Requests: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 2</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
-                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
+                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.rejected')}</span>
                             ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
-                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
+                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.approved')}</span>
                             ) : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
-                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
+                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.awaitingReview')}</span>
                             ) : (
-                              <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
+                              <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.pending')}</span>
                             )}
                           </div>
                           <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected") ? "text-[#0c0d0f]" : "text-[#64748b]"
                             }`}>Mr. Karim Gharba & Mr. Raed AlBadrani</h4>
-                          <p className="text-[12px] text-slate-400 font-sans">Level 2 Approvers</p>
+                          <p className="text-[12px] text-slate-400 font-sans">{t('requests.level2Approvers')}</p>
                           {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
-                              Rejected: {selectedRequest.rejectedAt || 'Oct 12, 2026 at 02:30 PM'}
+                              {t('requests.rejected')}: {selectedRequest.rejectedAt || 'Oct 12, 2026 at 02:30 PM'}
                             </p>
                           ) : (selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
-                              Approved: {selectedRequest.level2ApprovedAt || 'Oct 12, 2026 at 02:30 PM'}
+                              {t('requests.approved')}: {selectedRequest.level2ApprovedAt || 'Oct 12, 2026 at 02:30 PM'}
                             </p>
                           ) : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
-                              {user?.role === 'Level_3_Approver' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
+                              {user?.role === 'Level_3_Approver' ? t('requests.awaitingReviewYourLevel') : t('requests.awaitingReview')}
                             </p>
                           ) : (
-                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 1 approval</p>
+                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">{t('requests.waitingForLevel', { level: 1 })}</p>
                           )}
                           {selectedRequest.level2Note && (
                             <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
-                              Note: "{selectedRequest.level2Note}"
+                              {t('requests.approvalNote')}: "{selectedRequest.level2Note}"
                             </div>
                           )}
                         </div>
@@ -1159,36 +1165,36 @@ const Requests: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 3</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
-                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
+                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.rejected')}</span>
                             ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? (
-                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
+                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.approved')}</span>
                             ) : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
-                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
+                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.awaitingReview')}</span>
                             ) : (
-                              <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
+                              <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.pending')}</span>
                             )}
                           </div>
                           <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected") ? "text-[#0c0d0f]" : "text-[#64748b]"
                             }`}>Mr. Khalid Idriss</h4>
-                          <p className="text-[12px] text-slate-400 font-sans">Umrah Division Director</p>
+                          <p className="text-[12px] text-slate-400 font-sans">{t('requests.umrahDivisionDirector')}</p>
                           {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
-                              Rejected: {selectedRequest.rejectedAt || 'Oct 13, 2026 at 10:00 AM'}
+                              {t('requests.rejected')}: {selectedRequest.rejectedAt || 'Oct 13, 2026 at 10:00 AM'}
                             </p>
                           ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
-                              Approved: {selectedRequest.level3ApprovedAt || 'Oct 13, 2026 at 10:00 AM'}
+                              {t('requests.approved')}: {selectedRequest.level3ApprovedAt || 'Oct 13, 2026 at 10:00 AM'}
                             </p>
                           ) : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
-                              {user?.role === 'Division Director' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
+                              {user?.role === 'Division Director' ? t('requests.awaitingReviewYourLevel') : t('requests.awaitingReview')}
                             </p>
                           ) : (
-                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 2 approval</p>
+                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">{t('requests.waitingForLevel', { level: 2 })}</p>
                           )}
                           {selectedRequest.level3Note && (
                             <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
-                              Note: "{selectedRequest.level3Note}"
+                              {t('requests.approvalNote')}: "{selectedRequest.level3Note}"
                             </div>
                           )}
                         </div>
@@ -1219,36 +1225,36 @@ const Requests: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Level 4</span>
                             {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
-                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">Rejected</span>
+                              <span className="bg-[#fef2f2] text-[#ef4444] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.rejected')}</span>
                             ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? (
-                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">Approved</span>
+                              <span className="bg-[#ecfdf5] text-[#10b981] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.approved')}</span>
                             ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") ? (
-                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">Awaiting Review</span>
+                              <span className="bg-[#fff7ed] text-[#d97706] text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.awaitingReview')}</span>
                             ) : (
-                              <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">Pending</span>
+                              <span className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0.5 font-bold rounded">{t('requests.pending')}</span>
                             )}
                           </div>
                           <h4 className={`text-[14px] font-bold leading-snug ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? "text-[#0c0d0f]" : "text-[#475569]"
                             }`}>Mr. Emad Moustafa</h4>
-                          <p className="text-[12px] text-slate-400 font-sans">Financial Controller</p>
+                          <p className="text-[12px] text-slate-400 font-sans">{t('requests.financialController')}</p>
                           {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
                             <p className="text-[12px] text-[#ef4444] font-semibold font-sans mt-0.5">
-                              Rejected: {selectedRequest.rejectedAt || 'Oct 14, 2026 at 11:00 AM'}
+                              {t('requests.rejected')}: {selectedRequest.rejectedAt || 'Oct 14, 2026 at 11:00 AM'}
                             </p>
                           ) : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? (
                             <p className="text-[12px] text-[#10b981] font-semibold font-sans mt-0.5">
-                              Approved: {selectedRequest.level4ApprovedAt || 'Oct 14, 2026 at 11:00 AM'}
+                              {t('requests.approved')}: {selectedRequest.level4ApprovedAt || 'Oct 14, 2026 at 11:00 AM'}
                             </p>
                           ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") ? (
                             <p className="text-[12px] text-[#b45309] font-semibold font-sans mt-0.5">
-                              {user?.role === 'Super Admin' ? 'Awaiting Review (Your Level)' : 'Awaiting Review'}
+                              {user?.role === 'Super Admin' ? t('requests.awaitingReviewYourLevel') : t('requests.awaitingReview')}
                             </p>
                           ) : (
-                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">Waiting for Level 3 approval</p>
+                            <p className="text-[12px] text-slate-400 font-sans mt-0.5">{t('requests.waitingForLevel', { level: 3 })}</p>
                           )}
                           {selectedRequest.level4Note && (
                             <div className="mt-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-[12px] text-slate-500 font-sans italic">
-                              Note: "{selectedRequest.level4Note}"
+                              {t('requests.approvalNote')}: "{selectedRequest.level4Note}"
                             </div>
                           )}
                         </div>
@@ -1259,32 +1265,32 @@ const Requests: React.FC = () => {
                     <div className="border-t border-[#e2e8f0]/60 pt-4 text-[12px] text-[#475569] font-medium font-sans">
                       {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? (
                         <div>
-                          <p className="font-bold text-[#10b981]">Approvals Complete</p>
-                          <p className="text-slate-400 text-[11px] mt-0.5">Ready for payment execution.</p>
+                          <p className="font-bold text-[#10b981]">{t('requests.approvalsComplete')}</p>
+                          <p className="text-slate-400 text-[11px] mt-0.5">{t('requests.readyForPayment')}</p>
                         </div>
                       ) : selectedRequest.status === "Rejected" ? (
                         <div>
-                          <p className="font-bold text-[#ef4444]">Request Rejected</p>
+                          <p className="font-bold text-[#ef4444]">{t('requests.requestRejected')}</p>
                         </div>
                       ) : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") ? (
                         <div>
-                          <p className="font-bold text-[#d97706]">3 of 4 Approvals Complete</p>
-                          <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 4 action before proceeding.</p>
+                          <p className="font-bold text-[#d97706]">{t('requests.approvalsProgress', { count: 3 })}</p>
+                          <p className="text-slate-400 text-[11px] mt-0.5">{t('requests.pendingLevelAction', { level: 4 })}</p>
                         </div>
                       ) : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") ? (
                         <div>
-                          <p className="font-bold text-[#d97706]">2 of 4 Approvals Complete</p>
-                          <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 3 action before proceeding.</p>
+                          <p className="font-bold text-[#d97706]">{t('requests.approvalsProgress', { count: 2 })}</p>
+                          <p className="text-slate-400 text-[11px] mt-0.5">{t('requests.pendingLevelAction', { level: 3 })}</p>
                         </div>
                       ) : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") ? (
                         <div>
-                          <p className="font-bold text-[#d97706]">1 of 4 Approvals Complete</p>
-                          <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 2 action before proceeding.</p>
+                          <p className="font-bold text-[#d97706]">{t('requests.approvalsProgress', { count: 1 })}</p>
+                          <p className="text-slate-400 text-[11px] mt-0.5">{t('requests.pendingLevelAction', { level: 2 })}</p>
                         </div>
                       ) : (
                         <div>
-                          <p className="font-bold text-[#d97706]">0 of 4 Approvals Complete</p>
-                          <p className="text-slate-400 text-[11px] mt-0.5">Pending Level 1 action before proceeding.</p>
+                          <p className="font-bold text-[#d97706]">{t('requests.approvalsProgress', { count: 0 })}</p>
+                          <p className="text-slate-400 text-[11px] mt-0.5">{t('requests.pendingLevelAction', { level: 1 })}</p>
                         </div>
                       )}
                     </div>
@@ -1293,7 +1299,7 @@ const Requests: React.FC = () => {
                   {/* Payment Proof Card (shown if attachment exists OR status is Paid / Approved) */}
                   {(selectedRequest.paymentAttachment || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed" || isPaid || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "Awaiting Payment Approval") && (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
-                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo</h3>
+                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">{t('requests.paymentTransferPhoto')}</h3>
                       {selectedRequest.paymentAttachment ? (
                         <div className="space-y-3">
                           <div
@@ -1303,8 +1309,8 @@ const Requests: React.FC = () => {
                             {selectedRequest.paymentAttachment.startsWith('data:application/pdf') ? (
                               <div className="w-full py-8 flex flex-col items-center justify-center bg-slate-50 gap-2 transition-transform duration-200 group-hover:scale-[1.02]">
                                 <FileText className="w-16 h-16 text-red-500" />
-                                <span className="text-[13px] font-bold text-slate-700">Payment Proof PDF</span>
-                                <span className="text-[11px] text-slate-400">Click to View PDF Document</span>
+                                <span className="text-[13px] font-bold text-slate-700">{t('requests.paymentProofPdf')}</span>
+                                <span className="text-[11px] text-slate-400">{t('requests.clickToViewPdf')}</span>
                               </div>
                             ) : (
                               <img
@@ -1314,7 +1320,7 @@ const Requests: React.FC = () => {
                               />
                             )}
                             <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-semibold text-[13px] gap-2">
-                              <span>🔍 Click to View Full Size</span>
+                              <span>{t('requests.clickToViewFullSize')}</span>
                             </div>
                           </div>
                           {user?.role !== 'Viewer' && (
@@ -1337,11 +1343,11 @@ const Requests: React.FC = () => {
                                 }}
                                 className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[#e11d48] rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm"
                               >
-                                Delete Proof
+                                {t('requests.deleteProof')}
                               </button>
 
                               <label className="px-3 py-1.5 border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
-                                Change Document
+                                {t('requests.changeDocument')}
                                 <input
                                   type="file"
                                   onChange={async (e) => {
@@ -1379,11 +1385,11 @@ const Requests: React.FC = () => {
                         </div>
                       ) : (
                         <div className="text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-[12px] font-sans">
-                          <p>No payment proof document uploaded yet.</p>
+                          <p>{t('requests.noProofUploaded')}</p>
                           {user?.role !== 'Viewer' && (
                             <div className="mt-3">
                               <label className="px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg font-bold text-[11px] cursor-pointer transition-all inline-block shadow-sm">
-                                Upload Proof (PDF/Image)
+                                {t('requests.uploadProofPdfImg')}
                                 <input
                                   type="file"
                                   onChange={async (e) => {
@@ -1426,33 +1432,33 @@ const Requests: React.FC = () => {
                   {/* Your Decision / Available Operations Card */}
                   {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed" || selectedRequest.status === "Awaiting Payment Approval") ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
-                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">Available Operations</h3>
+                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">{t('requests.availableOperations')}</h3>
                       
                       {selectedRequest.status === "Awaiting Payment Approval" ? (
                         user?.role === 'Super Admin' ? (
                           <div className="space-y-3">
                             <p className="text-[13px] text-[#475569] font-sans text-left leading-relaxed">
-                              Mr. Emad, please review the uploaded payment proof below. If the proof is correct, approve the payment.
+                              {t('requests.reviewPaymentInstructions')}
                             </p>
                             <div className="grid grid-cols-2 gap-4 pt-1">
                               <button
                                 onClick={() => handleRejectPayment()}
                                 className="py-3 bg-red-100 hover:bg-red-200 text-[#b91c1c] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
                               >
-                                Reject Payment
+                                {t('requests.rejectPayment')}
                               </button>
                               <button
                                 onClick={() => handleConfirmPayment()}
                                 className="py-3 bg-[#10b981] text-white hover:bg-[#059669] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
                               >
-                                Approve Payment
+                                {t('requests.approvePayment')}
                               </button>
                             </div>
                           </div>
                         ) : (
                           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-[12.5px] font-medium text-slate-500 font-sans flex items-start gap-2.5 text-left">
                             <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                            <span>Payment proof uploaded and submitted. Awaiting approval from Mr. Emad Moustafa.</span>
+                            <span>{t('requests.awaitingPaymentApprovalNotice')}</span>
                           </div>
                         )
                       ) : (
@@ -1475,10 +1481,10 @@ const Requests: React.FC = () => {
                           >
                             <CreditCard className="w-4 h-4" />
                             {isPaid
-                              ? "Marked as Paid"
+                              ? t('requests.markedAsPaid')
                               : user?.role === 'Super Admin'
-                                ? "Execute Payment"
-                                : "Submit Payment for Approval"}
+                                ? t('requests.executePayment')
+                                : t('requests.submitPaymentForApproval')}
                           </button>
                         )
                       )}
@@ -1489,7 +1495,7 @@ const Requests: React.FC = () => {
                           className="w-full py-2.5 bg-white border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm"
                         >
                           <FileText className="w-4 h-4 text-[#64748b]" />
-                          <span>Send Confirmation</span>
+                          <span>{t('requests.sendConfirmation')}</span>
                         </button>
                       )}
 
@@ -1499,20 +1505,20 @@ const Requests: React.FC = () => {
                           className="py-2 px-3 bg-white border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-xl text-[12px] font-bold text-center cursor-pointer transition-all font-sans flex items-center justify-center gap-1.5 shadow-sm"
                         >
                           <Printer className="w-4 h-4 text-[#64748b]" />
-                          <span>Print Confirmation</span>
+                          <span>{t('requests.printConfirmation')}</span>
                         </button>
                         <button
                           onClick={() => window.print()}
                           className="py-2 px-3 bg-white border border-[#cbd5e1] hover:bg-slate-50 text-[#334155] rounded-xl text-[12px] font-bold text-center cursor-pointer transition-all font-sans flex items-center justify-center gap-1.5 shadow-sm"
                         >
                           <Download className="w-4 h-4 text-[#64748b]" />
-                          <span>Download PDF</span>
+                          <span>{t('requests.downloadPdf')}</span>
                         </button>
                       </div>
                     </div>
                   ) : (selectedRequest.status === "Rejected" && user?.role !== 'Viewer') ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
-                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans text-left">Available Operations</h3>
+                      <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans text-left">{t('requests.availableOperations')}</h3>
                       <button
                         onClick={() => {
                           localStorage.setItem('edit_invoice_no', selectedRequest.invoiceNo);
@@ -1521,14 +1527,14 @@ const Requests: React.FC = () => {
                         className="w-full py-3 border border-[#2563eb] hover:bg-blue-50/50 text-[#2563eb] rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm"
                       >
                         <Edit3 className="w-4 h-4 text-[#2563eb]" />
-                        <span>Edit and Resubmit</span>
+                        <span>{t('requests.editAndResubmit')}</span>
                       </button>
                       <button
                         onClick={() => setShowArchiveConfirm(true)}
                         className="w-full py-3 bg-[#f8fafc] hover:bg-slate-100/80 text-[#64748b] hover:text-[#475569] rounded-xl text-center font-bold text-[13px] font-sans flex items-center justify-center gap-2 cursor-pointer transition-all border border-[#e2e8f0]"
                       >
                         <Archive className="w-4 h-4 text-[#94a3b8]" />
-                        <span>Archive Confirmation</span>
+                        <span>{t('requests.archiveConfirmation')}</span>
                       </button>
                     </div>
                   ) : (
@@ -1536,19 +1542,19 @@ const Requests: React.FC = () => {
                       {/* Warning Blue Info Card */}
                       <div className="bg-[#e0f2fe]/60 border border-[#bae6fd] rounded-2xl p-4 flex items-start gap-2.5 text-[#0369a1] text-[12.5px] font-sans">
                         <span className="text-[14px] mt-0.5">ℹ️</span>
-                        <span className="text-left leading-normal font-medium">Please review all details carefully before making your decision. This action cannot be undone.</span>
+                        <span className="text-left leading-normal font-medium">{t('requests.decisionInfo')}</span>
                       </div>
 
                       {/* Your Decision Card */}
                       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                         <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">
-                          Your Decision (Level {getApprovalPermission(selectedRequest.status, user?.role).level})
+                          {t('requests.yourDecision', { level: getApprovalPermission(selectedRequest.status, user?.role).level })}
                         </h3>
                         <p className="text-[13px] text-[#475569] font-sans leading-relaxed text-left">
-                          {(selectedRequest.status === "0/4 Pending" || selectedRequest.status === "0/3 Pending") && "As the Chief Accountant, please confirm verification of the Requested Confirmation."}
-                          {(selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") && "As the Level 2 Approver, please confirm verification of the Requested Confirmation."}
-                          {(selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") && "As the Umrah Division Director, please confirm verification of the Requested Confirmation."}
-                          {(selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") && "As the Financial Controller, please confirm verification of the Requested Confirmation."}
+                          {(selectedRequest.status === "0/4 Pending" || selectedRequest.status === "0/3 Pending") && t('requests.decisionSubtitle', { role: t('requests.chiefAccountant') })}
+                          {(selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved") && t('requests.decisionSubtitle', { role: t('requests.level2Approvers') })}
+                          {(selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved") && t('requests.decisionSubtitle', { role: t('requests.umrahDivisionDirector') })}
+                          {(selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved") && t('requests.decisionSubtitle', { role: t('requests.financialController') })}
                         </p>
 
                         {!getApprovalPermission(selectedRequest.status, user?.role).canApprove ? (
@@ -1560,11 +1566,11 @@ const Requests: React.FC = () => {
                           <div className="space-y-4">
                             {/* Note field with green Save Note button inside Decision block */}
                             <div className="space-y-2 text-left">
-                              <label className="text-[13px] font-bold text-[#0c0d0f] font-sans block">Note</label>
+                              <label className="text-[13px] font-bold text-[#0c0d0f] font-sans block">{t('requests.approvalNote')}</label>
                               <textarea
                                 value={approvalNoteInput}
                                 onChange={(e) => setApprovalNoteInput(e.target.value)}
-                                placeholder="Write a note for reference..."
+                                placeholder={t('requests.addNotePlaceholder')}
                                 className="w-full px-3.5 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-sans focus:outline-none focus:ring-1 focus:ring-[#f59e0b] focus:border-[#f59e0b] resize-none"
                                 rows={4}
                               />
@@ -1572,7 +1578,7 @@ const Requests: React.FC = () => {
                                 onClick={handleSaveNoteClick}
                                 className="w-full py-2 bg-[#55b986] hover:bg-[#43a072] text-white font-bold rounded-xl text-[12px] transition-all cursor-pointer font-sans text-center shadow-sm"
                               >
-                                Save Note
+                                {t('common.save')} {t('requests.approvalNote')}
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-4 pt-1">
@@ -1580,13 +1586,13 @@ const Requests: React.FC = () => {
                                 onClick={() => handleRejectClick()}
                                 className="py-3 hover:bg-red-200/40 rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans bg-[#fee2e2] text-[#b91c1c]"
                               >
-                                Reject Request
+                                {t('requests.rejectRequest')}
                               </button>
                               <button
                                 onClick={() => handleApprove()}
                                 className="py-3 bg-[#10b981] text-white hover:bg-[#059669] rounded-xl text-[13px] font-semibold text-center cursor-pointer transition-all font-sans"
                               >
-                                Approve & Forward
+                                {t('requests.approveAndSign')}
                               </button>
                             </div>
                           </div>
@@ -1602,10 +1608,10 @@ const Requests: React.FC = () => {
               {/* Welcome Title */}
               <div className="flex flex-col space-y-1">
                 <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
-                  Confirmation Requests
+                  {t('requests.title')}
                 </h1>
                 <p className="text-[13px] text-[#64748b] font-medium font-sans">
-                  Review and approve pending confirmation requests from corporate treasury branches
+                  {t('requests.subtitle')}
                 </p>
               </div>
 
@@ -1619,7 +1625,7 @@ const Requests: React.FC = () => {
                     }`}
                   style={activeTab === "all" ? { backgroundColor: 'rgba(255, 255, 255, 1)', borderColor: 'rgba(245, 158, 11, 1)' } : undefined}
                 >
-                  <span>All Requests</span>
+                  <span>{t('requests.allRequests')}</span>
                   <span
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                     style={activeTab === "all" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
@@ -1636,7 +1642,7 @@ const Requests: React.FC = () => {
                     }`}
                   style={activeTab === "pending" ? { backgroundColor: 'rgba(255, 255, 255, 1)', borderColor: 'rgba(245, 158, 11, 1)' } : undefined}
                 >
-                  <span>Pending</span>
+                  <span>{t('requests.myApprovals')}</span>
                   <span
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                     style={activeTab === "pending" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
@@ -1653,7 +1659,7 @@ const Requests: React.FC = () => {
                     }`}
                   style={activeTab === "approved" ? { backgroundColor: 'rgba(255, 255, 255, 1)', borderColor: 'rgba(245, 158, 11, 1)' } : undefined}
                 >
-                  <span>Approved</span>
+                  <span>{t('requests.approved')}</span>
                   <span
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                     style={activeTab === "approved" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
@@ -1670,7 +1676,7 @@ const Requests: React.FC = () => {
                     }`}
                   style={activeTab === "rejected" ? { backgroundColor: 'rgba(255, 255, 255, 1)', borderColor: 'rgba(245, 158, 11, 1)' } : undefined}
                 >
-                  <span>Rejected</span>
+                  <span>{t('requests.rejected')}</span>
                   <span
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
                   style={activeTab === "rejected" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
@@ -1691,14 +1697,14 @@ const Requests: React.FC = () => {
                     {/* Card Header & Search & Filters */}
                 <div className="p-5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-wrap items-center gap-4">
                   <h2 className="text-[16px] font-bold text-[#0c0d0f] font-inter whitespace-nowrap">
-                    All Confirmation Requests Listing
+                    {t('requests.allRequestsListing')}
                   </h2>
                   
                   {/* Search Bar Input */}
                   <div className="relative w-64">
                     <input
                       type="text"
-                      placeholder="Search Requests / Company"
+                      placeholder={t('requests.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -1718,7 +1724,7 @@ const Requests: React.FC = () => {
                     }}
                     className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
                   >
-                    <option value="">All Companies</option>
+                    <option value="">{t('invoices.allCompanies')}</option>
                     {companiesList.map((c) => (
                       <option key={c} value={c}>
                         {c}
@@ -1735,16 +1741,13 @@ const Requests: React.FC = () => {
                     }}
                     className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
                   >
-                    <option value="">All Statuses</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Cancelled">Cancelled</option>
-                    <option value="Overdue">Overdue</option>
-                    <option value="Cancelled due to overdue">Cancelled due to overdue</option>
-                    <option value="Archived">Archived</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Paid and closed">Paid and closed</option>
+                    <option value="">{t('invoices.allStatuses')}</option>
+                    <option value="Pending">{t('common.statusPending')}</option>
+                    <option value="Approved">{t('common.statusApproved')}</option>
+                    <option value="Rejected">{t('common.statusRejected')}</option>
+                    <option value="Cancelled">{t('common.statusCancelled')}</option>
+                    <option value="Overdue">{t('common.statusOverdue')}</option>
+                    <option value="Paid">{t('common.statusPaid')}</option>
                   </select>
 
                   {/* Date Filter Input */}
@@ -1820,34 +1823,34 @@ const Requests: React.FC = () => {
                     <thead>
                       <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          REQUEST #
+                          {t('hotelReservations.resNo')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          CONFIRMATION #
+                          {t('hotelReservations.confNo')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          COMPANY
+                          {t('companies.companyName')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          CODE
+                          {t('companies.companyCode')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-right whitespace-nowrap">
-                          AMOUNT
+                          {t('common.amount')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          REQUESTED BY
+                          {t('requests.submittedBy')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          INVOICE DATE
+                          {t('dashboard.confDate')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          DUE DATE
+                          {t('dashboard.dueDate')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          APPROVAL STATUS
+                          {t('common.status')}
                         </th>
                         <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          ACTION
+                          {t('common.actions')}
                         </th>
                       </tr>
                     </thead>
@@ -1922,7 +1925,7 @@ const Requests: React.FC = () => {
                                 className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
                                 style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
                               >
-                                {req.submittedDate}
+                                {req.submittedDate ? formatLocalizedDate(req.submittedDate, i18n.language) : '-'}
                               </td>
                               <td
                                 className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
@@ -1937,10 +1940,11 @@ const Requests: React.FC = () => {
                                         const month = parseInt(parts[1]) - 1;
                                         const day = parseInt(parts[2]);
                                         const dObj = new Date(year, month, day);
-                                        return dObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                                        const localeCode = i18n.language === 'id' ? 'id-ID' : i18n.language === 'ar' ? 'ar-SA' : 'en-US';
+                                        return dObj.toLocaleDateString(localeCode, { month: 'short', day: '2-digit', year: 'numeric' });
                                       }
                                     }
-                                    return req.dueDate;
+                                    return formatLocalizedDate(req.dueDate, i18n.language);
                                   }
                                   return 'N/A';
                                 })()}
@@ -1960,7 +1964,7 @@ const Requests: React.FC = () => {
                                   className="inline-flex items-center text-[13px] font-bold text-[#242e69] hover:text-[#f59e0b] hover:underline transition-all cursor-pointer font-inter whitespace-nowrap"
                                   style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
                                 >
-                                  View Details &rarr;
+                                  {t('common.viewDetails')} &rarr;
                                 </button>
                               </td>
                             </tr>
@@ -1974,8 +1978,8 @@ const Requests: React.FC = () => {
                 {totalItems > 0 && (
                   <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] font-sans">
                     <span className="text-[12px] text-[#64748b] font-normal font-sans">
-                      Showing {startRange} to {endRange} of {totalItems}{" "}
-                      {activeTab === "all" ? "total" : activeTab} requests
+                      {t('requests.showing')} {startRange} {t('invoices.to')} {endRange} {t('invoices.of')} {totalItems}{" "}
+                      {t('requests.totalRequests')}
                     </span>
                     <div className="flex items-center space-x-1.5 text-[12px] font-bold font-inter">
                       <button
@@ -1986,7 +1990,7 @@ const Requests: React.FC = () => {
                           : "text-[#475569] hover:bg-gray-50 cursor-pointer"
                           }`}
                       >
-                        Previous
+                        {t('common.previous')}
                       </button>
 
                       {paginationRange.map((page, pageIdx) =>
@@ -2019,7 +2023,7 @@ const Requests: React.FC = () => {
                           : "text-[#475569] hover:bg-gray-50 cursor-pointer"
                           }`}
                       >
-                        Next
+                        {t('common.next')}
                       </button>
                     </div>
                   </div>
@@ -2051,7 +2055,7 @@ const Requests: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo / PDF</h3>
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('requests.paymentPhotoPdf')}</h3>
               <button
                 onClick={() => setViewingProofBase64(null)}
                 className="text-slate-400 hover:text-slate-600 font-bold text-[18px] transition-colors"
@@ -2081,7 +2085,7 @@ const Requests: React.FC = () => {
                   download={`payment-proof-${selectedRequest?.invoiceNo || 'document'}.pdf`}
                   className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans"
                 >
-                  Download PDF
+                  {t('invoices.downloadPdf')}
                 </a>
               ) : (
                 <a
@@ -2089,14 +2093,14 @@ const Requests: React.FC = () => {
                   download={`payment-proof-${selectedRequest?.invoiceNo || 'document'}.jpg`}
                   className="px-4 py-2 bg-[#007aff] hover:bg-[#006ee0] text-white font-bold rounded-lg text-[12px] cursor-pointer transition-all shadow-sm font-sans"
                 >
-                  Download Image
+                  {t('requests.downloadImage')}
                 </a>
               )}
               <button
                 onClick={() => setViewingProofBase64(null)}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[12px] rounded-lg transition-all font-sans cursor-pointer"
               >
-                Close
+                {t('common.close')}
               </button>
             </div>
           </div>
@@ -2114,21 +2118,21 @@ const Requests: React.FC = () => {
               <AlertCircle className="w-6 h-6 text-[#f59e0b]" />
             </div>
             <div className="space-y-1">
-              <h4 className="text-[18px] font-bold text-[#0c0d0f] font-sans">Are you sure?</h4>
-              <p className="text-[13px] text-slate-400 font-sans leading-relaxed">Do you want to mark this as paid?</p>
+              <h4 className="text-[18px] font-bold text-[#0c0d0f] font-sans">{t('requests.areYouSure')}</h4>
+              <p className="text-[13px] text-slate-400 font-sans leading-relaxed">{t('requests.confirmMarkPaid')}</p>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 onClick={() => setShowPaymentConfirm(false)}
                 className="py-2 bg-slate-100 text-slate-600 rounded-lg text-[13px] font-bold hover:bg-slate-200 transition-all cursor-pointer font-sans"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => handleConfirmPayment()}
                 className="py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans"
               >
-                Yes, Confirm
+                {t('requests.yesConfirm')}
               </button>
             </div>
           </div>
@@ -2145,16 +2149,16 @@ const Requests: React.FC = () => {
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Confirmation Marked as Paid!</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">{t('requests.confirmationMarkedAsPaid')}</h3>
               <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
-                The transaction has been successfully recorded.
+                {t('requests.transactionRecorded')}
               </p>
             </div>
             <button
               onClick={() => setShowPaymentSuccess(false)}
               className="w-full py-3 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[14px] font-bold transition-all cursor-pointer font-sans shadow-sm"
             >
-              Done
+              {t('common.close')}
             </button>
           </div>
         </div>
@@ -2170,9 +2174,9 @@ const Requests: React.FC = () => {
               <AlertCircle className="w-6 h-6 text-[#f59e0b]" />
             </div>
             <div className="space-y-1">
-              <h4 className="text-[18px] font-bold text-[#0c0d0f] font-sans">Archive Request?</h4>
+              <h4 className="text-[18px] font-bold text-[#0c0d0f] font-sans">{t('requests.archiveRequestTitle')}</h4>
               <p className="text-[13px] text-slate-400 font-sans leading-relaxed">
-                Are you sure you want to archive this invoice request? This action cannot be undone.
+                {t('requests.archiveRequestDesc')}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-2 font-inter">
@@ -2180,13 +2184,13 @@ const Requests: React.FC = () => {
                 onClick={() => setShowArchiveConfirm(false)}
                 className="py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-200 transition-all cursor-pointer font-sans"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => handleConfirmArchive()}
                 className="py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[13px] font-bold transition-all cursor-pointer font-sans shadow-sm"
               >
-                Yes, Archive
+                {t('requests.yesArchive')}
               </button>
             </div>
           </div>
@@ -2203,9 +2207,9 @@ const Requests: React.FC = () => {
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Confirmation Request Archived!</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">{t('requests.confirmationArchived')}</h3>
               <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
-                The confirmation request has been successfully archived.
+                {t('requests.confirmationArchivedDesc')}
               </p>
             </div>
             <button
@@ -2215,7 +2219,7 @@ const Requests: React.FC = () => {
               }}
               className="w-full py-3 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[14px] font-bold transition-all cursor-pointer font-sans shadow-sm"
             >
-              Done
+              {t('common.close')}
             </button>
           </div>
         </div>
@@ -2228,7 +2232,7 @@ const Requests: React.FC = () => {
         >
           <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-[#e2e8f0]">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f]">Provide Rejection Reason</h3>
+              <h3 className="text-[16px] font-bold text-[#0c0d0f]">{t('requests.provideRejectionReason')}</h3>
               <button
                 onClick={() => setShowRejectModal(false)}
                 className="text-gray-400 hover:text-gray-600 font-bold"
@@ -2237,10 +2241,10 @@ const Requests: React.FC = () => {
               </button>
             </div>
             <div className="space-y-1">
-              <label className="text-[12px] font-semibold text-slate-500">Reason of Rejection</label>
+              <label className="text-[12px] font-semibold text-slate-500">{t('requests.reasonOfRejection')}</label>
               <textarea
                 rows={3}
-                placeholder="Enter the reason why this invoice is rejected..."
+                placeholder={t('requests.rejectionReasonPlaceholder')}
                 value={rejectionReasonInput}
                 onChange={(e) => setRejectionReasonInput(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg p-2.5 text-[13px] focus:outline-none focus:border-amber-500"
@@ -2251,13 +2255,13 @@ const Requests: React.FC = () => {
                 onClick={() => setShowRejectModal(false)}
                 className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-[13px] font-bold hover:bg-slate-200 transition-all cursor-pointer"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleConfirmReject}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-[13px] font-bold hover:bg-red-700 transition-all cursor-pointer"
               >
-                Reject Request
+                {t('requests.rejectRequest')}
               </button>
             </div>
           </div>
@@ -2273,7 +2277,7 @@ const Requests: React.FC = () => {
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
               <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#f59e0b]" />
-                <span>Send Confirmation to Client</span>
+                <span>{t('requests.sendConfirmationToClient')}</span>
               </h3>
               <button
                 onClick={() => setShowSendInvoiceModal(false)}
@@ -2285,11 +2289,11 @@ const Requests: React.FC = () => {
             
             <div className="space-y-3 font-sans">
               <p className="text-[13px] text-slate-500 leading-relaxed">
-                This will automatically generate a beautifully styled HTML confirmation document and send it directly to the customer's billing email.
+                {t('requests.sendConfirmationDesc')}
               </p>
               
               <div className="space-y-1">
-                <label className="text-[12px] font-semibold text-slate-500">Recipient Email Address</label>
+                <label className="text-[12px] font-semibold text-slate-500">{t('requests.recipientEmailAddress')}</label>
                 <input
                   type="email"
                   placeholder="billing@client.com"
@@ -2312,7 +2316,7 @@ const Requests: React.FC = () => {
                 disabled={isSendingEmail}
                 className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-200 transition-all cursor-pointer disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSendInvoiceEmail}
@@ -2322,12 +2326,12 @@ const Requests: React.FC = () => {
                 {isSendingEmail ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Sending...</span>
+                    <span>{t('requests.sending')}</span>
                   </>
                 ) : (
                   <>
                     <FileText className="w-4 h-4" />
-                    <span>Send Email</span>
+                    <span>{t('requests.sendEmail')}</span>
                   </>
                 )}
               </button>
@@ -2346,16 +2350,16 @@ const Requests: React.FC = () => {
               <Check className="w-8 h-8 stroke-[3px]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">Confirmation Sent!</h3>
+              <h3 className="text-[20px] font-bold text-[#0c0d0f] font-sans">{t('requests.confirmationSent')}</h3>
               <p className="text-[14px] text-slate-500 font-sans leading-relaxed">
-                The confirmation email has been successfully sent to <strong>{clientEmailInput}</strong>.
+                {t('requests.confirmationSentDesc')} <strong>{clientEmailInput}</strong>.
               </p>
             </div>
             <button
               onClick={() => setShowSendSuccessModal(false)}
               className="w-full py-3 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-xl text-[14px] font-bold transition-all cursor-pointer font-sans shadow-sm"
             >
-              Done
+              {t('common.close')}
             </button>
           </div>
         </div>

@@ -1,8 +1,15 @@
 import { getPool } from '../config/db.js';
 
 const getAuthBaseUrl = (req) => {
-  return process.env.AUTH_SERVICE_URL || (req ? `${req.protocol}://${req.get('host')}` : 'http://localhost:5001');
+  const isVercel = process.env.VERCEL === '1';
+  if (isVercel && req) {
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host;
+    return `${protocol}://${host}`;
+  }
+  return process.env.AUTH_SERVICE_URL || 'http://localhost:5001';
 };
+
 
 const checkAndCancelOverdueReservations = async (pool) => {
   try {
@@ -432,3 +439,81 @@ export const getHotelPaymentHistory = async (req, res, next) => {
     next(error);
   }
 };
+
+// 8. Send Hotel Reservation Confirmation Email to Client
+export const sendReservationConfirmationEmail = async (req, res, next) => {
+  const { id } = req.params;
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Recipient email is required' });
+    }
+
+    const pool = getPool();
+    const [rows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ? OR reservationNo = ?', [id, id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Hotel reservation not found' });
+    }
+    const resv = rows[0];
+    let rooms = [];
+    try {
+      rooms = typeof resv.rooms === 'string' ? JSON.parse(resv.rooms) : resv.rooms;
+    } catch (e) {}
+
+    let totalAmount = 0;
+    try {
+      totalAmount = rooms.reduce((acc, r) => acc + (parseFloat(r.totalPrice) || (parseFloat(r.pricePerNight || 0) + parseFloat(r.mealRate || 0)) * (r.roomCount || 1) * (r.nights || 1)), 0);
+    } catch (e) {}
+
+    const items = rooms.map(r => ({
+      description: `${r.hotelName || 'Hotel'} - ${r.roomType || 'Standard'} (${r.checkIn || '-'} to ${r.checkOut || '-'}, ${r.nights || 1} nights, ${r.roomCount || 1} rooms, ${r.mealPlan || 'RO'})`,
+      qty: r.roomCount || 1,
+      price: (parseFloat(r.pricePerNight || 0) + parseFloat(r.mealRate || 0)) * (r.nights || 1)
+    }));
+
+    try {
+      const authResp = await fetch(`${getAuthBaseUrl(req)}/api/auth/send-client-invoice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toEmail: email,
+          invoiceDetails: {
+            invoiceNo: resv.reservationNo || resv.invoiceNo,
+            company: resv.companyName || 'Client',
+            companyCode: resv.companyCode || resv.clientCompanyCode || 'ACM',
+            amount: totalAmount,
+            referenceNo: resv.referenceNo || 'REF-HOTEL',
+            serialNo: resv.serialNo || 'SN-HOTEL',
+            dueDate: resv.dueDate || new Date().toISOString().split('T')[0],
+            date: resv.createdAt ? new Date(resv.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            items: items,
+            taxRate: resv.taxRate || 0
+          }
+        })
+      });
+      const data = await authResp.json();
+      if (!authResp.ok) {
+        console.error('Auth service email failed:', data);
+        return res.status(authResp.status || 500).json({
+          success: false,
+          message: data.message || 'Failed to send client email via email service'
+        });
+      }
+    } catch (err) {
+      console.error('Could not contact auth-service for sending email:', err.message);
+      return res.status(500).json({
+        success: false,
+        message: `Failed to connect to email service: ${err.message}`
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Reservation confirmation email successfully sent to ${email}`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
