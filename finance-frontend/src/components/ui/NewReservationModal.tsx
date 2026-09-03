@@ -551,11 +551,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   );
                 })}
               </select>
-              {isCustomClient ? (
-                <div className="flex items-center space-x-1.5 text-[11.5px] text-amber-700 font-semibold bg-amber-50/80 px-2.5 py-1 rounded-md border border-amber-200/60 mt-1">
-                  <span>ℹ️ {t('invoices.customClientInfo') || 'One-Off / Not saved to Master Data'}</span>
-                </div>
-              ) : (
+              {!isCustomClient && (
                 <p className="text-[11.5px] text-slate-400 font-medium">
                   {client.address}{client.cityCountry ? `, ${client.cityCountry}` : ''}
                 </p>
