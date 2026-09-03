@@ -6,9 +6,50 @@ import { useTranslation } from 'react-i18next';
 import { forgotPassword as forgotPasswordAPI } from '../../services/authService';
 import heroSignIn from '../../assets/heroSigin.png';
 import odstLogo from '../../assets/odstlogo.png';
+import saudiFlagImg from '../../assets/saudi-flag.png';
+
+const USFlag: React.FC<{ className?: string }> = ({ className = 'w-4 h-3' }) => (
+  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} viewBox="0 0 640 480">
+    <g fillRule="evenodd">
+      <path fill="#bd3d44" d="M0 0h640v480H0z" />
+      <path stroke="#fff" strokeWidth="37" d="M0 55.4h640M0 129.2h640M0 203h640M0 277h640M0 350.8h640M0 424.6h640" />
+      <path fill="#192f5d" d="M0 0h295.4v258.5H0z" />
+      <g fill="#fff">
+        <circle cx="30" cy="25" r="7" /><circle cx="80" cy="25" r="7" /><circle cx="130" cy="25" r="7" /><circle cx="180" cy="25" r="7" /><circle cx="230" cy="25" r="7" />
+        <circle cx="55" cy="50" r="7" /><circle cx="105" cy="50" r="7" /><circle cx="155" cy="50" r="7" /><circle cx="205" cy="50" r="7" />
+        <circle cx="30" cy="75" r="7" /><circle cx="80" cy="75" r="7" /><circle cx="130" cy="75" r="7" /><circle cx="180" cy="75" r="7" /><circle cx="230" cy="75" r="7" />
+        <circle cx="55" cy="100" r="7" /><circle cx="105" cy="100" r="7" /><circle cx="155" cy="100" r="7" /><circle cx="205" cy="100" r="7" />
+        <circle cx="30" cy="125" r="7" /><circle cx="80" cy="125" r="7" /><circle cx="130" cy="125" r="7" /><circle cx="180" cy="125" r="7" /><circle cx="230" cy="125" r="7" />
+      </g>
+    </g>
+  </svg>
+);
+
+const IDFlag: React.FC<{ className?: string }> = ({ className = 'w-4 h-3' }) => (
+  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 border border-slate-200`} viewBox="0 0 640 480">
+    <g fillRule="evenodd">
+      <path fill="#e70011" d="M0 0h640v240H0z" />
+      <path fill="#ffffff" d="M0 240h640v240H0z" />
+    </g>
+  </svg>
+);
+
+const SAFlag: React.FC<{ className?: string }> = ({ className = 'w-4 h-3' }) => (
+  <img 
+    src={saudiFlagImg} 
+    alt="Saudi Arabia Flag" 
+    className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} 
+  />
+);
+
+const languages = [
+  { code: 'en', label: 'English', short: 'EN', Flag: USFlag },
+  { code: 'id', label: 'Bahasa Indonesia', short: 'ID', Flag: IDFlag },
+  { code: 'ar', label: 'العربية', short: 'AR', Flag: SAFlag }
+];
 
 const Login: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [view, setView] = useState<'login' | 'forgot'>('login');
   const [email, setEmail] = useState(() => {
     return localStorage.getItem('rememberedEmail') || '';
@@ -38,12 +79,11 @@ const Login: React.FC = () => {
 
   const validateEmail = (val: string) => {
     if (!val) {
-      return 'Email or phone number is required';
+      return t('auth.emailOrPhoneRequired');
     }
-    // Simple email regex validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(val)) {
-      return 'Please enter a valid email address';
+      return t('auth.validEmailRequired');
     }
     return null;
   };
@@ -56,7 +96,6 @@ const Login: React.FC = () => {
 
     let hasError = false;
 
-    // Custom validations
     const mailErr = validateEmail(email);
     if (mailErr) {
       setEmailError(mailErr);
@@ -64,7 +103,7 @@ const Login: React.FC = () => {
     }
 
     if (!password) {
-      setPasswordError('Password is required');
+      setPasswordError(t('auth.passwordRequired'));
       hasError = true;
     }
 
@@ -92,7 +131,7 @@ const Login: React.FC = () => {
         }
       }
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Invalid credentials. Please try again.';
+      const errMsg = err.response?.data?.message || t('auth.invalidCredentials');
       setError(errMsg);
     } finally {
       setLoading(false);
@@ -105,7 +144,7 @@ const Login: React.FC = () => {
     setForgotSuccess(false);
 
     if (!forgotEmail) {
-      setForgotError('Please enter your email address');
+      setForgotError(t('auth.enterEmailRequired'));
       return;
     }
 
@@ -116,12 +155,36 @@ const Login: React.FC = () => {
         setForgotSuccess(true);
       }
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Failed to send reset link. Please try again.';
+      const errMsg = err.response?.data?.message || t('auth.failedToSendResetLink');
       setForgotError(errMsg);
     } finally {
       setForgotLoading(false);
     }
   };
+
+  const renderLanguageSwitcher = () => (
+    <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 rounded-full p-0.5">
+      {languages.map((lang) => {
+        const active = (i18n.language || 'en').startsWith(lang.code);
+        return (
+          <button
+            key={lang.code}
+            type="button"
+            onClick={() => i18n.changeLanguage(lang.code)}
+            className={`flex items-center space-x-1 px-2 py-0.5 rounded-full text-[11px] font-semibold transition-all ${
+              active
+                ? 'bg-white text-[#007aff] shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+            title={lang.label}
+          >
+            <lang.Flag className="w-3.5 h-2.5" />
+            <span>{lang.short}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen w-full bg-white select-none overflow-hidden">
@@ -139,16 +202,17 @@ const Login: React.FC = () => {
         {view === 'login' ? (
           <form onSubmit={handleSubmit} className="w-[78%] max-w-[320px] mx-auto flex flex-col flex-1 justify-between" noValidate>
             <div className="flex flex-col space-y-6">
-              {/* Logo */}
-              <div className="flex justify-start">
+              {/* Logo & Language Switcher */}
+              <div className="flex items-center justify-between">
                 <img
                   src={odstLogo}
                   alt="DST Logo"
                   className="h-10 w-auto object-contain"
                 />
+                {renderLanguageSwitcher()}
               </div>
 
-               {error && (
+              {error && (
                 <div className="flex items-center space-x-2.5 p-3 bg-[#fef2f2] border border-[#fca5a5] text-[#ef4444] rounded-[6px] text-[12px] font-medium font-inter animate-fade-in">
                   <AlertCircle className="w-[18px] h-[18px] text-[#ef4444] flex-shrink-0" />
                   <span>{error}</span>
@@ -275,13 +339,14 @@ const Login: React.FC = () => {
         ) : forgotSuccess ? (
           <div className="w-[78%] max-w-[320px] mx-auto flex flex-col flex-1 justify-between animate-fade-in">
             <div className="flex flex-col space-y-6">
-              {/* Logo */}
-              <div className="flex justify-start">
+              {/* Logo & Language Switcher */}
+              <div className="flex items-center justify-between">
                 <img
                   src={odstLogo}
                   alt="DST Logo"
                   className="h-10 w-auto object-contain"
                 />
+                {renderLanguageSwitcher()}
               </div>
 
               {/* Green Checkmark Circle */}
@@ -294,10 +359,10 @@ const Login: React.FC = () => {
               {/* Title & Description */}
               <div className="space-y-3">
                 <h2 className="text-[20px] font-semibold text-[#0c0d0f] font-sans tracking-tight">
-                  Check your email
+                  {t('auth.checkYourEmail')}
                 </h2>
                 <p className="text-[12px] text-[#75777c] font-normal font-sans leading-relaxed">
-                  We've sent a password reset link to <strong className="text-[#0c0d0f] font-semibold">{forgotEmail}</strong>. The link will expire in 30 minutes.
+                  {t('auth.resetLinkSent', { email: forgotEmail })}
                 </p>
               </div>
             </div>
@@ -314,17 +379,17 @@ const Login: React.FC = () => {
                 }}
                 className="w-full py-2.5 bg-[#007aff] text-white font-semibold rounded-[6px] hover:bg-[#006ee0] active:scale-[0.99] transition-all text-[14px] font-roboto text-center"
               >
-                Back to Sign In
+                {t('auth.backToSignIn')}
               </button>
               <div className="pt-2 text-center text-[12px] text-[#75777c] font-normal font-sans">
-                Didn't receive the email?{' '}
+                {t('auth.didntReceiveEmail')}{' '}
                 <button
                   type="button"
                   onClick={handleForgotSubmit}
                   disabled={forgotLoading}
                   className="text-[#007aff] font-bold underline hover:text-[#006ee0] focus:outline-none transition-all ml-1"
                 >
-                  {forgotLoading ? 'Resending...' : 'Resend'}
+                  {forgotLoading ? t('auth.resending') : t('auth.resend')}
                 </button>
               </div>
             </div>
@@ -332,13 +397,14 @@ const Login: React.FC = () => {
         ) : (
           <form onSubmit={handleForgotSubmit} className="w-[78%] max-w-[320px] mx-auto flex flex-col flex-1 justify-between animate-fade-in" noValidate>
             <div className="flex flex-col space-y-6">
-              {/* Logo */}
-              <div className="flex justify-start">
+              {/* Logo & Language Switcher */}
+              <div className="flex items-center justify-between">
                 <img
                   src={odstLogo}
                   alt="DST Logo"
                   className="h-10 w-auto object-contain"
                 />
+                {renderLanguageSwitcher()}
               </div>
 
               {forgotError && (
@@ -351,10 +417,10 @@ const Login: React.FC = () => {
               {/* Greeting / Reset Title */}
               <div className="space-y-2">
                 <h2 className="text-[20px] font-semibold text-[#0c0d0f] font-sans tracking-tight">
-                  Reset your password
+                  {t('auth.resetPasswordTitle')}
                 </h2>
                 <p className="text-[12px] text-[#75777c] font-normal font-sans leading-relaxed">
-                  Enter your email address and we'll send you a reset link.
+                  {t('auth.resetPasswordDesc')}
                 </p>
               </div>
 
@@ -363,11 +429,11 @@ const Login: React.FC = () => {
                 {/* Email Address Input */}
                 <div className="flex flex-col space-y-1.5 font-inter">
                   <label className="text-[11px] font-medium text-[#75777c] tracking-wide">
-                    Email Address
+                    {t('auth.emailAddress')}
                   </label>
                   <input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t('auth.enterEmail')}
                     value={forgotEmail}
                     onChange={(e) => {
                       setForgotEmail(e.target.value);
@@ -388,7 +454,7 @@ const Login: React.FC = () => {
                 disabled={forgotLoading || forgotSuccess}
                 className="w-full py-2.5 bg-[#007aff] text-white font-semibold rounded-[6px] hover:bg-[#006ee0] active:scale-[0.99] disabled:bg-[#a0cfff] disabled:cursor-not-allowed transition-all text-[14px] font-roboto"
               >
-                {forgotLoading ? 'Sending...' : 'Send Reset Link'}
+                {forgotLoading ? t('auth.sending') : t('auth.sendResetLink')}
               </button>
               <div className="pt-2 text-center">
                 <button
@@ -399,7 +465,7 @@ const Login: React.FC = () => {
                   }}
                   className="text-[13px] text-[#007aff] font-medium underline hover:text-[#006ee0] focus:outline-none transition-all"
                 >
-                  Back to Sign In
+                  {t('auth.backToSignIn')}
                 </button>
               </div>
             </div>

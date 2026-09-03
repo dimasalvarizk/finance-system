@@ -1,11 +1,54 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, AlertCircle, Check } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { resetPassword as resetPasswordAPI } from '../../services/authService';
 import heroSignIn from '../../assets/heroSigin.png';
 import odstLogo from '../../assets/odstlogo.png';
+import saudiFlagImg from '../../assets/saudi-flag.png';
+
+const USFlag: React.FC<{ className?: string }> = ({ className = 'w-4 h-3' }) => (
+  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} viewBox="0 0 640 480">
+    <g fillRule="evenodd">
+      <path fill="#bd3d44" d="M0 0h640v480H0z" />
+      <path stroke="#fff" strokeWidth="37" d="M0 55.4h640M0 129.2h640M0 203h640M0 277h640M0 350.8h640M0 424.6h640" />
+      <path fill="#192f5d" d="M0 0h295.4v258.5H0z" />
+      <g fill="#fff">
+        <circle cx="30" cy="25" r="7" /><circle cx="80" cy="25" r="7" /><circle cx="130" cy="25" r="7" /><circle cx="180" cy="25" r="7" /><circle cx="230" cy="25" r="7" />
+        <circle cx="55" cy="50" r="7" /><circle cx="105" cy="50" r="7" /><circle cx="155" cy="50" r="7" /><circle cx="205" cy="50" r="7" />
+        <circle cx="30" cy="75" r="7" /><circle cx="80" cy="75" r="7" /><circle cx="130" cy="75" r="7" /><circle cx="180" cy="75" r="7" /><circle cx="230" cy="75" r="7" />
+        <circle cx="55" cy="100" r="7" /><circle cx="105" cy="100" r="7" /><circle cx="155" cy="100" r="7" /><circle cx="205" cy="100" r="7" />
+        <circle cx="30" cy="125" r="7" /><circle cx="80" cy="125" r="7" /><circle cx="130" cy="125" r="7" /><circle cx="180" cy="125" r="7" /><circle cx="230" cy="125" r="7" />
+      </g>
+    </g>
+  </svg>
+);
+
+const IDFlag: React.FC<{ className?: string }> = ({ className = 'w-4 h-3' }) => (
+  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 border border-slate-200`} viewBox="0 0 640 480">
+    <g fillRule="evenodd">
+      <path fill="#e70011" d="M0 0h640v240H0z" />
+      <path fill="#ffffff" d="M0 240h640v240H0z" />
+    </g>
+  </svg>
+);
+
+const SAFlag: React.FC<{ className?: string }> = ({ className = 'w-4 h-3' }) => (
+  <img 
+    src={saudiFlagImg} 
+    alt="Saudi Arabia Flag" 
+    className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} 
+  />
+);
+
+const languages = [
+  { code: 'en', label: 'English', short: 'EN', Flag: USFlag },
+  { code: 'id', label: 'Bahasa Indonesia', short: 'ID', Flag: IDFlag },
+  { code: 'ar', label: 'العربية', short: 'AR', Flag: SAFlag }
+];
 
 const ResetPassword: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,20 +74,20 @@ const ResetPassword: React.FC = () => {
     let hasError = false;
 
     if (!token) {
-      setError('Password reset token is missing. Please request a new link.');
+      setError(t('auth.tokenMissing'));
       return;
     }
 
     if (!password) {
-      setPasswordError('Password is required');
+      setPasswordError(t('auth.passwordRequired'));
       hasError = true;
     } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setPasswordError(t('auth.passwordMinLength'));
       hasError = true;
     }
 
     if (password !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
+      setConfirmPasswordError(t('auth.passwordsDoNotMatch'));
       hasError = true;
     }
 
@@ -57,12 +100,36 @@ const ResetPassword: React.FC = () => {
         setSuccess(true);
       }
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Failed to reset password. Token may be invalid or expired.';
+      const errMsg = err.response?.data?.message || t('auth.failedToResetPassword');
       setError(errMsg);
     } finally {
       setLoading(false);
     }
   };
+
+  const renderLanguageSwitcher = () => (
+    <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 rounded-full p-0.5">
+      {languages.map((lang) => {
+        const active = (i18n.language || 'en').startsWith(lang.code);
+        return (
+          <button
+            key={lang.code}
+            type="button"
+            onClick={() => i18n.changeLanguage(lang.code)}
+            className={`flex items-center space-x-1 px-2 py-0.5 rounded-full text-[11px] font-semibold transition-all ${
+              active
+                ? 'bg-white text-[#007aff] shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+            title={lang.label}
+          >
+            <lang.Flag className="w-3.5 h-2.5" />
+            <span>{lang.short}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen w-full bg-white select-none overflow-hidden">
@@ -80,13 +147,14 @@ const ResetPassword: React.FC = () => {
         {success ? (
           <div className="w-[78%] max-w-[320px] mx-auto flex flex-col flex-1 justify-between animate-fade-in">
             <div className="flex flex-col space-y-6">
-              {/* Logo */}
-              <div className="flex justify-start">
+              {/* Logo & Language Switcher */}
+              <div className="flex items-center justify-between">
                 <img
                   src={odstLogo}
                   alt="DST Logo"
                   className="h-10 w-auto object-contain"
                 />
+                {renderLanguageSwitcher()}
               </div>
 
               {/* Green Checkmark Circle */}
@@ -99,10 +167,10 @@ const ResetPassword: React.FC = () => {
               {/* Title & Description */}
               <div className="space-y-3">
                 <h2 className="text-[20px] font-semibold text-[#0c0d0f] font-sans tracking-tight">
-                  Password Reset Complete
+                  {t('auth.resetCompleteTitle')}
                 </h2>
                 <p className="text-[12px] text-[#75777c] font-normal font-sans leading-relaxed">
-                  Your password has been successfully reset. You can now use your new password to sign in.
+                  {t('auth.resetCompleteDesc')}
                 </p>
               </div>
             </div>
@@ -114,20 +182,21 @@ const ResetPassword: React.FC = () => {
                 onClick={() => navigate('/')}
                 className="w-full py-2.5 bg-[#007aff] text-white font-semibold rounded-[6px] hover:bg-[#006ee0] active:scale-[0.99] transition-all text-[14px] font-roboto text-center"
               >
-                Back to Sign In
+                {t('auth.backToSignIn')}
               </button>
             </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="w-[78%] max-w-[320px] mx-auto flex flex-col flex-1 justify-between animate-fade-in" noValidate>
             <div className="flex flex-col space-y-6">
-              {/* Logo */}
-              <div className="flex justify-start">
+              {/* Logo & Language Switcher */}
+              <div className="flex items-center justify-between">
                 <img
                   src={odstLogo}
                   alt="DST Logo"
                   className="h-10 w-auto object-contain"
                 />
+                {renderLanguageSwitcher()}
               </div>
 
               {error && (
@@ -140,10 +209,10 @@ const ResetPassword: React.FC = () => {
               {/* Reset Title */}
               <div className="space-y-2">
                 <h2 className="text-[20px] font-semibold text-[#0c0d0f] font-sans tracking-tight">
-                  Create new password
+                  {t('auth.createNewPassword')}
                 </h2>
                 <p className="text-[12px] text-[#75777c] font-normal font-sans leading-relaxed">
-                  Please enter your new password below.
+                  {t('auth.enterNewPasswordDesc')}
                 </p>
               </div>
 
@@ -152,12 +221,12 @@ const ResetPassword: React.FC = () => {
                 {/* New Password Input */}
                 <div className="flex flex-col space-y-1.5 font-inter">
                   <label className="text-[11px] font-medium text-[#75777c] tracking-wide">
-                    New Password
+                    {t('auth.newPassword')}
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter new password"
+                      placeholder={t('auth.enterNewPassword')}
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
@@ -189,12 +258,12 @@ const ResetPassword: React.FC = () => {
                 {/* Confirm Password Input */}
                 <div className="flex flex-col space-y-1.5 font-inter">
                   <label className="text-[11px] font-medium text-[#75777c] tracking-wide">
-                    Confirm Password
+                    {t('auth.confirmPassword')}
                   </label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm new password"
+                      placeholder={t('auth.confirmNewPassword')}
                       value={confirmPassword}
                       onChange={(e) => {
                         setConfirmPassword(e.target.value);
@@ -232,7 +301,7 @@ const ResetPassword: React.FC = () => {
                 disabled={loading}
                 className="w-full py-2.5 bg-[#007aff] text-white font-semibold rounded-[6px] hover:bg-[#006ee0] active:scale-[0.99] disabled:bg-[#a0cfff] disabled:cursor-not-allowed transition-all text-[14px] font-roboto"
               >
-                {loading ? 'Resetting...' : 'Reset Password'}
+                {loading ? t('auth.resetting') : t('auth.resetPassword')}
               </button>
               <div className="pt-2 text-center">
                 <button
@@ -240,7 +309,7 @@ const ResetPassword: React.FC = () => {
                   onClick={() => navigate('/')}
                   className="text-[13px] text-[#007aff] font-medium underline hover:text-[#006ee0] focus:outline-none transition-all"
                 >
-                  Back to Sign In
+                  {t('auth.backToSignIn')}
                 </button>
               </div>
             </div>
