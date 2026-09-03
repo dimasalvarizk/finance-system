@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../services/authService';
 import notificationSound from '../../assets/notification.mp3';
+import saudiFlagImg from '../../assets/saudi-flag.png';
 
 const USFlag: React.FC<{ className?: string }> = ({ className = 'w-5 h-3.5' }) => (
   <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} viewBox="0 0 640 480">
@@ -51,17 +52,11 @@ const IDFlag: React.FC<{ className?: string }> = ({ className = 'w-5 h-3.5' }) =
 );
 
 const SAFlag: React.FC<{ className?: string }> = ({ className = 'w-5 h-3.5' }) => (
-  <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0`} viewBox="0 0 640 480">
-    <g fillRule="evenodd">
-      <path fill="#006c35" d="M0 0h640v480H0z"/>
-      <g fill="#ffffff">
-        <path d="M190 285h260v12H190zm20-15l-15 21 15 21v-42zm220 0v42l15-21-15-21z"/>
-        <text x="320" y="240" fontSize="72" fontWeight="bold" fontFamily="serif" textAnchor="middle" fill="#ffffff">
-          لا إله إلا الله
-        </text>
-      </g>
-    </g>
-  </svg>
+  <img 
+    src={saudiFlagImg} 
+    alt="Saudi Arabia Flag" 
+    className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} 
+  />
 );
 
 const LANGUAGES = [
