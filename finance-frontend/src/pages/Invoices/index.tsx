@@ -1275,19 +1275,31 @@ const Invoices: React.FC = () => {
   }, [filteredInvoices, totalPages, currentPage]);
 
   // Stats calculation
-  const approvedCount = invoices.filter(inv => inv && (inv.status === 'Approved' || inv.status === '3/3 Approved' || inv.status === '4/4 Approved' || inv.status === 'Paid' || inv.status === 'Paid and closed')).length;
-  const pendingCount = invoices.filter(inv => inv && inv.status && (
-    inv.status === 'Pending' || 
-    inv.status === 'Pending Review' || 
-    inv.status === '0/3 Pending' || 
-    inv.status === '1/3 Approved' || 
-    inv.status === '2/3 Approved' || 
-    inv.status === '0/4 Pending' || 
-    inv.status === '1/4 Approved' || 
-    inv.status === '2/4 Approved' || 
-    inv.status === '3/4 Approved'
-  )).length;
-  const overdueInvoicesList = invoices.filter(inv => inv && (inv.status === 'Overdue' || inv.status === 'Cancelled due to overdue' || isInvoiceOverdue(inv) || inv.status === 'Rejected'));
+  const approvedCount = invoices.filter(inv => {
+    if (!inv || !inv.status) return false;
+    const st = String(inv.status).toLowerCase();
+    return st === 'approved' ||
+      st === '3/3 approved' ||
+      st === '4/4 approved' ||
+      st === 'paid' ||
+      st === 'fully paid' ||
+      st === 'fully_paid' ||
+      st === 'paid and closed' ||
+      st.includes('partial') ||
+      st.includes('deposit');
+  }).length;
+
+  const pendingCount = invoices.filter(inv => {
+    if (!inv || !inv.status) return false;
+    const st = String(inv.status).toLowerCase();
+    return (st.includes('pending') || st === 'pending review' || st === '0/3 pending' || st === '1/3 approved' || st === '2/3 approved' || st === '0/4 pending' || st === '1/4 approved' || st === '2/4 approved' || st === '3/4 approved') && !st.includes('partial') && !st.includes('deposit');
+  }).length;
+
+  const overdueInvoicesList = invoices.filter(inv => {
+    if (!inv) return false;
+    const st = String(inv.status || '').toLowerCase();
+    return st === 'overdue' || st === 'cancelled due to overdue' || isInvoiceOverdue(inv) || st === 'rejected';
+  });
   const overdueCount = overdueInvoicesList.length;
 
   const totalOverdueAmountUSD = overdueInvoicesList.reduce((sum, inv) => {
