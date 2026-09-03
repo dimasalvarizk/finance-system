@@ -1,351 +1,894 @@
 import fs from 'fs';
 import path from 'path';
-import PDFDocument from 'pdfkit';
+import puppeteer from 'puppeteer-core';
+
+const getBrowserPath = () => {
+  const paths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
+  ];
+  for (const p of paths) {
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+};
+
+const formatDateDMY = (dateStr) => {
+  if (!dateStr) return '';
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return dateStr;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 
 /**
- * Generate a pixel-matched official PDF matching ReservationConfirmationPrint & HotelReservationPrint.
+ * 1. Generate HTML for Invoices / General Confirmation matching ReservationConfirmationPrint.tsx
  */
-export const generateInvoicePdfBuffer = (invoiceDetails, companySettings = {}) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({
-        size: 'A4', // 595.28 x 841.89
-        margins: { top: 34, bottom: 30, left: 34, right: 34 },
-        info: {
-          Title: `${invoiceDetails.invoiceNo || 'Document'} - Reservation Confirmation`,
-          Author: 'PT. ODST AIRLINES INDO',
-          Subject: 'Official Financial Confirmation'
-        }
-      });
+const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) => {
+  const {
+    invoiceNo = 'AIT-0831-002',
+    company = 'Asia Tour',
+    amount = '2,200.00 SAR',
+    referenceNo = 'REF-0987-189',
+    serialNo = 'SN-456523',
+    dueDate = '09/07/2026',
+    date = '2026-08-31',
+    items = [],
+    taxRate = 0,
+    currency = 'SAR'
+  } = details;
 
-      const buffers = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-      doc.on('error', (err) => reject(err));
+  const formattedDate = formatDateDMY(date) || '25/08/2026';
+  const formattedDueDate = formatDateDMY(dueDate) || '09/07/2026';
 
-      const {
-        invoiceNo = 'AIT-0831-002',
-        company = 'Asia Tour',
-        companyCode = 'ACM',
-        amount = '2,200.00 SAR',
-        referenceNo = 'REF-0987-189',
-        serialNo = 'SN-456523',
-        dueDate = '09/07/2026',
-        date = '2026-08-31',
-        items = [],
-        taxRate = 0,
-        currency = 'SAR',
-        usdToIdrRate = 18025,
-        sarToIdrRate = 4800,
-        documentType = ''
-      } = invoiceDetails;
+  const rate = Number(taxRate) || 0;
+  let subtotalNum = 0;
+  if (items && Array.isArray(items) && items.length > 0) {
+    subtotalNum = items.reduce((acc, it) => acc + (Number(it.qty) || 1) * (Number(it.price) || 0), 0);
+  } else {
+    subtotalNum = 2200;
+  }
+  const taxNum = subtotalNum * (rate / 100);
+  const totalNum = subtotalNum + taxNum;
 
-      const isHotel = (documentType && documentType.toLowerCase().includes('hotel')) || invoiceNo.startsWith('RES-') || invoiceNo.startsWith('HR-') || invoiceNo.startsWith('HM-');
+  const curr = (currency || 'SAR').toUpperCase().includes('SAR') || amount.includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
+  const subtotalFormatted = `${subtotalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
+  const taxFormatted = `${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
+  const totalFormatted = `${totalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
 
-      const pageW = doc.page.width; // 595.28
-      const margin = 34;
-      const contentW = pageW - margin * 2; // 527.28
+  let itemsHtml = '';
+  if (items && Array.isArray(items) && items.length > 0) {
+    items.forEach((it) => {
+      const q = Number(it.qty) || 1;
+      const p = Number(it.price) || 0;
+      const tot = (q * p).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const up = p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      itemsHtml += `
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 11px 14px; font-weight: 700; color: #1e293b; font-size: 9.5px;">${it.description || '-'}</td>
+          <td style="padding: 11px 14px; text-align: center; color: #334155; font-size: 9px;">${q}</td>
+          <td style="padding: 11px 14px; text-align: right; color: #334155; font-size: 9.5px;">${up} ${curr}</td>
+          <td style="padding: 11px 14px; text-align: right; font-weight: 700; color: #0f172a; font-size: 10px;">${tot} ${curr}</td>
+        </tr>
+      `;
+    });
+  } else {
+    itemsHtml = `
+      <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 11px 14px; font-weight: 700; color: #1e293b; font-size: 9.5px;">Manasik External Agent Activation</td>
+        <td style="padding: 11px 14px; text-align: center; color: #334155; font-size: 9px;">1</td>
+        <td style="padding: 11px 14px; text-align: right; color: #334155; font-size: 9.5px;">2,000.00 SAR</td>
+        <td style="padding: 11px 14px; text-align: right; font-weight: 700; color: #0f172a; font-size: 10px;">2,000.00 SAR</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 11px 14px; font-weight: 700; color: #1e293b; font-size: 9.5px;">System Activation</td>
+        <td style="padding: 11px 14px; text-align: center; color: #334155; font-size: 9px;">1</td>
+        <td style="padding: 11px 14px; text-align: right; color: #334155; font-size: 9.5px;">200.00 SAR</td>
+        <td style="padding: 11px 14px; text-align: right; font-weight: 700; color: #0f172a; font-size: 10px;">200.00 SAR</td>
+      </tr>
+    `;
+  }
 
-      // =========================================================================
-      // 1. TOP HEADER (Logo + Address on Left, Title + Meta on Right)
-      // =========================================================================
-      const headerStartY = 34;
-      const logoPath = path.join(process.cwd(), 'assets', 'odstlogo.png');
-
-      if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, margin, headerStartY, { width: 105 });
-      } else {
-        doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('ODST', margin, headerStartY);
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>${invoiceNo} - Reservation Confirmation</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
-
-      // Address text under logo
-      doc.fillColor('#94a3b8')
-        .fontSize(7)
-        .font('Helvetica')
-        .text('Graha Al Badgel\nJl. Hajjah Tutty Alawiyah No.7, RT.2/RW.5, Kalibata, Kec.\nPancoran, Kota Jakarta Selatan, Daerah Khusus Ibukota\nJakarta, Indonesia 12740', margin, headerStartY + 38, { lineGap: 1.5 });
-
-      // Title on Top Right
-      const rightColX = margin + contentW / 2;
-      const rightColW = contentW / 2;
-
-      if (isHotel) {
-        doc.fillColor('#0f172a')
-          .fontSize(18)
-          .font('Helvetica-Bold')
-          .text('HOTEL\nRESERVATION', rightColX, headerStartY, { width: rightColW, align: 'right', lineGap: 1 });
-      } else {
-        doc.fillColor('#0f172a')
-          .fontSize(18)
-          .font('Helvetica-Bold')
-          .text('RESERVATION\nCONFIRMATION', rightColX, headerStartY, { width: rightColW, align: 'right', lineGap: 1 });
+      @page {
+        size: A4 portrait;
+        margin: 0;
       }
-
-      // Metadata on Right
-      const metaY = headerStartY + 45;
-      const metaLabelW = 80;
-      const metaValW = 90;
-      const metaStartX = pageW - margin - metaLabelW - metaValW;
-
-      doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('Reservation No:', metaStartX, metaY, { width: metaLabelW, align: 'right' });
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(invoiceNo, metaStartX + metaLabelW + 5, metaY, { width: metaValW, align: 'right' });
-
-      doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('Reference:', metaStartX, metaY + 11, { width: metaLabelW, align: 'right' });
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica').text(referenceNo || '-', metaStartX + metaLabelW + 5, metaY + 11, { width: metaValW, align: 'right' });
-
-      doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('Serial:', metaStartX, metaY + 22, { width: metaLabelW, align: 'right' });
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica').text(serialNo || '-', metaStartX + metaLabelW + 5, metaY + 22, { width: metaValW, align: 'right' });
-
-      // Header bottom border line
-      const headerEndY = 118;
-      doc.strokeColor('#e2e8f0').lineWidth(0.75).moveTo(margin, headerEndY).lineTo(pageW - margin, headerEndY).stroke();
-
-      // =========================================================================
-      // 2. BILL FROM & BILL TO BOXES
-      // =========================================================================
-      const boxY = headerEndY + 10;
-      const boxW = (contentW - 12) / 2;
-      const boxH = 68;
-
-      // Section Headings
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('BILL FROM', margin, boxY);
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('BILL TO', margin + boxW + 12, boxY);
-
-      const cardY = boxY + 12;
-
-      // Bill From Box Background
-      doc.roundedRect(margin, cardY, boxW, boxH, 6).fillAndStroke('#f8fafc', '#e2e8f0');
-      // Bill To Box Background
-      doc.roundedRect(margin + boxW + 12, cardY, boxW, boxH, 6).fillAndStroke('#f8fafc', '#e2e8f0');
-
-      // Bill From Content (2 Sub-columns)
-      const subColW = (boxW - 16) / 2;
-      const bFromLeftX = margin + 8;
-      const bFromRightX = margin + 8 + subColW;
-
-      // Left column inside Bill From
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Employee Name', bFromLeftX, cardY + 7);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text('Aulia Azzha', bFromLeftX, cardY + 15, { width: subColW - 4, ellipsis: true });
-
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Employee ID', bFromLeftX, cardY + 27);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text('250104', bFromLeftX, cardY + 35);
-
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Entity / Company', bFromLeftX, cardY + 47);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(companySettings.companyName || 'PT.ODST AIRLINES INDO', bFromLeftX, cardY + 55, { width: subColW - 4, ellipsis: true });
-
-      // Right column inside Bill From
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Company Number', bFromRightX, cardY + 7);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(companySettings.phone || '+62 811 1202 338', bFromRightX, cardY + 15, { width: subColW - 4, ellipsis: true });
-
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Company Email', bFromRightX, cardY + 27);
-      doc.fillColor('#0f172a').fontSize(7).font('Helvetica-Bold').text('mcfc.nabilah@gmail.com', bFromRightX, cardY + 35, { width: subColW - 4, ellipsis: true });
-
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Company Tax Number', bFromRightX, cardY + 47);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(companySettings.taxNumber || '0000-0000-0001', bFromRightX, cardY + 55);
-
-      // Bill To Content
-      const bToX = margin + boxW + 20;
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Company Name', bToX, cardY + 7);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(company, bToX, cardY + 15, { width: subColW - 4, ellipsis: true });
-
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Company Tax Number', bToX + subColW, cardY + 7);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text('02.271.015.6-407.000', bToX + subColW, cardY + 15);
-
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Agent Details', bToX, cardY + 26);
-      doc.fillColor('#d97706').fontSize(7).font('Helvetica-Bold').text('Agent: ODST Travel & Tourism', bToX, cardY + 34);
-
-      doc.fillColor('#94a3b8').fontSize(6.5).font('Helvetica').text('Street Address', bToX, cardY + 43);
-      doc.fillColor('#334155').fontSize(6.5).font('Helvetica').text('Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur', bToX, cardY + 51, { width: boxW - 16, ellipsis: true });
-
-      doc.fillColor('#334155').fontSize(6.5).font('Helvetica').text('Bekasi, 17113, Indonesia', bToX, cardY + 59);
-
-      // =========================================================================
-      // 3. ITEMIZED CHARGES TABLE
-      // =========================================================================
-      const tableStartY = cardY + boxH + 12;
-
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('ITEMIZED CHARGES', margin, tableStartY);
-
-      const tHeaderY = tableStartY + 12;
-      const tHeaderH = 18;
-
-      // Table Header Row
-      doc.roundedRect(margin, tHeaderY, contentW, tHeaderH, 4).fillAndStroke('#f8fafc', '#e2e8f0');
-
-      doc.fillColor('#64748b')
-        .fontSize(6.5)
-        .font('Helvetica-Bold')
-        .text('DESCRIPTION', margin + 10, tHeaderY + 5)
-        .text('QTY', margin + 310, tHeaderY + 5, { width: 35, align: 'center' })
-        .text('UNIT PRICE', margin + 355, tHeaderY + 5, { width: 75, align: 'right' })
-        .text('TOTAL', margin + 440, tHeaderY + 5, { width: 75, align: 'right' });
-
-      let currentItemY = tHeaderY + tHeaderH;
-      const rowH = 20;
-
-      const currencyLabel = currency.toUpperCase().includes('SAR') || amount.includes('SAR') ? 'SAR' : 'SAR';
-
-      if (items && Array.isArray(items) && items.length > 0) {
-        items.forEach((it, idx) => {
-          const qty = Number(it.qty) || 1;
-          const price = Number(it.price) || 0;
-          const tot = (qty * price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const uPrice = price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-          // Row background
-          doc.rect(margin, currentItemY, contentW, rowH).fillAndStroke('#ffffff', '#f1f5f9');
-
-          doc.fillColor('#1e293b')
-            .fontSize(7.5)
-            .font('Helvetica-Bold')
-            .text(it.description || 'Service Item', margin + 10, currentItemY + 6, { width: 295, ellipsis: true });
-
-          doc.fillColor('#334155')
-            .fontSize(7.5)
-            .font('Helvetica')
-            .text(String(qty), margin + 310, currentItemY + 6, { width: 35, align: 'center' })
-            .text(`${uPrice} ${currencyLabel}`, margin + 355, currentItemY + 6, { width: 75, align: 'right' });
-
-          doc.fillColor('#0f172a')
-            .fontSize(7.5)
-            .font('Helvetica-Bold')
-            .text(`${tot} ${currencyLabel}`, margin + 440, currentItemY + 6, { width: 75, align: 'right' });
-
-          currentItemY += rowH;
-        });
-      } else {
-        doc.rect(margin, currentItemY, contentW, rowH).fillAndStroke('#ffffff', '#f1f5f9');
-        doc.fillColor('#1e293b').fontSize(7.5).font('Helvetica-Bold').text('Manasik External Agent Activation', margin + 10, currentItemY + 6);
-        doc.fillColor('#334155').fontSize(7.5).font('Helvetica').text('1', margin + 310, currentItemY + 6, { width: 35, align: 'center' });
-        doc.fillColor('#334155').fontSize(7.5).font('Helvetica').text(`2,000.00 ${currencyLabel}`, margin + 355, currentItemY + 6, { width: 75, align: 'right' });
-        doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(`2,000.00 ${currencyLabel}`, margin + 440, currentItemY + 6, { width: 75, align: 'right' });
-        currentItemY += rowH;
-
-        doc.rect(margin, currentItemY, contentW, rowH).fillAndStroke('#ffffff', '#f1f5f9');
-        doc.fillColor('#1e293b').fontSize(7.5).font('Helvetica-Bold').text('System Activation', margin + 10, currentItemY + 6);
-        doc.fillColor('#334155').fontSize(7.5).font('Helvetica').text('1', margin + 310, currentItemY + 6, { width: 35, align: 'center' });
-        doc.fillColor('#334155').fontSize(7.5).font('Helvetica').text(`200.00 ${currencyLabel}`, margin + 355, currentItemY + 6, { width: 75, align: 'right' });
-        doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(`200.00 ${currencyLabel}`, margin + 440, currentItemY + 6, { width: 75, align: 'right' });
-        currentItemY += rowH;
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #ffffff;
+        color: #1e293b;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
       }
+      .page-container {
+        width: 210mm;
+        height: 297mm;
+        padding: 12mm 14mm;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+        background-color: #ffffff;
+      }
+      .header-section {
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      }
+      .header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .logo-box {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .logo-img {
+        height: 56px;
+        width: auto;
+        object-fit: contain;
+        align-self: flex-start;
+      }
+      .address-text {
+        margin-top: 6px;
+        font-size: 8.5px;
+        color: #94a3b8;
+        line-height: 1.45;
+        max-width: 270px;
+      }
+      .title-box {
+        width: 50%;
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      .main-title {
+        font-size: 26px;
+        font-weight: 900;
+        color: #0f172a;
+        line-height: 1.05;
+        text-transform: uppercase;
+        letter-spacing: -0.5px;
+        margin-bottom: 6px;
+      }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: auto auto;
+        column-gap: 8px;
+        row-gap: 2px;
+        font-size: 8.5px;
+        justify-content: end;
+      }
+      .meta-lbl {
+        color: #94a3b8;
+        font-weight: 500;
+        text-align: right;
+      }
+      .meta-val {
+        color: #0f172a;
+        font-weight: 700;
+        text-align: right;
+      }
+      .bill-section {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .sec-heading {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #334155;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .bill-card {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 12px;
+        background-color: rgba(248, 250, 252, 0.8);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+      }
+      .bill-f-lbl {
+        font-size: 8px;
+        font-weight: 500;
+        color: #94a3b8;
+      }
+      .bill-f-val {
+        font-size: 9.5px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .table-container {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        background-color: #ffffff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        background-color: rgba(248, 250, 252, 0.8);
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 8px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 10px 14px;
+      }
+      .pay-summary-section {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .pay-card {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 12px 14px;
+        background-color: rgba(248, 250, 252, 0.8);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .pay-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 9px;
+      }
+      .pay-row-lbl {
+        color: #94a3b8;
+      }
+      .pay-row-val {
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .exchange-card {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 12px 14px;
+        background-color: rgba(248, 250, 252, 0.8);
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .notes-section {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .notes-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .notes-item {
+        font-size: 8px;
+        color: #64748b;
+        font-weight: 500;
+        line-height: 1.45;
+      }
+      .sig-section {
+        display: flex;
+        flex-direction: column;
+        width: 250px;
+        padding-top: 12px;
+      }
+      .footer-bar {
+        margin-top: 10px;
+        padding-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 8px;
+        color: #94a3b8;
+        font-weight: 500;
+        border-top: 1px solid #f1f5f9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-container">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- 1. Header -->
+        <div class="header-section">
+          <div class="header-flex">
+            <div class="logo-box">
+              ${logoBase64 ? `<img src="${logoBase64}" class="logo-img" alt="ODST Logo" />` : `<h2 style="font-weight:900; font-size:22px;">ODST</h2>`}
+              <div class="address-text">
+                Graha Al Badgel<br>
+                Jl. Hajjah Tutty Alawiyah No.7, RT.2/RW.5, Kalibata, Kec.<br>
+                Pancoran, Kota Jakarta Selatan, Daerah Khusus Ibukota<br>
+                Jakarta, Indonesia 12740
+              </div>
+            </div>
+            
+            <div class="title-box">
+              <h1 class="main-title">
+                RESERVATION<br>CONFIRMATION
+              </h1>
+              <div class="meta-grid">
+                <span class="meta-lbl">Reservation No:</span>
+                <span class="meta-val">${invoiceNo}</span>
+                <span class="meta-lbl">Reference:</span>
+                <span style="color:#475569; font-weight:500; text-align:right;">${referenceNo}</span>
+                <span class="meta-lbl">Serial:</span>
+                <span style="color:#475569; font-weight:500; text-align:right;">${serialNo}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      // =========================================================================
-      // 4. PAYMENT INSTRUCTIONS & INVOICE SUMMARY
-      // =========================================================================
-      const paySumY = currentItemY + 12;
-      const payBoxH = 62;
+        <!-- 2. Bill From / Bill To -->
+        <div class="bill-section">
+          <div>
+            <div class="sec-heading">BILL FROM</div>
+            <div class="bill-card">
+              <div>
+                <p class="bill-f-lbl">Employee Name</p>
+                <p class="bill-f-val">Aulia Azzha</p>
+              </div>
+              <div>
+                <p class="bill-f-lbl">Company Number</p>
+                <p class="bill-f-val">${companySettings.phone || '+62 811 1202 338'}</p>
+              </div>
+              <div>
+                <p class="bill-f-lbl">Employee ID</p>
+                <p class="bill-f-val">250104</p>
+              </div>
+              <div>
+                <p class="bill-f-lbl">Company Email</p>
+                <p class="bill-f-val" style="word-break:break-all;">mcfc.nabilah@gmail.com</p>
+              </div>
+              <div>
+                <p class="bill-f-lbl">Entity / Company</p>
+                <p class="bill-f-val">${companySettings.companyName || 'PT.ODST AIRLINES INDO'}</p>
+              </div>
+              <div>
+                <p class="bill-f-lbl">Company Tax Number</p>
+                <p class="bill-f-val">${companySettings.taxNumber || '0000-0000-0001'}</p>
+              </div>
+            </div>
+          </div>
 
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('PAYMENT INSTRUCTIONS', margin, paySumY);
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('INVOICE SUMMARY', margin + boxW + 12, paySumY);
+          <div>
+            <div class="sec-heading">BILL TO</div>
+            <div class="bill-card">
+              <div>
+                <p class="bill-f-lbl">Company Name</p>
+                <p class="bill-f-val">${company}</p>
+              </div>
+              <div>
+                <p class="bill-f-lbl">Company Tax Number</p>
+                <p class="bill-f-val">02.271.015.6-407.000</p>
+              </div>
+              <div style="grid-column: span 2;">
+                <p class="bill-f-lbl">Agent Details</p>
+                <p style="font-size:9.5px; font-weight:700; color:#d97706;">Agent: ODST Travel & Tourism</p>
+              </div>
+              <div style="grid-column: span 2;">
+                <p class="bill-f-lbl">Street Address</p>
+                <p style="font-size:9px; color:#334155; font-weight:500; line-height:1.2;">Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur</p>
+              </div>
+              <div style="grid-column: span 2;">
+                <p class="bill-f-lbl">City / Country</p>
+                <p style="font-size:9px; color:#334155; font-weight:500;">Bekasi, 17113, Indonesia</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      const payCardY = paySumY + 11;
+        <!-- 3. Itemized Charges Table -->
+        <div>
+          <div class="sec-heading">ITEMIZED CHARGES</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="text-align: left;">DESCRIPTION</th>
+                  <th style="text-align: center; width: 56px;">QTY</th>
+                  <th style="text-align: right; width: 110px;">UNIT PRICE</th>
+                  <th style="text-align: right; width: 110px;">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      // Payment Instructions Card
-      doc.roundedRect(margin, payCardY, boxW, payBoxH, 6).fillAndStroke('#f8fafc', '#e2e8f0');
+        <!-- 4. Payment Instructions & Invoice Summary -->
+        <div class="pay-summary-section">
+          <div>
+            <div class="sec-heading">PAYMENT INSTRUCTIONS</div>
+            <div class="pay-card">
+              <div class="pay-row">
+                <span class="pay-row-lbl">Bank Name:</span>
+                <span class="pay-row-val">${companySettings.bankName || 'Danamon'}</span>
+              </div>
+              <div class="pay-row">
+                <span class="pay-row-lbl">Account Name:</span>
+                <span class="pay-row-val">${companySettings.accountName || 'PT ODST Airlines Indo'}</span>
+              </div>
+              <div class="pay-row">
+                <span class="pay-row-lbl">IDR Account Number:</span>
+                <span style="font-weight:700; color:#2563eb; font-size:9px;">${companySettings.idrAccountNumber || '003711915213'}</span>
+              </div>
+              <div class="pay-row">
+                <span class="pay-row-lbl">USD Account Number:</span>
+                <span style="font-weight:700; color:#2563eb; font-size:9px;">${companySettings.usdAccountNumber || '003711915643'}</span>
+              </div>
+            </div>
+          </div>
 
-      doc.fillColor('#94a3b8').fontSize(7).font('Helvetica').text('Bank Name:', margin + 8, payCardY + 7);
-      doc.fillColor('#0f172a').fontSize(7).font('Helvetica-Bold').text(companySettings.bankName || 'Danamon', margin + 8, payCardY + 7, { width: boxW - 16, align: 'right' });
+          <div>
+            <div class="sec-heading">INVOICE SUMMARY</div>
+            <div class="pay-card">
+              <div class="pay-row">
+                <span class="pay-row-lbl" style="font-size: 9.5px;">Subtotal</span>
+                <span class="pay-row-val" style="font-size: 9.5px;">${subtotalFormatted}</span>
+              </div>
+              <div class="pay-row">
+                <span class="pay-row-lbl" style="font-size: 9.5px;">Tax / VAT (${rate}%)</span>
+                <span class="pay-row-val" style="font-size: 9.5px;">${taxFormatted}</span>
+              </div>
+              <div style="border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 10px; font-weight: 700; color: #0f172a;">Total Due</span>
+                <span style="font-size: 12.5px; font-weight: 800; color: #2563eb;">${totalFormatted}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      doc.fillColor('#94a3b8').fontSize(7).font('Helvetica').text('Account Name:', margin + 8, payCardY + 19);
-      doc.fillColor('#0f172a').fontSize(7).font('Helvetica-Bold').text(companySettings.accountName || 'PT ODST Airlines Indo', margin + 8, payCardY + 19, { width: boxW - 16, align: 'right' });
+        <!-- 5. Exchange Rate -->
+        <div>
+          <div class="sec-heading">EXCHANGE RATE</div>
+          <div class="exchange-card">
+            <div style="display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0;">
+              <div>1 USD = 3.75 SAR</div>
+              <div style="font-weight: 700; color: #334155;">USD / SAR</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0;">
+              <div>1 SAR = 4,800 IDR</div>
+              <div style="font-weight: 700; color: #334155;">SAR / IDR</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 9px;">
+              <span style="color: #64748b; font-weight: 500;">Total Due (IDR)</span>
+              <span style="font-weight: 700; color: #2563eb; font-size: 10.5px;">Rp 10,560,000</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 9px;">
+              <span style="color: #64748b; font-weight: 500;">Total Due (USD)</span>
+              <span style="font-weight: 700; color: #2563eb; font-size: 10.5px;">$586.67</span>
+            </div>
+          </div>
+        </div>
 
-      doc.fillColor('#94a3b8').fontSize(7).font('Helvetica').text('IDR Account Number:', margin + 8, payCardY + 31);
-      doc.fillColor('#2563eb').fontSize(7.5).font('Helvetica-Bold').text(companySettings.idrAccountNumber || '003711915213', margin + 8, payCardY + 31, { width: boxW - 16, align: 'right' });
+        <!-- 6. Notes / Terms & Conditions -->
+        <div class="notes-section">
+          <div>
+            <div class="sec-heading">NOTES</div>
+            <ul class="notes-list">
+              <li class="notes-item">* Please ensure the Invoice Number (e.g. ${invoiceNo}) is listed as the payment description reference.</li>
+              <li class="notes-item">* Attach hotel booking confirmation numbers where applicable for ground handling operations.</li>
+            </ul>
+          </div>
+          <div>
+            <div class="sec-heading">TERMS &amp; CONDITIONS</div>
+            <p style="font-size: 8px; color: #64748b; font-weight: 500; line-height: 1.4;">
+              ${companySettings.termsAndConditions || 'Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.'}
+            </p>
+          </div>
+        </div>
+      </div>
 
-      doc.fillColor('#94a3b8').fontSize(7).font('Helvetica').text('USD Account Number:', margin + 8, payCardY + 43);
-      doc.fillColor('#2563eb').fontSize(7.5).font('Helvetica-Bold').text(companySettings.usdAccountNumber || '003711915643', margin + 8, payCardY + 43, { width: boxW - 16, align: 'right' });
+      <!-- 7. Signature & Footer -->
+      <div>
+        <div class="sig-section">
+          <p style="font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px; color: #1e293b; text-align: center; text-transform: uppercase;">
+            FINANCIAL CONTROLLER SIGNATURE
+          </p>
+          <p style="margin-top: 2px; font-size: 8.5px; color: #475569; text-align: center;">
+            Emad Moustafa
+          </p>
+          <div style="margin-top: 44px; border-top: 1px solid #cbd5e1; width: 100%;"></div>
+          <div style="margin-top: 12px; font-size: 9.5px;">
+            <span style="color: #94a3b8; font-weight: 500;">Due Date:</span>
+            <span style="font-weight: 700; color: #0f172a; margin-left: 6px;">${formattedDueDate}</span>
+          </div>
+        </div>
 
-      // Invoice Summary Card
-      const sumCardX = margin + boxW + 12;
-      doc.roundedRect(sumCardX, payCardY, boxW, payBoxH, 6).fillAndStroke('#f8fafc', '#e2e8f0');
+        <div class="footer-bar">
+          <span>${formattedDate} · PT.ODST AIRLINES INDO</span>
+          <span>Page 1 of 1</span>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+};
 
-      const formattedTotalStr = amount.includes('SAR') || amount.includes('$') ? amount : `${amount} SAR`;
+/**
+ * 2. Generate HTML for Hotel Reservations matching HotelReservationPrint.tsx
+ */
+const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
+  const {
+    invoiceNo = 'RES-2026-001',
+    company = 'Client Company',
+    amount = '2,200.00 SAR',
+    referenceNo = 'REF-HOTEL-01',
+    serialNo = 'SN-HOTEL-01',
+    dueDate = '09/07/2026',
+    items = [],
+    taxRate = 0,
+    currency = 'SAR'
+  } = details;
 
-      doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('Subtotal', sumCardX + 10, payCardY + 8);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(formattedTotalStr, sumCardX + 10, payCardY + 8, { width: boxW - 20, align: 'right' });
+  const formattedDueDate = formatDateDMY(dueDate) || '09/07/2026';
+  const currentDate = new Date().toLocaleDateString('en-GB');
 
-      doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text(`Tax / VAT (${taxRate || 0}%)`, sumCardX + 10, payCardY + 22);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(`0.00 ${currencyLabel}`, sumCardX + 10, payCardY + 22, { width: boxW - 20, align: 'right' });
+  const curr = (currency || 'SAR').toUpperCase().includes('SAR') || amount.includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
+  const rate = Number(taxRate) || 0;
 
-      doc.strokeColor('#e2e8f0').lineWidth(0.5).moveTo(sumCardX + 10, payCardY + 36).lineTo(sumCardX + boxW - 10, payCardY + 36).stroke();
+  let subtotalNum = 0;
+  if (items && Array.isArray(items) && items.length > 0) {
+    subtotalNum = items.reduce((acc, it) => acc + (Number(it.qty) || 1) * (Number(it.price) || 0), 0);
+  } else {
+    subtotalNum = 2200;
+  }
+  const taxNum = subtotalNum * (rate / 100);
+  const totalNum = subtotalNum + taxNum;
 
-      doc.fillColor('#0f172a').fontSize(8).font('Helvetica-Bold').text('Total Due', sumCardX + 10, payCardY + 44);
-      doc.fillColor('#2563eb').fontSize(9.5).font('Helvetica-Bold').text(formattedTotalStr, sumCardX + 10, payCardY + 43, { width: boxW - 20, align: 'right' });
+  const subtotalFormatted = `${subtotalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
+  const taxFormatted = `${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
+  const totalFormatted = `${totalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
 
-      // =========================================================================
-      // 5. EXCHANGE RATE SECTION
-      // =========================================================================
-      const exRateY = payCardY + payBoxH + 10;
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('EXCHANGE RATE', margin, exRateY);
+  let hotelRowsHtml = '';
+  if (items && Array.isArray(items) && items.length > 0) {
+    items.forEach((it) => {
+      const q = Number(it.qty) || 1;
+      const p = Number(it.price) || 0;
+      const tot = (q * p).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      hotelRowsHtml += `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 7px 6px; font-weight: 600; color: #0f172a; text-transform: uppercase;">${it.hotelName || it.description || 'Pullman Zamzam'}</td>
+          <td style="padding: 7px 4px; color: #1e293b; text-transform: uppercase;">${it.roomType || 'Executive Suite'}</td>
+          <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">${it.checkIn || '-'}</td>
+          <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">${it.checkOut || '-'}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${it.nights || 1}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${q}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${it.adults || 2}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${it.children || 0}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a; text-transform: uppercase;">${it.mealPlan || 'RO'}</td>
+          <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">${p.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${curr}</td>
+          <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">0.00 ${curr}</td>
+          <td style="padding: 7px 8px; text-align: right; font-weight: 700; color: #0f172a;">${tot} ${curr}</td>
+        </tr>
+      `;
+    });
+  } else {
+    hotelRowsHtml = `
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 7px 6px; font-weight: 600; color: #0f172a; text-transform: uppercase;">Pullman Zamzam Makkah</td>
+        <td style="padding: 7px 4px; color: #1e293b; text-transform: uppercase;">Executive Suite</td>
+        <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">10/09/2026</td>
+        <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">15/09/2026</td>
+        <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">5</td>
+        <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">1</td>
+        <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">2</td>
+        <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">0</td>
+        <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a; text-transform: uppercase;">FB</td>
+        <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">2,200.00 SAR</td>
+        <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">0.00 SAR</td>
+        <td style="padding: 7px 8px; text-align: right; font-weight: 700; color: #0f172a;">2,200.00 SAR</td>
+      </tr>
+    `;
+  }
 
-      const exCardY = exRateY + 11;
-      const exCardH = 48;
-      doc.roundedRect(margin, exCardY, contentW, exCardH, 6).fillAndStroke('#f8fafc', '#e2e8f0');
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>${invoiceNo} - Hotel Reservation</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #ffffff;
+        color: #1e293b;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+      .page-container {
+        width: 210mm;
+        height: 297mm;
+        padding: 12mm 14mm;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+        background-color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-container">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Header -->
+        <div style="padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            ${logoBase64 ? `<img src="${logoBase64}" style="height: 48px; width: auto; object-fit: contain;" alt="Logo" />` : `<h2 style="font-weight: 900;">ODST</h2>`}
+            <div style="margin-top: 5px; font-size: 9px; color: #94a3b8; line-height: 1.4;">
+              Gedung Graha Al Badgel, Jl. Hajjah Tutty Alawiyah No.7, RT.2/RW.5<br>
+              Kalibata, Kec. Pancoran, Kota Jakarta Selatan, DKI Jakarta<br>
+              12740, Indonesia
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <h1 style="font-size: 20px; font-weight: 800; color: #1e293b; tracking-wide: 0.5px;">HOTEL RESERVATION</h1>
+            <p style="font-size: 10px; color: #94a3b8; margin-top: 3px;">
+              Reservation No: <span style="color: #1e293b; font-weight: 700;">${invoiceNo}</span>
+            </p>
+            <div style="margin-top: 6px;">
+              <span style="display: inline-block; padding: 3px 10px; font-size: 9px; font-weight: 800; color: #059669; border: 1px solid #34d399; background-color: #ecfdf5; border-radius: 12px;">
+                CONFIRMED
+              </span>
+            </div>
+          </div>
+        </div>
 
-      // Conversion line 1 & 2
-      doc.fillColor('#64748b').fontSize(7).font('Helvetica').text('1 USD = 3.75 SAR', margin + 10, exCardY + 6);
-      doc.fillColor('#475569').fontSize(7).font('Helvetica-Bold').text('USD / SAR', margin + 10, exCardY + 6, { width: contentW - 20, align: 'right' });
+        <!-- Metadata & Bill To -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="background-color: rgba(248, 250, 252, 0.7); border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+            <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">RESERVATION DETAILS</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 10px;">
+              <div>
+                <p style="color: #94a3b8; font-size: 9px;">Reference Number</p>
+                <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${referenceNo}</p>
+              </div>
+              <div>
+                <p style="color: #94a3b8; font-size: 9px;">Serial Number</p>
+                <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${serialNo}</p>
+              </div>
+              <div>
+                <p style="color: #94a3b8; font-size: 9px;">Due Date</p>
+                <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${formattedDueDate}</p>
+              </div>
+              <div>
+                <p style="color: #94a3b8; font-size: 9px;">Status</p>
+                <p style="font-weight: 700; color: #1e293b; font-size: 11px; text-transform: uppercase;">CONFIRMED</p>
+              </div>
+            </div>
+          </div>
 
-      doc.fillColor('#64748b').fontSize(7).font('Helvetica').text('1 SAR = 4,800 IDR', margin + 10, exCardY + 16);
-      doc.fillColor('#475569').fontSize(7).font('Helvetica-Bold').text('SAR / IDR', margin + 10, exCardY + 16, { width: contentW - 20, align: 'right' });
+          <div style="background-color: rgba(248, 250, 252, 0.7); border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+            <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">BILL TO</div>
+            <div style="font-size: 10px; line-height: 1.45;">
+              <p style="color: #94a3b8; font-size: 9px;">Company Name</p>
+              <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${company}</p>
+              <p style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Street Address & City</p>
+              <p style="font-weight: 600; color: #334155; font-size: 10px;">Jl. Chairil Anwar Blok B12, Bekasi, 17113, Indonesia</p>
+            </div>
+          </div>
+        </div>
 
-      doc.strokeColor('#e2e8f0').lineWidth(0.5).moveTo(margin + 10, exCardY + 27).lineTo(margin + contentW - 10, exCardY + 27).stroke();
+        <!-- Hotel Details Table -->
+        <div style="border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+            <thead>
+              <tr style="background-color: #1d2857; color: #ffffff;">
+                <th colspan="12" style="padding: 8px 12px; text-align: center; font-weight: 700; font-size: 11px; background-color: #1d2857; color: #ffffff;">
+                  Hotel Details
+                </th>
+              </tr>
+              <tr style="background-color: #e0e8fe; color: #1d2857; font-weight: 700; text-transform: uppercase; font-size: 8px; border-bottom: 1px solid #cbd5e1;">
+                <th style="padding: 7px 6px; text-align: left; background-color: #e0e8fe; color: #1d2857;">Hotel</th>
+                <th style="padding: 7px 4px; text-align: left; background-color: #e0e8fe; color: #1d2857;">Room Type</th>
+                <th style="padding: 7px 4px; background-color: #e0e8fe; color: #1d2857;">Check-In</th>
+                <th style="padding: 7px 4px; background-color: #e0e8fe; color: #1d2857;">Check-Out</th>
+                <th style="padding: 7px 4px; text-align: center; background-color: #e0e8fe; color: #1d2857;">#Night</th>
+                <th style="padding: 7px 4px; text-align: center; background-color: #e0e8fe; color: #1d2857;">#Room</th>
+                <th style="padding: 7px 4px; text-align: center; background-color: #e0e8fe; color: #1d2857;">Adult</th>
+                <th style="padding: 7px 4px; text-align: center; background-color: #e0e8fe; color: #1d2857;">Child</th>
+                <th style="padding: 7px 4px; text-align: center; background-color: #e0e8fe; color: #1d2857;">Meals</th>
+                <th style="padding: 7px 6px; text-align: right; background-color: #e0e8fe; color: #1d2857;">DayRate</th>
+                <th style="padding: 7px 6px; text-align: right; background-color: #e0e8fe; color: #1d2857;">Meals Rate</th>
+                <th style="padding: 7px 8px; text-align: right; background-color: #e0e8fe; color: #1d2857;">Total</th>
+              </tr>
+            </thead>
+            <tbody style="background-color: #ffffff;">
+              ${hotelRowsHtml}
+            </tbody>
+          </table>
+        </div>
 
-      // Total Due Converted
-      doc.fillColor('#64748b').fontSize(7).font('Helvetica').text('Total Due (IDR)', margin + 10, exCardY + 33);
-      doc.fillColor('#2563eb').fontSize(8).font('Helvetica-Bold').text('Rp 10,560,000', margin + 10, exCardY + 33, { width: contentW - 20, align: 'right' });
+        <!-- Payment & Invoice Summary -->
+        <div style="display: grid; grid-template-columns: 7fr 5fr; gap: 18px;">
+          <div style="background-color: rgba(239, 246, 255, 0.3); border: 1px solid #dbeafe; border-radius: 12px; padding: 12px; font-size: 10px;">
+            <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">PAYMENT INSTRUCTIONS</div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
+              <span style="color: #64748b;">Bank Name:</span>
+              <span style="font-weight: 700; color: #1e293b;">Danamon</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
+              <span style="color: #64748b;">Account Name:</span>
+              <span style="font-weight: 700; color: #1e293b;">PT ODST Airlines Indo</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
+              <span style="color: #64748b;">IDR Account Number:</span>
+              <span style="font-weight: 700; color: #2563eb;">102-8829-011</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+              <span style="color: #64748b;">USD Account Number:</span>
+              <span style="font-weight: 700; color: #2563eb;">102-8829-022</span>
+            </div>
+          </div>
 
-      // =========================================================================
-      // 6. NOTES & TERMS & CONDITIONS
-      // =========================================================================
-      const notesY = exCardY + exCardH + 10;
+          <div style="background-color: rgba(248, 250, 252, 0.7); border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-size: 11px;">
+            <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">INVOICE SUMMARY</div>
+            <div style="display: flex; justify-content: space-between; color: #64748b; padding: 2px 0;">
+              <span>Subtotal</span>
+              <span style="font-weight: 600;">${subtotalFormatted}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; color: #64748b; padding: 2px 0;">
+              <span>Tax / VAT (${rate}%)</span>
+              <span style="font-weight: 600;">${taxFormatted}</span>
+            </div>
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 6px; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 700; color: #1e293b;">Total Due</span>
+              <span style="font-weight: 800; color: #ea580c; font-size: 13px;">${totalFormatted}</span>
+            </div>
+          </div>
+        </div>
 
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('NOTES', margin, notesY);
-      doc.fillColor('#475569').fontSize(7.5).font('Helvetica-Bold').text('TERMS & CONDITIONS', margin + boxW + 12, notesY);
+        <!-- Exchange Rate -->
+        <div style="background-color: rgba(248, 250, 252, 0.7); border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; font-size: 10px;">
+          <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">EXCHANGE RATE</div>
+          <div style="display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;">
+            <span>1 USD = 18,025 IDR</span>
+            <span style="font-weight: 700; color: #334155;">USD / IDR</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;">
+            <span>1 SAR = 4,800 IDR</span>
+            <span style="font-weight: 700; color: #334155;">SAR / IDR</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+            <span style="color: #64748b; font-weight: 500;">Total Due (IDR)</span>
+            <span style="font-weight: 700; color: #2563eb; font-size: 11px;">Rp 10,560,000</span>
+          </div>
+        </div>
 
-      const notesTextY = notesY + 10;
-      doc.fillColor('#64748b')
-        .fontSize(6.5)
-        .font('Helvetica')
-        .text(`* Please ensure the Invoice Number (e.g. ${invoiceNo}) is listed as the payment description reference.\n* Attach hotel booking confirmation numbers where applicable for ground handling operations.`, margin, notesTextY, { width: boxW, lineGap: 2 });
+        <!-- Notes / Terms -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+          <div>
+            <div style="font-size: 9px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px;">NOTES</div>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 9px; color: #64748b; line-height: 1.4;">
+              <li>* This reservation has been confirmed. No further action required.</li>
+              <li>* Thank you for settling the payment. Please keep this invoice copy as your official receipt.</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size: 9px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px;">TERMS &amp; CONDITIONS</div>
+            <p style="font-size: 9px; color: #64748b; line-height: 1.4;">
+              Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.
+            </p>
+          </div>
+        </div>
+      </div>
 
-      doc.fillColor('#64748b')
-        .fontSize(6.5)
-        .font('Helvetica')
-        .text('Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.', margin + boxW + 12, notesTextY, { width: boxW, lineGap: 2 });
+      <!-- Footer -->
+      <div style="padding-top: 8px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 8px; color: #94a3b8; font-weight: 500;">
+        <span>${currentDate}, ODST Group</span>
+        <span>Page 1 of 1</span>
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+};
 
-      // =========================================================================
-      // 7. FINANCIAL CONTROLLER SIGNATURE & DUE DATE
-      // =========================================================================
-      const sigY = notesTextY + 35;
-      const sigW = 160;
-      const sigCenterX = margin + sigW / 2;
+/**
+ * Generate pixel-perfect A4 PDF buffer using Chrome headless
+ */
+export const generateInvoicePdfBuffer = async (invoiceDetails, companySettings = {}) => {
+  const browserPath = getBrowserPath();
+  if (!browserPath) {
+    throw new Error('Chrome or Edge browser executable not found on host machine.');
+  }
 
-      doc.fillColor('#1e293b').fontSize(7.5).font('Helvetica-Bold').text('FINANCIAL CONTROLLER SIGNATURE', margin, sigY, { width: sigW, align: 'center' });
-      doc.fillColor('#64748b').fontSize(7).font('Helvetica').text('Emad Moustafa', margin, sigY + 9, { width: sigW, align: 'center' });
+  const logoPath = path.join(process.cwd(), 'assets', 'odstlogo.png');
+  let logoBase64 = '';
+  if (fs.existsSync(logoPath)) {
+    logoBase64 = `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`;
+  }
 
-      // Signature line
-      doc.strokeColor('#cbd5e1').lineWidth(0.75).moveTo(margin, sigY + 32).lineTo(margin + sigW, sigY + 32).stroke();
+  const isHotel = (invoiceDetails.documentType && invoiceDetails.documentType.toLowerCase().includes('hotel')) || (invoiceDetails.invoiceNo && (invoiceDetails.invoiceNo.startsWith('RES-') || invoiceDetails.invoiceNo.startsWith('HR-') || invoiceDetails.invoiceNo.startsWith('HM-')));
 
-      // Due Date below signature line
-      doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('Due Date:', margin, sigY + 38);
-      doc.fillColor('#0f172a').fontSize(7.5).font('Helvetica-Bold').text(dueDate || '09/07/2026', margin + 42, sigY + 38);
+  const html = isHotel
+    ? generateHotelReservationHtml(invoiceDetails, companySettings, logoBase64)
+    : generateGeneralConfirmationHtml(invoiceDetails, companySettings, logoBase64);
 
-      // =========================================================================
-      // 8. FOOTER
-      // =========================================================================
-      const footerY = doc.page.height - 35;
-      doc.strokeColor('#f1f5f9').lineWidth(0.5).moveTo(margin, footerY - 5).lineTo(pageW - margin, footerY - 5).stroke();
-
-      const formattedPrintDate = date ? new Date(date).toLocaleDateString('en-GB') : '25/08/2026';
-      doc.fillColor('#94a3b8')
-        .fontSize(6.5)
-        .font('Helvetica')
-        .text(`${formattedPrintDate} • PT ODST AIRLINES INDO`, margin, footerY)
-        .text('Page 1 of 1', margin, footerY, { width: contentW, align: 'right' });
-
-      doc.end();
-    } catch (err) {
-      reject(err);
-    }
+  const browser = await puppeteer.launch({
+    executablePath: browserPath,
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--font-render-hinting=medium'
+    ]
   });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'load' });
+
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: {
+        top: '0mm',
+        bottom: '0mm',
+        left: '0mm',
+        right: '0mm'
+      }
+    });
+
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await browser.close();
+  }
 };
