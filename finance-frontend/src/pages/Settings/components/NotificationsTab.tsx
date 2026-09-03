@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import { Check } from 'lucide-react';
 import { getNotifSettings, updateNotifSettings } from '../../../services/settingService';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +43,7 @@ interface ToggleSwitchProps {
   onToggle: () => void;
 }
 
-const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ isOn, onToggle }) => (
+const ToggleSwitch: FC<ToggleSwitchProps> = ({ isOn, onToggle }) => (
   <button
     type="button"
     onClick={onToggle}
@@ -59,7 +59,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ isOn, onToggle }) => (
   </button>
 );
 
-const NotificationsTab: React.FC = () => {
+const NotificationsTab: FC = () => {
   const { t } = useTranslation();
   const [settings, setSettings] = useState<NotifSettings>(DEFAULT_SETTINGS);
   const [feedback, setFeedback] = useState<string | null>(null);
