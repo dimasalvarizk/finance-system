@@ -86,7 +86,6 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            color-adjust: exact !important;
           }
           body * {
             visibility: hidden;
@@ -95,7 +94,6 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
             visibility: visible;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            color-adjust: exact !important;
           }
           #hotel-reservation-print-area {
             position: absolute;

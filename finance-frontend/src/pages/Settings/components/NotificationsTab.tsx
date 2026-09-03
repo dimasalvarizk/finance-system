@@ -38,6 +38,27 @@ const DEFAULT_SETTINGS: NotifSettings = {
   systemMaintenance: { email: false, inApp: true },
 };
 
+interface ToggleSwitchProps {
+  isOn: boolean;
+  onToggle: () => void;
+}
+
+const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ isOn, onToggle }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+      isOn ? 'bg-[#f59e0b]' : 'bg-[#e2e8f0]'
+    }`}
+  >
+    <span
+      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+        isOn ? 'translate-x-5' : 'translate-x-0'
+      }`}
+    />
+  </button>
+);
+
 const NotificationsTab: React.FC = () => {
   const { t } = useTranslation();
   const [settings, setSettings] = useState<NotifSettings>(DEFAULT_SETTINGS);
@@ -48,7 +69,7 @@ const NotificationsTab: React.FC = () => {
       try {
         const data = await getNotifSettings();
         if (data) {
-          setSettings(data);
+          setSettings((prev) => ({ ...prev, ...data }));
         }
       } catch (err) {
         console.error('Failed to load notification settings:', err);
@@ -58,11 +79,12 @@ const NotificationsTab: React.FC = () => {
   }, []);
 
   const toggleSetting = async (key: keyof NotifSettings, type: 'email' | 'inApp') => {
+    const currentItem = settings[key] || { email: false, inApp: false };
     const updated = {
       ...settings,
       [key]: {
-        ...settings[key],
-        [type]: !settings[key][type]
+        ...currentItem,
+        [type]: !currentItem[type]
       }
     };
     setSettings(updated);
@@ -71,25 +93,9 @@ const NotificationsTab: React.FC = () => {
       setFeedback('Notification settings updated!');
       setTimeout(() => setFeedback(null), 2500);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update notification settings');
+      alert(err?.response?.data?.message || 'Failed to update notification settings');
     }
   };
-
-  const ToggleSwitch: React.FC<{ isOn: boolean; onToggle: () => void }> = ({ isOn, onToggle }) => (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-        isOn ? 'bg-[#f59e0b]' : 'bg-[#e2e8f0]'
-      }`}
-    >
-      <span
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-          isOn ? 'translate-x-5' : 'translate-x-0'
-        }`}
-      />
-    </button>
-  );
 
   return (
     <div className="space-y-8 animate-fade-in text-left">
