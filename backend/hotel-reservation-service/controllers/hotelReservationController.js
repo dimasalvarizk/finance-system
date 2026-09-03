@@ -56,6 +56,11 @@ export const getReservations = async (req, res, next) => {
       }
       return {
         ...row,
+        companyName: row.custom_company_name || row.companyName,
+        agent: row.custom_agent || row.agent,
+        clientAddress: row.custom_address || row.clientAddress,
+        clientTaxNo: row.custom_tax_number || row.clientTaxNo,
+        clientCityCountry: row.custom_city_country || row.clientCityCountry,
         approvedByKarim: !!row.approvedByKarim,
         isPaid: !!row.isPaid,
         rooms
@@ -88,25 +93,61 @@ export const createReservation = async (req, res, next) => {
         try {
           await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN companyTaxNo VARCHAR(100) DEFAULT \'0000-0000-0001\'');
           existingCols.push('companyTaxNo');
-        } catch (e) {
-          console.error('Failed adding companyTaxNo column:', e.message);
-        }
+        } catch (e) {}
       }
       if (!existingCols.includes('usdToIdrRate')) {
         try {
           await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00');
           existingCols.push('usdToIdrRate');
-        } catch (e) {
-          console.error('Failed adding usdToIdrRate column:', e.message);
-        }
+        } catch (e) {}
       }
       if (!existingCols.includes('sarToIdrRate')) {
         try {
           await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00');
           existingCols.push('sarToIdrRate');
-        } catch (e) {
-          console.error('Failed adding sarToIdrRate column:', e.message);
-        }
+        } catch (e) {}
+      }
+      if (!existingCols.includes('company_id')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN company_id VARCHAR(50) DEFAULT NULL');
+          existingCols.push('company_id');
+        } catch (e) {}
+      }
+      if (!existingCols.includes('custom_company_name')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_company_name VARCHAR(255) DEFAULT NULL');
+          existingCols.push('custom_company_name');
+        } catch (e) {}
+      }
+      if (!existingCols.includes('custom_company_email')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_company_email VARCHAR(255) DEFAULT NULL');
+          existingCols.push('custom_company_email');
+        } catch (e) {}
+      }
+      if (!existingCols.includes('custom_agent')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_agent VARCHAR(255) DEFAULT NULL');
+          existingCols.push('custom_agent');
+        } catch (e) {}
+      }
+      if (!existingCols.includes('custom_address')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_address TEXT DEFAULT NULL');
+          existingCols.push('custom_address');
+        } catch (e) {}
+      }
+      if (!existingCols.includes('custom_tax_number')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_tax_number VARCHAR(100) DEFAULT NULL');
+          existingCols.push('custom_tax_number');
+        } catch (e) {}
+      }
+      if (!existingCols.includes('custom_city_country')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_city_country VARCHAR(255) DEFAULT NULL');
+          existingCols.push('custom_city_country');
+        } catch (e) {}
       }
     }
 
@@ -114,8 +155,27 @@ export const createReservation = async (req, res, next) => {
       id, reservationNo, guestName, guestPhone, referenceNo, serialNo, dueDate,
       companyName, clientTaxNo, clientAddress, clientCityCountry,
       employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo,
-      currency, taxRate, status, type, rooms, notes, usdToIdrRate, sarToIdrRate
+      currency, taxRate, status, type, rooms, notes, usdToIdrRate, sarToIdrRate,
+      company_id, custom_company_name, custom_company_email, custom_agent, custom_address, custom_tax_number, custom_city_country,
+      advancePayment, remainingBalance, isCustomClient
     } = req.body;
+
+    const isCustom = isCustomClient || company_id === 'Others' || !company_id;
+    const finalCompanyName = isCustom
+      ? (custom_company_name || companyName || 'Others')
+      : (companyName || 'Unknown Company');
+
+    const finalClientTaxNo = isCustom
+      ? (custom_tax_number || clientTaxNo || '0000-0000-0000')
+      : (clientTaxNo || '0000-0000-0000');
+
+    const finalClientAddress = isCustom
+      ? (custom_address || clientAddress || '')
+      : (clientAddress || '');
+
+    const finalClientCityCountry = isCustom
+      ? (custom_city_country || clientCityCountry || '')
+      : (clientCityCountry || '');
 
     // Pastikan id unik
     let finalId = id || `hr-${Date.now()}`;
@@ -129,7 +189,7 @@ export const createReservation = async (req, res, next) => {
     const [existingRes] = await pool.query('SELECT id FROM dst_hotel_reservations WHERE reservationNo = ?', [finalReservationNo]);
     if (existingRes.length > 0) {
       const parts = finalReservationNo.split('-');
-      const compCode = parts[0] || 'RES';
+      const compCode = isCustom ? 'OTH' : (parts[0] || 'RES');
       const mmdd = parts[1] || (String(new Date().getMonth() + 1).padStart(2, '0') + String(new Date().getDate()).padStart(2, '0'));
       const randSuffix = Math.floor(100 + Math.random() * 900);
       finalReservationNo = `${compCode}-${mmdd}-${randSuffix}`;
@@ -139,15 +199,15 @@ export const createReservation = async (req, res, next) => {
     const fieldsToInsert = [
       { col: 'id', val: finalId },
       { col: 'reservationNo', val: finalReservationNo },
-      { col: 'guestName', val: guestName || 'Guest' },
+      { col: 'guestName', val: guestName || finalCompanyName },
       { col: 'guestPhone', val: guestPhone || '+62 000-0000-000' },
       { col: 'referenceNo', val: referenceNo || 'REF-001' },
       { col: 'serialNo', val: serialNo || 'SR-001' },
       { col: 'dueDate', val: dueDate || new Date().toISOString().split('T')[0] },
-      { col: 'companyName', val: companyName || 'Unknown Company' },
-      { col: 'clientTaxNo', val: clientTaxNo || '0000-0000-0000' },
-      { col: 'clientAddress', val: clientAddress || '' },
-      { col: 'clientCityCountry', val: clientCityCountry || '' },
+      { col: 'companyName', val: finalCompanyName },
+      { col: 'clientTaxNo', val: finalClientTaxNo },
+      { col: 'clientAddress', val: finalClientAddress },
+      { col: 'clientCityCountry', val: finalClientCityCountry },
       { col: 'employeeName', val: employeeName || 'Dimas Alva Rizki' },
       { col: 'employeeId', val: employeeId || 'UMP-111' },
       { col: 'employeePhone', val: employeePhone || '' },
@@ -163,7 +223,16 @@ export const createReservation = async (req, res, next) => {
       { col: 'approvedByKarim', val: 0 },
       { col: 'isPaid', val: 0 },
       { col: 'usdToIdrRate', val: usdToIdrRate || 18025.00 },
-      { col: 'sarToIdrRate', val: sarToIdrRate || 4800.00 }
+      { col: 'sarToIdrRate', val: sarToIdrRate || 4800.00 },
+      { col: 'advancePayment', val: parseFloat(advancePayment || 0) },
+      { col: 'remainingBalance', val: remainingBalance !== undefined ? parseFloat(remainingBalance) : null },
+      { col: 'company_id', val: isCustom ? null : company_id },
+      { col: 'custom_company_name', val: isCustom ? custom_company_name || finalCompanyName : null },
+      { col: 'custom_company_email', val: isCustom ? custom_company_email : null },
+      { col: 'custom_agent', val: isCustom ? custom_agent : null },
+      { col: 'custom_address', val: isCustom ? custom_address : null },
+      { col: 'custom_tax_number', val: isCustom ? custom_tax_number : null },
+      { col: 'custom_city_country', val: isCustom ? custom_city_country : null }
     ];
 
     // Filter hanya kolom yang benar-benar ada di database (jika existingCols berhasil di-fetch)

@@ -81,6 +81,15 @@ export interface Booking {
   sarToIdrRate?: number;
   advancePayment?: number;
   remainingBalance?: number;
+  agent?: string;
+  company_id?: string | null;
+  custom_company_name?: string | null;
+  custom_company_email?: string | null;
+  custom_agent?: string | null;
+  custom_address?: string | null;
+  custom_tax_number?: string | null;
+  custom_city_country?: string | null;
+  isCustomClient?: boolean;
 }
 
 // Client Company Directory untuk dropdown Bill To
@@ -535,9 +544,21 @@ const HotelReservations: React.FC = () => {
                          ' at ' + 
                          now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
+    const targetBooking = bookings.find(b => b.id === id);
+    let compCode = 'OTH';
+    if (targetBooking?.reservationNo) {
+      const parts = targetBooking.reservationNo.split('-');
+      if (parts.length > 0 && parts[0]) compCode = parts[0];
+    }
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mmdd = `${mm}${dd}`;
+    const randSuffix = String(Math.floor(100 + Math.random() * 900));
+    const generatedConfNo = `CNF-${compCode}-${mmdd}-${randSuffix}`;
+
     try {
       const updated = await approveHotelReservation(id, {
-        confirmationNo: confirmationNoVal || `CNF-${now.getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+        confirmationNo: confirmationNoVal || generatedConfNo,
         approvedAtKarim: approvedTime
       });
 

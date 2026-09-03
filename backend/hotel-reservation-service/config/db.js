@@ -127,6 +127,27 @@ const initializeDatabase = async () => {
       if (!existingCols.includes('remainingBalance')) {
         await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN remainingBalance DECIMAL(15,2) DEFAULT NULL');
       }
+      if (!existingCols.includes('company_id')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN company_id VARCHAR(50) DEFAULT NULL');
+      }
+      if (!existingCols.includes('custom_company_name')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_company_name VARCHAR(255) DEFAULT NULL');
+      }
+      if (!existingCols.includes('custom_company_email')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_company_email VARCHAR(255) DEFAULT NULL');
+      }
+      if (!existingCols.includes('custom_agent')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_agent VARCHAR(255) DEFAULT NULL');
+      }
+      if (!existingCols.includes('custom_address')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_address TEXT DEFAULT NULL');
+      }
+      if (!existingCols.includes('custom_tax_number')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_tax_number VARCHAR(100) DEFAULT NULL');
+      }
+      if (!existingCols.includes('custom_city_country')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_city_country VARCHAR(255) DEFAULT NULL');
+      }
     } catch (alterRatesErr) {
       console.error('Failed checking columns for dst_hotel_reservations:', alterRatesErr.message);
     }

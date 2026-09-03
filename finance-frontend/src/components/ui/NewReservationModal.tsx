@@ -84,6 +84,17 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   const [dbCompanies, setDbCompanies] = useState<any[]>([]);
   const [selectedCompanyCode, setSelectedCompanyCode] = useState<string>('');
 
+  // Custom Client Fields (One-Off / Others)
+  const [customCompanyName, setCustomCompanyName] = useState('');
+  const [customCompanyEmail, setCustomCompanyEmail] = useState('');
+  const [customCompanyAgent, setCustomCompanyAgent] = useState('');
+  const [customCompanyAddress, setCustomCompanyAddress] = useState('');
+  const [customCompanyCityCountry, setCustomCompanyCityCountry] = useState('');
+  const [customCompanyTaxNumber, setCustomCompanyTaxNumber] = useState('');
+  const [showValidation, setShowValidation] = useState(false);
+
+  const isCustomClient = selectedCompanyCode === 'Others';
+
   const [invoiceMeta, setInvoiceMeta] = useState({
     invoiceNo: '',
     referenceNo: '',
@@ -183,6 +194,17 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
   // Compute selected company (client) object dynamically with auto-populated details
   const client = useMemo(() => {
+    if (selectedCompanyCode === 'Others') {
+      return {
+        id: 'Others',
+        code: 'OTH',
+        displayName: customCompanyName || t('invoices.othersClient') || 'Others / Custom Client',
+        companyName: customCompanyName || 'Others',
+        taxNo: customCompanyTaxNumber || '0000-0000-0000',
+        address: customCompanyAddress || '',
+        cityCountry: customCompanyCityCountry || 'Indonesia'
+      };
+    }
     if (dbCompanies.length === 0) {
       return {
         id: 'c-1',
@@ -222,7 +244,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       address: first.address || 'Address not specified',
       cityCountry: resolveCityCountry(first)
     };
-  }, [dbCompanies, selectedCompanyCode]);
+  }, [dbCompanies, selectedCompanyCode, customCompanyName, customCompanyTaxNumber, customCompanyAddress, customCompanyCityCountry, t]);
 
   // Auto-fill price per night based on selected hotel & room type
   useEffect(() => {
@@ -297,6 +319,14 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
         pricePerNight: 225.00,
         mealRate: 40.00
       });
+
+      setCustomCompanyName('');
+      setCustomCompanyEmail('');
+      setCustomCompanyAgent('');
+      setCustomCompanyAddress('');
+      setCustomCompanyCityCountry('');
+      setCustomCompanyTaxNumber('');
+      setShowValidation(false);
 
       // Fetch Room Types dari database secara real-time
       getRoomTypes()
@@ -379,6 +409,17 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isCustomClient && !customCompanyName.trim()) {
+      setShowValidation(true);
+      setAlertModal({
+        isOpen: true,
+        title: 'Validation Error',
+        message: t('invoices.customCompanyNameRequired') || 'Client company name is required',
+        type: 'error'
+      });
+      return;
+    }
+
     // Persiapkan list kamar: jika formAddedRooms kosong, masukkan currentRoom sebagai default
     let roomsToSubmit = [...formAddedRooms];
     if (roomsToSubmit.length === 0) {
@@ -408,15 +449,15 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     const newBooking: Booking = {
       id: `hr-${Date.now()}`,
       reservationNo: invoiceMeta.invoiceNo,
-      guestName: client.displayName,
+      guestName: isCustomClient ? (customCompanyName || 'Others') : client.displayName,
       guestPhone: '+62 000-0000-000',
       referenceNo: invoiceMeta.referenceNo,
       serialNo: invoiceMeta.serialNo,
       dueDate: invoiceMeta.dueDate,
-      companyName: client.companyName,
-      clientTaxNo: client.taxNo,
-      clientAddress: client.address,
-      clientCityCountry: client.cityCountry,
+      companyName: isCustomClient ? (customCompanyName || 'Others') : client.companyName,
+      clientTaxNo: isCustomClient ? (customCompanyTaxNumber || '0000-0000-0000') : client.taxNo,
+      clientAddress: isCustomClient ? customCompanyAddress : client.address,
+      clientCityCountry: isCustomClient ? (customCompanyCityCountry || 'Indonesia') : client.cityCountry,
       employeeName: formEmpName || 'Dimas Alva Rizki',
       employeeId: formEmpId || 'UMP-111',
       employeePhone: formCompNumber || '+62 8111 1203 330',
@@ -431,7 +472,17 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       usdToIdrRate: configuredRates.usdToIdr,
       sarToIdrRate: configuredRates.sarToIdr,
       advancePayment: parsedAdv,
-      remainingBalance: initialRemaining
+      remainingBalance: initialRemaining,
+      // Custom client properties
+      company_id: isCustomClient ? null : selectedCompanyCode,
+      custom_company_name: isCustomClient ? customCompanyName : null,
+      custom_company_email: isCustomClient ? customCompanyEmail : null,
+      custom_agent: isCustomClient ? customCompanyAgent : null,
+      custom_address: isCustomClient ? customCompanyAddress : null,
+      custom_tax_number: isCustomClient ? customCompanyTaxNumber : null,
+      custom_city_country: isCustomClient ? customCompanyCityCountry : null,
+      agent: isCustomClient ? customCompanyAgent : undefined,
+      isCustomClient: isCustomClient
     };
 
     onSave(newBooking);
@@ -473,9 +524,22 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
               </label>
               <select
                 value={selectedCompanyCode}
-                onChange={e => setSelectedCompanyCode(e.target.value)}
+                onChange={e => {
+                  setSelectedCompanyCode(e.target.value);
+                  if (e.target.value === 'Others') {
+                    setCustomCompanyName('');
+                    setCustomCompanyEmail('');
+                    setCustomCompanyAgent('');
+                    setCustomCompanyAddress('');
+                    setCustomCompanyCityCountry('');
+                    setCustomCompanyTaxNumber('');
+                  }
+                }}
                 className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white cursor-pointer font-bold"
               >
+                <option value="Others">
+                  -- {t('invoices.othersClient') || 'Others / Custom Client'} --
+                </option>
                 {dbCompanies.map(c => {
                   const code = c.code || c.id;
                   const name = c.name || c.companyName || c.displayName;
@@ -487,9 +551,15 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   );
                 })}
               </select>
-              <p className="text-[11.5px] text-slate-400 font-medium">
-                {client.address}{client.cityCountry ? `, ${client.cityCountry}` : ''}
-              </p>
+              {isCustomClient ? (
+                <div className="flex items-center space-x-1.5 text-[11.5px] text-amber-700 font-semibold bg-amber-50/80 px-2.5 py-1 rounded-md border border-amber-200/60 mt-1">
+                  <span>ℹ️ {t('invoices.customClientInfo') || 'One-Off / Not saved to Master Data'}</span>
+                </div>
+              ) : (
+                <p className="text-[11.5px] text-slate-400 font-medium">
+                  {client.address}{client.cityCountry ? `, ${client.cityCountry}` : ''}
+                </p>
+              )}
             </div>
 
             {/* SECTION: BILL FROM / BILL TO ROW */}
@@ -576,28 +646,123 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                 </div>
               </div>
 
-              {/* BILL TO Client Text Box */}
+              {/* BILL TO Client Text Box or Custom Client Editable Inputs */}
               <div className="space-y-2 text-xs text-slate-800">
                 <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">{t('hotelReservations.billTo')}</h4>
                 <div className="border border-slate-100 rounded-xl p-5 bg-white space-y-3.5">
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.clientCompany')}</p>
-                      <p className="font-bold text-slate-800 text-[13px] mt-0.5">{client.companyName}</p>
+                  {isCustomClient ? (
+                    <div className="space-y-3 text-[13px] font-sans">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                            {t('hotelReservations.clientCompany')} <span className="text-[#ef4444]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={customCompanyName}
+                            onChange={(e) => setCustomCompanyName(e.target.value)}
+                            placeholder="e.g. PT Klien Sekali Pakai"
+                            className={`w-full px-3 py-1.5 border rounded-xl text-[13px] font-bold text-[#0c0d0f] bg-white focus:outline-none transition-all font-inter ${
+                              showValidation && !customCompanyName.trim()
+                                ? 'border-[#ef4444] ring-1 ring-[#ef4444] bg-[#fef2f2]'
+                                : 'border-[#e2e8f0] focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                            }`}
+                          />
+                          {showValidation && !customCompanyName.trim() && (
+                            <span className="block text-[11px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in font-sans">
+                              {t('invoices.customCompanyNameRequired') || 'Nama perusahaan klien wajib diisi'}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                            {t('invoices.agent') || 'Agent'}
+                          </label>
+                          <input
+                            type="text"
+                            value={customCompanyAgent}
+                            onChange={(e) => setCustomCompanyAgent(e.target.value)}
+                            placeholder="e.g. Budi Santoso"
+                            className="w-full px-3 py-1.5 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                            {t('settings.email') || 'Email'}
+                          </label>
+                          <input
+                            type="email"
+                            value={customCompanyEmail}
+                            onChange={(e) => setCustomCompanyEmail(e.target.value)}
+                            placeholder="e.g. client@email.com"
+                            className="w-full px-3 py-1.5 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                            {t('hotelReservations.companyTaxNumber')}
+                          </label>
+                          <input
+                            type="text"
+                            value={customCompanyTaxNumber}
+                            onChange={(e) => setCustomCompanyTaxNumber(e.target.value)}
+                            placeholder="e.g. 00.000.000.0-000.000"
+                            className="w-full px-3 py-1.5 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                            {t('hotelReservations.streetAddress')}
+                          </label>
+                          <input
+                            type="text"
+                            value={customCompanyAddress}
+                            onChange={(e) => setCustomCompanyAddress(e.target.value)}
+                            placeholder="e.g. Jl. Sudirman No. 12"
+                            className="w-full px-3 py-1.5 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#94a3b8] mb-1 font-inter">
+                            {t('hotelReservations.cityCountry')}
+                          </label>
+                          <input
+                            type="text"
+                            value={customCompanyCityCountry}
+                            onChange={(e) => setCustomCompanyCityCountry(e.target.value)}
+                            placeholder="e.g. Jakarta, Indonesia"
+                            className="w-full px-3 py-1.5 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.companyTaxNumber')}</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{client.taxNo}</p>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.clientCompany')}</p>
+                        <p className="font-bold text-slate-800 text-[13px] mt-0.5">{client.companyName}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.companyTaxNumber')}</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{client.taxNo}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.streetAddress')}</p>
+                        <p className="font-medium text-slate-700 mt-0.5 leading-relaxed">{client.address}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.cityCountry')}</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{client.cityCountry}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.streetAddress')}</p>
-                      <p className="font-medium text-slate-700 mt-0.5 leading-relaxed">{client.address}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.cityCountry')}</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{client.cityCountry}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

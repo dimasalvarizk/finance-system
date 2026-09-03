@@ -139,8 +139,14 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
                 <div className="space-y-3">
                   <div>
                     <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.clientCompany')}</p>
-                    <p className="font-bold text-slate-800 text-[13px] mt-0.5">{selectedBooking.companyName}</p>
+                    <p className="font-bold text-slate-800 text-[13px] mt-0.5">{selectedBooking.custom_company_name || selectedBooking.companyName}</p>
                   </div>
+                  {(selectedBooking.agent || selectedBooking.custom_agent) && (
+                    <div>
+                      <p className="text-[9px] font-medium text-slate-400 uppercase">{t('invoices.agent') || 'Agent'}</p>
+                      <p className="font-bold text-slate-800 mt-0.5">{selectedBooking.agent || selectedBooking.custom_agent}</p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-[9px] font-medium text-slate-400 uppercase">{t('hotelReservations.companyTaxNumber')}</p>
                     <p className="font-bold text-slate-800 mt-0.5">{selectedBooking.clientTaxNo || '-'}</p>
