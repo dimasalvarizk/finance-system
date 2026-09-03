@@ -513,10 +513,22 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       });
     }
 
-    const resolvedTaxNo = invoiceDetails.clientTaxNo || invoiceDetails.taxNumber || '02.271.015.6-407.000';
-    const resolvedAgent = invoiceDetails.clientAgent || (invoiceDetails.agent ? `Agent: ${invoiceDetails.agent}` : 'Agent: ODST Travel & Tourism');
-    const displayAgent = resolvedAgent.startsWith('Agent:') ? resolvedAgent : `Agent: ${resolvedAgent}`;
-    const resolvedAddress = invoiceDetails.clientAddress || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur, Bekasi, 17113';
+    const bFrom = invoiceDetails.billFrom || {
+      name: invoiceDetails.employeeName || 'Aufa Rakha',
+      id: invoiceDetails.employeeId || '250104',
+      entity: companySettings.companyName || 'PT.ODST AIRLINES INDO',
+      phone: companySettings.phone || '+62 8111 1203 330',
+      email: invoiceDetails.employeeEmail || 'aufa.rakha108@gmail.com',
+      tax: companySettings.taxNumber || '0000-0000-0001'
+    };
+
+    const bTo = invoiceDetails.billTo || {
+      company: company || 'Arie Tour',
+      tax: invoiceDetails.clientTaxNo || '02.271.015.6-.407.000',
+      agent: displayAgent,
+      address: resolvedAddress,
+      cityCountry: 'Bekasi, 17113, Indonesia'
+    };
 
     const mailOptions = {
       from: process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <billing@odst.id>',
@@ -730,21 +742,22 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                     <td class="bill-box">
                       <div class="bill-title">BILL FROM</div>
                       <div class="bill-details">
-                        <strong>${companySettings.companyName || 'PT ODST AIRLINES INDO'}</strong><br>
-                        Employee: Aulia Azzha (ID: 250104)<br>
-                        Phone: ${companySettings.phone || '+62 811 1202 338'}<br>
-                        Tax Number: ${companySettings.taxNumber || '0000-0000-0001'}<br>
-                        Email: mcfc.nabilah@gmail.com
+                        <strong>${bFrom.entity || 'PT.ODST AIRLINES INDO'}</strong><br>
+                        Employee Name: ${bFrom.name}<br>
+                        Employee ID: ${bFrom.id}<br>
+                        Company Email: ${bFrom.email}<br>
+                        Company Number: ${bFrom.phone}<br>
+                        Tax Number: ${bFrom.tax}
                       </div>
                     </td>
                     <td class="bill-box">
                       <div class="bill-title">BILL TO</div>
                       <div class="bill-details">
-                        <strong>${company}</strong><br>
-                        <span style="color: #d97706; font-weight: bold;">${displayAgent}</span><br>
-                        Tax Number: ${resolvedTaxNo}<br>
-                        Address: ${resolvedAddress}<br>
-                        Recipient Email: ${toEmail}
+                        <strong>${bTo.company}</strong><br>
+                        ${bTo.agent ? `<span style="color: #d97706; font-weight: bold;">Agent: ${bTo.agent.replace(/^Agent:\s*/i, '')}</span><br>` : ''}
+                        Company Tax Number: ${bTo.tax}<br>
+                        Street Address: ${bTo.address}<br>
+                        City / Country: ${bTo.cityCountry || 'Bekasi, 17113, Indonesia'}
                       </div>
                     </td>
                   </tr>

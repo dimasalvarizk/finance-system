@@ -26,30 +26,53 @@ const formatDateDMY = (dateStr) => {
   return `${day}/${month}/${year}`;
 };
 
+const cleanAgentName = (agentName) => {
+  if (!agentName) return undefined;
+  const lower = agentName.toLowerCase();
+  if (lower.includes('hasoob')) return 'Hasoob Technology';
+  if (lower.includes('odst')) return 'ODST Travel & Tourizm';
+  return agentName;
+};
+
+const splitAddress = (fullAddress) => {
+  if (!fullAddress) return { address: 'N/A', cityCountry: 'N/A' };
+  const parts = fullAddress.split(',').map(p => p.trim());
+  if (parts.length <= 3) {
+    return {
+      address: parts[0] || 'N/A',
+      cityCountry: parts.slice(1).join(', ') || 'N/A'
+    };
+  }
+  const cityCountryParts = parts.slice(-3);
+  const addressParts = parts.slice(0, -3);
+  return {
+    address: addressParts.join(', '),
+    cityCountry: cityCountryParts.join(', ')
+  };
+};
+
 /**
  * 1. Generate HTML for Invoices / General Confirmation matching ReservationConfirmationPrint.tsx
  */
 const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) => {
   const {
     invoiceNo = 'AIT-0831-002',
-    company = 'Asia Tour',
+    company = 'Arie Tour',
     amount = '2,200.00 SAR',
-    referenceNo = 'REF-0987-189',
-    serialNo = 'SN-456523',
+    referenceNo = 'REF-0907-189',
+    serialNo = 'SR-486823',
     dueDate = '09/07/2026',
     date = '2026-08-31',
     items = [],
     taxRate = 0,
     currency = 'SAR',
-    usdToIdrRate = 18025,
+    usdToIdrRate = 18000,
     sarToIdrRate = 4800,
-    clientTaxNo,
-    clientAgent,
-    clientAddress,
-    clientCityCountry
+    billFrom,
+    billTo
   } = details;
 
-  const formattedDate = formatDateDMY(date) || '25/08/2026';
+  const formattedDate = formatDateDMY(date) || '31/08/2026';
   const formattedDueDate = formatDateDMY(dueDate) || '07/09/2026';
 
   const rate = Number(taxRate) || 0;
@@ -69,7 +92,7 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
   const totalFormatted = `${totalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
 
   // Real-time Exchange Rates & Converted Totals
-  const numUsdToIdr = Number(usdToIdrRate) || 18025;
+  const numUsdToIdr = Number(usdToIdrRate) || 18000;
   const numSarToIdr = Number(sarToIdrRate) || 4800;
   const numUsdToSar = numUsdToIdr / numSarToIdr;
 
@@ -89,11 +112,26 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
   const formattedTotalIDR = `Rp ${Math.round(totalDueIDR).toLocaleString('id-ID')}`;
   const formattedTotalUSD = `$${totalDueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const resolvedTaxNo = clientTaxNo || details.taxNumber || '02.271.015.6-407.000';
-  const resolvedAgent = clientAgent || (details.agent ? `Agent: ${details.agent}` : 'Agent: ODST Travel & Tourism');
-  const displayAgent = resolvedAgent.startsWith('Agent:') ? resolvedAgent : `Agent: ${resolvedAgent}`;
-  const resolvedAddress = clientAddress || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur';
-  const resolvedCityCountry = clientCityCountry || 'Bekasi, 17113, Indonesia';
+  // Bill From & Bill To resolution
+  const bFrom = billFrom || {
+    name: details.employeeName || 'Aufa Rakha',
+    id: details.employeeId || '250104',
+    entity: companySettings.companyName || 'PT.ODST AIRLINES INDO',
+    phone: companySettings.phone || '+62 8111 1203 330',
+    email: details.employeeEmail || 'aufa.rakha108@gmail.com',
+    tax: companySettings.taxNumber || '0000-0000-0001'
+  };
+
+  const rawAddress = details.clientAddress || details.address || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas, Margahayu, Kec. Bekasi Timur", Bekasi, 17113, Indonesia';
+  const splitAddr = splitAddress(rawAddress);
+
+  const bTo = billTo || {
+    company: company || details.companyName || 'Arie Tour',
+    tax: details.clientTaxNo || details.taxNumber || '02.271.015.6-.407.000',
+    agent: cleanAgentName(details.clientAgent || details.agent || 'ODST Travel and Tourism - 2114'),
+    address: splitAddr.address,
+    cityCountry: splitAddr.cityCountry
+  };
 
   let itemsHtml = '';
   if (items && Array.isArray(items) && items.length > 0) {
@@ -121,6 +159,11 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
       </tr>
     `;
   }
+
+  const defaultNotesList = [
+    `* Please ensure the Invoice Number (e.g. ${invoiceNo}) is listed as the payment description reference.`,
+    `* Attach hotel booking confirmation numbers where applicable for ground handling operations.`
+  ];
 
   return `
   <!DOCTYPE html>
@@ -390,27 +433,27 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
             <div class="bill-card">
               <div>
                 <p class="bill-f-lbl">Employee Name</p>
-                <p class="bill-f-val">Aulia Azzha</p>
+                <p class="bill-f-val">${bFrom.name || 'Aufa Rakha'}</p>
               </div>
               <div>
                 <p class="bill-f-lbl">Company Number</p>
-                <p class="bill-f-val">${companySettings.phone || '+62 811 1202 338'}</p>
+                <p class="bill-f-val">${bFrom.phone || '+62 8111 1203 330'}</p>
               </div>
               <div>
                 <p class="bill-f-lbl">Employee ID</p>
-                <p class="bill-f-val">250104</p>
+                <p class="bill-f-val">${bFrom.id || '250104'}</p>
               </div>
               <div>
                 <p class="bill-f-lbl">Company Email</p>
-                <p class="bill-f-val" style="word-break:break-all;">mcfc.nabilah@gmail.com</p>
+                <p class="bill-f-val" style="word-break:break-all;">${bFrom.email || 'aufa.rakha108@gmail.com'}</p>
               </div>
               <div>
                 <p class="bill-f-lbl">Entity / Company</p>
-                <p class="bill-f-val">${companySettings.companyName || 'PT.ODST AIRLINES INDO'}</p>
+                <p class="bill-f-val">${bFrom.entity || 'PT.ODST AIRLINES INDO'}</p>
               </div>
               <div>
                 <p class="bill-f-lbl">Company Tax Number</p>
-                <p class="bill-f-val">${companySettings.taxNumber || '0000-0000-0001'}</p>
+                <p class="bill-f-val">${bFrom.tax || '0000-0000-0001'}</p>
               </div>
             </div>
           </div>
@@ -420,23 +463,25 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
             <div class="bill-card">
               <div>
                 <p class="bill-f-lbl">Company Name</p>
-                <p class="bill-f-val">${company}</p>
+                <p class="bill-f-val">${bTo.company || 'Arie Tour'}</p>
               </div>
               <div>
                 <p class="bill-f-lbl">Company Tax Number</p>
-                <p class="bill-f-val">${resolvedTaxNo}</p>
+                <p class="bill-f-val">${bTo.tax || '02.271.015.6-.407.000'}</p>
               </div>
+              ${bTo.agent ? `
               <div style="grid-column: span 2;">
                 <p class="bill-f-lbl">Agent Details</p>
-                <p style="font-size:9.5px; font-weight:700; color:#d97706;">${displayAgent}</p>
+                <p style="font-size:9.5px; font-weight:700; color:#d97706;">Agent: ${bTo.agent.replace(/^Agent:\s*/i, '')}</p>
               </div>
+              ` : ''}
               <div style="grid-column: span 2;">
                 <p class="bill-f-lbl">Street Address</p>
-                <p style="font-size:9px; color:#334155; font-weight:500; line-height:1.2;">${resolvedAddress}</p>
+                <p style="font-size:9px; color:#334155; font-weight:500; line-height:1.2;">${bTo.address || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas, Margahayu, Kec. Bekasi Timur"'}</p>
               </div>
               <div style="grid-column: span 2;">
                 <p class="bill-f-lbl">City / Country</p>
-                <p style="font-size:9px; color:#334155; font-weight:500;">${resolvedCityCountry}</p>
+                <p style="font-size:9px; color:#334155; font-weight:500;">${bTo.cityCountry || 'Bekasi, 17113, Indonesia'}</p>
               </div>
             </div>
           </div>
@@ -477,11 +522,11 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
               </div>
               <div class="pay-row">
                 <span class="pay-row-lbl">IDR Account Number:</span>
-                <span style="font-weight:700; color:#2563eb; font-size:9px;">${companySettings.idrAccountNumber || '003711915213'}</span>
+                <span style="font-weight:700; color:#2563eb; font-size:9px;">${companySettings.idrAccountNumber || '003711895213'}</span>
               </div>
               <div class="pay-row">
                 <span class="pay-row-lbl">USD Account Number:</span>
-                <span style="font-weight:700; color:#2563eb; font-size:9px;">${companySettings.usdAccountNumber || '003711915643'}</span>
+                <span style="font-weight:700; color:#2563eb; font-size:9px;">${companySettings.usdAccountNumber || '003711895643'}</span>
               </div>
             </div>
           </div>
@@ -533,8 +578,8 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
           <div>
             <div class="sec-heading">NOTES</div>
             <ul class="notes-list">
-              <li class="notes-item">* Please ensure the Invoice Number (e.g. ${invoiceNo}) is listed as the payment description reference.</li>
-              <li class="notes-item">* Attach hotel booking confirmation numbers where applicable for ground handling operations.</li>
+              <li class="notes-item">${defaultNotesList[0]}</li>
+              <li class="notes-item">${defaultNotesList[1]}</li>
             </ul>
           </div>
           <div>
@@ -563,7 +608,7 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
         </div>
 
         <div class="footer-bar">
-          <span>${formattedDate} · PT.ODST AIRLINES INDO</span>
+          <span>${formattedDate} · ${bFrom.entity || 'PT.ODST AIRLINES INDO'}</span>
           <span>Page 1 of 1</span>
         </div>
       </div>
@@ -579,27 +624,32 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
 const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
   const {
     invoiceNo = 'RES-2026-001',
-    company = 'Client Company',
+    company = 'Arie Tour',
     amount = '2,200.00 SAR',
     referenceNo = 'REF-HOTEL-01',
     serialNo = 'SN-HOTEL-01',
     dueDate = '09/07/2026',
+    date = '2026-08-31',
     items = [],
+    rooms = [],
     taxRate = 0,
-    currency = 'SAR'
+    currency = 'SAR',
+    billFrom,
+    billTo
   } = details;
 
-  const formattedDueDate = formatDateDMY(dueDate) || '09/07/2026';
-  const currentDate = new Date().toLocaleDateString('en-GB');
+  const formattedDueDate = formatDateDMY(dueDate) || '07/09/2026';
+  const formattedDate = formatDateDMY(date) || '31/08/2026';
 
-  const curr = (currency || 'SAR').toUpperCase().includes('SAR') || amount.includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
+  const curr = (currency || 'SAR').toUpperCase().includes('SAR') || String(amount).includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
   const rate = Number(taxRate) || 0;
 
   let subtotalNum = 0;
   if (items && Array.isArray(items) && items.length > 0) {
     subtotalNum = items.reduce((acc, it) => acc + (Number(it.qty) || 1) * (Number(it.price) || 0), 0);
   } else {
-    subtotalNum = 2200;
+    const rawParsed = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+    subtotalNum = isNaN(rawParsed) ? 2200 : rawParsed;
   }
   const taxNum = subtotalNum * (rate / 100);
   const totalNum = subtotalNum + taxNum;
@@ -608,26 +658,42 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
   const taxFormatted = `${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
   const totalFormatted = `${totalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
 
+  const rawAddress = details.clientAddress || details.address || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas, Margahayu, Kec. Bekasi Timur", Bekasi, 17113, Indonesia';
+  const splitAddr = splitAddress(rawAddress);
+
+  const bTo = billTo || {
+    company: company || details.companyName || 'Arie Tour',
+    tax: details.clientTaxNo || details.taxNumber || '02.271.015.6-.407.000',
+    agent: cleanAgentName(details.clientAgent || details.agent || 'ODST Travel and Tourism - 2114'),
+    address: splitAddr.address,
+    cityCountry: splitAddr.cityCountry
+  };
+
   let hotelRowsHtml = '';
-  if (items && Array.isArray(items) && items.length > 0) {
-    items.forEach((it) => {
-      const q = Number(it.qty) || 1;
-      const p = Number(it.price) || 0;
-      const tot = (q * p).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const roomList = (rooms && rooms.length > 0) ? rooms : (items && items.length > 0 ? items : []);
+
+  if (roomList.length > 0) {
+    roomList.forEach((r) => {
+      const q = Number(r.roomCount || r.qty) || 1;
+      const n = Number(r.nights) || 1;
+      const dayRate = Number(r.pricePerNight || r.price) || 0;
+      const mealsRate = Number(r.mealRate) || 0;
+      const rowTotal = Number(r.totalPrice) || ((dayRate + mealsRate) * q * n);
+
       hotelRowsHtml += `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-          <td style="padding: 7px 6px; font-weight: 600; color: #0f172a; text-transform: uppercase;">${it.hotelName || it.description || 'Pullman Zamzam'}</td>
-          <td style="padding: 7px 4px; color: #1e293b; text-transform: uppercase;">${it.roomType || 'Executive Suite'}</td>
-          <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">${it.checkIn || '-'}</td>
-          <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">${it.checkOut || '-'}</td>
-          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${it.nights || 1}</td>
+          <td style="padding: 7px 6px; font-weight: 600; color: #0f172a; text-transform: uppercase;">${r.hotelName || r.description || 'Pullman Zamzam Makkah'}</td>
+          <td style="padding: 7px 4px; color: #1e293b; text-transform: uppercase;">${r.roomType || 'Executive Suite'}</td>
+          <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">${formatDateDMY(r.checkIn) || '-'}</td>
+          <td style="padding: 7px 4px; color: #1e293b; white-space: nowrap;">${formatDateDMY(r.checkOut) || '-'}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${n}</td>
           <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${q}</td>
-          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${it.adults || 2}</td>
-          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${it.children || 0}</td>
-          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a; text-transform: uppercase;">${it.mealPlan || 'RO'}</td>
-          <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">${p.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${curr}</td>
-          <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">0.00 ${curr}</td>
-          <td style="padding: 7px 8px; text-align: right; font-weight: 700; color: #0f172a;">${tot} ${curr}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${r.adults || 2}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a;">${r.children || 0}</td>
+          <td style="padding: 7px 4px; text-align: center; font-weight: 600; color: #0f172a; text-transform: uppercase;">${r.mealPlan || 'RO'}</td>
+          <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">${dayRate.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${curr}</td>
+          <td style="padding: 7px 6px; text-align: right; font-weight: 500; color: #1e293b;">${mealsRate.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${curr}</td>
+          <td style="padding: 7px 8px; text-align: right; font-weight: 700; color: #0f172a;">${rowTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${curr}</td>
         </tr>
       `;
     });
@@ -744,9 +810,9 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
             <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">BILL TO</div>
             <div style="font-size: 10px; line-height: 1.45;">
               <p style="color: #94a3b8; font-size: 9px;">Company Name</p>
-              <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${company}</p>
-              <p style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Street Address & City</p>
-              <p style="font-weight: 600; color: #334155; font-size: 10px;">Jl. Chairil Anwar Blok B12, Bekasi, 17113, Indonesia</p>
+              <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${bTo.company || 'Arie Tour'}</p>
+              <p style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Street Address &amp; City</p>
+              <p style="font-weight: 600; color: #334155; font-size: 10px;">${bTo.address || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas'}, ${bTo.cityCountry || 'Bekasi, 17113, Indonesia'}</p>
             </div>
           </div>
         </div>
@@ -787,19 +853,19 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
             <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">PAYMENT INSTRUCTIONS</div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">Bank Name:</span>
-              <span style="font-weight: 700; color: #1e293b;">Danamon</span>
+              <span style="font-weight: 700; color: #1e293b;">${companySettings.bankName || 'Danamon'}</span>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">Account Name:</span>
-              <span style="font-weight: 700; color: #1e293b;">PT ODST Airlines Indo</span>
+              <span style="font-weight: 700; color: #1e293b;">${companySettings.accountName || 'PT ODST Airlines Indo'}</span>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">IDR Account Number:</span>
-              <span style="font-weight: 700; color: #2563eb;">102-8829-011</span>
+              <span style="font-weight: 700; color: #2563eb;">${companySettings.idrAccountNumber || '003711895213'}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 3px 0;">
               <span style="color: #64748b;">USD Account Number:</span>
-              <span style="font-weight: 700; color: #2563eb;">102-8829-022</span>
+              <span style="font-weight: 700; color: #2563eb;">${companySettings.usdAccountNumber || '003711895643'}</span>
             </div>
           </div>
 
@@ -824,7 +890,7 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
         <div style="background-color: rgba(248, 250, 252, 0.7); border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; font-size: 10px;">
           <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">EXCHANGE RATE</div>
           <div style="display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;">
-            <span>1 USD = 18,025 IDR</span>
+            <span>1 USD = 18,000 IDR</span>
             <span style="font-weight: 700; color: #334155;">USD / IDR</span>
           </div>
           <div style="display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;">
@@ -849,7 +915,7 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
           <div>
             <div style="font-size: 9px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px;">TERMS &amp; CONDITIONS</div>
             <p style="font-size: 9px; color: #64748b; line-height: 1.4;">
-              Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.
+              ${companySettings.termsAndConditions || 'Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.'}
             </p>
           </div>
         </div>
@@ -857,7 +923,7 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
 
       <!-- Footer -->
       <div style="padding-top: 8px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 8px; color: #94a3b8; font-weight: 500;">
-        <span>${currentDate}, ODST Group</span>
+        <span>${formattedDate} · PT.ODST AIRLINES INDO</span>
         <span>Page 1 of 1</span>
       </div>
     </div>
