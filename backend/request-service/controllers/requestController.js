@@ -338,7 +338,8 @@ export const sendInvoiceEmail = async (req, res, next) => {
           dueDate: invoice.dueDate,
           date: invoice.date,
           items: invoice.items,
-          taxRate: invoice.taxRate
+          taxRate: invoice.taxRate,
+          documentType: 'Invoice / Confirmation'
         }
       })
     });

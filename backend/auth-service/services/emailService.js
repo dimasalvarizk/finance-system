@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import nodemailer from 'nodemailer';
 import { getPool } from '../config/db.js';
+import { generateInvoicePdfBuffer } from './pdfGenerator.js';
 
 let transporter = null;
 const ETHEREAL_CACHE_PATH = path.join('/tmp', 'ethereal_account.json');
@@ -428,7 +429,10 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
   try {
     const transporter = await getTransporter();
 
-    const { invoiceNo, company, companyCode, amount, referenceNo, serialNo, dueDate, date, items, taxRate } = invoiceDetails;
+    const { invoiceNo, company, companyCode, amount, referenceNo, serialNo, dueDate, date, items, taxRate, documentType } = invoiceDetails;
+    const isHotel = (documentType && documentType.toLowerCase().includes('hotel')) || (invoiceNo && invoiceNo.startsWith('RES-'));
+    const docTitle = isHotel ? 'HOTEL RESERVATION CONFIRMATION' : `INVOICE ${invoiceNo}`;
+    const subjectPrefix = isHotel ? 'Hotel Reservation Confirmation' : 'Invoice / Confirmation';
     const rate = Number(taxRate) || 0;
 
     let subtotalNum = 0;
@@ -473,16 +477,35 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       `;
     }
 
+    // Generate Official PDF Buffer
+    let pdfBuffer = null;
+    try {
+      pdfBuffer = await generateInvoicePdfBuffer(invoiceDetails, companySettings);
+    } catch (pdfErr) {
+      console.error('Failed to generate PDF attachment buffer:', pdfErr.message);
+    }
+
+    const safeFilename = (invoiceNo || 'document').replace(/[^a-zA-Z0-9-_]/g, '_');
+    const attachments = [];
+    if (pdfBuffer) {
+      attachments.push({
+        filename: `${isHotel ? 'Reservation' : 'Invoice'}_${safeFilename}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      });
+    }
+
     const mailOptions = {
       from: process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <billing@odst.id>',
       to: toEmail,
-      subject: `Invoice / Confirmation ${invoiceNo} from ODST Group`,
+      subject: `${subjectPrefix} ${invoiceNo} from ODST Group`,
+      attachments: attachments,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
-          <title>Invoice ${invoiceNo}</title>
+          <title>${docTitle}</title>
           <style>
             body {
               font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -522,10 +545,11 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
               color: #f59e0b;
             }
             .invoice-title {
-              font-size: 24px;
+              font-size: 22px;
               font-weight: 700;
               margin-top: 15px;
               margin-bottom: 0;
+              letter-spacing: 0.5px;
             }
             .content {
               padding: 35px 40px;
@@ -659,12 +683,12 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
             <div class="container">
               <div class="header">
                 <h1 class="header-logo">ODST <span>Finance Portal</span></h1>
-                <h2 class="invoice-title">INVOICE ${invoiceNo}</h2>
+                <h2 class="invoice-title">${docTitle}</h2>
               </div>
               <div class="content">
                 <table class="meta-grid">
                   <tr>
-                    <td class="meta-label">Invoice Date</td>
+                    <td class="meta-label">Document Date</td>
                     <td class="meta-label">Due Date</td>
                     <td class="meta-label">Reference No</td>
                     <td class="meta-label">Serial No</td>
@@ -733,6 +757,19 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                 </div>
                 <div style="clear: both; height: 25px;"></div>
 
+                <!-- DOWNLOAD PDF ATTACHMENT CARD -->
+                <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">
+                  <div style="font-size: 13.5px; font-weight: 800; color: #0f172a; margin-bottom: 5px; font-family: sans-serif;">
+                    OFFICIAL PDF DOCUMENT ATTACHED
+                  </div>
+                  <div style="font-size: 12px; color: #64748b; margin-bottom: 14px; font-family: sans-serif; line-height: 1.5;">
+                    The official signed PDF version (<strong>${isHotel ? 'Reservation' : 'Invoice'}_${safeFilename}.pdf</strong>) is attached directly to this email. You can download and save it directly from your email attachments.
+                  </div>
+                  <div style="display: inline-block; background-color: #242e69; color: #ffffff !important; font-size: 12px; font-weight: 700; padding: 10px 22px; border-radius: 8px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Attachment: ${isHotel ? 'Reservation' : 'Invoice'}_${safeFilename}.pdf
+                  </div>
+                </div>
+
                 <!-- Payment Instructions -->
                 <div style="margin-bottom: 25px;">
                   <div style="font-size: 11px; font-weight: bold; color: #0f172a; text-transform: uppercase; margin-bottom: 8px; font-family: sans-serif;">Payment Instructions</div>
@@ -778,6 +815,7 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
               <div class="footer">
                 <p class="footer-text">
                   Thank you for your business. For any billing inquiries, please contact the ODST Admin Team.<br>
+                  Authorized by Mr. Emad Moustafa (Financial Controller)<br>
                   © 2026 Manazil Al Mukhtara Group. All rights reserved.
                 </p>
               </div>

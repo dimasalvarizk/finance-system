@@ -542,6 +542,10 @@ export const sendReservationConfirmationEmail = async (req, res, next) => {
     }));
 
     try {
+      const formattedAmount = typeof totalAmount === 'number' 
+        ? `$${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : totalAmount;
+
       const authResp = await fetch(`${getAuthBaseUrl(req)}/api/auth/send-client-invoice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -551,13 +555,14 @@ export const sendReservationConfirmationEmail = async (req, res, next) => {
             invoiceNo: resv.reservationNo || resv.invoiceNo,
             company: resv.companyName || 'Client',
             companyCode: resv.companyCode || resv.clientCompanyCode || 'ACM',
-            amount: totalAmount,
+            amount: formattedAmount,
             referenceNo: resv.referenceNo || 'REF-HOTEL',
             serialNo: resv.serialNo || 'SN-HOTEL',
             dueDate: resv.dueDate || new Date().toISOString().split('T')[0],
             date: resv.createdAt ? new Date(resv.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             items: items,
-            taxRate: resv.taxRate || 0
+            taxRate: resv.taxRate || 0,
+            documentType: 'Hotel Reservation Confirmation'
           }
         })
       });
