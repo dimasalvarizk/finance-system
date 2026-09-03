@@ -3445,7 +3445,7 @@ const Invoices: React.FC = () => {
                   invStatusClean.includes('partial') ||
                   invStatusClean.includes('deposit') ||
                   invStatusClean.includes('paid') ||
-                  (invStatusClean === 'overdue' && !invStatusClean.includes('pending') && invStatusClean !== 'draft');
+                  invStatusClean === 'overdue';
 
                 const remaining = Math.max(0, rawAmt - totalPaidSoFar);
                 const currency = inv.currency || 'USD';
