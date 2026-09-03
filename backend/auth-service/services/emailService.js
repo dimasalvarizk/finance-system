@@ -456,13 +456,13 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     let itemsHtml = '';
     if (items && Array.isArray(items) && items.length > 0) {
       for (const item of items) {
-        const qtyNum = Number(item.qty) || 0;
+        const qtyNum = Number(item.qty) || 1;
         const priceNum = Number(item.price) || 0;
-        const itemTotal = (qtyNum * priceNum).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-        const itemPrice = priceNum.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        const itemTotal = `${(qtyNum * priceNum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
+        const itemPrice = `${priceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
         itemsHtml += `
           <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 12px 10px; font-size: 13px; color: #334155; text-align: left;">${item.description}</td>
+            <td style="padding: 12px 10px; font-size: 13px; color: #1e293b; font-weight: 600; text-align: left;">${item.description}</td>
             <td style="padding: 12px 10px; font-size: 13px; color: #334155; text-align: center;">${item.qty}</td>
             <td style="padding: 12px 10px; font-size: 13px; color: #334155; text-align: right; font-family: monospace;">${itemPrice}</td>
             <td style="padding: 12px 10px; font-size: 13px; color: #0f172a; text-align: right; font-weight: bold; font-family: monospace;">${itemTotal}</td>
@@ -471,8 +471,11 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       }
     } else {
       itemsHtml = `
-        <tr>
-          <td colspan="4" style="padding: 20px; font-size: 13px; color: #64748b; text-align: center;">No item details provided.</td>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 12px 10px; font-size: 13px; color: #1e293b; font-weight: 600; text-align: left;">Service Item</td>
+          <td style="padding: 12px 10px; font-size: 13px; color: #334155; text-align: center;">1</td>
+          <td style="padding: 12px 10px; font-size: 13px; color: #334155; text-align: right; font-family: monospace;">${amount}</td>
+          <td style="padding: 12px 10px; font-size: 13px; color: #0f172a; text-align: right; font-weight: bold; font-family: monospace;">${amount}</td>
         </tr>
       `;
     }
@@ -494,6 +497,11 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
         contentType: 'application/pdf'
       });
     }
+
+    const resolvedTaxNo = invoiceDetails.clientTaxNo || invoiceDetails.taxNumber || '02.271.015.6-407.000';
+    const resolvedAgent = invoiceDetails.clientAgent || (invoiceDetails.agent ? `Agent: ${invoiceDetails.agent}` : 'Agent: ODST Travel & Tourism');
+    const displayAgent = resolvedAgent.startsWith('Agent:') ? resolvedAgent : `Agent: ${resolvedAgent}`;
+    const resolvedAddress = invoiceDetails.clientAddress || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur, Bekasi, 17113';
 
     const mailOptions = {
       from: process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <billing@odst.id>',
@@ -600,29 +608,28 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
             .items-table {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 30px;
-            }
-            .items-header {
-              background-color: #f8fafc;
-              border-bottom: 2px solid #e2e8f0;
+              margin-bottom: 25px;
             }
             .items-header th {
-              font-size: 10px;
-              font-weight: bold;
-              color: #64748b;
+              background-color: #f8fafc;
+              border-bottom: 2px solid #e2e8f0;
+              padding: 12px 10px;
+              font-size: 11px;
               text-transform: uppercase;
-              padding: 10px;
+              font-weight: 700;
+              color: #64748b;
+              letter-spacing: 0.5px;
             }
             .total-box {
               float: right;
-              width: 250px;
-              margin-top: 10px;
-              border-top: 2px solid #e2e8f0;
-              padding-top: 10px;
+              width: 260px;
+              text-align: right;
+              margin-bottom: 25px;
             }
             .total-row {
-              width: 100%;
-              margin-bottom: 8px;
+              display: flex;
+              justify-content: space-between;
+              padding: 4px 0;
             }
             .total-label {
               font-size: 13px;
@@ -632,7 +639,7 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
               width: 120px;
             }
             .total-value {
-              font-size: 15px;
+              font-size: 14.5px;
               color: #0f172a;
               font-weight: 700;
               display: inline-block;
@@ -641,16 +648,18 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
               font-family: monospace;
             }
             .total-due-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 8px 12px;
               background-color: #fffbeb;
               border: 1px dashed #fde68a;
               border-radius: 8px;
-              padding: 10px;
-              margin-top: 8px;
+              margin-top: 6px;
             }
             .total-due-label {
               font-size: 14px;
               color: #b45309;
-              font-weight: 700;
+              font-weight: 800;
               display: inline-block;
               width: 110px;
             }
@@ -706,20 +715,21 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                     <td class="bill-box">
                       <div class="bill-title">BILL FROM</div>
                       <div class="bill-details">
-                        <strong>ODST Group</strong><br>
-                        CBC Office (Head Office)<br>
-                        Jakarta, Indonesia<br>
-                        Phone: ${companySettings.phone}<br>
-                        Tax Number: ${companySettings.taxNumber}<br>
-                        Email: info@odst.id
+                        <strong>${companySettings.companyName || 'PT ODST AIRLINES INDO'}</strong><br>
+                        Employee: Aulia Azzha (ID: 250104)<br>
+                        Phone: ${companySettings.phone || '+62 811 1202 338'}<br>
+                        Tax Number: ${companySettings.taxNumber || '0000-0000-0001'}<br>
+                        Email: mcfc.nabilah@gmail.com
                       </div>
                     </td>
                     <td class="bill-box">
                       <div class="bill-title">BILL TO</div>
                       <div class="bill-details">
                         <strong>${company}</strong><br>
-                        Company Code: ${companyCode || 'ACM'}<br>
-                        Email: ${toEmail}
+                        <span style="color: #d97706; font-weight: bold;">${displayAgent}</span><br>
+                        Tax Number: ${resolvedTaxNo}<br>
+                        Address: ${resolvedAddress}<br>
+                        Recipient Email: ${toEmail}
                       </div>
                     </td>
                   </tr>
@@ -739,20 +749,20 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                   </tbody>
                 </table>
 
-                 <div class="total-box">
+                <div class="total-box">
                   ${rate > 0 ? `
-                  <div class="total-row" style="margin-bottom: 8px;">
-                    <div class="total-label" style="font-size: 13px; color: #64748b; font-weight: 600; display: inline-block; width: 120px;">Subtotal</div>
-                    <div class="total-value" style="font-size: 15px; color: #0f172a; font-weight: 700; display: inline-block; text-align: right; width: 120px; font-family: monospace;">${subtotalFormatted}</div>
+                  <div class="total-row">
+                    <span class="total-label">Subtotal</span>
+                    <span class="total-value">${subtotalFormatted}</span>
                   </div>
-                  <div class="total-row" style="margin-bottom: 8px;">
-                    <div class="total-label" style="font-size: 13px; color: #64748b; font-weight: 600; display: inline-block; width: 120px;">Tax (${rate}%)</div>
-                    <div class="total-value" style="font-size: 15px; color: #0f172a; font-weight: 700; display: inline-block; text-align: right; width: 120px; font-family: monospace;">${taxFormatted}</div>
+                  <div class="total-row">
+                    <span class="total-label">Tax (${rate}%)</span>
+                    <span class="total-value">${taxFormatted}</span>
                   </div>
                   ` : ''}
-                  <div class="total-due-row" style="background-color: #fffbeb; border: 1px dashed #fde68a; border-radius: 8px; padding: 10px; margin-top: 8px;">
-                    <div class="total-due-label" style="font-size: 14px; color: #b45309; font-weight: 700; display: inline-block; width: 110px;">Total Due</div>
-                    <div class="total-due-value" style="font-size: 16px; color: #b45309; font-weight: 800; display: inline-block; text-align: right; width: 110px; font-family: monospace;">${amount}</div>
+                  <div class="total-due-row">
+                    <span class="total-due-label">Total Due</span>
+                    <span class="total-due-value">${amount}</span>
                   </div>
                 </div>
                 <div style="clear: both; height: 25px;"></div>

@@ -40,26 +40,60 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
     date = '2026-08-31',
     items = [],
     taxRate = 0,
-    currency = 'SAR'
+    currency = 'SAR',
+    usdToIdrRate = 18025,
+    sarToIdrRate = 4800,
+    clientTaxNo,
+    clientAgent,
+    clientAddress,
+    clientCityCountry
   } = details;
 
   const formattedDate = formatDateDMY(date) || '25/08/2026';
-  const formattedDueDate = formatDateDMY(dueDate) || '09/07/2026';
+  const formattedDueDate = formatDateDMY(dueDate) || '07/09/2026';
 
   const rate = Number(taxRate) || 0;
   let subtotalNum = 0;
   if (items && Array.isArray(items) && items.length > 0) {
     subtotalNum = items.reduce((acc, it) => acc + (Number(it.qty) || 1) * (Number(it.price) || 0), 0);
   } else {
-    subtotalNum = 2200;
+    const rawParsed = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+    subtotalNum = isNaN(rawParsed) ? 2200 : rawParsed;
   }
   const taxNum = subtotalNum * (rate / 100);
   const totalNum = subtotalNum + taxNum;
 
-  const curr = (currency || 'SAR').toUpperCase().includes('SAR') || amount.includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
+  const curr = (currency || 'SAR').toUpperCase().includes('SAR') || String(amount).includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
   const subtotalFormatted = `${subtotalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
   const taxFormatted = `${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
   const totalFormatted = `${totalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
+
+  // Real-time Exchange Rates & Converted Totals
+  const numUsdToIdr = Number(usdToIdrRate) || 18025;
+  const numSarToIdr = Number(sarToIdrRate) || 4800;
+  const numUsdToSar = numUsdToIdr / numSarToIdr;
+
+  let totalDueIDR = 0;
+  let totalDueUSD = 0;
+  if (curr === 'SAR') {
+    totalDueIDR = totalNum * numSarToIdr;
+    totalDueUSD = totalNum / numUsdToSar;
+  } else if (curr === 'USD') {
+    totalDueUSD = totalNum;
+    totalDueIDR = totalNum * numUsdToIdr;
+  } else {
+    totalDueIDR = totalNum;
+    totalDueUSD = totalNum / numUsdToIdr;
+  }
+
+  const formattedTotalIDR = `Rp ${Math.round(totalDueIDR).toLocaleString('id-ID')}`;
+  const formattedTotalUSD = `$${totalDueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const resolvedTaxNo = clientTaxNo || details.taxNumber || '02.271.015.6-407.000';
+  const resolvedAgent = clientAgent || (details.agent ? `Agent: ${details.agent}` : 'Agent: ODST Travel & Tourism');
+  const displayAgent = resolvedAgent.startsWith('Agent:') ? resolvedAgent : `Agent: ${resolvedAgent}`;
+  const resolvedAddress = clientAddress || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur';
+  const resolvedCityCountry = clientCityCountry || 'Bekasi, 17113, Indonesia';
 
   let itemsHtml = '';
   if (items && Array.isArray(items) && items.length > 0) {
@@ -80,16 +114,10 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
   } else {
     itemsHtml = `
       <tr style="border-bottom: 1px solid #f1f5f9;">
-        <td style="padding: 11px 14px; font-weight: 700; color: #1e293b; font-size: 9.5px;">Manasik External Agent Activation</td>
+        <td style="padding: 11px 14px; font-weight: 700; color: #1e293b; font-size: 9.5px;">Service Item</td>
         <td style="padding: 11px 14px; text-align: center; color: #334155; font-size: 9px;">1</td>
-        <td style="padding: 11px 14px; text-align: right; color: #334155; font-size: 9.5px;">2,000.00 SAR</td>
-        <td style="padding: 11px 14px; text-align: right; font-weight: 700; color: #0f172a; font-size: 10px;">2,000.00 SAR</td>
-      </tr>
-      <tr style="border-bottom: 1px solid #f1f5f9;">
-        <td style="padding: 11px 14px; font-weight: 700; color: #1e293b; font-size: 9.5px;">System Activation</td>
-        <td style="padding: 11px 14px; text-align: center; color: #334155; font-size: 9px;">1</td>
-        <td style="padding: 11px 14px; text-align: right; color: #334155; font-size: 9.5px;">200.00 SAR</td>
-        <td style="padding: 11px 14px; text-align: right; font-weight: 700; color: #0f172a; font-size: 10px;">200.00 SAR</td>
+        <td style="padding: 11px 14px; text-align: right; color: #334155; font-size: 9.5px;">${totalFormatted}</td>
+        <td style="padding: 11px 14px; text-align: right; font-weight: 700; color: #0f172a; font-size: 10px;">${totalFormatted}</td>
       </tr>
     `;
   }
@@ -396,19 +424,19 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
               </div>
               <div>
                 <p class="bill-f-lbl">Company Tax Number</p>
-                <p class="bill-f-val">02.271.015.6-407.000</p>
+                <p class="bill-f-val">${resolvedTaxNo}</p>
               </div>
               <div style="grid-column: span 2;">
                 <p class="bill-f-lbl">Agent Details</p>
-                <p style="font-size:9.5px; font-weight:700; color:#d97706;">Agent: ODST Travel & Tourism</p>
+                <p style="font-size:9.5px; font-weight:700; color:#d97706;">${displayAgent}</p>
               </div>
               <div style="grid-column: span 2;">
                 <p class="bill-f-lbl">Street Address</p>
-                <p style="font-size:9px; color:#334155; font-weight:500; line-height:1.2;">Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur</p>
+                <p style="font-size:9px; color:#334155; font-weight:500; line-height:1.2;">${resolvedAddress}</p>
               </div>
               <div style="grid-column: span 2;">
                 <p class="bill-f-lbl">City / Country</p>
-                <p style="font-size:9px; color:#334155; font-weight:500;">Bekasi, 17113, Indonesia</p>
+                <p style="font-size:9px; color:#334155; font-weight:500;">${resolvedCityCountry}</p>
               </div>
             </div>
           </div>
@@ -482,20 +510,20 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
           <div class="sec-heading">EXCHANGE RATE</div>
           <div class="exchange-card">
             <div style="display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0;">
-              <div>1 USD = 3.75 SAR</div>
+              <div>1 USD = ${(numUsdToSar).toFixed(2)} SAR</div>
               <div style="font-weight: 700; color: #334155;">USD / SAR</div>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0;">
-              <div>1 SAR = 4,800 IDR</div>
+              <div>1 SAR = ${numSarToIdr.toLocaleString('id-ID')} IDR</div>
               <div style="font-weight: 700; color: #334155;">SAR / IDR</div>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 9px;">
               <span style="color: #64748b; font-weight: 500;">Total Due (IDR)</span>
-              <span style="font-weight: 700; color: #2563eb; font-size: 10.5px;">Rp 10,560,000</span>
+              <span style="font-weight: 700; color: #2563eb; font-size: 10.5px;">${formattedTotalIDR}</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 9px;">
               <span style="color: #64748b; font-weight: 500;">Total Due (USD)</span>
-              <span style="font-weight: 700; color: #2563eb; font-size: 10.5px;">$586.67</span>
+              <span style="font-weight: 700; color: #2563eb; font-size: 10.5px;">${formattedTotalUSD}</span>
             </div>
           </div>
         </div>

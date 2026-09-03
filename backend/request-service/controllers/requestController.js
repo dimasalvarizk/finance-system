@@ -314,7 +314,17 @@ export const sendInvoiceEmail = async (req, res, next) => {
     }
     const request = requestRows[0];
 
-    const [invoiceRows] = await pool.query('SELECT * FROM dst_invoices WHERE invoiceNo = ?', [request.invoiceNo]);
+    const [invoiceRows] = await pool.query(`
+      SELECT i.*, 
+             COALESCE(c.name, i.custom_company_name, i.company) AS companyName,
+             COALESCE(c.taxNumber, i.custom_tax_number, '02.271.015.6-407.000') AS clientTaxNo,
+             COALESCE(c.agent, i.custom_agent, i.agent, 'Agent: ODST Travel & Tourism') AS clientAgent,
+             COALESCE(c.address, i.custom_address, 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur') AS clientAddress
+      FROM dst_invoices i
+      LEFT JOIN dst_companies c ON i.companyCode = c.code
+      WHERE i.invoiceNo = ? OR i.id = ?
+    `, [request.invoiceNo, request.invoiceNo]);
+
     if (invoiceRows.length === 0) {
       return res.status(404).json({ success: false, message: 'Invoice not found' });
     }
@@ -330,7 +340,7 @@ export const sendInvoiceEmail = async (req, res, next) => {
         toEmail: email,
         invoiceDetails: {
           invoiceNo: invoice.invoiceNo,
-          company: invoice.company,
+          company: invoice.companyName || invoice.company,
           companyCode: invoice.companyCode,
           amount: invoice.amount,
           referenceNo: invoice.referenceNo,
@@ -338,7 +348,14 @@ export const sendInvoiceEmail = async (req, res, next) => {
           dueDate: invoice.dueDate,
           date: invoice.date,
           items: invoice.items,
-          taxRate: invoice.taxRate,
+          taxRate: invoice.taxRate || 0,
+          currency: invoice.currency || 'SAR',
+          usdToIdrRate: invoice.usdToIdrRate || 18025,
+          sarToIdrRate: invoice.sarToIdrRate || 4800,
+          clientTaxNo: invoice.clientTaxNo,
+          clientAgent: invoice.clientAgent,
+          clientAddress: invoice.clientAddress,
+          clientCityCountry: 'Bekasi, 17113, Indonesia',
           documentType: 'Invoice / Confirmation'
         }
       })

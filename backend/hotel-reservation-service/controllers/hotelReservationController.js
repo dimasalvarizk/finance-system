@@ -543,7 +543,7 @@ export const sendReservationConfirmationEmail = async (req, res, next) => {
 
     try {
       const formattedAmount = typeof totalAmount === 'number' 
-        ? `$${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        ? `${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${resv.currency || 'SAR'}`
         : totalAmount;
 
       const authResp = await fetch(`${getAuthBaseUrl(req)}/api/auth/send-client-invoice`, {
@@ -561,7 +561,14 @@ export const sendReservationConfirmationEmail = async (req, res, next) => {
             dueDate: resv.dueDate || new Date().toISOString().split('T')[0],
             date: resv.createdAt ? new Date(resv.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             items: items,
+            rooms: rooms,
             taxRate: resv.taxRate || 0,
+            currency: resv.currency || 'SAR',
+            usdToIdrRate: resv.usdToIdrRate || 18025,
+            sarToIdrRate: resv.sarToIdrRate || 4800,
+            clientTaxNo: resv.clientTaxNo || '02.271.015.6-407.000',
+            clientAddress: resv.clientAddress || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur',
+            clientCityCountry: resv.clientCityCountry || 'Bekasi, 17113, Indonesia',
             documentType: 'Hotel Reservation Confirmation'
           }
         })
