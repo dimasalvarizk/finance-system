@@ -63,8 +63,8 @@ router.put('/tax', restrictTo('Super Admin', 'Chief Accountant', 'Division Direc
 router.get('/company', getCompanySetting);
 router.put('/company', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateCompanySetting);
 
-// 10. System Maintenance Broadcast
-router.post('/maintenance', restrictTo('Super Admin'), triggerMaintenanceNotif);
+// 10. System Maintenance Broadcast (Restricted strictly to Dimas Alva Rizki & Ali in controller)
+router.post('/maintenance', triggerMaintenanceNotif);
 
 // 11. HB Management
 router.get('/hb/room-types', getRoomTypes);

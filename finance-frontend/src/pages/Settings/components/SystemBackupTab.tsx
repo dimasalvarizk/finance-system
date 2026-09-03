@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { getInvoices, getCompanies } from '../../../services/invoiceService';
 import { getHotelReservations } from '../../../services/hotelReservationService';
-import { getExchangeRates, getFullDatabaseBackup, logBackupHistory, getBackupHistory } from '../../../services/settingService';
-import { Download, FileSpreadsheet, FileJson, Clock, User } from 'lucide-react';
+import { getExchangeRates, getFullDatabaseBackup, logBackupHistory, getBackupHistory, broadcastMaintenance } from '../../../services/settingService';
+import { Download, FileSpreadsheet, FileJson, Clock, User, Megaphone, Send, AlertTriangle, CheckCircle2, Radio, Sparkles, Layers, ShieldCheck, Calendar, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BackupHistoryItem {
@@ -15,6 +15,16 @@ interface BackupHistoryItem {
   createdAt: string;
 }
 
+interface BroadcastLogItem {
+  id: string;
+  scope: string;
+  scheduleTime: string;
+  message: string;
+  urgency: 'Normal' | 'High';
+  sentBy: string;
+  sentAt: string;
+}
+
 const SystemBackupTab: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -23,6 +33,16 @@ const SystemBackupTab: React.FC = () => {
   const [exportSuccessMessage, setExportSuccessMessage] = useState<string | null>(null);
   const [historyList, setHistoryList] = useState<BackupHistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
+
+  // Broadcast System Maintenance States
+  const [broadcastScope, setBroadcastScope] = useState<string>('All System');
+  const [broadcastSchedule, setBroadcastSchedule] = useState<string>('');
+  const [broadcastUrgency, setBroadcastUrgency] = useState<'Normal' | 'High'>('Normal');
+  const [broadcastMessage, setBroadcastMessage] = useState<string>('');
+  const [isBroadcasting, setIsBroadcasting] = useState<boolean>(false);
+  const [broadcastFeedback, setBroadcastFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  const [recentBroadcasts, setRecentBroadcasts] = useState<BroadcastLogItem[]>([]);
 
   // Akses Khusus: Super Admin (Mr. Emad Moustafa) dan Tim IT (Ali & Dimas)
   const isSuperAdmin = user?.role === 'Super Admin';
@@ -84,8 +104,74 @@ const SystemBackupTab: React.FC = () => {
   useEffect(() => {
     if (isAuthorized) {
       fetchHistory();
+      try {
+        const savedBc = localStorage.getItem('odst_broadcast_history');
+        if (savedBc) {
+          setRecentBroadcasts(JSON.parse(savedBc));
+        }
+      } catch (e) {}
     }
   }, [isAuthorized]);
+
+  const applyTemplate = (scope: string, urgency: 'Normal' | 'High', schedule: string, message: string) => {
+    setBroadcastScope(scope);
+    setBroadcastUrgency(urgency);
+    setBroadcastSchedule(schedule);
+    setBroadcastMessage(message);
+    setBroadcastFeedback(null);
+  };
+
+  const handleSendBroadcast = async () => {
+    if (!broadcastMessage.trim()) {
+      setBroadcastFeedback({ type: 'error', message: t('settings.messagePlaceholder') });
+      return;
+    }
+    setIsBroadcasting(true);
+    setBroadcastFeedback(null);
+    setShowConfirmModal(false);
+
+    try {
+      const res = await broadcastMaintenance({
+        scope: broadcastScope,
+        scheduleTime: broadcastSchedule,
+        message: broadcastMessage,
+        urgency: broadcastUrgency
+      });
+
+      const newLog: BroadcastLogItem = {
+        id: `bc_${Date.now()}`,
+        scope: broadcastScope,
+        scheduleTime: broadcastSchedule || 'Segera',
+        message: broadcastMessage,
+        urgency: broadcastUrgency,
+        sentBy: user?.name || 'Administrator',
+        sentAt: new Date().toISOString()
+      };
+
+      setRecentBroadcasts(prev => {
+        const updated = [newLog, ...prev].slice(0, 20);
+        try {
+          localStorage.setItem('odst_broadcast_history', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+
+      setBroadcastFeedback({
+        type: 'success',
+        message: res?.message || t('settings.broadcastSuccess')
+      });
+      setBroadcastMessage('');
+      setBroadcastSchedule('');
+    } catch (err: any) {
+      console.error('Failed to send broadcast:', err);
+      setBroadcastFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Gagal mengirimkan siaran pemeliharaan sistem'
+      });
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
 
   if (!isAuthorized) {
     return (
@@ -379,6 +465,384 @@ const SystemBackupTab: React.FC = () => {
         </div>
 
       </div>
+
+      {/* ========================================================================= */}
+      {/* SYSTEM MAINTENANCE BROADCAST (Dimas Alva Rizki & Ali Restricted) */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+        {/* Header Title */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 flex-shrink-0">
+              <Megaphone className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-slate-800">
+                  {t('settings.maintenanceBroadcastTitle')}
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
+                  IT Control
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 font-medium">
+                {t('settings.maintenanceBroadcastDesc')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 self-start sm:self-auto">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Otorisasi: <strong className="text-slate-700">Dimas & Ali</strong></span>
+          </div>
+        </div>
+
+        {/* Feedback Alert */}
+        {broadcastFeedback && (
+          <div className={`p-4 rounded-xl text-xs font-bold flex items-center justify-between animate-fade-in ${
+            broadcastFeedback.type === 'success' 
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
+              : 'bg-rose-50 border border-rose-200 text-rose-800'
+          }`}>
+            <div className="flex items-center gap-2">
+              {broadcastFeedback.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              )}
+              <span>{broadcastFeedback.message}</span>
+            </div>
+            <button 
+              onClick={() => setBroadcastFeedback(null)} 
+              className="text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer font-bold text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Form & Live Preview Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column: Form Controls (7 cols) */}
+          <div className="lg:col-span-7 space-y-4">
+            
+            {/* Quick Template Chips */}
+            <div>
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                {t('settings.quickTemplates')}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(
+                    'All System',
+                    'High',
+                    'Malam ini pukul 23:30 - 00:00 WIB',
+                    'Akan dilakukan upgrade infrastruktur server dan pembaruan core engine. Sistem tidak dapat diakses sementara selama 30 menit. Mohon simpan semua data Anda.'
+                  )}
+                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 transition-all cursor-pointer text-slate-600"
+                >
+                  🚀 {t('settings.tplServerUpgrade')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(
+                    'Hotel Reservations',
+                    'Normal',
+                    'Besok pukul 06:00 - 06:30 WIB',
+                    'Pembaruan modul alokasi kamar dan validasi voucher. Modul lain (Invoices & Requests) tetap beroperasi normal.'
+                  )}
+                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 transition-all cursor-pointer text-slate-600"
+                >
+                  🏨 {t('settings.tplHotelModule')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(
+                    'All System',
+                    'Normal',
+                    'Hari Minggu pukul 01:00 - 02:00 WIB',
+                    'Optimalisasi database cloud dan reindeks data keuangan tahunan untuk meningkatkan kecepatan loading laporan.'
+                  )}
+                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 transition-all cursor-pointer text-slate-600"
+                >
+                  🗄️ {t('settings.tplDatabaseSync')}
+                </button>
+              </div>
+            </div>
+
+            {/* Scope Selection */}
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
+                {t('settings.scopeLabel')}
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  { id: 'All System', label: t('settings.scopeAll'), icon: '🌐' },
+                  { id: 'Hotel Reservations', label: t('settings.scopeReservations'), icon: '🏨' },
+                  { id: 'Invoices', label: t('settings.scopeInvoices'), icon: '📑' },
+                  { id: 'Approval Requests', label: t('settings.scopeApprovals'), icon: '✅' },
+                  { id: 'Settings & DB', label: t('settings.scopeSettings'), icon: '⚙️' },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setBroadcastScope(s.id)}
+                    className={`p-2.5 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      broadcastScope === s.id
+                        ? 'bg-amber-50/80 border-amber-400 text-amber-900 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <span>{s.icon}</span>
+                    <span className="truncate">{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Schedule & Urgency in 2 Cols */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
+                  {t('settings.scheduleTimeLabel')}
+                </label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={broadcastSchedule}
+                    onChange={(e) => setBroadcastSchedule(e.target.value)}
+                    placeholder={t('settings.scheduleTimePlaceholder')}
+                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-all font-sans"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
+                  {t('settings.urgencyLabel')}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBroadcastUrgency('Normal')}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                      broadcastUrgency === 'Normal'
+                        ? 'bg-blue-50 border-blue-400 text-blue-900'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    📢 Normal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBroadcastUrgency('High')}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                      broadcastUrgency === 'High'
+                        ? 'bg-rose-50 border-rose-400 text-rose-900'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    ⚠️ High (Downtime)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Broadcast Message Input */}
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
+                {t('settings.messageLabel')} <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={4}
+                value={broadcastMessage}
+                onChange={(e) => setBroadcastMessage(e.target.value)}
+                placeholder={t('settings.messagePlaceholder')}
+                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-all resize-none font-sans"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!broadcastMessage.trim()) {
+                    setBroadcastFeedback({ type: 'error', message: t('settings.messagePlaceholder') });
+                    return;
+                  }
+                  setShowConfirmModal(true);
+                }}
+                disabled={isBroadcasting || !broadcastMessage.trim()}
+                className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-2 border-none disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                <span>{isBroadcasting ? t('settings.sendingBroadcast') : t('settings.sendBroadcastBtn')}</span>
+              </button>
+            </div>
+
+          </div>
+
+          {/* Right Column: Live User Preview Box (5 cols) */}
+          <div className="lg:col-span-5 bg-slate-50/80 rounded-2xl border border-slate-200/80 p-4.5 space-y-3.5 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                  <Bell className="w-4 h-4 text-amber-600" />
+                  {t('settings.livePreview')}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  In-App & Email
+                </span>
+              </div>
+
+              {/* Mock Notification Card */}
+              <div className="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm space-y-2.5">
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm ${
+                    broadcastUrgency === 'High' 
+                      ? 'bg-rose-50 text-rose-600 border border-rose-200' 
+                      : 'bg-amber-50 text-amber-600 border border-amber-200'
+                  }`}>
+                    {broadcastUrgency === 'High' ? <AlertTriangle className="w-4 h-4" /> : <Megaphone className="w-4 h-4" />}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-900 truncate">
+                        {broadcastUrgency === 'High' ? '⚠️ ' : '📢 '}
+                        {broadcastScope && broadcastScope !== 'All System' ? `[Modul ${broadcastScope}] ` : '[Sistem] '}
+                        Pemeliharaan Terjadwal
+                      </h4>
+                      <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap ml-1">Baru saja</span>
+                    </div>
+
+                    {broadcastSchedule && (
+                      <div className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 mt-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{broadcastSchedule}</span>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-sans line-clamp-3">
+                      {broadcastMessage.trim() || 'Pesan siaran pemeliharaan akan ditampilkan di sini kepada seluruh pengguna sistem...'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Pengirim: <strong className="text-slate-600">{user?.name || 'Dimas / Ali'}</strong></span>
+                  <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Semua Pengguna
+                  </span>
+                </div>
+              </div>
+
+              {/* Delivery Channels Info */}
+              <div className="bg-white p-3 rounded-xl border border-slate-200/80 text-[11px] text-slate-600 space-y-1.5 font-sans">
+                <div className="font-bold text-slate-700 text-xs">Saluran Pengiriman Otomatis:</div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span><strong>Lonceng Header:</strong> Badge merah + audio alert popover</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  <span><strong>Email Notifikasi:</strong> Dikirimkan ke inbox akun aktif</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-[10px] text-slate-400 italic">
+              * Notifikasi akan tersimpan dalam tabel audit dan dapat dibaca kapan saja oleh pengguna.
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Broadcasts List */}
+        {recentBroadcasts.length > 0 && (
+          <div className="border-t border-slate-100 pt-4 space-y-2">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              Riwayat Siaran Terakhir (Sesi Ini)
+            </h4>
+            <div className="space-y-2">
+              {recentBroadcasts.slice(0, 3).map((b) => (
+                <div key={b.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs flex items-center justify-between gap-4 font-sans">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        b.urgency === 'High' ? 'bg-rose-100 text-rose-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {b.scope}
+                      </span>
+                      {b.scheduleTime && (
+                        <span className="text-[11px] font-semibold text-slate-600">
+                          Jadwal: {b.scheduleTime}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-slate-600 truncate">{b.message}</p>
+                  </div>
+                  <div className="text-[10px] text-slate-400 whitespace-nowrap text-right">
+                    <div>{new Date(b.sentAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div>Oleh: {b.sentBy}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-scale-in">
+            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+              <Megaphone className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-extrabold text-slate-800">
+                {t('settings.confirmBroadcastTitle')}
+              </h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed font-sans">
+                {t('settings.confirmBroadcastMsg')}
+              </p>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1 font-sans">
+              <div><strong>Cakupan:</strong> {broadcastScope}</div>
+              {broadcastSchedule && <div><strong>Jadwal:</strong> {broadcastSchedule}</div>}
+              <div><strong>Tingkat:</strong> {broadcastUrgency}</div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer border-none"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSendBroadcast}
+                disabled={isBroadcasting}
+                className="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer border-none flex items-center justify-center gap-1.5"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{isBroadcasting ? t('settings.sendingBroadcast') : t('common.confirm')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modular CSV Exports Section */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">

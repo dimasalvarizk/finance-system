@@ -194,3 +194,14 @@ export const getBackupHistory = async () => {
   const response = await settingAPI.get('/backup/history');
   return response.data.data;
 };
+
+// 14. System Maintenance Broadcast
+export const broadcastMaintenance = async (data: {
+  scope: string;
+  scheduleTime?: string;
+  message: string;
+  urgency?: 'Normal' | 'High';
+}) => {
+  const response = await settingAPI.post('/maintenance', data);
+  return response.data;
+};

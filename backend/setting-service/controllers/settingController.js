@@ -590,24 +590,50 @@ export const updateCompanySetting = async (req, res, next) => {
 };
 
 export const triggerMaintenanceNotif = async (req, res, next) => {
-  const { scheduleTime, message } = req.body;
+  const { scope = 'All System', scheduleTime, message, urgency = 'Normal' } = req.body;
   try {
-    if (!message) {
-      return res.status(400).json({ success: false, message: 'Message is required for system maintenance broadcast.' });
+    const userNameLower = (req.user?.name || '').toLowerCase();
+    const userEmailLower = (req.user?.email || '').toLowerCase();
+    const isAuthorized = 
+      userNameLower.includes('dimas') || 
+      userNameLower.includes('ali') || 
+      userEmailLower.includes('dimas') || 
+      userEmailLower.includes('ali') || 
+      req.user?.role === 'Super Admin';
+
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: 'Akses Ditolak: Hanya Dimas Alva Rizki dan Ali (Tim IT) yang berwenang mengirimkan siaran pemeliharaan sistem.'
+      });
+    }
+
+    if (!message || message.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Pesan siaran pemeliharaan wajib diisi.' });
     }
 
     const gatewayUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:5001';
     
+    const scopePrefix = scope && scope !== 'All System' && scope !== 'Semua Modul' 
+      ? `[Modul ${scope}] ` 
+      : '[Sistem] ';
+
+    const urgencyTag = urgency === 'High' ? '⚠️ ' : '📢 ';
+    const title = `${urgencyTag}${scopePrefix}Pemeliharaan Sistem Terjadwal`;
+
+    let formattedMessage = message.trim();
+    if (scheduleTime && scheduleTime.trim()) {
+      formattedMessage = `Jadwal: ${scheduleTime.trim()} | ${formattedMessage}`;
+    }
+
     const response = await fetch(`${gatewayUrl}/api/auth/notifications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: 'all',
         type: 'systemMaintenance',
-        title: 'System maintenance scheduled',
-        message: scheduleTime 
-          ? `System maintenance scheduled at ${scheduleTime}. Message: ${message}` 
-          : `System maintenance notice: ${message}`
+        title: title,
+        message: formattedMessage
       })
     });
     
@@ -615,7 +641,14 @@ export const triggerMaintenanceNotif = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'System maintenance notification triggered successfully.',
+      message: 'Siaran jadwal pemeliharaan berhasil dikirimkan ke seluruh pengguna!',
+      broadcastInfo: {
+        scope,
+        scheduleTime,
+        urgency,
+        sentBy: req.user?.name || 'Administrator',
+        sentAt: new Date().toISOString()
+      },
       details: resData
     });
   } catch (error) {
