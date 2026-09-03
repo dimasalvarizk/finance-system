@@ -58,7 +58,8 @@
     "exportSelected": "Export Selected",
     "deleteSelected": "Delete Selected",
     "noFile": "No file",
-    "done": "Done"
+    "done": "Done",
+    "refresh": "Refresh"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -849,7 +850,16 @@
     "cloudBackupNote": "* Automatic cloud backups run continuously on your active production database server.",
     "adminItOnly": "System Admin & IT Only",
     "accessRestricted": "Access Restricted",
-    "backupAccessRestrictedDesc": "This system backup section is strictly restricted. Only Super Admin (Mr. Emad Moustafa) and IT Administrators (Ali & Dimas) are authorized to access and download full database backups."
+    "backupAccessRestrictedDesc": "This system backup section is strictly restricted. Only Super Admin (Mr. Emad Moustafa) and IT Administrators (Ali & Dimas) are authorized to access and download full database backups.",
+    "exportCsvDesc": "Download individual datasets compatible with Microsoft Excel & Google Sheets",
+    "exportInvoicesDesc": "All financial confirmation entries",
+    "exportReservationsDesc": "Hotel reservation & room data",
+    "exportCompaniesDesc": "Client company & partner data",
+    "exportHistoryDesc": "Audit log of data exports. If files are missing, click \"Re-Download\" to extract a new copy.",
+    "redownload": "Re-Download",
+    "redownloadDesc": "Re-download this backup copy",
+    "noExportHistory": "No export history recorded yet. Generating a backup will log entries here automatically.",
+    "loadingExportHistory": "Loading export history log..."
   },
   "auth": {
     "welcome": "Welcome",

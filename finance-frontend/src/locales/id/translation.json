@@ -58,7 +58,8 @@
     "exportSelected": "Ekspor Terpilih",
     "deleteSelected": "Hapus Terpilih",
     "noFile": "Tidak ada file",
-    "done": "Selesai"
+    "done": "Selesai",
+    "refresh": "Segarkan"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -849,7 +850,16 @@
     "cloudBackupNote": "* Cadangan cloud otomatis berjalan secara berkelanjutan pada server basis data produksi aktif Anda.",
     "adminItOnly": "Khusus Admin Sistem & IT",
     "accessRestricted": "Akses Dibatasi",
-    "backupAccessRestrictedDesc": "Bagian pencadangan sistem ini dibatasi secara ketat. Hanya Super Admin (Mr. Emad Moustafa) dan Administrator IT (Ali & Dimas) yang berwenang untuk mengakses dan mengunduh cadangan lengkap basis data."
+    "backupAccessRestrictedDesc": "Bagian pencadangan sistem ini dibatasi secara ketat. Hanya Super Admin (Mr. Emad Moustafa) dan Administrator IT (Ali & Dimas) yang berwenang untuk mengakses dan mengunduh cadangan lengkap basis data.",
+    "exportCsvDesc": "Unduh dataset terpisah yang kompatibel dengan Microsoft Excel & Google Sheets",
+    "exportInvoicesDesc": "Semua entri konfirmasi keuangan",
+    "exportReservationsDesc": "Data reservasi & kamar hotel",
+    "exportCompaniesDesc": "Data perusahaan & mitra",
+    "exportHistoryDesc": "Log riwayat ekspor data. Jika file hilang, klik \"Unduh Ulang\" untuk mengekstrak salinan cadangan baru.",
+    "redownload": "Unduh Ulang",
+    "redownloadDesc": "Unduh ulang salinan cadangan ini",
+    "noExportHistory": "Belum ada riwayat ekspor. Menghasilkan cadangan akan mencatat entri di sini secara otomatis.",
+    "loadingExportHistory": "Memuat log riwayat..."
   },
   "auth": {
     "welcome": "Selamat Datang",

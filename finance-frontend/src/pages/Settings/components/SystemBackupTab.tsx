@@ -384,7 +384,7 @@ const SystemBackupTab: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
         <div>
           <h3 className="text-sm font-extrabold text-slate-800">{t('settings.exportCsvData')}</h3>
-          <p className="text-[11px] text-slate-400 font-medium">Unduh dataset terpisah yang kompatibel dengan Microsoft Excel & Google Sheets</p>
+          <p className="text-[11px] text-slate-400 font-medium">{t('settings.exportCsvDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -394,7 +394,7 @@ const SystemBackupTab: React.FC = () => {
           >
             <div>
               <div className="text-xs font-bold text-slate-800">{t('invoices.title')}</div>
-              <div className="text-[10px] text-slate-400">Semua entri konfirmasi keuangan</div>
+              <div className="text-[10px] text-slate-400">{t('settings.exportInvoicesDesc')}</div>
             </div>
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
           </button>
@@ -405,7 +405,7 @@ const SystemBackupTab: React.FC = () => {
           >
             <div>
               <div className="text-xs font-bold text-slate-800">{t('hotelReservations.title')}</div>
-              <div className="text-[10px] text-slate-400">Data reservasi & kamar hotel</div>
+              <div className="text-[10px] text-slate-400">{t('settings.exportReservationsDesc')}</div>
             </div>
             <FileSpreadsheet className="w-4 h-4 text-blue-600" />
           </button>
@@ -416,7 +416,7 @@ const SystemBackupTab: React.FC = () => {
           >
             <div>
               <div className="text-xs font-bold text-slate-800">{t('companies.title')}</div>
-              <div className="text-[10px] text-slate-400">Data perusahaan & mitra</div>
+              <div className="text-[10px] text-slate-400">{t('settings.exportCompaniesDesc')}</div>
             </div>
             <FileSpreadsheet className="w-4 h-4 text-amber-600" />
           </button>
@@ -432,24 +432,24 @@ const SystemBackupTab: React.FC = () => {
               {t('settings.exportHistory')}
             </h3>
             <p className="text-[11px] text-slate-400 font-medium">
-              Log riwayat ekspor data. Jika file hilang, klik "Unduh Ulang" untuk mengekstrak salinan cadangan baru.
+              {t('settings.exportHistoryDesc')}
             </p>
           </div>
           <button
             onClick={fetchHistory}
             className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-all cursor-pointer"
           >
-            {t('common.refresh') || 'Segarkan'}
+            {t('common.refresh')}
           </button>
         </div>
 
         {loadingHistory ? (
           <div className="py-8 text-center text-xs text-slate-400 font-medium animate-pulse">
-            {t('common.loading') || 'Memuat log riwayat...'}
+            {t('settings.loadingExportHistory')}
           </div>
         ) : historyList.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-400 font-medium border border-dashed border-slate-200 rounded-xl bg-slate-50">
-            Belum ada riwayat ekspor. Menghasilkan cadangan akan mencatat entri di sini secara otomatis.
+            {t('settings.noExportHistory')}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -507,10 +507,10 @@ const SystemBackupTab: React.FC = () => {
                             }
                           }}
                           className="px-3 py-1 bg-slate-100 hover:bg-indigo-50 text-indigo-700 hover:text-indigo-800 font-bold text-[11px] rounded-lg border border-slate-200 hover:border-indigo-200 transition-all cursor-pointer inline-flex items-center gap-1"
-                          title="Unduh ulang salinan cadangan ini"
+                          title={t('settings.redownloadDesc')}
                         >
                           <Download className="w-3 h-3" />
-                          Unduh Ulang
+                          {t('settings.redownload')}
                         </button>
                       </td>
                     </tr>
