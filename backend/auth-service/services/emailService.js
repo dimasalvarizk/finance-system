@@ -530,8 +530,12 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       cityCountry: 'Bekasi, 17113, Indonesia'
     };
 
+    const senderAddress = process.env.SMTP_FROM || 
+      (companySettings.senderEmail ? `"ODST Group Finance" <${companySettings.senderEmail}>` : 
+      (process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <billing@odst.id>'));
+
     const mailOptions = {
-      from: process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <billing@odst.id>',
+      from: senderAddress,
       to: toEmail,
       subject: `${subjectPrefix} ${invoiceNo} from ODST Group`,
       attachments: attachments,
