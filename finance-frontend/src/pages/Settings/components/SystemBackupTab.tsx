@@ -501,16 +501,16 @@ const SystemBackupTab: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-base font-bold text-slate-900 font-sans">
-              Status & Saklar Kunci Pemeliharaan Modul
+              {t('settings.maintenanceLocksTitle')}
             </h3>
             <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Kunci akses pengguna biasa saat perbaikan berlangsung. Tim IT (Dimas & Ali) tetap memiliki akses penuh (Bypass).
+              {t('settings.maintenanceLocksDesc')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Bypass IT:</span>
             <span className="px-2.5 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Aktif (Dimas & Ali)
+              {t('settings.bypassActive')}
             </span>
           </div>
         </div>
@@ -525,15 +525,15 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Dashboard</span>
+              <span className="text-xs font-bold text-slate-900">{t('nav.dashboard')}</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.dashboard ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.dashboard ? 'Terkunci' : 'Aktif'}
+                {locks.dashboard ? t('settings.statusLocked') : t('settings.statusActive')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.dashboard ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+              {locks.dashboard ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
             </p>
             <button
               type="button"
@@ -544,7 +544,7 @@ const SystemBackupTab: React.FC = () => {
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.dashboard ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+              {locks.dashboard ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
             </button>
           </div>
 
@@ -555,15 +555,15 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Confirmations (Faktur)</span>
+              <span className="text-xs font-bold text-slate-900">{t('nav.confirmations')}</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.invoices ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.invoices ? 'Terkunci' : 'Aktif'}
+                {locks.invoices ? t('settings.statusLocked') : t('settings.statusActive')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.invoices ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+              {locks.invoices ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
             </p>
             <button
               type="button"
@@ -574,7 +574,7 @@ const SystemBackupTab: React.FC = () => {
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.invoices ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+              {locks.invoices ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
             </button>
           </div>
 
@@ -585,15 +585,15 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Requests (Persetujuan)</span>
+              <span className="text-xs font-bold text-slate-900">{t('nav.requests')}</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.requests ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.requests ? 'Terkunci' : 'Aktif'}
+                {locks.requests ? t('settings.statusLocked') : t('settings.statusActive')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.requests ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+              {locks.requests ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
             </p>
             <button
               type="button"
@@ -604,7 +604,7 @@ const SystemBackupTab: React.FC = () => {
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.requests ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+              {locks.requests ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
             </button>
           </div>
 
@@ -615,15 +615,15 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Companies (Klien)</span>
+              <span className="text-xs font-bold text-slate-900">{t('nav.companies')}</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.companies ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.companies ? 'Terkunci' : 'Aktif'}
+                {locks.companies ? t('settings.statusLocked') : t('settings.statusActive')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.companies ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+              {locks.companies ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
             </p>
             <button
               type="button"
@@ -634,7 +634,7 @@ const SystemBackupTab: React.FC = () => {
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.companies ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+              {locks.companies ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
             </button>
           </div>
 
@@ -645,15 +645,15 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Hotel Reservations</span>
+              <span className="text-xs font-bold text-slate-900">{t('nav.hotelReservations')}</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.hotelReservations ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.hotelReservations ? 'Terkunci' : 'Aktif'}
+                {locks.hotelReservations ? t('settings.statusLocked') : t('settings.statusActive')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.hotelReservations ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+              {locks.hotelReservations ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
             </p>
             <button
               type="button"
@@ -664,7 +664,7 @@ const SystemBackupTab: React.FC = () => {
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.hotelReservations ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+              {locks.hotelReservations ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
             </button>
           </div>
 
@@ -675,15 +675,15 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Settings (Pengaturan)</span>
+              <span className="text-xs font-bold text-slate-900">{t('nav.settings')}</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.settings ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.settings ? 'Terkunci' : 'Aktif'}
+                {locks.settings ? t('settings.statusLocked') : t('settings.statusActive')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.settings ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+              {locks.settings ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
             </p>
             <button
               type="button"
@@ -694,7 +694,7 @@ const SystemBackupTab: React.FC = () => {
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.settings ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+              {locks.settings ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
             </button>
           </div>
 
@@ -705,15 +705,15 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Seluruh Sistem</span>
+              <span className="text-xs font-bold text-slate-900">{t('settings.scopeAll')}</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.fullSystem ? 'bg-rose-600 text-white' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.fullSystem ? 'DARURAT TERKUNCI' : 'Aktif'}
+                {locks.fullSystem ? t('settings.statusEmergencyLocked') : t('settings.statusActive')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.fullSystem ? 'Semua modul terkunci kecuali Login & Settings IT.' : 'Seluruh sistem beroperasi normal.'}
+              {locks.fullSystem ? t('settings.systemClosedForUsers') : t('settings.systemNormalForUsers')}
             </p>
             <button
               type="button"
@@ -724,7 +724,7 @@ const SystemBackupTab: React.FC = () => {
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.fullSystem ? 'Buka Kunci Sistem' : 'Kunci Seluruh Sistem'}
+              {locks.fullSystem ? t('settings.unlockSystemBtn') : t('settings.lockSystemBtn')}
             </button>
           </div>
 
@@ -923,7 +923,7 @@ const SystemBackupTab: React.FC = () => {
                   onChange={(e) => setAutoLockOnBroadcast(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
                 />
-                <span>Sekaligus kunci akses modul yang dipilih saat siaran dikirim</span>
+                <span>{t('settings.autoLockOnBroadcast')}</span>
               </label>
             </div>
 

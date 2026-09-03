@@ -285,10 +285,10 @@ const Header: React.FC = () => {
       </div>
 
       {/* Center IT Bypass Indicator */}
-      {isITAdmin && (locks.fullSystem || locks.hotelReservations || locks.invoices || locks.requests) && (
+      {isITAdmin && (locks.fullSystem || locks.dashboard || locks.invoices || locks.requests || locks.companies || locks.hotelReservations || locks.settings) && (
         <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-[11px] font-bold text-amber-800 animate-pulse">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-          <span>Kunci Pemeliharaan Aktif (Akses Khusus IT Bypass)</span>
+          <span>{t('settings.itBypassHeader')}</span>
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../layout/Header';
 import Sidebar from '../layout/Sidebar';
 
@@ -10,11 +11,14 @@ interface MaintenanceScreenProps {
 }
 
 const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({
-  moduleName = 'Modul Sistem',
+  moduleName,
   message,
   estimatedTime
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const displayModuleName = moduleName || t('settings.scopeAll');
 
   return (
     <div className="flex min-h-screen w-full bg-[#f4f6fa] select-none font-inter">
@@ -27,39 +31,39 @@ const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({
             
             {/* Status Badge */}
             <div className="inline-block px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-bold text-amber-800">
-              Mode Pemeliharaan Aktif
+              {t('settings.maintenanceScreen.badge')}
             </div>
 
             {/* Main Title */}
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                {moduleName} Sedang Ditutup Sementara
+                {t('settings.maintenanceScreen.closedTitle', { module: displayModuleName })}
               </h2>
               <p className="text-xs text-slate-500 font-normal leading-relaxed max-w-md mx-auto">
-                Halaman ini sedang mengalami proses pemeliharaan atau peningkatan infrastruktur oleh Tim IT.
+                {t('settings.maintenanceScreen.subtitle')}
               </p>
             </div>
 
             {/* Message & Schedule Card */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left space-y-2.5">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left space-y-2.5 rtl:text-right">
               {estimatedTime && (
                 <div className="text-xs text-slate-700">
-                  <span className="font-bold text-slate-500">Estimasi / Jadwal:</span>{' '}
+                  <span className="font-bold text-slate-500">{t('settings.maintenanceScreen.scheduleLabel')}</span>{' '}
                   <span className="font-semibold text-slate-900">{estimatedTime}</span>
                 </div>
               )}
 
               <div className="text-xs text-slate-600 leading-relaxed">
-                <span className="font-bold text-slate-500">Keterangan:</span>{' '}
+                <span className="font-bold text-slate-500">{t('settings.maintenanceScreen.detailsLabel')}</span>{' '}
                 <span>
-                  {message || 'Proses pembaruan sistem berkala sedang berlangsung untuk menjaga kestabilan data.'}
+                  {message || t('settings.maintenanceScreen.defaultMsg')}
                 </span>
               </div>
             </div>
 
             {/* IT Contact Notice */}
             <p className="text-[11px] text-slate-400 font-normal">
-              Akses formulir dan pengolahan data pada modul ini dinonaktifkan sementara untuk mencegah korupsi data. Silakan hubungi Administrator IT (Ali / Dimas) jika memerlukan bantuan operasional mendesak.
+              {t('settings.maintenanceScreen.notice')}
             </p>
 
             {/* Navigation Actions */}
@@ -68,13 +72,13 @@ const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({
                 onClick={() => navigate('/dashboard')}
                 className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all cursor-pointer border-none shadow-sm"
               >
-                Kembali ke Dashboard Utama
+                {t('settings.maintenanceScreen.backDashboard')}
               </button>
               <button
                 onClick={() => navigate('/invoices')}
                 className="w-full sm:w-auto px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer border-none"
               >
-                Buka Modul Faktur
+                {t('settings.maintenanceScreen.openInvoices')}
               </button>
             </div>
 
