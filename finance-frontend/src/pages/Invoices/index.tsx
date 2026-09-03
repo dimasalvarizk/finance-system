@@ -3429,10 +3429,10 @@ const Invoices: React.FC = () => {
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <div>
                 <h3 className="text-[17px] font-bold text-[#0c0d0f]">
-                  Payment History & Balance Management
+                  {t('invoices.paymentHistoryTitle')}
                 </h3>
                 <p className="text-[12px] text-[#64748b] font-medium">
-                  Confirmation #{paymentHistoryModal.invoice.invoiceNo} · {paymentHistoryModal.invoice.company}
+                  {t('invoices.confirmation')} #{paymentHistoryModal.invoice.invoiceNo} · {paymentHistoryModal.invoice.company}
                 </p>
               </div>
               <button
@@ -3462,33 +3462,33 @@ const Invoices: React.FC = () => {
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Billed</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('invoices.totalBilled')}</span>
                         <span className="text-[15px] font-extrabold text-slate-800">{formatPrice(rawAmt, currency)}</span>
                       </div>
                       <div className="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">
-                        <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">Total Paid</span>
+                        <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">{t('invoices.totalPaid')}</span>
                         <span className="text-[15px] font-extrabold text-blue-800">{formatPrice(totalPaidSoFar, currency)}</span>
                       </div>
                       <div className="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-100">
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Remaining Due</span>
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">{t('invoices.remainingDue')}</span>
                         <span className="text-[15px] font-extrabold text-emerald-800">{formatPrice(remaining, currency)}</span>
                       </div>
                     </div>
 
                     {/* Action Bar */}
                     <div className="flex justify-between items-center pt-2">
-                      <h4 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider">Installments Ledger</h4>
+                      <h4 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider">{t('invoices.installmentsLedger')}</h4>
                       {canAddPayment ? (
                         <button
                           onClick={handleOpenAddPayment}
                           className="px-3.5 py-1.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-[12px] rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                          <span>Add Payment</span>
+                          <span>{t('invoices.addPayment')}</span>
                         </button>
                       ) : (
                         <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-lg border border-amber-200">
-                          🔒 Add payment unlocks after Level 4 Approval
+                          {t('invoices.addPaymentApprovalNote')}
                         </span>
                       )}
                     </div>
@@ -3498,18 +3498,18 @@ const Invoices: React.FC = () => {
                       <table className="w-full text-left text-[12.5px]">
                         <thead className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                           <tr>
-                            <th className="px-4 py-2.5">Date</th>
-                            <th className="px-4 py-2.5">Amount</th>
-                            <th className="px-4 py-2.5">Recorded By</th>
-                            <th className="px-4 py-2.5">Proof</th>
-                            <th className="px-4 py-2.5 text-right">Actions</th>
+                            <th className="px-4 py-2.5">{t('invoices.date')}</th>
+                            <th className="px-4 py-2.5">{t('invoices.amount')}</th>
+                            <th className="px-4 py-2.5">{t('invoices.recordedBy')}</th>
+                            <th className="px-4 py-2.5">{t('invoices.proof')}</th>
+                            <th className="px-4 py-2.5 text-right">{t('common.actions')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {loadingHistory ? (
                             <tr>
                               <td colSpan={5} className="px-4 py-6 text-center text-slate-400 text-[12px] animate-pulse">
-                                Loading payment history...
+                                {t('common.loading') || 'Memuat riwayat pembayaran...'}
                               </td>
                             </tr>
                           ) : paymentHistoryList.length > 0 ? (
@@ -3530,7 +3530,7 @@ const Invoices: React.FC = () => {
                                       onClick={() => setViewingProofBase64(pay.proofUrl)}
                                       className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
                                     >
-                                      <span>View Proof</span>
+                                      <span>{t('invoices.viewProof')}</span>
                                     </button>
                                   ) : pay.note ? (
                                     <span className="text-slate-500 italic text-[11.5px]" title={pay.note}>
@@ -3545,17 +3545,17 @@ const Invoices: React.FC = () => {
                                     <div className="flex items-center justify-end space-x-1.5">
                                       <button
                                         onClick={() => handleOpenEditPayment(pay)}
-                                        title="Edit Payment"
+                                        title={t('common.edit')}
                                         className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 font-bold text-[11.5px] rounded-lg transition-all cursor-pointer"
                                       >
-                                        Edit
+                                        {t('common.edit')}
                                       </button>
                                       <button
                                         onClick={() => setDeletingPaymentId(pay.id)}
-                                        title="Delete Payment"
+                                        title={t('common.delete')}
                                         className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-[11.5px] rounded-lg transition-all cursor-pointer"
                                       >
-                                        Delete
+                                        {t('common.delete')}
                                       </button>
                                     </div>
                                   )}
@@ -3565,7 +3565,7 @@ const Invoices: React.FC = () => {
                           ) : (
                             <tr>
                               <td colSpan={5} className="px-4 py-6 text-center text-slate-400 text-[12px]">
-                                No installment payments recorded yet.
+                                {t('invoices.noInstallmentsRecorded')}
                               </td>
                             </tr>
                           )}
@@ -3585,7 +3585,7 @@ const Invoices: React.FC = () => {
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsAddPaymentModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-scale-up font-sans" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f]">{editingPaymentId ? 'Edit Payment Record' : 'Record New Payment'}</h3>
+              <h3 className="text-[16px] font-bold text-[#0c0d0f]">{editingPaymentId ? t('invoices.editPaymentRecord') : t('invoices.recordNewPayment')}</h3>
               <button onClick={() => setIsAddPaymentModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
@@ -3596,12 +3596,12 @@ const Invoices: React.FC = () => {
               {/* Amount & Currency Selector */}
               <div className="grid grid-cols-3 gap-2.5">
                 <div className="col-span-2">
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Amount</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('invoices.paymentAmount')}</label>
                   <input
                     type="number"
                     step="any"
                     required
-                    placeholder="Enter amount paid..."
+                    placeholder={t('invoices.enterAmountPaid')}
                     value={addPayAmount}
                     onChange={(e) => {
                       setAddPayAmount(e.target.value);
@@ -3620,7 +3620,7 @@ const Invoices: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Currency</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('invoices.currency') || 'Mata Uang'}</label>
                   <select
                     value={addPayCurrency}
                     onChange={(e) => setAddPayCurrency(e.target.value)}
@@ -3634,7 +3634,7 @@ const Invoices: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Date</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('invoices.paymentDate')}</label>
                 <input
                   type="date"
                   required
@@ -3646,10 +3646,10 @@ const Invoices: React.FC = () => {
 
               {/* Upload Proof Field */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Upload Payment Proof (Transfer Receipt)</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('invoices.uploadPaymentProof')}</label>
                 <div className="flex items-center space-x-2">
                   <label className="flex-1 px-3.5 py-2.5 border border-dashed border-slate-300 hover:border-amber-500 rounded-xl bg-slate-50 hover:bg-amber-50/30 text-slate-600 font-medium text-[12.5px] cursor-pointer flex items-center justify-between transition-all">
-                    <span className="truncate">{addPayProofName ? `📄 ${addPayProofName}` : 'Attach proof file (Image/PDF)...'}</span>
+                    <span className="truncate">{addPayProofName ? `📄 ${addPayProofName}` : t('invoices.attachProofFile')}</span>
                     <Upload className="w-4 h-4 text-slate-400" />
                     <input
                       type="file"
@@ -3674,17 +3674,17 @@ const Invoices: React.FC = () => {
                       onClick={() => { setAddPayProof(''); setAddPayProofName(''); }}
                       className="px-2.5 py-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl font-bold text-[11px] transition-all cursor-pointer"
                     >
-                      Remove
+                      {t('common.delete') || 'Hapus'}
                     </button>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Note (Optional)</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('invoices.paymentNote')}</label>
                 <input
                   type="text"
-                  placeholder="e.g. Bank transfer, receipt reference..."
+                  placeholder={t('invoices.paymentNotePlaceholder')}
                   value={addPayNote}
                   onChange={(e) => setAddPayNote(e.target.value)}
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-800 focus:outline-none focus:border-amber-500"
@@ -3705,7 +3705,7 @@ const Invoices: React.FC = () => {
                   return (
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
                       <span className="text-[12px] font-bold text-amber-800 block">
-                        Overpayment Detected (+{formatPrice(overAmt, inv.currency || 'USD')})
+                        {t('invoices.overpaymentDetected', { amount: formatPrice(overAmt, inv.currency || 'USD') })}
                       </span>
                       <label className="flex items-center space-x-2 text-[12px] font-semibold text-amber-900 cursor-pointer">
                         <input
@@ -3714,7 +3714,7 @@ const Invoices: React.FC = () => {
                           onChange={(e) => setSaveOverpaymentCredit(e.target.checked)}
                           className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4"
                         />
-                        <span>Save excess as credit balance for {inv.company}?</span>
+                        <span>{t('invoices.saveExcessCredit', { company: inv.company })}</span>
                       </label>
                     </div>
                   );
@@ -3728,14 +3728,14 @@ const Invoices: React.FC = () => {
                   onClick={() => setIsAddPaymentModalOpen(false)}
                   className="flex-1 py-2.5 border border-slate-200 rounded-xl text-[12px] font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingPayment}
                   className="flex-1 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[12px] font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmittingPayment ? 'Saving...' : 'Save Payment'}
+                  {isSubmittingPayment ? '...' : t('invoices.savePayment')}
                 </button>
               </div>
             </form>
@@ -3749,10 +3749,10 @@ const Invoices: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-sm w-full p-8 flex flex-col items-center animate-scale-up font-sans">
             <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
             <h3 className="text-[16px] font-bold text-[#0c0d0f] tracking-tight mb-2">
-              Uploading Payment Proof
+              {t('invoices.uploadingPaymentProof')}
             </h3>
             <p className="text-[12.5px] text-[#64748b] font-medium text-center leading-relaxed">
-              Converting image and uploading to server. Please wait...
+              {t('invoices.convertingImage')}
             </p>
           </div>
         </div>
@@ -3763,9 +3763,9 @@ const Invoices: React.FC = () => {
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setDeletingPaymentId(null)}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 animate-scale-up text-center font-sans space-y-4" onClick={(e) => e.stopPropagation()}>
             <div>
-              <h3 className="text-base font-bold text-slate-800">Delete Payment Record?</h3>
+              <h3 className="text-base font-bold text-slate-800">{t('invoices.deletePaymentConfirmTitle')}</h3>
               <p className="text-[12.5px] text-slate-500 mt-2 leading-relaxed">
-                Are you sure you want to delete this payment record? Remaining balance will be automatically recalculated.
+                {t('invoices.deletePaymentConfirmDesc')}
               </p>
             </div>
             <div className="flex items-center justify-center space-x-3 pt-2">
@@ -3774,7 +3774,7 @@ const Invoices: React.FC = () => {
                 onClick={() => setDeletingPaymentId(null)}
                 className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[12px] rounded-xl transition-all cursor-pointer"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -3782,7 +3782,7 @@ const Invoices: React.FC = () => {
                 disabled={isSubmittingPayment}
                 className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[12px] rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
               >
-                {isSubmittingPayment ? 'Deleting...' : 'Delete'}
+                {isSubmittingPayment ? '...' : t('common.delete')}
               </button>
             </div>
           </div>
@@ -3797,7 +3797,7 @@ const Invoices: React.FC = () => {
         >
           <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-up" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">Payment Transfer Photo / PDF</h3>
+              <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">{t('invoices.paymentProofViewerTitle')}</h3>
               <button
                 onClick={() => setViewingProofBase64(null)}
                 className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
@@ -3827,7 +3827,7 @@ const Invoices: React.FC = () => {
                   download="payment-proof.pdf"
                   className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold rounded-xl text-[12px] cursor-pointer transition-all shadow-sm font-sans"
                 >
-                  Download PDF
+                  {t('invoices.downloadPdf') || 'Unduh PDF'}
                 </a>
               ) : (
                 <a
@@ -3835,14 +3835,14 @@ const Invoices: React.FC = () => {
                   download="payment-proof.jpg"
                   className="px-4 py-2 bg-[#007aff] hover:bg-[#006ee0] text-white font-bold rounded-xl text-[12px] cursor-pointer transition-all shadow-sm font-sans"
                 >
-                  Download Image
+                  {t('invoices.downloadImage') || 'Unduh Gambar'}
                 </a>
               )}
               <button
                 onClick={() => setViewingProofBase64(null)}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] cursor-pointer transition-all font-sans"
               >
-                Close
+                {t('common.close') || 'Tutup'}
               </button>
             </div>
           </div>
