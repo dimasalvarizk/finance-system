@@ -189,7 +189,7 @@ export const createReservation = async (req, res, next) => {
     const [existingRes] = await pool.query('SELECT id FROM dst_hotel_reservations WHERE reservationNo = ?', [finalReservationNo]);
     if (existingRes.length > 0) {
       const parts = finalReservationNo.split('-');
-      const compCode = isCustom ? 'OTH' : (parts[0] || 'RES');
+      const compCode = isCustom ? 'RCN' : (parts[0] === 'OTH' ? 'RCN' : (parts[0] || 'RES'));
       const mmdd = parts[1] || (String(new Date().getMonth() + 1).padStart(2, '0') + String(new Date().getDate()).padStart(2, '0'));
       const randSuffix = Math.floor(100 + Math.random() * 900);
       finalReservationNo = `${compCode}-${mmdd}-${randSuffix}`;

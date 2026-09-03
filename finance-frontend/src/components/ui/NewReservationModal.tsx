@@ -197,7 +197,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     if (selectedCompanyCode === 'Others') {
       return {
         id: 'Others',
-        code: 'OTH',
+        code: 'RCN',
         displayName: customCompanyName || t('invoices.othersClient') || 'Others / Custom Client',
         companyName: customCompanyName || 'Others',
         taxNo: customCompanyTaxNumber || '0000-0000-0000',

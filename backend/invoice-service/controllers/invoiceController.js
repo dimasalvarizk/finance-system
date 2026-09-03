@@ -57,7 +57,7 @@ export const createInvoice = async (req, res, next) => {
       id: `inv_${Date.now()}`,
       invoiceNo,
       company: finalCompanyName,
-      companyCode: companyCode || (custom_company_name ? 'OTH' : 'GEN'),
+      companyCode: companyCode || (custom_company_name ? 'RCN' : 'GEN'),
       referenceNo: referenceNo || `REF-${Date.now()}`,
       serialNo: serialNo || `SR-${Date.now()}`,
       amount,

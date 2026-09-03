@@ -895,11 +895,7 @@ const Invoices: React.FC = () => {
         handleClientChange(availableCompanies[0]);
       }
     } else {
-      setSelectedClientKey('Select client company...');
-      setFormInvoiceNo('');
-      setFormRef('');
-      setFormSerial('');
-      setFormItems([]);
+      handleSelectOthers();
     }
   }, [availableCompanies, editInvoiceId]);
 
@@ -921,10 +917,7 @@ const Invoices: React.FC = () => {
     if (availableCompanies.length > 0) {
       handleClientChange(availableCompanies[0]);
     } else {
-      setSelectedClientKey('Select client company...');
-      setFormInvoiceNo('');
-      setFormRef('');
-      setFormSerial('');
+      handleSelectOthers();
     }
   };
 
@@ -1158,7 +1151,7 @@ const Invoices: React.FC = () => {
 
     setFormDate(dateToUse);
 
-    const generatedNo = generateInvoiceNumber('OTH', dateToUse, invoices);
+    const generatedNo = generateInvoiceNumber('RCN', dateToUse, invoices);
     setFormInvoiceNo(generatedNo);
 
     const randomRefSuffix = Math.floor(100 + Math.random() * 900);
@@ -1176,7 +1169,7 @@ const Invoices: React.FC = () => {
 
   const handleDateChange = (newDate: string) => {
     setFormDate(newDate);
-    const compCode = selectedClientKey === 'Others' ? 'OTH' : (selectedClientKey.split(' - ')[1] || 'GEN');
+    const compCode = selectedClientKey === 'Others' ? 'RCN' : (selectedClientKey.split(' - ')[1] || 'GEN');
     const generatedNo = generateInvoiceNumber(compCode, newDate, invoices);
     setFormInvoiceNo(generatedNo);
 
@@ -1346,7 +1339,7 @@ const Invoices: React.FC = () => {
     const isCustom = selectedClientKey === 'Others';
 
     let compName = '';
-    let compCode = 'OTH';
+    let compCode = 'RCN';
     let compAgent = formAgent;
 
     if (isCustom) {
@@ -1355,7 +1348,7 @@ const Invoices: React.FC = () => {
         return;
       }
       compName = customCompanyName.trim();
-      compCode = 'OTH';
+      compCode = 'RCN';
       compAgent = customCompanyAgent.trim();
     } else {
       const selectedCompany = availableCompanies.find(c => {
@@ -1453,7 +1446,7 @@ const Invoices: React.FC = () => {
 
   const handleEditInvoiceClick = (inv: Invoice) => {
     setEditInvoiceId(inv.invoiceNo);
-    const isCustom = inv.companyCode === 'OTH' || Boolean(inv.custom_company_name);
+    const isCustom = inv.companyCode === 'RCN' || inv.companyCode === 'OTH' || Boolean(inv.custom_company_name);
     if (isCustom) {
       setSelectedClientKey('Others');
       setCustomCompanyName(inv.custom_company_name || inv.company || '');
@@ -2344,41 +2337,20 @@ const Invoices: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-3 border rounded-xl text-[13px] font-bold text-[#0c0d0f] bg-white hover:bg-gray-50 transition-all text-left cursor-pointer ${showValidation && selectedClientKey === 'Select client company...'
-                    ? 'border-[#ef4444] ring-1 ring-[#ef4444]'
-                    : 'border-[#e2e8f0]'
-                    }`}
+                  className="w-full flex items-center justify-between px-4 py-3 border border-[#e2e8f0] rounded-xl text-[13px] font-bold text-[#0c0d0f] bg-white hover:bg-gray-50 transition-all text-left cursor-pointer"
                 >
                   <div className="flex items-center space-x-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]" />
-                    <span className={`${selectedClientKey === 'Select client company...' ? 'text-gray-400 font-semibold' : ''}`}>
-                      {selectedClientKey === 'Select client company...'
-                        ? t('invoices.selectClientCompany')
-                        : selectedClientKey === 'Others'
-                          ? t('invoices.othersClient')
-                          : selectedClientKey}
+                    <span className={`w-2.5 h-2.5 rounded-full ${selectedClientKey === 'Others' ? 'bg-amber-500' : 'bg-[#f59e0b]'}`} />
+                    <span>
+                      {selectedClientKey === 'Others'
+                        ? t('invoices.othersClient')
+                        : selectedClientKey}
                     </span>
                   </div>
                   <ChevronDown className="w-4 h-4 text-gray-500" />
                 </button>
-                {showValidation && selectedClientKey === 'Select client company...' && (
-                  <span className="block text-[11.5px] text-[#ef4444] font-semibold mt-1 animate-fade-in">
-                    {t('invoices.pleaseSelectCompany')}
-                  </span>
-                )}
                 {isClientDropdownOpen && (
                   <div className="absolute left-0 right-0 mt-1 bg-white border border-[#e2e8f0] rounded-xl shadow-xl z-50 py-1.5 divide-y divide-[#f1f5f9] max-h-60 overflow-y-auto">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedClientKey('Select client company...');
-                        setIsClientDropdownOpen(false);
-                      }}
-                      className="w-full px-4 py-2.5 text-left text-[13px] font-semibold text-gray-400 hover:bg-[#f8fafc] flex items-center space-x-2 cursor-pointer"
-                    >
-                      <span className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                      <span>{t('invoices.selectClientCompany')}</span>
-                    </button>
                     {/* Option: Others (Custom Client / One-Off) */}
                     <button
                       type="button"

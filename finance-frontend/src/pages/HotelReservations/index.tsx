@@ -545,10 +545,10 @@ const HotelReservations: React.FC = () => {
                          now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
     const targetBooking = bookings.find(b => b.id === id);
-    let compCode = 'OTH';
+    let compCode = 'RCN';
     if (targetBooking?.reservationNo) {
       const parts = targetBooking.reservationNo.split('-');
-      if (parts.length > 0 && parts[0]) compCode = parts[0];
+      if (parts.length > 0 && parts[0]) compCode = (parts[0] === 'OTH' ? 'RCN' : parts[0]);
     }
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
