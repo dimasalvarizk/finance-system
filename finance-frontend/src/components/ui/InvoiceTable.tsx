@@ -19,7 +19,14 @@ interface InvoiceTableProps {
 const getStatusStyles = (status: string) => {
   switch (status.toLowerCase()) {
     case 'approved':
+    case 'fully paid':
+    case 'paid':
       return 'bg-[#ecfdf5] text-[#10b981]';
+    case 'partial':
+    case 'partial payment':
+      return 'bg-[#eff6ff] text-[#2563eb]';
+    case 'deposit paid':
+      return 'bg-[#fffbeb] text-[#d97706]';
     case 'pending':
       return 'bg-[#fff7ed] text-[#f97316]';
     case 'overdue':

@@ -143,9 +143,8 @@ const Dashboard: React.FC = () => {
     return isNaN(val) ? 0 : val;
   };
 
-  const getInvoiceAmountInUsd = (inv: any): number => {
-    if (!inv) return 0;
-    const rawAmt = parseAmount(inv.amount);
+  const convertCurrencyToUsd = (amountVal: number, inv: any): number => {
+    if (!amountVal || isNaN(amountVal)) return 0;
     const currency = String(inv.currency || '').toUpperCase();
     
     // Auto-detect currency from amount string if currency field is missing/empty
@@ -157,14 +156,60 @@ const Dashboard: React.FC = () => {
 
     if (detectedCurrency === 'RP' || detectedCurrency === 'IDR') {
       const rate = inv.usdToIdrRate || 18025;
-      return rawAmt / rate;
+      return amountVal / rate;
     } else if (detectedCurrency === 'SAR') {
       const usdToIdr = inv.usdToIdrRate || 18025;
       const sarToIdr = inv.sarToIdrRate || 4800;
       const usdToSar = usdToIdr / sarToIdr || 3.75;
-      return rawAmt / usdToSar;
+      return amountVal / usdToSar;
     }
-    return rawAmt;
+    return amountVal;
+  };
+
+  const getInvoicePaidAmountInUsd = (inv: any): number => {
+    if (!inv) return 0;
+    const rawAmt = parseAmount(inv.amount);
+    const status = String(inv.status || '').toLowerCase();
+
+    // If fully paid or approved (100% paid)
+    if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || status === 'approved' || status === '4/4 approved' || status === '3/3 approved') {
+      return convertCurrencyToUsd(rawAmt, inv);
+    }
+
+    // If partial payment, deposit paid, or has explicit remainingBalance / advancePayment
+    if (status.includes('partial') || status.includes('deposit') || (inv.remainingBalance !== null && inv.remainingBalance !== undefined)) {
+      const remaining = (inv.remainingBalance !== null && inv.remainingBalance !== undefined)
+        ? parseFloat(String(inv.remainingBalance))
+        : Math.max(0, rawAmt - parseFloat(String(inv.advancePayment || 0)));
+      const paid = Math.max(0, rawAmt - remaining);
+      return convertCurrencyToUsd(paid, inv);
+    }
+
+    if (status.includes('paid')) {
+      return convertCurrencyToUsd(rawAmt, inv);
+    }
+
+    return 0;
+  };
+
+  const getInvoiceOutstandingInUsd = (inv: any): number => {
+    if (!inv) return 0;
+    const rawAmt = parseAmount(inv.amount);
+    const status = String(inv.status || '').toLowerCase();
+
+    // If fully paid or approved, no outstanding balance
+    if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || status === 'approved' || status === 'archived') {
+      return 0;
+    }
+
+    let remaining = rawAmt;
+    if (inv.remainingBalance !== null && inv.remainingBalance !== undefined) {
+      remaining = parseFloat(String(inv.remainingBalance));
+    } else if (inv.advancePayment) {
+      remaining = Math.max(0, rawAmt - parseFloat(String(inv.advancePayment)));
+    }
+
+    return convertCurrencyToUsd(remaining, inv);
   };
 
   // Stats calculation by branch
@@ -202,7 +247,6 @@ const Dashboard: React.FC = () => {
           stats[branch] = { revenue: 0, outstanding: 0, sent: 0, approved: 0, pending: 0, overdue: 0 };
         }
 
-        const amt = getInvoiceAmountInUsd(inv);
         stats[branch].sent += 1;
         const status = String(inv.status || 'Pending').toLowerCase();
         const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
@@ -221,23 +265,26 @@ const Dashboard: React.FC = () => {
           }
         }
 
-        // 1. Revenue & Approvals
-        if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
-          stats[branch].approved += 1;
-          stats[branch].revenue += amt;
-        } else if (isOverdue) {
-          stats[branch].overdue += 1;
-        } else if (status.includes('pending') || status === '1/3 approved' || status === '2/3 approved') {
-          stats[branch].pending += 1;
+        // 1. Revenue & Approvals: Collected cash revenue (includes partial payments & installments)
+        const paidAmt = getInvoicePaidAmountInUsd(inv);
+        if (paidAmt > 0) {
+          stats[branch].revenue += paidAmt;
         }
 
-        // 2. Outstanding Balance: only active unpaid invoices (excluding archived, cancelled, or rejected)
-        const isOutstanding = !status.includes('paid') &&
-          status !== 'archived' &&
-          status !== 'cancelled' &&
-          status !== 'rejected';
-        if (isOutstanding) {
-          stats[branch].outstanding += amt;
+        if (status === 'approved' || status === '4/4 approved' || status === '3/3 approved' || status === 'fully_paid' || status === 'paid' || status === 'paid and closed') {
+          stats[branch].approved += 1;
+        } else if (isOverdue) {
+          stats[branch].overdue += 1;
+        } else if (status.includes('pending') || status === '1/3 approved' || status === '2/3 approved' || status === '0/4 pending') {
+          stats[branch].pending += 1;
+        } else if (status.includes('partial') || status.includes('deposit')) {
+          stats[branch].approved += 1;
+        }
+
+        // 2. Outstanding Balance: remaining unpaid balance on active/overdue invoices
+        const outstandingAmt = getInvoiceOutstandingInUsd(inv);
+        if (outstandingAmt > 0 && status !== 'archived' && (status !== 'cancelled' || isOverdue)) {
+          stats[branch].outstanding += outstandingAmt;
         }
       });
     }
@@ -248,7 +295,7 @@ const Dashboard: React.FC = () => {
   const pendingInvoices = Array.isArray(invoices) ? invoices.filter(inv => {
     if (!inv) return false;
     const status = String(inv.status || '').toLowerCase();
-    return status.includes('pending') || status === '1/3 approved' || status === '2/3 approved';
+    return status.includes('pending') || status === '1/3 approved' || status === '2/3 approved' || status === '0/4 pending';
   }) : [];
 
   const totalRev = Object.values(branchStats).reduce((sum, b) => sum + b.revenue, 0);
@@ -286,7 +333,7 @@ const Dashboard: React.FC = () => {
       }
 
       if (isOverdue) {
-        totalOverdueAmount += getInvoiceAmountInUsd(inv);
+        totalOverdueAmount += getInvoiceOutstandingInUsd(inv);
       }
     });
   }
@@ -332,11 +379,18 @@ const Dashboard: React.FC = () => {
   const recentInvoices = (Array.isArray(invoices) ? invoices : []).slice(0, 5).map(inv => {
     if (!inv) return { ref: '', client: '', amount: '$0', status: 'Pending', statusColor: '', date: '' };
     let status = String(inv.status || 'Pending');
-    if (status.includes('Approved') || status === 'Approved') {
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'fully_paid' || statusLower === 'paid' || statusLower === 'paid and closed') {
+      status = 'Fully Paid';
+    } else if (statusLower.includes('partial') || statusLower === 'partial') {
+      status = 'Partial Payment';
+    } else if (statusLower.includes('deposit')) {
+      status = 'Deposit Paid';
+    } else if (statusLower.includes('approved')) {
       status = 'Approved';
-    } else if (status.includes('Pending') || status === 'Pending Review') {
+    } else if (statusLower.includes('pending') || statusLower === 'pending review') {
       status = 'Pending';
-    } else if (status === 'Rejected') {
+    } else if (statusLower === 'rejected' || statusLower === 'cancelled' || statusLower.includes('overdue')) {
       status = 'Overdue';
     }
     return {
@@ -426,11 +480,11 @@ const Dashboard: React.FC = () => {
           const branch = getInvoiceBranch(inv, dbBranches);
           if (branch !== selectedBranch) return;
 
-          const status = String(inv.status || 'Pending').toLowerCase();
-          if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
+          const paidAmt = getInvoicePaidAmountInUsd(inv);
+          if (paidAmt > 0) {
             const invDate = new Date(inv.date);
             if (invDate.toLocaleString('en-US', { month: 'short' }) === tm.monthName && invDate.getFullYear() === tm.year) {
-              amt += getInvoiceAmountInUsd(inv);
+              amt += paidAmt;
             }
           }
         });
@@ -466,17 +520,16 @@ const Dashboard: React.FC = () => {
         const branch = getInvoiceBranch(inv, dbBranches);
         if (branch !== selectedBranch) return;
 
-        const status = String(inv.status || 'Pending').toLowerCase();
-        if (status === 'approved' || status === '3/3 approved' || status.includes('paid')) {
+        const paidAmt = getInvoicePaidAmountInUsd(inv);
+        if (paidAmt > 0) {
           const invDate = new Date(inv.date);
           const q = getQuarter(invDate);
           const y = invDate.getFullYear();
-          const amt = getInvoiceAmountInUsd(inv);
 
           if (q === currQ && y === currYear) {
-            currQRevenue += amt;
+            currQRevenue += paidAmt;
           } else if (q === prevQ && y === prevYear) {
-            prevQRevenue += amt;
+            prevQRevenue += paidAmt;
           }
         }
       });
