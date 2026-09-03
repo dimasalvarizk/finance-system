@@ -1,5 +1,9 @@
 import { getPool } from '../config/db.js';
 
+const getAuthBaseUrl = (req) => {
+  return process.env.AUTH_SERVICE_URL || (req ? `${req.protocol}://${req.get('host')}` : 'http://localhost:5001');
+};
+
 const checkAndCancelOverdueReservations = async (pool) => {
   try {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -176,6 +180,20 @@ export const createReservation = async (req, res, next) => {
       created.isPaid = false;
     }
 
+    // Trigger internal notification to auth-service for Karim and directors
+    try {
+      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_kareem',
+          type: 'approvalRequestAssigned',
+          title: 'Approval request assigned',
+          message: `New hotel reservation ${finalReservationNo} for ${companyName} (${guestName}) submitted by ${employeeName || 'Staff'} is assigned to you for approval.`
+        })
+      }).catch(err => console.error('Failed to trigger reservation notification:', err.message));
+    } catch (notifErr) {}
+
     res.status(201).json(created);
   } catch (error) {
     console.error('Error in createReservation:', error);
@@ -209,6 +227,26 @@ export const approveReservation = async (req, res, next) => {
       updated.approvedByKarim = true;
       updated.isPaid = !!updated.isPaid;
     }
+
+    // Trigger notification to creator
+    try {
+      let targetUserId = 'usr_super_admin';
+      if (existing[0].employeeName) {
+        const [uRows] = await pool.query('SELECT id FROM dst_users WHERE name = ?', [existing[0].employeeName]);
+        if (uRows.length > 0) targetUserId = uRows[0].id;
+      }
+
+      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: targetUserId,
+          type: 'invoiceApproved',
+          title: 'Confirmation approved',
+          message: `Hotel reservation ${existing[0].reservationNo} has been confirmed by Karim (Conf #: ${confirmationNo || '-'}).`
+        })
+      }).catch(err => {});
+    } catch (notifErr) {}
 
     res.status(200).json(updated);
   } catch (error) {
@@ -344,6 +382,26 @@ export const addHotelPaymentHistory = async (req, res, next) => {
         'UPDATE dst_hotel_reservations SET remainingBalance = ?, isPaid = ?, status = ? WHERE id = ? OR reservationNo = ?',
         [newRemaining, isPaidVal, statusVal, id, id]
       );
+
+      // Trigger notification internally to auth-service
+      try {
+        let targetUserId = 'usr_super_admin';
+        if (resv.employeeName) {
+          const [userRows] = await pool.query('SELECT id FROM dst_users WHERE name = ?', [resv.employeeName]);
+          if (userRows.length > 0) targetUserId = userRows[0].id;
+        }
+
+        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: targetUserId,
+            type: 'paymentReceived',
+            title: 'Payment received',
+            message: `Payment of ${numericAmount.toLocaleString('en-US')} ${resv.currency || 'SAR'} recorded for hotel reservation ${resv.reservationNo}.`
+          })
+        }).catch(err => {});
+      } catch (notifErr) {}
     }
 
     res.status(201).json({

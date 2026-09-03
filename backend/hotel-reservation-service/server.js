@@ -4,12 +4,15 @@ import dotenv from 'dotenv';
 import hotelReservationRoutes from './routes/hotelReservationRoutes.js';
 import { connectDB } from './config/db.js';
 import { errorHandler } from './utils/errorHandler.js';
+import { initHotelOverdueCron } from './cron/overdueChecker.js';
 
 // Load environment variables
 dotenv.config();
 
 // Connect to Database
-connectDB();
+connectDB().then(() => {
+  initHotelOverdueCron();
+});
 
 const app = express();
 

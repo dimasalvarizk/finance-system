@@ -423,6 +423,32 @@ export const addPaymentHistory = async (req, res, next) => {
       }
     }
 
+    // Trigger notification internally to auth-service
+    try {
+      let targetUserId = 'usr_super_admin';
+      try {
+        const existing = await getInvoiceByIdDB(invoiceNo);
+        if (existing && existing.createdBy) {
+          const pool = getPool();
+          const [userRows] = await pool.query('SELECT id FROM dst_users WHERE name = ?', [existing.createdBy]);
+          if (userRows.length > 0) {
+            targetUserId = userRows[0].id;
+          }
+        }
+      } catch (dbErr) {}
+
+      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: targetUserId,
+          type: 'paymentReceived',
+          title: 'Payment received',
+          message: `A payment of ${numericAmount.toLocaleString('en-US')} ${currency || 'SAR'} was recorded for invoice ${invoiceNo}.`
+        })
+      }).catch(err => console.error('Failed to trigger payment notification:', err.message));
+    } catch (notifErr) {}
+
     res.status(201).json({
       success: true,
       message: 'Payment recorded successfully',
