@@ -343,13 +343,18 @@ const Dashboard: React.FC = () => {
     0
   );
 
+  const totalBilled = totalRev + totalOutstanding;
+  const collectionRate = totalBilled > 0
+    ? ((totalRev / totalBilled) * 100).toFixed(1)
+    : '0.0';
+
   const metricsData = [
     {
       title: t('dashboard.totalRevenue'),
       value: formattedTotalRev,
       subtext: t('dashboard.acrossAllOffices'),
-      badgeText: totalInvoicesCount > 0 ? '+12.4%' : '',
-      badgeColorClass: 'bg-[#ecfdf5] text-[#10b981]',
+      badgeText: totalInvoicesCount > 0 ? `${Number(collectionRate) > 0 ? '+' : ''}${collectionRate}%` : '',
+      badgeColorClass: Number(collectionRate) > 0 ? 'bg-[#ecfdf5] text-[#10b981]' : 'bg-slate-100 text-slate-600',
     },
     {
       title: t('dashboard.totalConfirmations'),
