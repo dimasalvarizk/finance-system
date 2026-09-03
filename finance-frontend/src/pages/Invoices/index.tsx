@@ -3437,10 +3437,20 @@ const Invoices: React.FC = () => {
                 const advAmt = parseFloat(String(inv.advancePayment || 0));
                 const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
                 const totalPaidSoFar = advAmt + totalInstallments;
+                const invStatusClean = String(inv.status || '').toLowerCase();
+                const isPendingApproval = invStatusClean.includes('pending') ||
+                  invStatusClean === '0/3 pending' ||
+                  invStatusClean === '1/3 approved' ||
+                  invStatusClean === '2/3 approved' ||
+                  invStatusClean === '0/4 pending' ||
+                  invStatusClean === '1/4 approved' ||
+                  invStatusClean === '2/4 approved' ||
+                  invStatusClean === '3/4 approved' ||
+                  invStatusClean === 'pending review';
                 const remaining = Math.max(0, rawAmt - totalPaidSoFar);
                 const currency = inv.currency || 'USD';
 
-                const canAddPayment = ['4/4 Approved', 'Approved', 'FULLY_PAID', 'PARTIAL', 'DEPOSIT_PAID'].includes(inv.status);
+                const canAddPayment = !isPendingApproval && invStatusClean !== 'rejected' && invStatusClean !== 'cancelled';
 
                 return (
                   <>
