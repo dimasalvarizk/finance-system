@@ -3,6 +3,7 @@ import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut, C
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
+import { useMaintenance } from '../../context/MaintenanceContext';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../services/authService';
 import notificationSound from '../../assets/notification.mp3';
 import saudiFlagImg from '../../assets/saudi-flag.png';
@@ -76,6 +77,7 @@ interface NotificationItem {
 
 const Header: React.FC = () => {
   const { user, logoutUser } = useAuth();
+  const { locks, isITAdmin } = useMaintenance();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -281,6 +283,14 @@ const Header: React.FC = () => {
           </span>
         </button>
       </div>
+
+      {/* Center IT Bypass Indicator */}
+      {isITAdmin && (locks.fullSystem || locks.hotelReservations || locks.invoices || locks.requests) && (
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-[11px] font-bold text-amber-800 animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <span>Kunci Pemeliharaan Aktif (Akses Khusus IT Bypass)</span>
+        </div>
+      )}
 
       {/* Right Info */}
       <div className="flex items-center space-x-4 relative">

@@ -10,6 +10,7 @@ import {
   getTaxSetting, updateTaxSetting,
   getCompanySetting, updateCompanySetting,
   triggerMaintenanceNotif,
+  getMaintenanceLocks, updateMaintenanceLocks,
   getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
   getMealTypes, createMealType, updateMealType, deleteMealType,
   exportFullDatabaseBackup, logBackupHistory, getBackupHistory
@@ -63,7 +64,9 @@ router.put('/tax', restrictTo('Super Admin', 'Chief Accountant', 'Division Direc
 router.get('/company', getCompanySetting);
 router.put('/company', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateCompanySetting);
 
-// 10. System Maintenance Broadcast (Restricted strictly to Dimas Alva Rizki & Ali in controller)
+// 10. System Maintenance Broadcast & Module Locks
+router.get('/maintenance/status', getMaintenanceLocks);
+router.post('/maintenance/locks', updateMaintenanceLocks);
 router.post('/maintenance', triggerMaintenanceNotif);
 
 // 11. HB Management

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { useMaintenance } from '../../../context/MaintenanceContext';
 import { getInvoices, getCompanies } from '../../../services/invoiceService';
 import { getHotelReservations } from '../../../services/hotelReservationService';
 import { getExchangeRates, getFullDatabaseBackup, logBackupHistory, getBackupHistory, broadcastMaintenance } from '../../../services/settingService';
-import { Download, FileSpreadsheet, FileJson, Clock, User, Megaphone, Send, AlertTriangle, CheckCircle2, Radio, Sparkles, Layers, ShieldCheck, Calendar, Bell } from 'lucide-react';
+import { Download, FileSpreadsheet, FileJson, Clock, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BackupHistoryItem {
@@ -27,6 +28,7 @@ interface BroadcastLogItem {
 
 const SystemBackupTab: React.FC = () => {
   const { user } = useAuth();
+  const { locks, toggleLock } = useMaintenance();
   const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
   const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
@@ -39,6 +41,7 @@ const SystemBackupTab: React.FC = () => {
   const [broadcastSchedule, setBroadcastSchedule] = useState<string>('');
   const [broadcastUrgency, setBroadcastUrgency] = useState<'Normal' | 'High'>('Normal');
   const [broadcastMessage, setBroadcastMessage] = useState<string>('');
+  const [autoLockOnBroadcast, setAutoLockOnBroadcast] = useState<boolean>(false);
   const [isBroadcasting, setIsBroadcasting] = useState<boolean>(false);
   const [broadcastFeedback, setBroadcastFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
@@ -156,12 +159,31 @@ const SystemBackupTab: React.FC = () => {
         return updated;
       });
 
+      if (autoLockOnBroadcast) {
+        try {
+          if (broadcastScope === 'Hotel Reservations') {
+            await toggleLock('hotelReservations', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'Invoices') {
+            await toggleLock('invoices', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'Approval Requests') {
+            await toggleLock('requests', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'All System') {
+            await toggleLock('fullSystem', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          }
+        } catch (lockErr) {
+          console.warn('Failed to auto-lock module:', lockErr);
+        }
+      }
+
       setBroadcastFeedback({
         type: 'success',
-        message: res?.message || t('settings.broadcastSuccess')
+        message: autoLockOnBroadcast
+          ? `${res?.message || t('settings.broadcastSuccess')} Modul terpilih juga telah berhasil dikunci untuk pemeliharaan.`
+          : (res?.message || t('settings.broadcastSuccess'))
       });
       setBroadcastMessage('');
       setBroadcastSchedule('');
+      setAutoLockOnBroadcast(false);
     } catch (err: any) {
       console.error('Failed to send broadcast:', err);
       setBroadcastFeedback({
@@ -467,56 +489,188 @@ const SystemBackupTab: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
+      {/* SAKLAR KUNCI PEMELIHARAAN MODUL (LIVE LOCK SWITCHES) */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 font-sans">
+              Status & Saklar Kunci Pemeliharaan Modul
+            </h3>
+            <p className="text-xs text-slate-500 font-normal mt-0.5">
+              Kunci akses pengguna biasa saat perbaikan berlangsung. Tim IT (Dimas & Ali) tetap memiliki akses penuh (Bypass).
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium">Bypass IT:</span>
+            <span className="px-2.5 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Aktif (Dimas & Ali)
+            </span>
+          </div>
+        </div>
+
+        {/* 4 Module Lock Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Hotel Reservations */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.hotelReservations 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">Reservasi Hotel</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.hotelReservations ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.hotelReservations ? 'Terkunci' : 'Aktif'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.hotelReservations ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('hotelReservations', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.hotelReservations
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.hotelReservations ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+            </button>
+          </div>
+
+          {/* Card 2: Invoices */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.invoices 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">Faktur & Pembayaran</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.invoices ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.invoices ? 'Terkunci' : 'Aktif'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.invoices ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('invoices', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.invoices
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.invoices ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+            </button>
+          </div>
+
+          {/* Card 3: Requests */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.requests 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">Alur Persetujuan</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.requests ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.requests ? 'Terkunci' : 'Aktif'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.requests ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('requests', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.requests
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.requests ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+            </button>
+          </div>
+
+          {/* Card 4: Full System Lock */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.fullSystem 
+              ? 'bg-rose-100 border-rose-400 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">Seluruh Sistem</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.fullSystem ? 'bg-rose-600 text-white' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.fullSystem ? 'DARURAT TERKUNCI' : 'Aktif'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.fullSystem ? 'Semua modul terkunci kecuali Login & Settings IT.' : 'Seluruh sistem beroperasi normal.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('fullSystem', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.fullSystem
+                  ? 'bg-rose-700 hover:bg-rose-800 text-white border-rose-700'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.fullSystem ? 'Buka Kunci Sistem' : 'Kunci Seluruh Sistem'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
       {/* SYSTEM MAINTENANCE BROADCAST (Dimas Alva Rizki & Ali Restricted) */}
       {/* ========================================================================= */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
         {/* Header Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 flex-shrink-0">
-              <Megaphone className="w-5 h-5" />
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 font-sans">
+                {t('settings.maintenanceBroadcastTitle')}
+              </h3>
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                IT Control
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-slate-800">
-                  {t('settings.maintenanceBroadcastTitle')}
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
-                  IT Control
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 font-medium">
-                {t('settings.maintenanceBroadcastDesc')}
-              </p>
-            </div>
+            <p className="text-xs text-slate-500 font-normal mt-0.5">
+              {t('settings.maintenanceBroadcastDesc')}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 self-start sm:self-auto">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Otorisasi: <strong className="text-slate-700">Dimas & Ali</strong></span>
+          <div className="text-xs text-slate-600 font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 self-start sm:self-auto">
+            Otorisasi: <strong className="text-slate-800">Dimas & Ali</strong>
           </div>
         </div>
 
         {/* Feedback Alert */}
         {broadcastFeedback && (
-          <div className={`p-4 rounded-xl text-xs font-bold flex items-center justify-between animate-fade-in ${
+          <div className={`p-3.5 rounded-xl text-xs font-semibold flex items-center justify-between animate-fade-in ${
             broadcastFeedback.type === 'success' 
               ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
               : 'bg-rose-50 border border-rose-200 text-rose-800'
           }`}>
-            <div className="flex items-center gap-2">
-              {broadcastFeedback.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              ) : (
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              )}
-              <span>{broadcastFeedback.message}</span>
-            </div>
+            <span>{broadcastFeedback.message}</span>
             <button 
               onClick={() => setBroadcastFeedback(null)} 
-              className="text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer font-bold text-xs"
+              className="text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer font-bold text-xs ml-3"
             >
-              ✕
+              Tutup
             </button>
           </div>
         )}
@@ -528,8 +682,7 @@ const SystemBackupTab: React.FC = () => {
             
             {/* Quick Template Chips */}
             <div>
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
                 {t('settings.quickTemplates')}
               </label>
               <div className="flex flex-wrap gap-2">
@@ -541,9 +694,9 @@ const SystemBackupTab: React.FC = () => {
                     'Malam ini pukul 23:30 - 00:00 WIB',
                     'Akan dilakukan upgrade infrastruktur server dan pembaruan core engine. Sistem tidak dapat diakses sementara selama 30 menit. Mohon simpan semua data Anda.'
                   )}
-                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 transition-all cursor-pointer text-slate-600"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer"
                 >
-                  🚀 {t('settings.tplServerUpgrade')}
+                  {t('settings.tplServerUpgrade')}
                 </button>
                 <button
                   type="button"
@@ -553,9 +706,9 @@ const SystemBackupTab: React.FC = () => {
                     'Besok pukul 06:00 - 06:30 WIB',
                     'Pembaruan modul alokasi kamar dan validasi voucher. Modul lain (Invoices & Requests) tetap beroperasi normal.'
                   )}
-                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 transition-all cursor-pointer text-slate-600"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer"
                 >
-                  🏨 {t('settings.tplHotelModule')}
+                  {t('settings.tplHotelModule')}
                 </button>
                 <button
                   type="button"
@@ -565,59 +718,55 @@ const SystemBackupTab: React.FC = () => {
                     'Hari Minggu pukul 01:00 - 02:00 WIB',
                     'Optimalisasi database cloud dan reindeks data keuangan tahunan untuk meningkatkan kecepatan loading laporan.'
                   )}
-                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 transition-all cursor-pointer text-slate-600"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer"
                 >
-                  🗄️ {t('settings.tplDatabaseSync')}
+                  {t('settings.tplDatabaseSync')}
                 </button>
               </div>
             </div>
 
             {/* Scope Selection */}
             <div>
-              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-2">
                 {t('settings.scopeLabel')}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {[
-                  { id: 'All System', label: t('settings.scopeAll'), icon: '🌐' },
-                  { id: 'Hotel Reservations', label: t('settings.scopeReservations'), icon: '🏨' },
-                  { id: 'Invoices', label: t('settings.scopeInvoices'), icon: '📑' },
-                  { id: 'Approval Requests', label: t('settings.scopeApprovals'), icon: '✅' },
-                  { id: 'Settings & DB', label: t('settings.scopeSettings'), icon: '⚙️' },
+                  { id: 'All System', label: 'Seluruh Sistem' },
+                  { id: 'Hotel Reservations', label: 'Modul Reservasi Hotel' },
+                  { id: 'Invoices', label: 'Modul Faktur' },
+                  { id: 'Approval Requests', label: 'Alur Persetujuan' },
+                  { id: 'Settings & DB', label: 'Pengaturan & DB' },
                 ].map((s) => (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => setBroadcastScope(s.id)}
-                    className={`p-2.5 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
                       broadcastScope === s.id
-                        ? 'bg-amber-50/80 border-amber-400 text-amber-900 shadow-sm'
-                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
-                    <span>{s.icon}</span>
-                    <span className="truncate">{s.label}</span>
+                    {s.label}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Schedule & Urgency in 2 Cols */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
                   {t('settings.scheduleTimeLabel')}
                 </label>
-                <div className="relative">
-                  <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    value={broadcastSchedule}
-                    onChange={(e) => setBroadcastSchedule(e.target.value)}
-                    placeholder={t('settings.scheduleTimePlaceholder')}
-                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-all font-sans"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={broadcastSchedule}
+                  onChange={(e) => setBroadcastSchedule(e.target.value)}
+                  placeholder={t('settings.scheduleTimePlaceholder')}
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 transition-all font-sans"
+                />
               </div>
 
               <div>
@@ -628,24 +777,24 @@ const SystemBackupTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setBroadcastUrgency('Normal')}
-                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                       broadcastUrgency === 'Normal'
-                        ? 'bg-blue-50 border-blue-400 text-blue-900'
+                        ? 'bg-slate-100 border-slate-300 text-slate-800 shadow-sm'
                         : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
-                    📢 Normal
+                    Normal
                   </button>
                   <button
                     type="button"
                     onClick={() => setBroadcastUrgency('High')}
-                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                       broadcastUrgency === 'High'
-                        ? 'bg-rose-50 border-rose-400 text-rose-900'
+                        ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-sm'
                         : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
-                    ⚠️ High (Downtime)
+                    High (Downtime)
                   </button>
                 </div>
               </div>
@@ -661,8 +810,21 @@ const SystemBackupTab: React.FC = () => {
                 value={broadcastMessage}
                 onChange={(e) => setBroadcastMessage(e.target.value)}
                 placeholder={t('settings.messagePlaceholder')}
-                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-all resize-none font-sans"
+                className="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 transition-all resize-none font-sans"
               />
+            </div>
+
+            {/* Auto-Lock Checkbox */}
+            <div className="flex items-center space-x-2 pt-1">
+              <label className="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={autoLockOnBroadcast}
+                  onChange={(e) => setAutoLockOnBroadcast(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                />
+                <span>Sekaligus kunci akses modul yang dipilih saat siaran dikirim</span>
+              </label>
             </div>
 
             {/* Submit Button */}
@@ -677,21 +839,19 @@ const SystemBackupTab: React.FC = () => {
                   setShowConfirmModal(true);
                 }}
                 disabled={isBroadcasting || !broadcastMessage.trim()}
-                className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-2 border-none disabled:opacity-50"
+                className="px-6 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer border-none disabled:opacity-50"
               >
-                <Send className="w-4 h-4" />
-                <span>{isBroadcasting ? t('settings.sendingBroadcast') : t('settings.sendBroadcastBtn')}</span>
+                {isBroadcasting ? t('settings.sendingBroadcast') : t('settings.sendBroadcastBtn')}
               </button>
             </div>
 
           </div>
 
           {/* Right Column: Live User Preview Box (5 cols) */}
-          <div className="lg:col-span-5 bg-slate-50/80 rounded-2xl border border-slate-200/80 p-4.5 space-y-3.5 flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-                  <Bell className="w-4 h-4 text-amber-600" />
+          <div className="lg:col-span-5 bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                <span className="text-xs font-bold text-slate-800">
                   {t('settings.livePreview')}
                 </span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -700,64 +860,43 @@ const SystemBackupTab: React.FC = () => {
               </div>
 
               {/* Mock Notification Card */}
-              <div className="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm space-y-2.5">
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm ${
-                    broadcastUrgency === 'High' 
-                      ? 'bg-rose-50 text-rose-600 border border-rose-200' 
-                      : 'bg-amber-50 text-amber-600 border border-amber-200'
-                  }`}>
-                    {broadcastUrgency === 'High' ? <AlertTriangle className="w-4 h-4" /> : <Megaphone className="w-4 h-4" />}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-900 truncate">
-                        {broadcastUrgency === 'High' ? '⚠️ ' : '📢 '}
-                        {broadcastScope && broadcastScope !== 'All System' ? `[Modul ${broadcastScope}] ` : '[Sistem] '}
-                        Pemeliharaan Terjadwal
-                      </h4>
-                      <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap ml-1">Baru saja</span>
-                    </div>
-
-                    {broadcastSchedule && (
-                      <div className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 mt-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{broadcastSchedule}</span>
-                      </div>
-                    )}
-
-                    <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-sans line-clamp-3">
-                      {broadcastMessage.trim() || 'Pesan siaran pemeliharaan akan ditampilkan di sini kepada seluruh pengguna sistem...'}
-                    </p>
-                  </div>
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-900">
+                    {broadcastScope && broadcastScope !== 'All System' ? `[Modul ${broadcastScope}] ` : '[Sistem] '}
+                    Pemeliharaan Terjadwal
+                  </h4>
+                  <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap ml-2">Baru saja</span>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Pengirim: <strong className="text-slate-600">{user?.name || 'Dimas / Ali'}</strong></span>
-                  <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Semua Pengguna
-                  </span>
+                {broadcastSchedule && (
+                  <div className="inline-block text-[10px] font-semibold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                    Jadwal: {broadcastSchedule}
+                  </div>
+                )}
+
+                <p className="text-xs text-slate-600 leading-relaxed font-sans">
+                  {broadcastMessage.trim() || 'Pesan siaran pemeliharaan akan ditampilkan di sini kepada seluruh pengguna sistem...'}
+                </p>
+
+                <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                  <span>Pengirim: <strong className="text-slate-700">{user?.name || 'Dimas / Ali'}</strong></span>
+                  <span className="text-slate-600 font-medium">Target: Semua Pengguna</span>
                 </div>
               </div>
 
               {/* Delivery Channels Info */}
-              <div className="bg-white p-3 rounded-xl border border-slate-200/80 text-[11px] text-slate-600 space-y-1.5 font-sans">
-                <div className="font-bold text-slate-700 text-xs">Saluran Pengiriman Otomatis:</div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                  <span><strong>Lonceng Header:</strong> Badge merah + audio alert popover</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  <span><strong>Email Notifikasi:</strong> Dikirimkan ke inbox akun aktif</span>
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-2 font-sans">
+                <div className="font-bold text-slate-800 text-xs">Saluran Pengiriman:</div>
+                <div className="text-slate-600 leading-relaxed">
+                  1. <strong>Lonceng Header:</strong> Badge merah dan pesan notifikasi di semua halaman.<br/>
+                  2. <strong>Email:</strong> Dikirim otomatis ke alamat email seluruh pengguna aktif.
                 </div>
               </div>
             </div>
 
-            <div className="text-[10px] text-slate-400 italic">
-              * Notifikasi akan tersimpan dalam tabel audit dan dapat dibaca kapan saja oleh pengguna.
+            <div className="text-[10px] text-slate-400">
+              * Notifikasi akan tersimpan dalam riwayat dan dapat dibaca kapan saja oleh pengguna.
             </div>
           </div>
         </div>
@@ -765,9 +904,8 @@ const SystemBackupTab: React.FC = () => {
         {/* Recent Broadcasts List */}
         {recentBroadcasts.length > 0 && (
           <div className="border-t border-slate-100 pt-4 space-y-2">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              Riwayat Siaran Terakhir (Sesi Ini)
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Riwayat Siaran Terakhir
             </h4>
             <div className="space-y-2">
               {recentBroadcasts.slice(0, 3).map((b) => (
@@ -775,12 +913,12 @@ const SystemBackupTab: React.FC = () => {
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        b.urgency === 'High' ? 'bg-rose-100 text-rose-800' : 'bg-blue-100 text-blue-800'
+                        b.urgency === 'High' ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-800'
                       }`}>
                         {b.scope}
                       </span>
                       {b.scheduleTime && (
-                        <span className="text-[11px] font-semibold text-slate-600">
+                        <span className="text-[11px] font-medium text-slate-600">
                           Jadwal: {b.scheduleTime}
                         </span>
                       )}
@@ -803,23 +941,19 @@ const SystemBackupTab: React.FC = () => {
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-scale-in">
-            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
-              <Megaphone className="w-6 h-6" />
-            </div>
-
-            <div className="text-center space-y-1">
-              <h3 className="text-base font-extrabold text-slate-800">
+            <div className="text-left space-y-1">
+              <h3 className="text-base font-bold text-slate-900">
                 {t('settings.confirmBroadcastTitle')}
               </h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed font-sans">
+              <p className="text-xs text-slate-500 font-normal leading-relaxed font-sans">
                 {t('settings.confirmBroadcastMsg')}
               </p>
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1 font-sans">
-              <div><strong>Cakupan:</strong> {broadcastScope}</div>
-              {broadcastSchedule && <div><strong>Jadwal:</strong> {broadcastSchedule}</div>}
-              <div><strong>Tingkat:</strong> {broadcastUrgency}</div>
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1.5 font-sans">
+              <div><strong className="text-slate-500">Cakupan:</strong> {broadcastScope}</div>
+              {broadcastSchedule && <div><strong className="text-slate-500">Jadwal:</strong> {broadcastSchedule}</div>}
+              <div><strong className="text-slate-500">Tingkat Urgensi:</strong> {broadcastUrgency}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
@@ -834,10 +968,9 @@ const SystemBackupTab: React.FC = () => {
                 type="button"
                 onClick={handleSendBroadcast}
                 disabled={isBroadcasting}
-                className="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer border-none flex items-center justify-center gap-1.5"
+                className="py-2.5 px-4 bg-[#f59e0b] hover:bg-[#d97706] text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer border-none"
               >
-                <Send className="w-3.5 h-3.5" />
-                <span>{isBroadcasting ? t('settings.sendingBroadcast') : t('common.confirm')}</span>
+                {isBroadcasting ? t('settings.sendingBroadcast') : t('common.confirm')}
               </button>
             </div>
           </div>

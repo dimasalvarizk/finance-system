@@ -205,3 +205,26 @@ export const broadcastMaintenance = async (data: {
   const response = await settingAPI.post('/maintenance', data);
   return response.data;
 };
+
+// 15. Module Maintenance Mode Locks
+export interface MaintenanceLockState {
+  fullSystem: boolean;
+  hotelReservations: boolean;
+  invoices: boolean;
+  requests: boolean;
+  message?: string;
+  estimatedTime?: string;
+  lockedBy?: string;
+  updatedAt?: string;
+}
+
+export const getMaintenanceLocks = async (): Promise<MaintenanceLockState> => {
+  const response = await settingAPI.get('/maintenance/status');
+  return response.data.data;
+};
+
+export const updateMaintenanceLocks = async (data: Partial<MaintenanceLockState>): Promise<MaintenanceLockState> => {
+  const response = await settingAPI.post('/maintenance/locks', data);
+  return response.data.data;
+};
+

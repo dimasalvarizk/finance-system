@@ -656,6 +656,88 @@ export const triggerMaintenanceNotif = async (req, res, next) => {
   }
 };
 
+const DEFAULT_MAINTENANCE_LOCKS = {
+  fullSystem: false,
+  hotelReservations: false,
+  invoices: false,
+  requests: false,
+  message: 'Modul ini sedang dalam pemeliharaan berkala untuk peningkatan performa sistem.',
+  estimatedTime: '',
+  lockedBy: '',
+  updatedAt: ''
+};
+
+export const getMaintenanceLocks = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS dst_maintenance_locks (
+        id VARCHAR(50) PRIMARY KEY,
+        status JSON,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    const [rows] = await pool.query('SELECT status FROM dst_maintenance_locks WHERE id = ?', ['current']);
+    if (rows.length === 0) {
+      return res.status(200).json({ success: true, data: DEFAULT_MAINTENANCE_LOCKS });
+    }
+    const data = typeof rows[0].status === 'string' ? JSON.parse(rows[0].status) : rows[0].status;
+    res.status(200).json({ success: true, data: { ...DEFAULT_MAINTENANCE_LOCKS, ...data } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateMaintenanceLocks = async (req, res, next) => {
+  try {
+    const userNameLower = (req.user?.name || '').toLowerCase();
+    const userEmailLower = (req.user?.email || '').toLowerCase();
+    const isAuthorized = 
+      userNameLower.includes('dimas') || 
+      userNameLower.includes('ali') || 
+      userEmailLower.includes('dimas') || 
+      userEmailLower.includes('ali') || 
+      req.user?.role === 'Super Admin';
+
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: 'Akses Ditolak: Hanya Dimas Alva Rizki dan Ali (Tim IT) yang berwenang mengubah kunci pemeliharaan sistem.'
+      });
+    }
+
+    const pool = getPool();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS dst_maintenance_locks (
+        id VARCHAR(50) PRIMARY KEY,
+        status JSON,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    const payload = {
+      ...req.body,
+      lockedBy: req.user?.name || 'Administrator',
+      updatedAt: new Date().toISOString()
+    };
+
+    const statusStr = JSON.stringify(payload);
+    await pool.query(
+      'INSERT INTO dst_maintenance_locks (id, status) VALUES (?, ?) ON DUPLICATE KEY UPDATE status = ?',
+      ['current', statusStr, statusStr]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Status kunci pemeliharaan modul berhasil diperbarui.',
+      data: payload
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ==========================================
 // 11. HB MANAGEMENT (Room Types & Meal Types)
 // ==========================================

@@ -2,6 +2,8 @@ import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useMaintenance } from '../context/MaintenanceContext';
+import MaintenanceScreen from '../components/ui/MaintenanceScreen';
 
 // Lazy-loaded pages for fast initial bundle loading & high Lighthouse performance
 const Login = lazy(() => import('../pages/Auth/Login'));
@@ -57,6 +59,7 @@ const routeSeoMap: Record<string, { title: string; desc: string }> = {
 
 const AppRoutes: React.FC = () => {
   const { user } = useAuth();
+  const { isModuleLocked, locks } = useMaintenance();
   const location = useLocation();
 
   useEffect(() => {
@@ -89,19 +92,62 @@ const AppRoutes: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route
             path="/dashboard"
-            element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Dashboard />}
+            element={
+              isModuleLocked('fullSystem') ? (
+                <MaintenanceScreen moduleName="Sistem Keuangan" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : user?.role === 'Viewer' ? (
+                <Navigate to="/invoices" replace />
+              ) : (
+                <Dashboard />
+              )
+            }
           />
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/requests" element={<Requests />} />
+          <Route
+            path="/invoices"
+            element={
+              isModuleLocked('invoices') ? (
+                <MaintenanceScreen moduleName="Modul Faktur & Pembayaran" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <Invoices />
+              )
+            }
+          />
+          <Route
+            path="/requests"
+            element={
+              isModuleLocked('requests') ? (
+                <MaintenanceScreen moduleName="Modul Alur Persetujuan" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <Requests />
+              )
+            }
+          />
           <Route
             path="/companies"
-            element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Companies />}
+            element={
+              isModuleLocked('fullSystem') ? (
+                <MaintenanceScreen moduleName="Modul Direktori Klien" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : user?.role === 'Viewer' ? (
+                <Navigate to="/invoices" replace />
+              ) : (
+                <Companies />
+              )
+            }
           />
           <Route
             path="/settings"
             element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Settings />}
           />
-          <Route path="/hotel-reservations" element={<HotelReservations />} />
+          <Route
+            path="/hotel-reservations"
+            element={
+              isModuleLocked('hotelReservations') ? (
+                <MaintenanceScreen moduleName="Modul Reservasi Hotel" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <HotelReservations />
+              )
+            }
+          />
           <Route
             path="/system-audit-hidden"
             element={
