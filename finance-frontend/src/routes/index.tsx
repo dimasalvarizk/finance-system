@@ -93,8 +93,8 @@ const AppRoutes: React.FC = () => {
           <Route
             path="/dashboard"
             element={
-              isModuleLocked('fullSystem') ? (
-                <MaintenanceScreen moduleName="Sistem Keuangan" message={locks.message} estimatedTime={locks.estimatedTime} />
+              isModuleLocked('dashboard') ? (
+                <MaintenanceScreen moduleName="Dashboard Analytics" message={locks.message} estimatedTime={locks.estimatedTime} />
               ) : user?.role === 'Viewer' ? (
                 <Navigate to="/invoices" replace />
               ) : (
@@ -106,7 +106,7 @@ const AppRoutes: React.FC = () => {
             path="/invoices"
             element={
               isModuleLocked('invoices') ? (
-                <MaintenanceScreen moduleName="Modul Faktur & Pembayaran" message={locks.message} estimatedTime={locks.estimatedTime} />
+                <MaintenanceScreen moduleName="Modul Confirmations (Faktur)" message={locks.message} estimatedTime={locks.estimatedTime} />
               ) : (
                 <Invoices />
               )
@@ -116,7 +116,7 @@ const AppRoutes: React.FC = () => {
             path="/requests"
             element={
               isModuleLocked('requests') ? (
-                <MaintenanceScreen moduleName="Modul Alur Persetujuan" message={locks.message} estimatedTime={locks.estimatedTime} />
+                <MaintenanceScreen moduleName="Modul Requests (Permintaan)" message={locks.message} estimatedTime={locks.estimatedTime} />
               ) : (
                 <Requests />
               )
@@ -125,8 +125,8 @@ const AppRoutes: React.FC = () => {
           <Route
             path="/companies"
             element={
-              isModuleLocked('fullSystem') ? (
-                <MaintenanceScreen moduleName="Modul Direktori Klien" message={locks.message} estimatedTime={locks.estimatedTime} />
+              isModuleLocked('companies') ? (
+                <MaintenanceScreen moduleName="Modul Companies (Direktori Klien)" message={locks.message} estimatedTime={locks.estimatedTime} />
               ) : user?.role === 'Viewer' ? (
                 <Navigate to="/invoices" replace />
               ) : (
@@ -136,13 +136,21 @@ const AppRoutes: React.FC = () => {
           />
           <Route
             path="/settings"
-            element={user?.role === 'Viewer' ? <Navigate to="/invoices" replace /> : <Settings />}
+            element={
+              isModuleLocked('settings') ? (
+                <MaintenanceScreen moduleName="Modul Settings (Pengaturan Sistem)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : user?.role === 'Viewer' ? (
+                <Navigate to="/invoices" replace />
+              ) : (
+                <Settings />
+              )
+            }
           />
           <Route
             path="/hotel-reservations"
             element={
               isModuleLocked('hotelReservations') ? (
-                <MaintenanceScreen moduleName="Modul Reservasi Hotel" message={locks.message} estimatedTime={locks.estimatedTime} />
+                <MaintenanceScreen moduleName="Modul Hotel Reservations (Reservasi Hotel)" message={locks.message} estimatedTime={locks.estimatedTime} />
               ) : (
                 <HotelReservations />
               )

@@ -11,10 +11,12 @@ import {
 } from 'lucide-react';
 import odstDashboardLogo from '../../assets/odstdahboard.png';
 import { useAuth } from '../../context/AuthContext';
+import { useMaintenance } from '../../context/MaintenanceContext';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { locks } = useMaintenance();
   const { t } = useTranslation();
 
   const getInitials = (name?: string) => {
@@ -53,7 +55,12 @@ const Sidebar: React.FC = () => {
               }`}
             >
               <LayoutDashboard className="w-5 h-5" />
-              <span>{t('nav.dashboard')}</span>
+              <span className="flex-1">{t('nav.dashboard')}</span>
+              {(locks.fullSystem || locks.dashboard) && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  Maint
+                </span>
+              )}
             </Link>
           )}
 
@@ -66,7 +73,12 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <FileText className="w-5 h-5" />
-            <span>{t('nav.confirmations')}</span>
+            <span className="flex-1">{t('nav.confirmations')}</span>
+            {(locks.fullSystem || locks.invoices) && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                Maint
+              </span>
+            )}
           </Link>
 
           <Link
@@ -78,7 +90,12 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <CheckSquare className="w-5 h-5" />
-            <span>{t('nav.requests')}</span>
+            <span className="flex-1">{t('nav.requests')}</span>
+            {(locks.fullSystem || locks.requests) && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                Maint
+              </span>
+            )}
           </Link>
 
           {['Super Admin', 'Chief Accountant', 'Division Director'].includes(user?.role || '') && (
@@ -91,7 +108,12 @@ const Sidebar: React.FC = () => {
               }`}
             >
               <Briefcase className="w-5 h-5" />
-              <span>{t('nav.companies')}</span>
+              <span className="flex-1">{t('nav.companies')}</span>
+              {(locks.fullSystem || locks.companies) && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  Maint
+                </span>
+              )}
             </Link>
           )}
 
@@ -104,7 +126,12 @@ const Sidebar: React.FC = () => {
             }`}
           >
             <Bed className="w-5 h-5" />
-            <span>{t('nav.hotelReservations')}</span>
+            <span className="flex-1">{t('nav.hotelReservations')}</span>
+            {(locks.fullSystem || locks.hotelReservations) && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                Maint
+              </span>
+            )}
           </Link>
 
           {user?.role !== 'Viewer' && (
@@ -117,7 +144,12 @@ const Sidebar: React.FC = () => {
               }`}
             >
               <SettingsIcon className="w-5 h-5" />
-              <span>{t('nav.settings')}</span>
+              <span className="flex-1">{t('nav.settings')}</span>
+              {(locks.fullSystem || locks.settings) && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  Maint
+                </span>
+              )}
             </Link>
           )}
         </nav>

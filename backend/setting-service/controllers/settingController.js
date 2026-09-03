@@ -658,9 +658,12 @@ export const triggerMaintenanceNotif = async (req, res, next) => {
 
 const DEFAULT_MAINTENANCE_LOCKS = {
   fullSystem: false,
-  hotelReservations: false,
+  dashboard: false,
   invoices: false,
   requests: false,
+  companies: false,
+  hotelReservations: false,
+  settings: false,
   message: 'Modul ini sedang dalam pemeliharaan berkala untuk peningkatan performa sistem.',
   estimatedTime: '',
   lockedBy: '',

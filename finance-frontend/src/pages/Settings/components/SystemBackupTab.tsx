@@ -161,12 +161,18 @@ const SystemBackupTab: React.FC = () => {
 
       if (autoLockOnBroadcast) {
         try {
-          if (broadcastScope === 'Hotel Reservations') {
+          if (broadcastScope === 'Dashboard') {
+            await toggleLock('dashboard', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'Hotel Reservations') {
             await toggleLock('hotelReservations', { message: broadcastMessage, estimatedTime: broadcastSchedule });
-          } else if (broadcastScope === 'Invoices') {
+          } else if (broadcastScope === 'Confirmations' || broadcastScope === 'Invoices') {
             await toggleLock('invoices', { message: broadcastMessage, estimatedTime: broadcastSchedule });
-          } else if (broadcastScope === 'Approval Requests') {
+          } else if (broadcastScope === 'Requests' || broadcastScope === 'Approval Requests') {
             await toggleLock('requests', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'Companies') {
+            await toggleLock('companies', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'Settings' || broadcastScope === 'Settings & DB') {
+            await toggleLock('settings', { message: broadcastMessage, estimatedTime: broadcastSchedule });
           } else if (broadcastScope === 'All System') {
             await toggleLock('fullSystem', { message: broadcastMessage, estimatedTime: broadcastSchedule });
           }
@@ -509,46 +515,47 @@ const SystemBackupTab: React.FC = () => {
           </div>
         </div>
 
-        {/* 4 Module Lock Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Hotel Reservations */}
+        {/* 6 Sidebar Modules + 1 Full System Emergency Lock Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          
+          {/* Card 1: Dashboard */}
           <div className={`p-4 rounded-xl border transition-all ${
-            locks.hotelReservations 
+            locks.dashboard 
               ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Reservasi Hotel</span>
+              <span className="text-xs font-bold text-slate-900">Dashboard</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                locks.hotelReservations ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+                locks.dashboard ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
-                {locks.hotelReservations ? 'Terkunci' : 'Aktif'}
+                {locks.dashboard ? 'Terkunci' : 'Aktif'}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mb-3">
-              {locks.hotelReservations ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+              {locks.dashboard ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
             </p>
             <button
               type="button"
-              onClick={() => toggleLock('hotelReservations', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              onClick={() => toggleLock('dashboard', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
               className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
-                locks.hotelReservations
+                locks.dashboard
                   ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {locks.hotelReservations ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+              {locks.dashboard ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
             </button>
           </div>
 
-          {/* Card 2: Invoices */}
+          {/* Card 2: Confirmations (Invoices) */}
           <div className={`p-4 rounded-xl border transition-all ${
             locks.invoices 
               ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Faktur & Pembayaran</span>
+              <span className="text-xs font-bold text-slate-900">Confirmations (Faktur)</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.invoices ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
@@ -578,7 +585,7 @@ const SystemBackupTab: React.FC = () => {
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-900">Alur Persetujuan</span>
+              <span className="text-xs font-bold text-slate-900">Requests (Persetujuan)</span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                 locks.requests ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               }`}>
@@ -601,7 +608,97 @@ const SystemBackupTab: React.FC = () => {
             </button>
           </div>
 
-          {/* Card 4: Full System Lock */}
+          {/* Card 4: Companies */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.companies 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">Companies (Klien)</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.companies ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.companies ? 'Terkunci' : 'Aktif'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.companies ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('companies', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.companies
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.companies ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+            </button>
+          </div>
+
+          {/* Card 5: Hotel Reservations */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.hotelReservations 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">Hotel Reservations</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.hotelReservations ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.hotelReservations ? 'Terkunci' : 'Aktif'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.hotelReservations ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('hotelReservations', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.hotelReservations
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.hotelReservations ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+            </button>
+          </div>
+
+          {/* Card 6: Settings */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.settings 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">Settings (Pengaturan)</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.settings ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.settings ? 'Terkunci' : 'Aktif'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.settings ? 'Halaman ditutup untuk pengguna umum.' : 'Dapat diakses normal oleh semua pengguna.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('settings', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.settings
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.settings ? 'Buka Kunci Modul' : 'Kunci Modul Ini'}
+            </button>
+          </div>
+
+          {/* Card 7: Full System Lock */}
           <div className={`p-4 rounded-xl border transition-all ${
             locks.fullSystem 
               ? 'bg-rose-100 border-rose-400 shadow-sm' 
@@ -630,6 +727,7 @@ const SystemBackupTab: React.FC = () => {
               {locks.fullSystem ? 'Buka Kunci Sistem' : 'Kunci Seluruh Sistem'}
             </button>
           </div>
+
         </div>
       </div>
 
@@ -704,7 +802,7 @@ const SystemBackupTab: React.FC = () => {
                     'Hotel Reservations',
                     'Normal',
                     'Besok pukul 06:00 - 06:30 WIB',
-                    'Pembaruan modul alokasi kamar dan validasi voucher. Modul lain (Invoices & Requests) tetap beroperasi normal.'
+                    'Pembaruan modul alokasi kamar dan validasi voucher. Modul lain tetap beroperasi normal.'
                   )}
                   className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer"
                 >
@@ -733,10 +831,12 @@ const SystemBackupTab: React.FC = () => {
               <div className="flex flex-wrap gap-2">
                 {[
                   { id: 'All System', label: 'Seluruh Sistem' },
-                  { id: 'Hotel Reservations', label: 'Modul Reservasi Hotel' },
-                  { id: 'Invoices', label: 'Modul Faktur' },
-                  { id: 'Approval Requests', label: 'Alur Persetujuan' },
-                  { id: 'Settings & DB', label: 'Pengaturan & DB' },
+                  { id: 'Dashboard', label: 'Dashboard' },
+                  { id: 'Confirmations', label: 'Confirmations' },
+                  { id: 'Requests', label: 'Requests' },
+                  { id: 'Companies', label: 'Companies' },
+                  { id: 'Hotel Reservations', label: 'Hotel Reservations' },
+                  { id: 'Settings', label: 'Settings' },
                 ].map((s) => (
                   <button
                     key={s.id}

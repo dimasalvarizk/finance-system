@@ -6,16 +6,19 @@ interface MaintenanceContextType {
   locks: MaintenanceLockState;
   loading: boolean;
   isITAdmin: boolean;
-  isModuleLocked: (moduleKey: 'hotelReservations' | 'invoices' | 'requests' | 'fullSystem') => boolean;
+  isModuleLocked: (moduleKey: 'dashboard' | 'invoices' | 'requests' | 'companies' | 'hotelReservations' | 'settings' | 'fullSystem') => boolean;
   refreshLocks: () => Promise<void>;
   toggleLock: (moduleKey: keyof MaintenanceLockState, extra?: { message?: string; estimatedTime?: string }) => Promise<void>;
 }
 
 const DEFAULT_STATE: MaintenanceLockState = {
   fullSystem: false,
-  hotelReservations: false,
+  dashboard: false,
   invoices: false,
   requests: false,
+  companies: false,
+  hotelReservations: false,
+  settings: false,
   message: 'Modul ini sedang dalam pemeliharaan berkala untuk peningkatan performa sistem.',
   estimatedTime: '',
   lockedBy: '',
@@ -57,14 +60,17 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => clearInterval(interval);
   }, [fetchLocks]);
 
-  const isModuleLocked = useCallback((moduleKey: 'hotelReservations' | 'invoices' | 'requests' | 'fullSystem'): boolean => {
+  const isModuleLocked = useCallback((moduleKey: 'dashboard' | 'invoices' | 'requests' | 'companies' | 'hotelReservations' | 'settings' | 'fullSystem'): boolean => {
     // IT Administrators (Dimas, Ali, Super Admin) always bypass lock
     if (isITAdmin) return false;
 
     if (locks.fullSystem) return true;
-    if (moduleKey === 'hotelReservations' && locks.hotelReservations) return true;
+    if (moduleKey === 'dashboard' && locks.dashboard) return true;
     if (moduleKey === 'invoices' && locks.invoices) return true;
     if (moduleKey === 'requests' && locks.requests) return true;
+    if (moduleKey === 'companies' && locks.companies) return true;
+    if (moduleKey === 'hotelReservations' && locks.hotelReservations) return true;
+    if (moduleKey === 'settings' && locks.settings) return true;
 
     return false;
   }, [locks, isITAdmin]);

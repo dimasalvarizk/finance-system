@@ -209,9 +209,12 @@ export const broadcastMaintenance = async (data: {
 // 15. Module Maintenance Mode Locks
 export interface MaintenanceLockState {
   fullSystem: boolean;
-  hotelReservations: boolean;
+  dashboard: boolean;
   invoices: boolean;
   requests: boolean;
+  companies: boolean;
+  hotelReservations: boolean;
+  settings: boolean;
   message?: string;
   estimatedTime?: string;
   lockedBy?: string;
