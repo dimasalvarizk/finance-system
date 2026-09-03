@@ -429,7 +429,22 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
   try {
     const transporter = await getTransporter();
 
-    const { invoiceNo, company, companyCode, amount, referenceNo, serialNo, dueDate, date, items, taxRate, documentType } = invoiceDetails;
+    const { 
+      invoiceNo, 
+      company, 
+      companyCode, 
+      amount = '2,200.00 SAR', 
+      referenceNo, 
+      serialNo, 
+      dueDate, 
+      date, 
+      items, 
+      taxRate, 
+      currency = 'SAR', 
+      documentType 
+    } = invoiceDetails;
+
+    const curr = (currency || 'SAR').toUpperCase().includes('SAR') || String(amount).includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
     const isHotel = (documentType && documentType.toLowerCase().includes('hotel')) || (invoiceNo && invoiceNo.startsWith('RES-'));
     const docTitle = isHotel ? 'HOTEL RESERVATION CONFIRMATION' : `INVOICE ${invoiceNo}`;
     const subjectPrefix = isHotel ? 'Hotel Reservation Confirmation' : 'Invoice / Confirmation';
@@ -440,8 +455,8 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       subtotalNum = items.reduce((acc, item) => acc + (Number(item.qty) || 0) * (Number(item.price) || 0), 0);
     }
     const taxNum = subtotalNum * (rate / 100);
-    const subtotalFormatted = subtotalNum.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    const taxFormatted = taxNum.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    const subtotalFormatted = `${subtotalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
+    const taxFormatted = `${taxNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
 
     const formatDate = (dateStr) => {
       if (!dateStr) return '';
