@@ -526,11 +526,11 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     }
 
     const bFrom = invoiceDetails.billFrom || {
-      name: invoiceDetails.employeeName || 'Aufa Rakha',
-      id: invoiceDetails.employeeId || '250104',
-      entity: companySettings.companyName || 'PT.ODST AIRLINES INDO',
+      entity: companySettings.companyName || 'ODST Group',
+      branch: 'Graha Al Badegel',
+      address: 'Graha Al Badegel, Jakarta, Indonesia',
       phone: companySettings.phone || '+62 8111 1203 330',
-      email: invoiceDetails.employeeEmail || 'aufa.rakha108@gmail.com',
+      email: 'info@odst.id',
       tax: companySettings.taxNumber || '0000-0000-0001'
     };
 
@@ -740,7 +740,7 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
               <div class="content">
                 <table class="meta-grid">
                   <tr>
-                    <td class="meta-label">Confirmation Date</td>
+                    <td class="meta-label">Document Date</td>
                     <td class="meta-label">Due Date</td>
                     <td class="meta-label">Reference No</td>
                     <td class="meta-label">Serial No</td>
@@ -759,10 +759,10 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                       <div class="bill-title">BILL FROM</div>
                       <div class="bill-details">
                         <strong>${bFrom.entity || 'ODST Group'}</strong><br>
-                        <span style="color: #475569; font-weight: 600;">Graha Al Badegel</span><br>
+                        Graha Al Badegel<br>
                         Jakarta, Indonesia<br>
-                        Phone: ${bFrom.phone || '+62 8111 1203 330'}<br>
-                        Tax Number: ${bFrom.tax || '0000-0000-0001'}<br>
+                        Phone: ${bFrom.phone || companySettings.phone || '+62 8111 1203 330'}<br>
+                        Tax Number: ${bFrom.tax || companySettings.taxNumber || '0000-0000-0001'}<br>
                         Email: ${bFrom.email || 'info@odst.id'}
                       </div>
                     </td>
