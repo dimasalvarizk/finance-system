@@ -316,10 +316,10 @@ export const sendInvoiceEmail = async (req, res, next) => {
 
     const [invoiceRows] = await pool.query(`
       SELECT i.*, 
-             COALESCE(c.name, i.custom_company_name, i.company) AS companyName,
-             COALESCE(c.taxNumber, i.custom_tax_number, '') AS clientTaxNo,
-             COALESCE(c.agent, i.custom_agent, i.agent, '') AS clientAgent,
-             COALESCE(c.address, i.custom_address, i.address, '') AS clientAddress
+             COALESCE(c.name, i.company) AS companyName,
+             COALESCE(c.taxNumber, '') AS clientTaxNo,
+             COALESCE(c.agent, '') AS clientAgent,
+             COALESCE(c.address, '') AS clientAddress
       FROM dst_invoices i
       LEFT JOIN dst_companies c ON i.companyCode = c.code
       WHERE i.invoiceNo = ? OR i.id = ?

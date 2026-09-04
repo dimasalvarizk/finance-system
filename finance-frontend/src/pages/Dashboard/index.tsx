@@ -17,7 +17,7 @@ import NetworkErrorState from '../../components/ui/NetworkErrorState';
 
 // Dynamic branch reports computed from database
 const getInvoiceBranch = (inv: any, dbBranches: any[]): string => {
-  if (!inv) return 'Graha Al Badegel';
+  if (!inv) return 'CBC Office';
 
   // 1. Prioritize invoice's own branch field if it exists
   if (inv.branch && Array.isArray(dbBranches)) {
@@ -45,7 +45,7 @@ const getInvoiceBranch = (inv: any, dbBranches: any[]): string => {
       branch = dbBranches[0].name;
     }
   } else {
-    branch = 'Graha Al Badegel';
+    branch = 'CBC Office';
   }
   return branch;
 };

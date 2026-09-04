@@ -427,7 +427,7 @@ const BranchOfficeTab: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Graha Al Badegel"
+                    placeholder="e.g. CBC Office (Head Office)"
                     value={editBranchName}
                     onChange={(e) => setEditBranchName(e.target.value)}
                     className={`w-full px-3.5 py-2.5 border rounded-xl text-[13px] transition-all font-sans focus:outline-none ${showValidation && !editBranchName.trim()

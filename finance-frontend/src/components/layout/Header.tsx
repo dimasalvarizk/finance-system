@@ -279,7 +279,7 @@ const Header: React.FC = () => {
         <button className="flex items-center space-x-2 px-3 py-1.5 border border-[#e2e8f0] rounded-full hover:bg-gray-50 transition-all">
           <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
           <span className="text-[13px] font-semibold text-[#1e293b] font-sans">
-            {user?.branch || 'Graha Al Badegel'}
+            {user?.branch || 'CBC Office'}
           </span>
         </button>
       </div>

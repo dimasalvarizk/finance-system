@@ -91,7 +91,7 @@ const initializeDatabase = async () => {
     if (false && branchRows[0].count === 0) {
       console.log('Seeding default branches...');
       const seedBranches = [
-        { name: 'Graha Al Badegel', address: 'Graha Al Badegel, Jl. Hajjah Tutty Alawiyah No.7, Kalibata, Pancoran, Jakarta Selatan 12740', phone: '+62 8111 1203 330', country: 'Indonesia', teamCount: 12 },
+        { name: 'CBC Office (Head Office)', address: 'Menara Kencana, Fl 18, Jl. Sudirman No. 45, Jakarta 10210', phone: '+62 21 5550 1234', country: 'Indonesia', teamCount: 12 },
         { name: 'Surabaya Office', address: 'Jl. Pemuda No. 27, Surabaya 60271', phone: '+62 31 5550 5678', country: 'Indonesia', teamCount: 8 },
         { name: 'Medan Office', address: 'Jl. Gatot Subroto No. 15, Medan 20112', phone: '+62 61 4550 9012', country: 'Indonesia', teamCount: 5 },
         { name: 'Al Badegel Office', address: 'Al Badegel District, Jeddah 23447', phone: '+62 61 3213 9012', country: 'Indonesia', teamCount: 6 }
