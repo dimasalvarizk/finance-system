@@ -44,7 +44,7 @@ services:
       - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_USER=${SMTP_USER:-info@odst.id}
       - SMTP_PASS=${SMTP_PASS:-APW1DGGK9GZLOMS7}
-      - SMTP_FROM=${SMTP_FROM:-"ODST Group Finance" <info@odst.id>}
+      - SMTP_FROM=${SMTP_FROM:-info@odst.id}
     restart: always
 
   invoice-service:

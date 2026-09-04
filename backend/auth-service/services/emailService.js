@@ -83,18 +83,36 @@ const getUiType = (title) => {
   return 'request';
 };
 
+const getSenderFrom = (customName = 'ODST Group Finance') => {
+  let address = (process.env.SMTP_USER || 'info@odst.id').trim();
+  let name = customName;
+
+  if (process.env.SMTP_FROM) {
+    const raw = process.env.SMTP_FROM.replace(/^["']|["']$/g, '').trim();
+    const match = raw.match(/^(?:["']?([^"']+)["']?\s*)?<([^>]+)>$/);
+    if (match) {
+      if (match[1]) name = match[1].replace(/^["']|["']$/g, '').trim();
+      address = match[2].trim();
+    } else if (raw.includes('@')) {
+      address = raw.replace(/^["']|["']$/g, '').trim();
+    }
+  }
+
+  return {
+    name: name || 'ODST Group Finance',
+    address: address || 'info@odst.id'
+  };
+};
+
 export const sendNotificationEmail = async (toEmail, toName, title, message) => {
   try {
     const transporter = await getTransporter();
 
     const uiType = getUiType(title);
 
-    const senderFrom = process.env.SMTP_FROM ||
-      (process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>');
-
     const mailOptions = {
-      from: senderFrom,
-      to: `"${toName}" <${toEmail}>`,
+      from: getSenderFrom('ODST Finance Portal'),
+      to: toEmail,
       subject: `[Notification] ${title}`,
       html: `
         <!DOCTYPE html>
@@ -259,12 +277,9 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
   try {
     const transporter = await getTransporter();
 
-    const senderFrom = process.env.SMTP_FROM ||
-      (process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>');
-
     const mailOptions = {
-      from: senderFrom,
-      to: `"${toName}" <${toEmail}>`,
+      from: getSenderFrom('ODST Group Finance'),
+      to: toEmail,
       subject: `[Finance Portal] Reset Password Request`,
       html: `
         <!DOCTYPE html>
@@ -545,12 +560,8 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       cityCountry: invoiceDetails.cityCountry || ''
     };
 
-    const senderAddress = process.env.SMTP_FROM ||
-      (companySettings.senderEmail ? `"ODST Group Finance" <${companySettings.senderEmail}>` :
-        (process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>'));
-
     const mailOptions = {
-      from: senderAddress,
+      from: getSenderFrom(companySettings.companyName || 'ODST Group Finance'),
       to: toEmail,
       subject: `${subjectPrefix} ${invoiceNo} from ODST Group`,
       attachments: attachments,
