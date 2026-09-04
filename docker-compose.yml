@@ -29,101 +29,101 @@ services:
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
-    env_file:
-      - ./backend/auth-service/.env
     environment:
       - PORT=5001
       - NODE_ENV=production
-      - FRONTEND_URL=https://odstfin.io
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=root_password_rahasia
-      - DB_NAME=finance_db
+      - FRONTEND_URL=${SERVICE_URL_FINANCE_FRONTEND:-https://odstfin.io}
+      - DB_HOST=${DB_HOST:-mysql-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
+      - DB_NAME=${DB_NAME:-finance_db}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
+      - SMTP_HOST=${SMTP_HOST:-smtp.titan.email}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-info@odst.id}
+      - SMTP_PASS=${SMTP_PASS:-APW1DGGK9GZLOMS7}
+      - SMTP_FROM=${SMTP_FROM:-"ODST Group Finance" <info@odst.id>}
     restart: always
 
   invoice-service:
     build:
       context: ./backend/invoice-service
       dockerfile: Dockerfile
-    env_file:
-      - ./backend/invoice-service/.env
     environment:
       - PORT=5002
       - NODE_ENV=production
       - AUTH_SERVICE_URL=http://auth-service:5001
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=root_password_rahasia
-      - DB_NAME=finance_db
+      - DB_HOST=${DB_HOST:-mysql-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
+      - DB_NAME=${DB_NAME:-finance_db}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
     restart: always
 
   request-service:
     build:
       context: ./backend/request-service
       dockerfile: Dockerfile
-    env_file:
-      - ./backend/request-service/.env
     environment:
       - PORT=5003
       - NODE_ENV=production
       - AUTH_SERVICE_URL=http://auth-service:5001
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=root_password_rahasia
-      - DB_NAME=finance_db
+      - DB_HOST=${DB_HOST:-mysql-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
+      - DB_NAME=${DB_NAME:-finance_db}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
     restart: always
 
   company-service:
     build:
       context: ./backend/company-service
       dockerfile: Dockerfile
-    env_file:
-      - ./backend/company-service/.env
     environment:
       - PORT=5004
       - NODE_ENV=production
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=root_password_rahasia
-      - DB_NAME=finance_db
+      - DB_HOST=${DB_HOST:-mysql-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
+      - DB_NAME=${DB_NAME:-finance_db}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
     restart: always
 
   setting-service:
     build:
       context: ./backend/setting-service
       dockerfile: Dockerfile
-    env_file:
-      - ./backend/setting-service/.env
     environment:
       - PORT=5005
       - NODE_ENV=production
       - AUTH_SERVICE_URL=http://auth-service:5001
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=root_password_rahasia
-      - DB_NAME=finance_db
+      - DB_HOST=${DB_HOST:-mysql-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
+      - DB_NAME=${DB_NAME:-finance_db}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
     restart: always
 
   hotel-reservation-service:
     build:
       context: ./backend/hotel-reservation-service
       dockerfile: Dockerfile
-    env_file:
-      - ./backend/hotel-reservation-service/.env
     environment:
       - PORT=5006
       - NODE_ENV=production
       - AUTH_SERVICE_URL=http://auth-service:5001
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=root_password_rahasia
-      - DB_NAME=finance_db
+      - DB_HOST=${DB_HOST:-mysql-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
+      - DB_NAME=${DB_NAME:-finance_db}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
     restart: always
 
   finance-frontend:

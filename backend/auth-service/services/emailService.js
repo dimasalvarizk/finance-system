@@ -10,10 +10,10 @@ const ETHEREAL_CACHE_PATH = path.join('/tmp', 'ethereal_account.json');
 const getTransporter = async () => {
   if (transporter) return transporter;
 
-  const smtpHost = (process.env.SMTP_HOST || '').trim();
-  const smtpUser = (process.env.SMTP_USER || '').trim();
-  const smtpPass = (process.env.SMTP_PASS || '').trim();
-  const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
+  const smtpHost = (process.env.SMTP_HOST || 'smtp.titan.email').trim();
+  const smtpUser = (process.env.SMTP_USER || 'info@odst.id').trim();
+  const smtpPass = (process.env.SMTP_PASS || 'APW1DGGK9GZLOMS7').trim();
+  const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
   const isSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
 
   if (smtpHost && smtpUser && smtpPass) {
