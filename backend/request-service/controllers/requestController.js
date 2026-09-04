@@ -376,9 +376,10 @@ export const sendInvoiceEmail = async (req, res, next) => {
     const billFrom = {
       name: creator.name || 'Aufa Rakha',
       id: creator.employeeId || '250104',
-      entity: compSettings.companyName || 'PT.ODST AIRLINES INDO',
+      entity: 'ODST Group',
+      branch: 'Graha Al Badegel',
       phone: compSettings.phone || '+62 8111 1203 330',
-      email: creator.email || 'aufa.rakha108@gmail.com',
+      email: 'info@odst.id',
       tax: compSettings.taxNumber || '0000-0000-0001'
     };
 

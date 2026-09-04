@@ -758,12 +758,12 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                     <td class="bill-box">
                       <div class="bill-title">BILL FROM</div>
                       <div class="bill-details">
-                        <strong>${bFrom.entity || 'ODST Group'}</strong><br>
+                        <strong>ODST Group</strong><br>
                         Graha Al Badegel<br>
                         Jakarta, Indonesia<br>
-                        Phone: ${bFrom.phone || companySettings.phone || '+62 8111 1203 330'}<br>
-                        Tax Number: ${bFrom.tax || companySettings.taxNumber || '0000-0000-0001'}<br>
-                        Email: ${bFrom.email || 'info@odst.id'}
+                        Phone: ${companySettings.phone || bFrom.phone || '+62 8111 1203 330'}<br>
+                        Tax Number: ${companySettings.taxNumber || bFrom.tax || '0000-0000-0001'}<br>
+                        Email: info@odst.id
                       </div>
                     </td>
                     <td class="bill-box">
