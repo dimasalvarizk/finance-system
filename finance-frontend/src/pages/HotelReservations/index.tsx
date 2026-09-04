@@ -889,7 +889,7 @@ const HotelReservations: React.FC = () => {
                           <p className="font-bold text-slate-800 text-[13px]">{selectedBooking.employeeName || 'Dimas Alva Rizki'}</p>
                           <p>{t('hotelReservations.employeeId')}: {selectedBooking.employeeId || 'UMP-111'}</p>
                           <p>{t('invoices.phone')}: {selectedBooking.employeePhone || '+62 8111 1203 330'}</p>
-                          <p>{selectedBooking.employeeEmail || 'alvarizkidimas@gmail.com'}</p>
+                          <p>{selectedBooking.employeeEmail || 'info@odst.id'}</p>
                           <p>{selectedBooking.employeeEntity || 'PT.ODST AIRLINES IND'}</p>
                           <p className="text-[11px] text-slate-400">{t('hotelReservations.companyTaxNumber')}: {selectedBooking.companyTaxNo || '0000-0000-0001'}</p>
                         </div>

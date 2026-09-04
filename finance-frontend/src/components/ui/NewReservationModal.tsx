@@ -461,7 +461,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       employeeName: formEmpName || 'Dimas Alva Rizki',
       employeeId: formEmpId || 'UMP-111',
       employeePhone: formCompNumber || '+62 8111 1203 330',
-      employeeEmail: formCompEmail || 'alvarizkidimas@gmail.com',
+      employeeEmail: formCompEmail || 'info@odst.id',
       employeeEntity: formEntity || 'PT.ODST AIRLINES IND',
       companyTaxNo: formCompTax || '0000-0000-0001',
       rooms: roomsToSubmit,
