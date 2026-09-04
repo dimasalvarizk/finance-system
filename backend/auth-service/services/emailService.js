@@ -458,8 +458,8 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
 
     const curr = (currency || 'SAR').toUpperCase().includes('SAR') || String(amount).includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
     const isHotel = (documentType && documentType.toLowerCase().includes('hotel')) || (invoiceNo && invoiceNo.startsWith('RES-'));
-    const docTitle = isHotel ? 'HOTEL RESERVATION CONFIRMATION' : `INVOICE ${invoiceNo}`;
-    const subjectPrefix = isHotel ? 'Hotel Reservation Confirmation' : 'Invoice / Confirmation';
+    const docTitle = isHotel ? 'HOTEL RESERVATION CONFIRMATION' : `CONFIRMATION ${invoiceNo}`;
+    const subjectPrefix = isHotel ? 'Hotel Reservation Confirmation' : 'Confirmation';
     const rate = Number(taxRate) || 0;
 
     let subtotalNum = 0;
@@ -519,7 +519,7 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     const attachments = [];
     if (pdfBuffer) {
       attachments.push({
-        filename: `${isHotel ? 'Reservation' : 'Invoice'}_${safeFilename}.pdf`,
+        filename: `${isHotel ? 'Reservation' : 'Confirmation'}_${safeFilename}.pdf`,
         content: pdfBuffer,
         contentType: 'application/pdf'
       });
@@ -817,10 +817,10 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                     OFFICIAL PDF DOCUMENT ATTACHED
                   </div>
                   <div style="font-size: 12px; color: #64748b; margin-bottom: 14px; font-family: sans-serif; line-height: 1.5;">
-                    The official signed PDF version (<strong>${isHotel ? 'Reservation' : 'Invoice'}_${safeFilename}.pdf</strong>) is attached directly to this email. You can download and save it directly from your email attachments.
+                    The official signed PDF version (<strong>${isHotel ? 'Reservation' : 'Confirmation'}_${safeFilename}.pdf</strong>) is attached directly to this email. You can download and save it directly from your email attachments.
                   </div>
                   <div style="display: inline-block; background-color: #242e69; color: #ffffff !important; font-size: 12px; font-weight: 700; padding: 10px 22px; border-radius: 8px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
-                    Attachment: ${isHotel ? 'Reservation' : 'Invoice'}_${safeFilename}.pdf
+                    Attachment: ${isHotel ? 'Reservation' : 'Confirmation'}_${safeFilename}.pdf
                   </div>
                 </div>
 
