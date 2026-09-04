@@ -89,7 +89,7 @@ export const sendNotificationEmail = async (toEmail, toName, title, message) => 
 
     const uiType = getUiType(title);
 
-    const senderFrom = process.env.SMTP_FROM || 
+    const senderFrom = process.env.SMTP_FROM ||
       (process.env.SMTP_USER ? `"ODST Finance Portal" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>');
 
     const mailOptions = {
@@ -259,7 +259,7 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
   try {
     const transporter = await getTransporter();
 
-    const senderFrom = process.env.SMTP_FROM || 
+    const senderFrom = process.env.SMTP_FROM ||
       (process.env.SMTP_USER ? `"ODST Finance Portal" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>');
 
     const mailOptions = {

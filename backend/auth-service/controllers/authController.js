@@ -7,7 +7,7 @@ import { sendNotificationEmail, sendResetPasswordEmail, sendClientInvoiceEmail }
 
 const parseUserAgent = (userAgent) => {
   if (!userAgent) return 'Unknown Device';
-  
+
   let os = 'Unknown OS';
   if (userAgent.includes('Windows')) os = 'Windows';
   else if (userAgent.includes('Macintosh') || userAgent.includes('Mac OS') || userAgent.includes('macOS')) os = 'macOS';
@@ -86,7 +86,7 @@ export const login = async (req, res, next) => {
     const ip = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
     const userAgentStr = req.headers['user-agent'] || '';
     const device = parseUserAgent(userAgentStr);
-    
+
     // Set location as "Jakarta, Indonesia" by default, or "Local Host" if local IP
     const isLocal = ip === '127.0.0.1' || ip === '::1' || ip.includes('192.168.') || ip.includes('10.');
     const location = isLocal ? 'Local Host' : 'Jakarta, Indonesia';
@@ -182,7 +182,7 @@ export const getMe = async (req, res, next) => {
   try {
     // req.user is populated by protect middleware
     const token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
-    
+
     // Update lastActive status to real-time ISO timestamp on authentication request
     if (req.user && req.user.id) {
       const nowIso = new Date().toISOString();
@@ -257,14 +257,14 @@ export const createUser = async (req, res, next) => {
           if (settings.teamMemberChanges.email !== undefined) emailEnabled = settings.teamMemberChanges.email;
         }
       }
-      
+
       const title = 'Team member changes';
       const message = `A new team member ${name} (${role}) has been added to the platform.`;
 
       if (emailEnabled) {
         const [adminRows] = await pool.query('SELECT name, email FROM dst_users WHERE id = ?', ['usr_super_admin']);
         if (adminRows.length > 0) {
-          sendNotificationEmail(adminRows[0].email, adminRows[0].name, title, message).catch(err => {});
+          sendNotificationEmail(adminRows[0].email, adminRows[0].name, title, message).catch(err => { });
         }
       }
 
@@ -362,14 +362,14 @@ export const deleteUser = async (req, res, next) => {
           if (settings.teamMemberChanges.email !== undefined) emailEnabled = settings.teamMemberChanges.email;
         }
       }
-      
+
       const title = 'Team member changes';
       const message = `Team member ${exists.name} (${exists.role}) has been removed from the platform.`;
 
       if (emailEnabled) {
         const [adminRows] = await pool.query('SELECT name, email FROM dst_users WHERE id = ?', ['usr_super_admin']);
         if (adminRows.length > 0) {
-          sendNotificationEmail(adminRows[0].email, adminRows[0].name, title, message).catch(err => {});
+          sendNotificationEmail(adminRows[0].email, adminRows[0].name, title, message).catch(err => { });
         }
       }
 
@@ -429,7 +429,7 @@ export const revokeSession = async (req, res, next) => {
   const { id } = req.params;
   try {
     const pool = getPool();
-    
+
     // Check if session exists and belongs to current user
     const [rows] = await pool.query('SELECT id FROM dst_sessions WHERE id = ? AND userId = ?', [id, req.user.id]);
     if (rows.length === 0) {
@@ -525,16 +525,16 @@ const triggerSecurityAlert = async (email, ip, targetUserId = 'usr_super_admin',
         if (settings.securityAlerts.email !== undefined) emailEnabled = settings.securityAlerts.email;
       }
     }
-    
+
     const title = 'Security alerts';
-    const message = oldIp 
+    const message = oldIp
       ? `Successful login detected from IP ${ip} (which is different from your last session IP: ${oldIp}).`
       : `Failed login attempt detected from IP ${ip} for email ${email}.`;
 
     if (emailEnabled) {
       const [userRows] = await pool.query('SELECT name, email FROM dst_users WHERE id = ?', [targetUserId]);
       if (userRows.length > 0) {
-        sendNotificationEmail(userRows[0].email, userRows[0].name, title, message).catch(err => {});
+        sendNotificationEmail(userRows[0].email, userRows[0].name, title, message).catch(err => { });
       }
     }
 
@@ -613,7 +613,7 @@ export const createNotification = async (req, res, next) => {
     }
 
     const pool = getPool();
-    
+
     let targets = [];
     if (userId === 'all') {
       const [rows] = await pool.query('SELECT id, name, email FROM dst_users');
@@ -633,7 +633,7 @@ export const createNotification = async (req, res, next) => {
     for (const target of targets) {
       // Check user preferences first
       const [settingRows] = await pool.query('SELECT settings FROM dst_notification_settings WHERE userId = ?', [target.id]);
-      
+
       let inAppEnabled = true;
       let emailEnabled = true;
       if (settingRows.length > 0) {

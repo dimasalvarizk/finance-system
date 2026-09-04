@@ -112,7 +112,7 @@ export const approveRequest = async (req, res, next) => {
     try {
       const isFullyApproved = result.nextStatus === '4/4 Approved';
       const pool = getPool();
-      
+
       // 1. Resolve Creator/Requestor UserId
       let creatorUserId = 'usr_super_admin';
       if (result.requestedBy) {

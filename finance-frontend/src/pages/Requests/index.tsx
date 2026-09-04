@@ -80,7 +80,7 @@ const getPaginationRange = (current: number, total: number): (number | "ellipsis
 
 const compareDates = (dateAStr: string, dateBStr: string): boolean => {
   if (!dateAStr || !dateBStr) return false;
-  
+
   const parseYMD = (str: string) => {
     const matchYMD = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (matchYMD) {
@@ -90,10 +90,10 @@ const compareDates = (dateAStr: string, dateBStr: string): boolean => {
         day: parseInt(matchYMD[3], 10)
       };
     }
-    
+
     const d = new Date(str);
     if (isNaN(d.getTime())) return null;
-    
+
     if (str.includes('-') && !str.includes('T') && !str.includes(' ')) {
       return {
         year: d.getUTCFullYear(),
@@ -110,7 +110,7 @@ const compareDates = (dateAStr: string, dateBStr: string): boolean => {
 
   const a = parseYMD(dateAStr);
   const b = parseYMD(dateBStr);
-  
+
   if (!a || !b) return false;
   return a.year === b.year && a.month === b.month && a.day === b.day;
 };
@@ -145,7 +145,7 @@ const Requests: React.FC = () => {
       if (fetched) {
         setAllRequests(fetched);
       }
-      
+
       const compList = await getCompanies();
       if (compList) {
         localStorage.setItem('finance_companies', JSON.stringify(compList));
@@ -231,7 +231,7 @@ const Requests: React.FC = () => {
       reader.onerror = (err) => reject(err);
     });
   };
-  
+
   // Custom states for Send Invoice email feature
   const [showSendInvoiceModal, setShowSendInvoiceModal] = useState(false);
   const [clientEmailInput, setClientEmailInput] = useState('');
@@ -466,7 +466,7 @@ const Requests: React.FC = () => {
       setLoading(true);
       await saveRequestNote(selectedRequest.id || selectedRequest.invoiceNo, approvalNoteInput);
       alert('Note saved successfully!');
-      
+
       // Update state locally
       setAllRequests(prev => prev.map(r => (r.id === selectedRequest.id || r.invoiceNo === selectedRequest.invoiceNo) ? {
         ...r,
@@ -637,9 +637,9 @@ const Requests: React.FC = () => {
           </span>
         );
       case "Cancelled": {
-        const isOverdue = req?.rejectionReason?.toLowerCase().includes('auto-cancelled') || 
-                          req?.rejectionReason?.toLowerCase().includes('overdue') ||
-                          (req?.dueDate ? new Date(req.dueDate).getTime() < new Date(new Date().toISOString().split('T')[0]).getTime() : false);
+        const isOverdue = req?.rejectionReason?.toLowerCase().includes('auto-cancelled') ||
+          req?.rejectionReason?.toLowerCase().includes('overdue') ||
+          (req?.dueDate ? new Date(req.dueDate).getTime() < new Date(new Date().toISOString().split('T')[0]).getTime() : false);
         if (isOverdue) {
           return (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa] font-sans">
@@ -996,8 +996,8 @@ const Requests: React.FC = () => {
                         }
                       }}
                       className={`px-4 py-2 border rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed")
-                          ? "border-[#cbd5e1] text-[#334155] hover:bg-slate-50 cursor-pointer"
-                          : "border-slate-200 text-slate-300 bg-slate-50 cursor-not-allowed opacity-50"
+                        ? "border-[#cbd5e1] text-[#334155] hover:bg-slate-50 cursor-pointer"
+                        : "border-slate-200 text-slate-300 bg-slate-50 cursor-not-allowed opacity-50"
                         }`}
                     >
                       <Printer className="w-4 h-4" />
@@ -1011,8 +1011,8 @@ const Requests: React.FC = () => {
                         }
                       }}
                       className={`px-4 py-2 rounded-lg text-[12px] font-bold flex items-center gap-1.5 font-inter transition-all text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed")
-                          ? "bg-[#f59e0b] hover:bg-[#d97706] cursor-pointer"
-                          : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-60"
+                        ? "bg-[#f59e0b] hover:bg-[#d97706] cursor-pointer"
+                        : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-60"
                         }`}
                     >
                       {selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "Paid and closed" && <Lock className="w-3.5 h-3.5" />}
@@ -1034,10 +1034,10 @@ const Requests: React.FC = () => {
                       {/* Level 1: Chief Accountant */}
                       <div className="flex items-start gap-4">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "Rejected")
-                            ? "bg-[#10b981]"
-                            : selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt
-                              ? "bg-[#ef4444]"
-                              : "bg-[#f59e0b]"
+                          ? "bg-[#10b981]"
+                          : selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt
+                            ? "bg-[#ef4444]"
+                            : "bg-[#f59e0b]"
                           }`}>
                           {selectedRequest.status === "Rejected" && !selectedRequest.level1ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
@@ -1084,12 +1084,12 @@ const Requests: React.FC = () => {
                       {/* Level 2: Level 2 Approvers */}
                       <div className="flex items-start gap-4">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status !== "0/4 Pending" && selectedRequest.status !== "0/3 Pending" && selectedRequest.status !== "1/4" && selectedRequest.status !== "1/4 Approved" && selectedRequest.status !== "1/3 Approved" && selectedRequest.status !== "Rejected")
-                            ? "bg-[#10b981]"
-                            : selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt
-                              ? "bg-[#ef4444]"
-                              : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved")
-                                ? "bg-[#f59e0b]"
-                                : "bg-slate-200 text-slate-400"
+                          ? "bg-[#10b981]"
+                          : selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt
+                            ? "bg-[#ef4444]"
+                            : (selectedRequest.status === "1/4" || selectedRequest.status === "1/4 Approved" || selectedRequest.status === "1/3 Approved")
+                              ? "bg-[#f59e0b]"
+                              : "bg-slate-200 text-slate-400"
                           }`}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level1ApprovedAt && !selectedRequest.level2ApprovedAt ? (
                             <span className="text-[11px] font-extrabold">✕</span>
@@ -1143,12 +1143,12 @@ const Requests: React.FC = () => {
                       {/* Level 3: Umrah Division Director */}
                       <div className="flex items-start gap-4">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved" || selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed")
-                            ? "bg-[#10b981]"
-                            : selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt
-                              ? "bg-[#ef4444]"
-                              : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved")
-                                ? "bg-[#f59e0b]"
-                                : "bg-slate-200 text-slate-400"
+                          ? "bg-[#10b981]"
+                          : selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt
+                            ? "bg-[#ef4444]"
+                            : (selectedRequest.status === "2/4" || selectedRequest.status === "2/4 Approved" || selectedRequest.status === "2/3 Approved")
+                              ? "bg-[#f59e0b]"
+                              : "bg-slate-200 text-slate-400"
                           }`}
                           style={selectedRequest.status !== "3/4" && selectedRequest.status !== "3/4 Approved" && selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "Paid and closed" && selectedRequest.status !== "2/4" && selectedRequest.status !== "2/4 Approved" && selectedRequest.status !== "2/3 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level2ApprovedAt && !selectedRequest.level3ApprovedAt ? (
@@ -1203,12 +1203,12 @@ const Requests: React.FC = () => {
                       {/* Level 4: Financial Controller */}
                       <div className="flex items-start gap-4">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-white ${(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed")
-                            ? "bg-[#10b981]"
-                            : selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt
-                              ? "bg-[#ef4444]"
-                              : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved")
-                                ? "bg-[#f59e0b]"
-                                : "bg-slate-200 text-slate-400"
+                          ? "bg-[#10b981]"
+                          : selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt
+                            ? "bg-[#ef4444]"
+                            : (selectedRequest.status === "3/4" || selectedRequest.status === "3/4 Approved")
+                              ? "bg-[#f59e0b]"
+                              : "bg-slate-200 text-slate-400"
                           }`}
                           style={selectedRequest.status !== "4/4 Approved" && selectedRequest.status !== "Approved" && selectedRequest.status !== "3/3 Approved" && selectedRequest.status !== "Paid" && selectedRequest.status !== "Paid and closed" && selectedRequest.status !== "3/4" && selectedRequest.status !== "3/4 Approved" && !(selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt) ? { backgroundColor: "rgba(226, 232, 240, 1)" } : undefined}>
                           {selectedRequest.status === "Rejected" && selectedRequest.level3ApprovedAt && !selectedRequest.level4ApprovedAt ? (
@@ -1330,7 +1330,7 @@ const Requests: React.FC = () => {
                                   if (window.confirm("Are you sure you want to clear/delete this payment proof document?")) {
                                     try {
                                       await uploadPaymentProof(selectedRequest.invoiceNo, "");
-                                      
+
                                       // Update state
                                       setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: undefined } : null);
                                       setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: undefined } : r));
@@ -1367,7 +1367,7 @@ const Requests: React.FC = () => {
                                         base64Data = await compressImage(file);
                                       }
                                       await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
-                                      
+
                                       // Update state
                                       setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
                                       setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
@@ -1409,7 +1409,7 @@ const Requests: React.FC = () => {
                                         base64Data = await compressImage(file);
                                       }
                                       await uploadPaymentProof(selectedRequest.invoiceNo, base64Data);
-                                      
+
                                       // Update state
                                       setSelectedRequest(prev => prev ? { ...prev, paymentAttachment: base64Data } : null);
                                       setAllRequests(prev => prev.map(r => r.invoiceNo === selectedRequest.invoiceNo ? { ...r, paymentAttachment: base64Data } : r));
@@ -1433,7 +1433,7 @@ const Requests: React.FC = () => {
                   {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed" || selectedRequest.status === "Awaiting Payment Approval") ? (
                     <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 space-y-4">
                       <h3 className="text-[17px] font-bold text-[#0c0d0f] font-sans">{t('requests.availableOperations')}</h3>
-                      
+
                       {selectedRequest.status === "Awaiting Payment Approval" ? (
                         user?.role === 'Super Admin' ? (
                           <div className="space-y-3">
@@ -1488,7 +1488,7 @@ const Requests: React.FC = () => {
                           </button>
                         )
                       )}
-                      
+
                       {user?.role !== 'Viewer' && (
                         <button
                           onClick={handleOpenSendInvoice}
@@ -1679,7 +1679,7 @@ const Requests: React.FC = () => {
                   <span>{t('requests.rejected')}</span>
                   <span
                     className={`px-2 py-0.5 text-[11px] rounded-md font-bold`}
-                  style={activeTab === "rejected" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
+                    style={activeTab === "rejected" ? { backgroundColor: 'rgba(254, 243, 199, 1)', color: 'rgba(180, 83, 9, 1)' } : { backgroundColor: '#e2e8f0', color: '#64748b' }}
                   >
                     {loading ? <span className="inline-block w-3 h-2.5 bg-slate-300 animate-pulse rounded"></span> : counts.rejected}
                   </span>
@@ -1695,344 +1695,344 @@ const Requests: React.FC = () => {
                 ) : (
                   <>
                     {/* Card Header & Search & Filters */}
-                <div className="p-5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-wrap items-center gap-4">
-                  <h2 className="text-[16px] font-bold text-[#0c0d0f] font-inter whitespace-nowrap">
-                    {t('requests.allRequestsListing')}
-                  </h2>
-                  
-                  {/* Search Bar Input */}
-                  <div className="relative w-64">
-                    <input
-                      type="text"
-                      placeholder={t('requests.searchPlaceholder')}
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="w-full pl-9 pr-3 py-1.5 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] placeholder-gray-400 focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white transition-all font-sans"
-                    />
-                    <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                  </div>
+                    <div className="p-5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-wrap items-center gap-4">
+                      <h2 className="text-[16px] font-bold text-[#0c0d0f] font-inter whitespace-nowrap">
+                        {t('requests.allRequestsListing')}
+                      </h2>
 
-                  {/* Company Filter Dropdown */}
-                  <select
-                    value={filterCompany}
-                    onChange={(e) => {
-                      setFilterCompany(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
-                  >
-                    <option value="">{t('invoices.allCompanies')}</option>
-                    {companiesList.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
+                      {/* Search Bar Input */}
+                      <div className="relative w-64">
+                        <input
+                          type="text"
+                          placeholder={t('requests.searchPlaceholder')}
+                          value={searchQuery}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setCurrentPage(1);
+                          }}
+                          className="w-full pl-9 pr-3 py-1.5 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] placeholder-gray-400 focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] bg-white transition-all font-sans"
+                        />
+                        <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                      </div>
 
-                  {/* Status Filter Dropdown */}
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => {
-                      setFilterStatus(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
-                  >
-                    <option value="">{t('invoices.allStatuses')}</option>
-                    <option value="Pending">{t('common.statusPending')}</option>
-                    <option value="Approved">{t('common.statusApproved')}</option>
-                    <option value="Rejected">{t('common.statusRejected')}</option>
-                    <option value="Cancelled">{t('common.statusCancelled')}</option>
-                    <option value="Overdue">{t('common.statusOverdue')}</option>
-                    <option value="Paid">{t('common.statusPaid')}</option>
-                  </select>
-
-                  {/* Date Filter Input */}
-                  <input
-                    type="date"
-                    value={filterDate}
-                    onChange={(e) => {
-                      setFilterDate(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    onClick={(e) => {
-                      if (typeof e.currentTarget.showPicker === 'function') {
-                        try {
-                          e.currentTarget.showPicker();
-                        } catch (err) {
-                          console.warn('showPicker failed:', err);
-                        }
-                      }
-                    }}
-                    className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
-                  />
-
-                  {/* Reset Filters Button */}
-                  {(searchQuery || filterCompany || filterDate) && (
-                    <button
-                      onClick={() => {
-                        setSearchQuery('');
-                        setFilterCompany('');
-                        setFilterDate('');
-                        setCurrentPage(1);
-                      }}
-                      className="text-[12px] font-semibold text-[#f59e0b] hover:text-[#d97706] transition-colors cursor-pointer"
-                    >
-                      Reset Filters
-                    </button>
-                  )}
-                </div>
-
-                {/* Table / Empty State Container */}
-                {!loading && displayedRequests.length === 0 ? (
-                  <div className="py-20 flex flex-col items-center justify-center bg-white px-4 animate-fade-in text-center border-t border-[#e2e8f0]">
-                    {/* Circle icon wrapper */}
-                    <div className="w-14 h-14 bg-[#f8fafc] border border-[#f1f5f9] text-[#475569] rounded-full flex items-center justify-center mb-5 shadow-sm mx-auto">
-                      <FileText className="w-6 h-6 text-[#94a3b8]" />
-                    </div>
-                    {/* Title */}
-                    <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
-                      {activeTab === "pending" && "No pending requests"}
-                      {activeTab === "approved" && "No approved requests"}
-                      {activeTab === "rejected" && "No rejected requests"}
-                      {activeTab === "all" && "No requests found"}
-                    </h4>
-                    {/* Description */}
-                    <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
-                      {activeTab === "pending" && "When confirmations are submitted for approval, they will appear here."}
-                      {activeTab === "approved" && "Once requests are approved by all 4 levels, they will appear here."}
-                      {activeTab === "rejected" && "Any rejected confirmation requests will appear here."}
-                      {activeTab === "all" && "Try adjusting your filters or search terms, or create a new confirmation."}
-                    </p>
-                    {/* Go to Invoices Button */}
-                    <button
-                      onClick={() => navigate("/invoices")}
-                      className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-lg shadow-sm transition-all cursor-pointer font-sans"
-                    >
-                      Go to Confirmations
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Table */}
-                    <div className="overflow-x-auto w-full">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('hotelReservations.resNo')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('hotelReservations.confNo')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('companies.companyName')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('companies.companyCode')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-right whitespace-nowrap">
-                          {t('common.amount')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('requests.submittedBy')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('dashboard.confDate')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('dashboard.dueDate')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('common.status')}
-                        </th>
-                        <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
-                          {t('common.actions')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#e2e8f0]">
-                      {loading
-                        ? Array.from({ length: 5 }).map((_, loadIdx) => (
-                            <tr key={`skeleton-req-${loadIdx}`} className="animate-pulse border-b border-[#e2e8f0]">
-                              <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-32 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded text-right"></div></td>
-                              <td className="py-4 px-3"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
-                              <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
-                            </tr>
-                          ))
-                        : displayedRequests.length === 0
-                        ? <tr>
-                            <td colSpan={10} className="py-16 text-center text-[#64748b] font-medium">
-                              <div className="flex flex-col items-center justify-center space-y-2">
-                                <FileText className="w-8 h-8 text-gray-300" />
-                                <span className="text-[14px] font-bold text-slate-600">No requests found</span>
-                                <span className="text-[12px] text-slate-400">Try adjusting your filters or search terms.</span>
-                              </div>
-                            </td>
-                          </tr>
-                        : displayedRequests.map((req, idx) => (
-                            <tr
-                              key={idx}
-                              className="border-b border-[#e2e8f0] last:border-b-0 hover:bg-slate-50/30 transition-all"
-                            >
-                              <td
-                                className="py-3 px-3 text-[13px] font-bold text-[#0c0d0f] font-inter text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {req.reqNo}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-[13px] font-bold text-[#475569] font-inter text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {req.invoiceNo}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-[13px] font-medium text-[#1e293b] font-inter text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {req.company}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-[13px] font-semibold text-[#64748b] font-inter text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {req.companyCode}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-[13px] font-extrabold text-[#0c0d0f] font-roboto text-right whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {req.amount}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {req.requestedBy}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {req.submittedDate ? formatLocalizedDate(req.submittedDate, i18n.language) : '-'}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {(() => {
-                                  if (req.dueDate) {
-                                    if (req.dueDate.includes('-')) {
-                                      const parts = req.dueDate.split('-');
-                                      if (parts.length === 3) {
-                                        const year = parseInt(parts[0]);
-                                        const month = parseInt(parts[1]) - 1;
-                                        const day = parseInt(parts[2]);
-                                        const dObj = new Date(year, month, day);
-                                        const localeCode = i18n.language === 'id' ? 'id-ID' : i18n.language === 'ar' ? 'ar-SA' : 'en-US';
-                                        return dObj.toLocaleDateString(localeCode, { month: 'short', day: '2-digit', year: 'numeric' });
-                                      }
-                                    }
-                                    return formatLocalizedDate(req.dueDate, i18n.language);
-                                  }
-                                  return 'N/A';
-                                })()}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                {getStatusBadge(req.status, req)}
-                              </td>
-                              <td
-                                className="py-3 px-3 text-left whitespace-nowrap"
-                                style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                              >
-                                <button
-                                  onClick={() => handleViewDetails(req)}
-                                  className="inline-flex items-center text-[13px] font-bold text-[#242e69] hover:text-[#f59e0b] hover:underline transition-all cursor-pointer font-inter whitespace-nowrap"
-                                  style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
-                                >
-                                  {t('common.viewDetails')} &rarr;
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                      }
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination Footer */}
-                {totalItems > 0 && (
-                  <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] font-sans">
-                    <span className="text-[12px] text-[#64748b] font-normal font-sans">
-                      {t('requests.showing')} {startRange} {t('invoices.to')} {endRange} {t('invoices.of')} {totalItems}{" "}
-                      {t('requests.totalRequests')}
-                    </span>
-                    <div className="flex items-center space-x-1.5 text-[12px] font-bold font-inter">
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                        disabled={validCurrentPage === 1}
-                        className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === 1
-                          ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
-                          : "text-[#475569] hover:bg-gray-50 cursor-pointer"
-                          }`}
+                      {/* Company Filter Dropdown */}
+                      <select
+                        value={filterCompany}
+                        onChange={(e) => {
+                          setFilterCompany(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
                       >
-                        {t('common.previous')}
-                      </button>
+                        <option value="">{t('invoices.allCompanies')}</option>
+                        {companiesList.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
 
-                      {paginationRange.map((page, pageIdx) =>
-                        page === "ellipsis" ? (
-                          <span
-                            key={`ellipsis-${pageIdx}`}
-                            className="w-8 h-8 flex items-center justify-center text-[#94a3b8] select-none"
-                          >
-                            &hellip;
-                          </span>
-                        ) : (
-                          <button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            className={`w-8 h-8 rounded-lg border transition-all cursor-pointer ${validCurrentPage === page
-                              ? "border-[#f59e0b] bg-[#f59e0b] text-white font-bold"
-                              : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-gray-50 font-semibold"
-                              }`}
-                          >
-                            {page}
-                          </button>
-                        )
+                      {/* Status Filter Dropdown */}
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => {
+                          setFilterStatus(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+                      >
+                        <option value="">{t('invoices.allStatuses')}</option>
+                        <option value="Pending">{t('common.statusPending')}</option>
+                        <option value="Approved">{t('common.statusApproved')}</option>
+                        <option value="Rejected">{t('common.statusRejected')}</option>
+                        <option value="Cancelled">{t('common.statusCancelled')}</option>
+                        <option value="Overdue">{t('common.statusOverdue')}</option>
+                        <option value="Paid">{t('common.statusPaid')}</option>
+                      </select>
+
+                      {/* Date Filter Input */}
+                      <input
+                        type="date"
+                        value={filterDate}
+                        onChange={(e) => {
+                          setFilterDate(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        onClick={(e) => {
+                          if (typeof e.currentTarget.showPicker === 'function') {
+                            try {
+                              e.currentTarget.showPicker();
+                            } catch (err) {
+                              console.warn('showPicker failed:', err);
+                            }
+                          }
+                        }}
+                        className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+                      />
+
+                      {/* Reset Filters Button */}
+                      {(searchQuery || filterCompany || filterDate) && (
+                        <button
+                          onClick={() => {
+                            setSearchQuery('');
+                            setFilterCompany('');
+                            setFilterDate('');
+                            setCurrentPage(1);
+                          }}
+                          className="text-[12px] font-semibold text-[#f59e0b] hover:text-[#d97706] transition-colors cursor-pointer"
+                        >
+                          Reset Filters
+                        </button>
                       )}
-
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                        disabled={validCurrentPage === totalPages}
-                        className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === totalPages
-                          ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
-                          : "text-[#475569] hover:bg-gray-50 cursor-pointer"
-                          }`}
-                      >
-                        {t('common.next')}
-                      </button>
                     </div>
-                  </div>
+
+                    {/* Table / Empty State Container */}
+                    {!loading && displayedRequests.length === 0 ? (
+                      <div className="py-20 flex flex-col items-center justify-center bg-white px-4 animate-fade-in text-center border-t border-[#e2e8f0]">
+                        {/* Circle icon wrapper */}
+                        <div className="w-14 h-14 bg-[#f8fafc] border border-[#f1f5f9] text-[#475569] rounded-full flex items-center justify-center mb-5 shadow-sm mx-auto">
+                          <FileText className="w-6 h-6 text-[#94a3b8]" />
+                        </div>
+                        {/* Title */}
+                        <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
+                          {activeTab === "pending" && "No pending requests"}
+                          {activeTab === "approved" && "No approved requests"}
+                          {activeTab === "rejected" && "No rejected requests"}
+                          {activeTab === "all" && "No requests found"}
+                        </h4>
+                        {/* Description */}
+                        <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
+                          {activeTab === "pending" && "When confirmations are submitted for approval, they will appear here."}
+                          {activeTab === "approved" && "Once requests are approved by all 4 levels, they will appear here."}
+                          {activeTab === "rejected" && "Any rejected confirmation requests will appear here."}
+                          {activeTab === "all" && "Try adjusting your filters or search terms, or create a new confirmation."}
+                        </p>
+                        {/* Go to Invoices Button */}
+                        <button
+                          onClick={() => navigate("/invoices")}
+                          className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-lg shadow-sm transition-all cursor-pointer font-sans"
+                        >
+                          Go to Confirmations
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Table */}
+                        <div className="overflow-x-auto w-full">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('hotelReservations.resNo')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('hotelReservations.confNo')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('companies.companyName')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('companies.companyCode')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-right whitespace-nowrap">
+                                  {t('common.amount')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('requests.submittedBy')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('dashboard.confDate')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('dashboard.dueDate')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('common.status')}
+                                </th>
+                                <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-3 font-inter tracking-wider text-left whitespace-nowrap">
+                                  {t('common.actions')}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#e2e8f0]">
+                              {loading
+                                ? Array.from({ length: 5 }).map((_, loadIdx) => (
+                                  <tr key={`skeleton-req-${loadIdx}`} className="animate-pulse border-b border-[#e2e8f0]">
+                                    <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-32 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded text-right"></div></td>
+                                    <td className="py-4 px-3"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
+                                    <td className="py-4 px-3"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
+                                  </tr>
+                                ))
+                                : displayedRequests.length === 0
+                                  ? <tr>
+                                    <td colSpan={10} className="py-16 text-center text-[#64748b] font-medium">
+                                      <div className="flex flex-col items-center justify-center space-y-2">
+                                        <FileText className="w-8 h-8 text-gray-300" />
+                                        <span className="text-[14px] font-bold text-slate-600">No requests found</span>
+                                        <span className="text-[12px] text-slate-400">Try adjusting your filters or search terms.</span>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  : displayedRequests.map((req, idx) => (
+                                    <tr
+                                      key={idx}
+                                      className="border-b border-[#e2e8f0] last:border-b-0 hover:bg-slate-50/30 transition-all"
+                                    >
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-bold text-[#0c0d0f] font-inter text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {req.reqNo}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-bold text-[#475569] font-inter text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {req.invoiceNo}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-medium text-[#1e293b] font-inter text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {req.company}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-semibold text-[#64748b] font-inter text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {req.companyCode}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-extrabold text-[#0c0d0f] font-roboto text-right whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {req.amount}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {req.requestedBy}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {req.submittedDate ? formatLocalizedDate(req.submittedDate, i18n.language) : '-'}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-[13px] font-medium text-[#64748b] font-inter text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {(() => {
+                                          if (req.dueDate) {
+                                            if (req.dueDate.includes('-')) {
+                                              const parts = req.dueDate.split('-');
+                                              if (parts.length === 3) {
+                                                const year = parseInt(parts[0]);
+                                                const month = parseInt(parts[1]) - 1;
+                                                const day = parseInt(parts[2]);
+                                                const dObj = new Date(year, month, day);
+                                                const localeCode = i18n.language === 'id' ? 'id-ID' : i18n.language === 'ar' ? 'ar-SA' : 'en-US';
+                                                return dObj.toLocaleDateString(localeCode, { month: 'short', day: '2-digit', year: 'numeric' });
+                                              }
+                                            }
+                                            return formatLocalizedDate(req.dueDate, i18n.language);
+                                          }
+                                          return 'N/A';
+                                        })()}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        {getStatusBadge(req.status, req)}
+                                      </td>
+                                      <td
+                                        className="py-3 px-3 text-left whitespace-nowrap"
+                                        style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                      >
+                                        <button
+                                          onClick={() => handleViewDetails(req)}
+                                          className="inline-flex items-center text-[13px] font-bold text-[#242e69] hover:text-[#f59e0b] hover:underline transition-all cursor-pointer font-inter whitespace-nowrap"
+                                          style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
+                                        >
+                                          {t('common.viewDetails')} &rarr;
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Pagination Footer */}
+                        {totalItems > 0 && (
+                          <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] font-sans">
+                            <span className="text-[12px] text-[#64748b] font-normal font-sans">
+                              {t('requests.showing')} {startRange} {t('invoices.to')} {endRange} {t('invoices.of')} {totalItems}{" "}
+                              {t('requests.totalRequests')}
+                            </span>
+                            <div className="flex items-center space-x-1.5 text-[12px] font-bold font-inter">
+                              <button
+                                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                                disabled={validCurrentPage === 1}
+                                className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === 1
+                                  ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
+                                  : "text-[#475569] hover:bg-gray-50 cursor-pointer"
+                                  }`}
+                              >
+                                {t('common.previous')}
+                              </button>
+
+                              {paginationRange.map((page, pageIdx) =>
+                                page === "ellipsis" ? (
+                                  <span
+                                    key={`ellipsis-${pageIdx}`}
+                                    className="w-8 h-8 flex items-center justify-center text-[#94a3b8] select-none"
+                                  >
+                                    &hellip;
+                                  </span>
+                                ) : (
+                                  <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-8 h-8 rounded-lg border transition-all cursor-pointer ${validCurrentPage === page
+                                      ? "border-[#f59e0b] bg-[#f59e0b] text-white font-bold"
+                                      : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-gray-50 font-semibold"
+                                      }`}
+                                  >
+                                    {page}
+                                  </button>
+                                )
+                              )}
+
+                              <button
+                                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                                disabled={validCurrentPage === totalPages}
+                                className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === totalPages
+                                  ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
+                                  : "text-[#475569] hover:bg-gray-50 cursor-pointer"
+                                  }`}
+                              >
+                                {t('common.next')}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </>
-        )}
-      </div>
+              </div>
             </>
           )}
         </div>
@@ -2286,12 +2286,12 @@ const Requests: React.FC = () => {
                 ✕
               </button>
             </div>
-            
+
             <div className="space-y-3 font-sans">
               <p className="text-[13px] text-slate-500 leading-relaxed">
                 {t('requests.sendConfirmationDesc')}
               </p>
-              
+
               <div className="space-y-1">
                 <label className="text-[12px] font-semibold text-slate-500">{t('requests.recipientEmailAddress')}</label>
                 <input
