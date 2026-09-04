@@ -63,13 +63,13 @@ const splitAddress = (fullAddress) => {
  */
 const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) => {
   const {
-    invoiceNo = 'AIT-0831-002',
-    company = 'Arie Tour',
-    amount = '2,200.00 SAR',
-    referenceNo = 'REF-0907-189',
-    serialNo = 'SR-486823',
-    dueDate = '09/07/2026',
-    date = '2026-08-31',
+    invoiceNo = '',
+    company = '',
+    amount = '',
+    referenceNo = '',
+    serialNo = '',
+    dueDate = '',
+    date = '',
     items = [],
     taxRate = 0,
     currency = 'SAR',
@@ -79,8 +79,8 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
     billTo
   } = details;
 
-  const formattedDate = formatDateDMY(date) || '31/08/2026';
-  const formattedDueDate = formatDateDMY(dueDate) || '07/09/2026';
+  const formattedDate = formatDateDMY(date) || '';
+  const formattedDueDate = formatDateDMY(dueDate) || '';
 
   const rate = Number(taxRate) || 0;
   let subtotalNum = 0;
@@ -88,7 +88,7 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
     subtotalNum = items.reduce((acc, it) => acc + (Number(it.qty) || 1) * (Number(it.price) || 0), 0);
   } else {
     const rawParsed = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
-    subtotalNum = isNaN(rawParsed) ? 2200 : rawParsed;
+    subtotalNum = isNaN(rawParsed) ? 0 : rawParsed;
   }
   const taxNum = subtotalNum * (rate / 100);
   const totalNum = subtotalNum + taxNum;
@@ -121,23 +121,24 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
 
   // Bill From & Bill To resolution
   const bFrom = billFrom || {
-    name: details.employeeName || 'Aufa Rakha',
-    id: details.employeeId || '250104',
-    entity: companySettings.companyName || 'PT.ODST AIRLINES INDO',
+    name: details.employeeName || '',
+    id: details.employeeId || '',
+    entity: 'ODST Group',
+    branch: 'Graha Al Badegel',
     phone: companySettings.phone || '+62 8111 1203 330',
-    email: details.employeeEmail || 'aufa.rakha108@gmail.com',
+    email: 'info@odst.id',
     tax: companySettings.taxNumber || '0000-0000-0001'
   };
 
-  const rawAddress = details.clientAddress || details.address || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas, Margahayu, Kec. Bekasi Timur", Bekasi, 17113, Indonesia';
+  const rawAddress = details.clientAddress || details.address || '';
   const splitAddr = splitAddress(rawAddress);
 
   const bTo = billTo || {
-    company: company || details.companyName || 'Arie Tour',
-    tax: details.clientTaxNo || details.taxNumber || '02.271.015.6-.407.000',
-    agent: cleanAgentName(details.clientAgent || details.agent || 'ODST Travel and Tourism - 2114'),
-    address: splitAddr.address,
-    cityCountry: splitAddr.cityCountry
+    company: company || details.companyName || '',
+    tax: details.clientTaxNo || details.taxNumber || '',
+    agent: cleanAgentName(details.clientAgent || details.agent || '') || '',
+    address: splitAddr.address || '',
+    cityCountry: splitAddr.cityCountry || ''
   };
 
   let itemsHtml = '';

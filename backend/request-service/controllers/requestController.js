@@ -317,9 +317,9 @@ export const sendInvoiceEmail = async (req, res, next) => {
     const [invoiceRows] = await pool.query(`
       SELECT i.*, 
              COALESCE(c.name, i.custom_company_name, i.company) AS companyName,
-             COALESCE(c.taxNumber, i.custom_tax_number, '02.271.015.6-407.000') AS clientTaxNo,
-             COALESCE(c.agent, i.custom_agent, i.agent, 'Agent: ODST Travel & Tourism') AS clientAgent,
-             COALESCE(c.address, i.custom_address, 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur') AS clientAddress
+             COALESCE(c.taxNumber, i.custom_tax_number, '') AS clientTaxNo,
+             COALESCE(c.agent, i.custom_agent, i.agent, '') AS clientAgent,
+             COALESCE(c.address, i.custom_address, i.address, '') AS clientAddress
       FROM dst_invoices i
       LEFT JOIN dst_companies c ON i.companyCode = c.code
       WHERE i.invoiceNo = ? OR i.id = ?
@@ -331,11 +331,11 @@ export const sendInvoiceEmail = async (req, res, next) => {
     const invoice = invoiceRows[0];
 
     const [userRows] = await pool.query('SELECT name, email, employeeId FROM dst_users WHERE name = ? OR email = ?', [invoice.createdBy || request.createdBy, invoice.createdBy || request.createdBy]);
-    const creator = userRows[0] || { name: invoice.createdBy || request.createdBy || 'Aufa Rakha', email: 'aufa.rakha108@gmail.com', employeeId: '250104' };
+    const creator = userRows[0] || { name: invoice.createdBy || request.createdBy || '', email: 'info@odst.id', employeeId: '' };
 
     const [settingRows] = await pool.query('SELECT * FROM dst_company_settings LIMIT 1');
     const compSettings = settingRows[0] || {
-      companyName: 'PT.ODST AIRLINES INDO',
+      companyName: 'ODST Group',
       phone: '+62 8111 1203 330',
       taxNumber: '0000-0000-0001',
       bankName: 'Danamon',
@@ -345,12 +345,12 @@ export const sendInvoiceEmail = async (req, res, next) => {
     };
 
     const splitAddress = (fullAddress) => {
-      if (!fullAddress) return { address: 'N/A', cityCountry: 'N/A' };
+      if (!fullAddress) return { address: '', cityCountry: '' };
       const parts = fullAddress.split(',').map(p => p.trim());
       if (parts.length <= 3) {
         return {
-          address: parts[0] || 'N/A',
-          cityCountry: parts.slice(1).join(', ') || 'N/A'
+          address: parts[0] || '',
+          cityCountry: parts.slice(1).join(', ') || ''
         };
       }
       const cityCountryParts = parts.slice(-3);
@@ -369,13 +369,13 @@ export const sendInvoiceEmail = async (req, res, next) => {
       return agentName;
     };
 
-    const rawAddr = invoice.clientAddress || invoice.address || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas, Margahayu, Kec. Bekasi Timur", Bekasi, 17113, Indonesia';
+    const rawAddr = invoice.clientAddress || invoice.address || '';
     const splitAddr = splitAddress(rawAddr);
     const cleanedAgent = cleanAgentName(invoice.clientAgent || invoice.agent);
 
     const billFrom = {
-      name: creator.name || 'Aufa Rakha',
-      id: creator.employeeId || '250104',
+      name: creator.name || '',
+      id: creator.employeeId || '',
       entity: 'ODST Group',
       branch: 'Graha Al Badegel',
       phone: compSettings.phone || '+62 8111 1203 330',
@@ -384,11 +384,11 @@ export const sendInvoiceEmail = async (req, res, next) => {
     };
 
     const billTo = {
-      company: invoice.companyName || invoice.company || 'Arie Tour',
-      tax: invoice.clientTaxNo || invoice.taxNumber || '02.271.015.6-.407.000',
-      agent: cleanedAgent,
-      address: splitAddr.address,
-      cityCountry: splitAddr.cityCountry
+      company: invoice.companyName || invoice.company || '',
+      tax: invoice.clientTaxNo || invoice.taxNumber || '',
+      agent: cleanedAgent || '',
+      address: splitAddr.address || '',
+      cityCountry: splitAddr.cityCountry || ''
     };
 
     const [itemRows] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [invoice.id]);

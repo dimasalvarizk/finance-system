@@ -442,18 +442,18 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     const transporter = await getTransporter();
 
     const {
-      invoiceNo,
-      company,
-      companyCode,
-      amount = '2,200.00 SAR',
-      referenceNo,
-      serialNo,
-      dueDate,
-      date,
-      items,
-      taxRate,
+      invoiceNo = '',
+      company = '',
+      companyCode = '',
+      amount = '',
+      referenceNo = '',
+      serialNo = '',
+      dueDate = '',
+      date = '',
+      items = [],
+      taxRate = 0,
       currency = 'SAR',
-      documentType
+      documentType = ''
     } = invoiceDetails;
 
     const curr = (currency || 'SAR').toUpperCase().includes('SAR') || String(amount).includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
@@ -463,8 +463,11 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     const rate = Number(taxRate) || 0;
 
     let subtotalNum = 0;
-    if (items && Array.isArray(items)) {
+    if (items && Array.isArray(items) && items.length > 0) {
       subtotalNum = items.reduce((acc, item) => acc + (Number(item.qty) || 0) * (Number(item.price) || 0), 0);
+    } else {
+      const rawParsed = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+      subtotalNum = isNaN(rawParsed) ? 0 : rawParsed;
     }
     const taxNum = subtotalNum * (rate / 100);
     const subtotalFormatted = `${subtotalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
@@ -535,11 +538,11 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     };
 
     const bTo = invoiceDetails.billTo || {
-      company: company || 'Arie Tour',
-      tax: invoiceDetails.clientTaxNo || '02.271.015.6-.407.000',
-      agent: displayAgent,
-      address: resolvedAddress,
-      cityCountry: 'Bekasi, 17113, Indonesia'
+      company: company || invoiceDetails.companyName || '',
+      tax: invoiceDetails.clientTaxNo || invoiceDetails.taxNumber || '',
+      agent: invoiceDetails.clientAgent || invoiceDetails.agent || '',
+      address: invoiceDetails.clientAddress || invoiceDetails.address || '',
+      cityCountry: invoiceDetails.cityCountry || ''
     };
 
     const senderAddress = process.env.SMTP_FROM ||
