@@ -10,17 +10,23 @@ const ETHEREAL_CACHE_PATH = path.join('/tmp', 'ethereal_account.json');
 const getTransporter = async () => {
   if (transporter) return transporter;
 
-  if (process.env.SMTP_HOST) {
+  const smtpHost = (process.env.SMTP_HOST || '').trim();
+  const smtpUser = (process.env.SMTP_USER || '').trim();
+  const smtpPass = (process.env.SMTP_PASS || '').trim();
+  const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
+  const isSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
+
+  if (smtpHost && smtpUser && smtpPass) {
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true',
+      host: smtpHost,
+      port: smtpPort,
+      secure: isSecure,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+        user: smtpUser,
+        pass: smtpPass
       },
       tls: {
-        rejectUnauthorized: process.env.NODE_ENV === 'production'
+        rejectUnauthorized: false
       }
     });
   } else {
@@ -83,8 +89,11 @@ export const sendNotificationEmail = async (toEmail, toName, title, message) => 
 
     const uiType = getUiType(title);
 
+    const senderFrom = process.env.SMTP_FROM || 
+      (process.env.SMTP_USER ? `"ODST Finance Portal" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>');
+
     const mailOptions = {
-      from: '"Finance System" <noreply@finance-system.com>',
+      from: senderFrom,
       to: `"${toName}" <${toEmail}>`,
       subject: `[Notification] ${title}`,
       html: `
@@ -234,7 +243,7 @@ export const sendNotificationEmail = async (toEmail, toName, title, message) => 
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`Email notification sent to ${toEmail}: ${info.messageId}`);
-    
+
     const previewUrl = nodemailer.getTestMessageUrl(info);
     if (previewUrl) {
       console.log(`✉️ Email Preview URL: ${previewUrl}`);
@@ -250,8 +259,11 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
   try {
     const transporter = await getTransporter();
 
+    const senderFrom = process.env.SMTP_FROM || 
+      (process.env.SMTP_USER ? `"ODST Finance Portal" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>');
+
     const mailOptions = {
-      from: '"Finance System" <noreply@finance-system.com>',
+      from: senderFrom,
       to: `"${toName}" <${toEmail}>`,
       subject: `[Finance Portal] Reset Password Request`,
       html: `
@@ -379,7 +391,7 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`Password reset email sent to ${toEmail}: ${info.messageId}`);
-    
+
     const previewUrl = nodemailer.getTestMessageUrl(info);
     if (previewUrl) {
       console.log(`✉️ Password Reset Email Preview URL: ${previewUrl}`);
@@ -429,19 +441,19 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
   try {
     const transporter = await getTransporter();
 
-    const { 
-      invoiceNo, 
-      company, 
-      companyCode, 
-      amount = '2,200.00 SAR', 
-      referenceNo, 
-      serialNo, 
-      dueDate, 
-      date, 
-      items, 
-      taxRate, 
-      currency = 'SAR', 
-      documentType 
+    const {
+      invoiceNo,
+      company,
+      companyCode,
+      amount = '2,200.00 SAR',
+      referenceNo,
+      serialNo,
+      dueDate,
+      date,
+      items,
+      taxRate,
+      currency = 'SAR',
+      documentType
     } = invoiceDetails;
 
     const curr = (currency || 'SAR').toUpperCase().includes('SAR') || String(amount).includes('SAR') ? 'SAR' : (currency || 'USD').toUpperCase();
@@ -467,7 +479,7 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
 
     const formattedDate = formatDate(date);
     const formattedDueDate = formatDate(dueDate);
-    
+
     let itemsHtml = '';
     if (items && Array.isArray(items) && items.length > 0) {
       for (const item of items) {
@@ -530,9 +542,9 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
       cityCountry: 'Bekasi, 17113, Indonesia'
     };
 
-    const senderAddress = process.env.SMTP_FROM || 
-      (companySettings.senderEmail ? `"ODST Group Finance" <${companySettings.senderEmail}>` : 
-      (process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <billing@odst.id>'));
+    const senderAddress = process.env.SMTP_FROM ||
+      (companySettings.senderEmail ? `"ODST Group Finance" <${companySettings.senderEmail}>` :
+        (process.env.SMTP_USER ? `"ODST Group Finance" <${process.env.SMTP_USER}>` : '"ODST Group Finance" <info@odst.id>'));
 
     const mailOptions = {
       from: senderAddress,
@@ -858,7 +870,7 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
                 <p class="footer-text">
                   Thank you for your business. For any billing inquiries, please contact the ODST Admin Team.<br>
                   Authorized by Mr. Emad Moustafa (Financial Controller)<br>
-                  © 2026 Manazil Al Mukhtara Group. All rights reserved.
+                  © 2026 ODST Group Indonesia. All rights reserved.
                 </p>
               </div>
             </div>
@@ -870,14 +882,14 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`Invoice email sent to client ${toEmail}: ${info.messageId}`);
-    
+
     const previewUrl = nodemailer.getTestMessageUrl(info);
     if (previewUrl) {
       console.log(`✉️ Client Invoice Email Preview URL: ${previewUrl}`);
     }
     return true;
   } catch (err) {
-    console.error('Failed to send client invoice email:', err.message);
+    console.error('Failed to send client invoice email (Detailed Error):', err);
     return false;
   }
 };
