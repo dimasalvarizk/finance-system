@@ -172,24 +172,22 @@ const Dashboard: React.FC = () => {
   const getInvoicePaidAmountInUsd = (inv: any): number => {
     if (!inv) return 0;
     const rawAmt = parseAmount(inv.amount);
+    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const totalInst = parseFloat(String(inv.totalInstallments || 0));
+    const totalPaid = inv.totalPaid !== undefined 
+      ? parseFloat(String(inv.totalPaid)) 
+      : (advAmt + totalInst);
+
     const status = String(inv.status || '').toLowerCase();
 
-    // If fully paid or approved (100% paid)
-    if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || status === 'approved' || status === '4/4 approved' || status === '3/3 approved') {
+    // If fully paid
+    if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || (totalPaid >= rawAmt && rawAmt > 0)) {
       return convertCurrencyToUsd(rawAmt, inv);
     }
 
-    // If partial payment, deposit paid, or has explicit remainingBalance / advancePayment
-    if (status.includes('partial') || status.includes('deposit') || (inv.remainingBalance !== null && inv.remainingBalance !== undefined)) {
-      const remaining = (inv.remainingBalance !== null && inv.remainingBalance !== undefined)
-        ? parseFloat(String(inv.remainingBalance))
-        : Math.max(0, rawAmt - parseFloat(String(inv.advancePayment || 0)));
-      const paid = Math.max(0, rawAmt - remaining);
-      return convertCurrencyToUsd(paid, inv);
-    }
-
-    if (status.includes('paid')) {
-      return convertCurrencyToUsd(rawAmt, inv);
+    // If partial payment (must have actual paid amount > 0)
+    if (totalPaid > 0) {
+      return convertCurrencyToUsd(totalPaid, inv);
     }
 
     return 0;
@@ -381,21 +379,37 @@ const Dashboard: React.FC = () => {
 
   const recentInvoices = (Array.isArray(invoices) ? invoices : []).slice(0, 5).map(inv => {
     if (!inv) return { ref: '', client: '', amount: '$0', status: 'Pending', statusColor: '', date: '' };
+    const rawAmt = parseAmount(inv.amount);
+    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const totalInst = parseFloat(String(inv.totalInstallments || 0));
+    const totalPaid = inv.totalPaid !== undefined 
+      ? parseFloat(String(inv.totalPaid)) 
+      : (advAmt + totalInst);
+
     let status = String(inv.status || 'Pending');
     const statusLower = status.toLowerCase();
-    if (statusLower === 'fully_paid' || statusLower === 'paid' || statusLower === 'paid and closed') {
+
+    if (totalPaid >= rawAmt && rawAmt > 0) {
       status = t('common.statusPaid');
-    } else if (statusLower.includes('partial') || statusLower === 'partial') {
-      status = t('common.statusPartial');
-    } else if (statusLower.includes('deposit')) {
-      status = t('common.statusDeposit');
-    } else if (statusLower.includes('approved')) {
-      status = t('common.statusApproved');
-    } else if (statusLower.includes('pending') || statusLower === 'pending review') {
-      status = t('common.statusPending');
-    } else if (statusLower === 'rejected' || statusLower === 'cancelled' || statusLower.includes('overdue')) {
-      status = t('common.statusOverdue');
+    } else if (totalPaid > 0 && totalPaid < rawAmt) {
+      if (totalInst > 0 || statusLower.includes('partial')) {
+        status = t('common.statusPartial');
+      } else if (advAmt > 0) {
+        status = t('common.statusDeposit');
+      }
+    } else {
+      // Total Paid is exactly 0: NEVER show partial or paid!
+      if (statusLower === 'approved' || statusLower === '4/4 approved') {
+        status = t('common.statusApproved');
+      } else if (statusLower.includes('pending') || statusLower === 'pending review') {
+        status = t('common.statusPending');
+      } else if (statusLower === 'rejected' || statusLower === 'cancelled' || statusLower.includes('overdue')) {
+        status = t('common.statusOverdue');
+      } else {
+        status = t('common.statusPending');
+      }
     }
+
     return {
       ref: inv.invoiceNo || '',
       client: inv.company || '',

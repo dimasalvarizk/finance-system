@@ -28,6 +28,8 @@ export interface Invoice {
   dueDate?: string;
   advancePayment?: number;
   remainingBalance?: number;
+  totalPaid?: number;
+  totalInstallments?: number;
   items?: {
     description: string;
     qty: number;
@@ -816,6 +818,78 @@ const Invoices: React.FC = () => {
     }
   };
 
+  const renderInvoiceStatusBadge = (inv: Invoice) => {
+    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const totalInst = parseFloat(String(inv.totalInstallments || 0));
+    const totalPaid = inv.totalPaid !== undefined 
+      ? parseFloat(String(inv.totalPaid)) 
+      : (advAmt + totalInst);
+
+    const isOverdue = inv.dueDate && new Date(inv.dueDate) < new Date(new Date().toISOString().split('T')[0]);
+
+    // 1. Skenario Lunas (Total Paid >= Total Billed dan Total Billed > 0)
+    if ((totalPaid >= rawAmt && rawAmt > 0) || inv.status === 'FULLY_PAID' || inv.status === 'Paid') {
+      return (
+        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          {t('common.statusPaid')}
+        </span>
+      );
+    }
+
+    // 2. Skenario Bayar Sebagian (0 < Total Paid < Total Billed)
+    if (totalPaid > 0 && totalPaid < rawAmt) {
+      if (totalInst > 0 || String(inv.status).toLowerCase().includes('partial')) {
+        return (
+          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            {t('common.statusPartial')}
+          </span>
+        );
+      }
+      if (advAmt > 0) {
+        return (
+          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            {t('common.statusDeposit')}
+          </span>
+        );
+      }
+    }
+
+    // 3. Skenario Belum Dibayar (Total Paid == 0)
+    // Jika lewat jatuh tempo dan bukan dibatalkan/ditolak
+    if (isOverdue && inv.status !== 'Cancelled' && inv.status !== 'Rejected') {
+      return (
+        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          {t('common.statusOverdue')}
+        </span>
+      );
+    }
+
+    // Tampilkan Status Alur Persetujuan / Siklus Hidup Dokumen (0/4 Pending, 1/4, 2/4, 3/4, Approved, Cancelled, dll)
+    let displayStatus = inv.status;
+    if (!displayStatus || ['PARTIAL', 'Partial', 'Partial Payment', 'DEPOSIT_PAID', 'FULLY_PAID'].includes(displayStatus)) {
+      displayStatus = '0/4 Pending';
+    }
+
+    const statusMap: Record<string, string> = {
+      'Pending': t('common.statusPending'),
+      'Approved': t('common.statusApproved'),
+      'Rejected': t('common.statusRejected'),
+      'Cancelled': t('common.statusCancelled'),
+      'Tentative': t('common.statusTentative'),
+      'Confirmed': t('common.statusConfirmed'),
+    };
+    return (
+      <span className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(displayStatus)} shadow-sm`}>
+        {statusMap[displayStatus] || displayStatus}
+      </span>
+    );
+  };
+
   // Helper untuk mendeteksi apakah invoice dibatalkan otomatis karena melewati due date
   const isInvoiceOverdue = (inv: any) => {
     if (inv.status !== 'Cancelled') return false;
@@ -1239,8 +1313,19 @@ const Invoices: React.FC = () => {
       let matchesStatus = true;
       if (filterStatus) {
         const invStatus = inv.status || '';
+        const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+        const advAmt = parseFloat(String(inv.advancePayment || 0));
+        const totalInst = parseFloat(String(inv.totalInstallments || 0));
+        const totalPaid = inv.totalPaid !== undefined ? parseFloat(String(inv.totalPaid)) : (advAmt + totalInst);
+
         if (filterStatus === 'Pending') {
-          matchesStatus = invStatus.includes('Pending') || invStatus.includes('Approved') || invStatus === 'Pending Review';
+          matchesStatus = (invStatus.includes('Pending') || invStatus === 'Pending Review' || invStatus.includes('1/4') || invStatus.includes('2/4') || invStatus.includes('3/4')) && totalPaid === 0;
+        } else if (filterStatus === 'Approved') {
+          matchesStatus = (invStatus === 'Approved' || invStatus === '4/4 Approved') && totalPaid < rawAmt;
+        } else if (filterStatus === 'Partial' || filterStatus === 'Partial Payment') {
+          matchesStatus = totalPaid > 0 && totalPaid < rawAmt;
+        } else if (filterStatus === 'Paid') {
+          matchesStatus = (totalPaid >= rawAmt && rawAmt > 0) || invStatus === 'Paid' || invStatus === 'FULLY_PAID';
         } else if (filterStatus === 'Overdue' || filterStatus === 'Cancelled due to overdue') {
           matchesStatus = isInvoiceOverdue(inv) || invStatus === 'Overdue' || invStatus === 'Cancelled due to overdue';
         } else if (filterStatus === 'Cancelled') {
@@ -1879,10 +1964,11 @@ const Invoices: React.FC = () => {
                     <option value="">{t('invoices.allStatuses')}</option>
                     <option value="Pending">{t('common.statusPending')}</option>
                     <option value="Approved">{t('common.statusApproved')}</option>
+                    <option value="Partial Payment">{t('common.statusPartial')}</option>
+                    <option value="Paid">{t('common.statusPaid')}</option>
+                    <option value="Overdue">{t('common.statusOverdue')}</option>
                     <option value="Rejected">{t('common.statusRejected')}</option>
                     <option value="Cancelled">{t('common.statusCancelled')}</option>
-                    <option value="Overdue">{t('common.statusOverdue')}</option>
-                    <option value="Paid">{t('common.statusPaid')}</option>
                   </select>
 
                   {/* Date Filter Input */}
@@ -2093,61 +2179,7 @@ const Invoices: React.FC = () => {
                               })()}
                             </td>
                              <td className="px-6 py-3.5 whitespace-nowrap">
-                               {(() => {
-                                 const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
-                                 const advAmt = parseFloat(String(inv.advancePayment || 0));
-                                 const remaining = inv.remainingBalance !== undefined && inv.remainingBalance !== null 
-                                   ? parseFloat(String(inv.remainingBalance)) 
-                                   : Math.max(0, rawAmt - advAmt);
-                                 
-                                 const isOverdue = inv.dueDate && new Date(inv.dueDate) < new Date(new Date().toISOString().split('T')[0]);
-
-                                 if (inv.status === 'FULLY_PAID' || inv.status === 'Paid' || (remaining <= 0 && rawAmt > 0)) {
-                                   return (
-                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
-                                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                       {t('common.statusPaid')}
-                                     </span>
-                                   );
-                                 }
-                                 if (inv.status === 'PARTIAL' || (remaining < rawAmt - advAmt && remaining > 0)) {
-                                   return (
-                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
-                                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                       {t('common.statusPartial')}
-                                     </span>
-                                   );
-                                 }
-                                 if (advAmt > 0 && remaining > 0) {
-                                   return (
-                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
-                                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                       {t('common.statusDeposit')}
-                                     </span>
-                                   );
-                                 }
-                                 if (isOverdue && remaining > 0) {
-                                   return (
-                                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider inline-flex items-center gap-1.5 font-sans shadow-sm">
-                                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                       {t('common.statusOverdue')}
-                                     </span>
-                                   );
-                                 }
-                                 const statusMap: Record<string, string> = {
-                                   'Pending': t('common.statusPending'),
-                                   'Approved': t('common.statusApproved'),
-                                   'Rejected': t('common.statusRejected'),
-                                   'Cancelled': t('common.statusCancelled'),
-                                   'Tentative': t('common.statusTentative'),
-                                   'Confirmed': t('common.statusConfirmed'),
-                                 };
-                                 return (
-                                   <span className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase font-sans ${getStatusBadgeClass(inv.status)} shadow-sm`}>
-                                     {statusMap[inv.status] || inv.status}
-                                   </span>
-                                 );
-                               })()}
+                               {renderInvoiceStatusBadge(inv)}
                              </td>
                              <td className="px-6 py-3.5 text-center flex items-center justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
                                {/* 1. Payment History & Installment Ledger Button */}

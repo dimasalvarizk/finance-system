@@ -16,13 +16,13 @@ const cleanAgentName = (agent) => {
 export const getAllInvoicesDB = async (createdByFilter = null) => {
   const pool = getPool();
 
-  // Auto-cancel invoices past due date
+  // 1. Auto-cancel invoices past due date
   try {
     const todayStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
     await pool.query(`
       UPDATE dst_invoices 
       SET status = 'Cancelled', rejectionReason = 'Auto-Cancelled: Unpaid past due date'
-      WHERE LOWER(status) NOT IN ('paid', 'cancelled', 'archived', 'rejected', 'paid and closed')
+      WHERE LOWER(status) NOT IN ('paid', 'cancelled', 'archived', 'rejected', 'paid and closed', 'fully_paid')
         AND dueDate IS NOT NULL 
         AND dueDate != '' 
         AND dueDate < ?
@@ -30,20 +30,64 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
   } catch (err) {
     console.error('Failed to auto-cancel overdue invoices:', err);
   }
+
+  // 2. Retroactive Fix: Auto-repair any invoice stuck in PARTIAL/DEPOSIT status when total paid is 0
+  try {
+    await pool.query(`
+      UPDATE dst_invoices i
+      LEFT JOIN (
+        SELECT referenceId, SUM(amount) AS totalInstallments 
+        FROM dst_payment_history 
+        WHERE moduleType = 'CONFIRMATION' 
+        GROUP BY referenceId
+      ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
+      LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
+      SET i.status = COALESCE(NULLIF(r.status, '4/4 Approved'), 'Approved', '0/4 Pending'),
+          i.remainingBalance = CAST(REPLACE(REPLACE(i.amount, '$', ''), ',', '') AS DECIMAL(15,2))
+      WHERE LOWER(i.status) IN ('partial', 'partial payment', 'deposit_paid', 'deposit paid', 'fully_paid')
+        AND (p.totalInstallments IS NULL OR p.totalInstallments = 0)
+        AND (i.advancePayment IS NULL OR i.advancePayment = 0)
+        AND (r.status IS NULL OR r.status NOT IN ('Paid', 'FULLY_PAID'));
+    `);
+  } catch (err) {
+    console.error('Failed to auto-repair zero payment partial invoices:', err.message);
+  }
   
   let query = `
-    SELECT i.*, COALESCE(c.agent, i.custom_agent, i.agent) AS agent 
+    SELECT i.*, 
+           COALESCE(c.agent, i.custom_agent, i.agent) AS agent,
+           COALESCE(p.totalInstallments, 0) AS totalInstallments,
+           (COALESCE(p.totalInstallments, 0) + COALESCE(i.advancePayment, 0)) AS totalPaid,
+           r.status AS requestStatus
     FROM dst_invoices i
     LEFT JOIN dst_companies c ON i.companyCode = c.code
+    LEFT JOIN (
+      SELECT referenceId, SUM(amount) AS totalInstallments 
+      FROM dst_payment_history 
+      WHERE moduleType = 'CONFIRMATION' 
+      GROUP BY referenceId
+    ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
+    LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
     ORDER BY i.createdAt DESC
   `;
   let queryParams = [];
   
   if (createdByFilter) {
     query = `
-      SELECT i.*, COALESCE(c.agent, i.custom_agent, i.agent) AS agent 
+      SELECT i.*, 
+             COALESCE(c.agent, i.custom_agent, i.agent) AS agent,
+             COALESCE(p.totalInstallments, 0) AS totalInstallments,
+             (COALESCE(p.totalInstallments, 0) + COALESCE(i.advancePayment, 0)) AS totalPaid,
+             r.status AS requestStatus
       FROM dst_invoices i
       LEFT JOIN dst_companies c ON i.companyCode = c.code
+      LEFT JOIN (
+        SELECT referenceId, SUM(amount) AS totalInstallments 
+        FROM dst_payment_history 
+        WHERE moduleType = 'CONFIRMATION' 
+        GROUP BY referenceId
+      ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
+      LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
       WHERE i.createdBy = ? OR i.createdBy IS NULL 
       ORDER BY i.createdAt DESC
     `;
@@ -52,9 +96,25 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
   
   const [invoices] = await pool.query(query, queryParams);
 
-  // Fetch items for each invoice
+  // Fetch items and enforce strict payment/remaining calculations
   for (const inv of invoices) {
     inv.agent = cleanAgentName(inv.agent);
+    
+    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const totalInst = parseFloat(String(inv.totalInstallments || 0));
+    const totalPaid = advAmt + totalInst;
+
+    inv.totalPaid = totalPaid;
+    inv.totalInstallments = totalInst;
+    inv.remainingBalance = Math.max(0, rawAmt - totalPaid);
+
+    // Strict status correction if totalPaid is 0
+    const stLower = String(inv.status || '').toLowerCase();
+    if (totalPaid === 0 && (stLower.includes('partial') || stLower === 'deposit_paid' || stLower === 'fully_paid')) {
+      inv.status = inv.requestStatus === '4/4 Approved' ? 'Approved' : (inv.requestStatus || '0/4 Pending');
+    }
+
     const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
     inv.items = items;
   }
@@ -282,14 +342,43 @@ export const updateInvoiceDB = async (id, data) => {
 export const getInvoiceByIdDB = async (id) => {
   const pool = getPool();
   const [rows] = await pool.query(`
-    SELECT i.*, COALESCE(c.agent, i.custom_agent, i.agent) AS agent 
+    SELECT i.*, 
+           COALESCE(c.agent, i.custom_agent, i.agent) AS agent,
+           COALESCE(p.totalInstallments, 0) AS totalInstallments,
+           (COALESCE(p.totalInstallments, 0) + COALESCE(i.advancePayment, 0)) AS totalPaid,
+           r.status AS requestStatus
     FROM dst_invoices i
     LEFT JOIN dst_companies c ON i.companyCode = c.code
+    LEFT JOIN (
+      SELECT referenceId, SUM(amount) AS totalInstallments 
+      FROM dst_payment_history 
+      WHERE moduleType = 'CONFIRMATION' 
+      GROUP BY referenceId
+    ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
+    LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
     WHERE i.id = ? OR i.invoiceNo = ?
   `, [id, id]);
   if (rows.length > 0) {
     const inv = rows[0];
     inv.agent = cleanAgentName(inv.agent);
+    
+    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const totalInst = parseFloat(String(inv.totalInstallments || 0));
+    const totalPaid = advAmt + totalInst;
+
+    inv.totalPaid = totalPaid;
+    inv.totalInstallments = totalInst;
+    inv.remainingBalance = Math.max(0, rawAmt - totalPaid);
+
+    // Strict status correction if totalPaid is 0
+    const stLower = String(inv.status || '').toLowerCase();
+    if (totalPaid === 0 && (stLower.includes('partial') || stLower === 'deposit_paid' || stLower === 'fully_paid')) {
+      inv.status = inv.requestStatus === '4/4 Approved' ? 'Approved' : (inv.requestStatus || '0/4 Pending');
+    }
+
+    const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
+    inv.items = items;
     return inv;
   }
   return null;
@@ -333,34 +422,7 @@ export const addPaymentHistoryDB = async (paymentData) => {
     ]);
 
     // Recalculate total paid & update remaining balance
-    const [invoiceRows] = await connection.query('SELECT * FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [paymentData.referenceId, paymentData.referenceId]);
-    if (invoiceRows.length > 0) {
-      const inv = invoiceRows[0];
-      const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
-      const advPayment = parseFloat(inv.advancePayment || 0);
-
-      const [sumRows] = await connection.query(
-        "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
-        [paymentData.referenceId]
-      );
-      const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
-
-      const newRemaining = Math.max(0, rawAmt - advPayment - totalInstallments);
-      
-      let newStatus = inv.status;
-      if (newRemaining <= 0) {
-        newStatus = 'FULLY_PAID';
-      } else if (totalInstallments > 0) {
-        newStatus = 'PARTIAL';
-      } else if (advPayment > 0) {
-        newStatus = 'DEPOSIT_PAID';
-      }
-
-      await connection.query(
-        'UPDATE dst_invoices SET remainingBalance = ?, status = ? WHERE invoiceNo = ? OR id = ?',
-        [newRemaining, newStatus, paymentData.referenceId, paymentData.referenceId]
-      );
-    }
+    await recalculateInvoiceBalance(connection, paymentData.referenceId);
 
     await connection.commit();
     return true;
@@ -381,7 +443,7 @@ export const getPaymentHistoryDB = async (referenceId, moduleType = 'CONFIRMATIO
   return rows;
 };
 
-const recalculateInvoiceBalance = async (connection, referenceId) => {
+export const recalculateInvoiceBalance = async (connection, referenceId) => {
   const [invoiceRows] = await connection.query('SELECT * FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [referenceId, referenceId]);
   if (invoiceRows.length > 0) {
     const inv = invoiceRows[0];
@@ -392,16 +454,23 @@ const recalculateInvoiceBalance = async (connection, referenceId) => {
       "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
       [referenceId]
     );
-    const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
-    const newRemaining = Math.max(0, rawAmt - advPayment - totalInstallments);
+    const totalInstallments = parseFloat(sumRows[0]?.totalPaid || 0);
+    const totalPaid = advPayment + totalInstallments;
+    const newRemaining = Math.max(0, rawAmt - totalPaid);
 
     let newStatus = inv.status;
-    if (newRemaining <= 0) {
+    if (totalPaid >= rawAmt && rawAmt > 0) {
       newStatus = 'FULLY_PAID';
-    } else if (totalInstallments > 0) {
-      newStatus = 'PARTIAL';
-    } else if (advPayment > 0) {
-      newStatus = 'DEPOSIT_PAID';
+    } else if (totalPaid > 0) {
+      newStatus = totalInstallments > 0 ? 'PARTIAL' : 'DEPOSIT_PAID';
+    } else {
+      // Total Paid is exactly 0: restore approval status from dst_requests
+      const [reqRows] = await connection.query('SELECT status FROM dst_requests WHERE invoiceNo = ?', [inv.invoiceNo]);
+      if (reqRows.length > 0 && reqRows[0].status) {
+        newStatus = reqRows[0].status === '4/4 Approved' ? 'Approved' : reqRows[0].status;
+      } else {
+        newStatus = '0/4 Pending';
+      }
     }
 
     await connection.query(
