@@ -43,3 +43,7 @@ coverage/
 db_data/
 mysql_data/
 data/
+
+# Documents and credentials
+*.docx
+FinanceDBLogin.docx
