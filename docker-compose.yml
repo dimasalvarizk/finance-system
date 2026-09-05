@@ -10,12 +10,12 @@ services:
     environment:
       - PORT=5000
       - NODE_ENV=production
-      - 'AUTH_SERVICE_URL=http://auth-service:5001'
-      - 'INVOICE_SERVICE_URL=http://invoice-service:5002'
-      - 'REQUEST_SERVICE_URL=http://request-service:5003'
-      - 'COMPANY_SERVICE_URL=http://company-service:5004'
-      - 'SETTING_SERVICE_URL=http://setting-service:5005'
-      - 'HOTEL_RESERVATION_SERVICE_URL=http://hotel-reservation-service:5006'
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - INVOICE_SERVICE_URL=http://invoice-service:5002
+      - REQUEST_SERVICE_URL=http://request-service:5003
+      - COMPANY_SERVICE_URL=http://company-service:5004
+      - SETTING_SERVICE_URL=http://setting-service:5005
+      - HOTEL_RESERVATION_SERVICE_URL=http://hotel-reservation-service:5006
     depends_on:
       - auth-service
       - invoice-service
@@ -32,19 +32,19 @@ services:
     environment:
       - PORT=5001
       - NODE_ENV=production
-      - FRONTEND_URL=${SERVICE_URL_FINANCE_FRONTEND:-https://odstfin.io}
+      - FRONTEND_URL=${FRONTEND_URL:-https://odstfin.io}
       - DB_HOST=${DB_HOST:-mysql-db}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
-      - DB_NAME=${DB_NAME:-finance_db}
-      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
       - SMTP_HOST=${SMTP_HOST:-smtp.titan.email}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_SECURE=${SMTP_SECURE:-false}
-      - SMTP_USER=${SMTP_USER:-info@odst.id}
-      - SMTP_PASS=${SMTP_PASS:-APW1DGGK9GZLOMS7}
-      - SMTP_FROM=${SMTP_FROM:-info@odst.id}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
     restart: always
 
   invoice-service:
@@ -57,10 +57,10 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:5001
       - DB_HOST=${DB_HOST:-mysql-db}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
-      - DB_NAME=${DB_NAME:-finance_db}
-      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
 
   request-service:
@@ -73,10 +73,10 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:5001
       - DB_HOST=${DB_HOST:-mysql-db}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
-      - DB_NAME=${DB_NAME:-finance_db}
-      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
 
   company-service:
@@ -88,10 +88,10 @@ services:
       - NODE_ENV=production
       - DB_HOST=${DB_HOST:-mysql-db}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
-      - DB_NAME=${DB_NAME:-finance_db}
-      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
 
   setting-service:
@@ -104,10 +104,10 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:5001
       - DB_HOST=${DB_HOST:-mysql-db}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
-      - DB_NAME=${DB_NAME:-finance_db}
-      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
 
   hotel-reservation-service:
@@ -120,10 +120,10 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:5001
       - DB_HOST=${DB_HOST:-mysql-db}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-root_password_rahasia}
-      - DB_NAME=${DB_NAME:-finance_db}
-      - JWT_SECRET=${JWT_SECRET:-super_secret_dst_key_2026_finance_portal_secret}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
 
   finance-frontend:
@@ -131,33 +131,32 @@ services:
       context: ./finance-frontend
       dockerfile: Dockerfile
       args:
-        - 'VITE_AUTH_API_URL=https://api.odstfin.io'
-        - 'VITE_INVOICE_API_URL=https://api.odstfin.io'
-        - 'VITE_REQUEST_API_URL=https://api.odstfin.io'
-        - 'VITE_SETTING_API_URL=https://api.odstfin.io'
-        - 'VITE_HOTEL_RESERVATION_API_URL=https://api.odstfin.io'
+        - VITE_AUTH_API_URL=${VITE_AUTH_API_URL:-https://api.odstfin.io}
+        - VITE_INVOICE_API_URL=${VITE_INVOICE_API_URL:-https://api.odstfin.io}
+        - VITE_REQUEST_API_URL=${VITE_REQUEST_API_URL:-https://api.odstfin.io}
+        - VITE_SETTING_API_URL=${VITE_SETTING_API_URL:-https://api.odstfin.io}
+        - VITE_HOTEL_RESERVATION_API_URL=${VITE_HOTEL_RESERVATION_API_URL:-https://api.odstfin.io}
     expose:
       - "80"
     command: [ "nginx", "-g", "daemon off;" ]
     restart: always
 
-  # --- INI TAMBAHAN DATABASE INTERNALNYA ---
+  # --- DATABASE MYSQL ---
   mysql-db:
     image: mysql:8.0
     ports:
-      - "3307:3306"
-      # production
-      # - "3306:3306"
+      - "${MYSQL_PORT:-3307}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root_password_rahasia
-      MYSQL_DATABASE: finance_db
-      MYSQL_USER: dst_user
-      MYSQL_PASSWORD: dst_password_rahasia
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
     restart: always
 
-# --- INI PENYIMPANAN DATABASENYA ---
+# --- PENYIMPANAN DATABASE ---
 volumes:
   db_data:
+
 
