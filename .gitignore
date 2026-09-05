@@ -28,3 +28,18 @@ yarn-error.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Vite cache
+node_modules/.vite
+.vite/
+
+# Testing coverage (jika nanti ada unit test)
+coverage/
+
+# Docker local database volumes (PENTING jika kamu memetakan volume db ke folder lokal)
+db_data/
+mysql_data/
+data/
