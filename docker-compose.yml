@@ -145,7 +145,8 @@ services:
   mysql-db:
     image: mysql:8.0
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      # testing
+      - "${MYSQL_PORT:-3307}:3306"
       # production
       # - "${MYSQL_PORT:-3306}:3306"
     environment:
