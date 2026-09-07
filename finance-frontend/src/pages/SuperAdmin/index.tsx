@@ -88,21 +88,23 @@ const SuperAdminDashboard: React.FC = () => {
         <div className="flex-1 p-8 space-y-8 max-w-[1440px] w-full mx-auto">
           {/* Header Banner */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
+            <div className="flex flex-col space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-md">
+                <span className="text-[10.5px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800">
                   {t('superAdmin.badge')}
                 </span>
-                <span className="text-[11px] font-semibold text-slate-400">/</span>
-                <span className="text-[11px] font-semibold text-slate-500">Dimas & Ali</span>
+                <span className="text-[12px] font-medium text-slate-500">
+                  • Dimas & Ali
+                </span>
               </div>
-              <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">
+              <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight font-sans">
                 {t('superAdmin.title')}
               </h1>
-              <p className="text-[13px] text-[#64748b] font-medium">
+              <p className="text-[13px] text-[#64748b] font-medium font-sans">
                 {t('superAdmin.subtitle')}
               </p>
             </div>
+
 
             {/* Quick Action */}
             <div className="flex items-center space-x-3">

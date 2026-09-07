@@ -1108,10 +1108,10 @@
     "prevStep": "Langkah Sebelumnya"
   },
   "superAdmin": {
-    "badge": "PUSAT KONTROL SUPER ADMIN",
-    "title": "Manajemen Izin Dinamis & Log Audit",
-    "subtitle": "Konfigurasi hak istimewa pengguna secara real-time dan pantau riwayat audit sistem.",
-    "refreshData": "Segarkan Data",
+    "badge": "Super Admin",
+    "title": "Dashboard Super Admin",
+    "subtitle": "Kelola izin pengguna, pantau log audit, dan kelola cadangan sistem.",
+    "refreshData": "Perbarui Data",
     "restrictedTitle": "Akses Dibatasi",
     "restrictedDesc": "Dashboard Super Admin Mini khusus untuk Administrator Sistem (Dimas & Ali). Akun Anda saat ini tidak memiliki izin untuk mengakses panel ini.",
     "returnToDashboard": "Kembali ke Dashboard",

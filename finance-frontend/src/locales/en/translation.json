@@ -1108,9 +1108,9 @@
     "prevStep": "Prev Step"
   },
   "superAdmin": {
-    "badge": "SUPER ADMIN CONTROL CENTER",
-    "title": "Dynamic Permission Management & Audit Logs",
-    "subtitle": "Configure real-time privileges per user and monitor system audit trails.",
+    "badge": "Super Admin",
+    "title": "Super Admin Dashboard",
+    "subtitle": "Manage user permissions, monitor audit logs, and oversee data backups.",
     "refreshData": "Refresh Data",
     "restrictedTitle": "Access Restricted",
     "restrictedDesc": "The Super Admin Mini Dashboard is exclusively reserved for System Administrators (Dimas & Ali). Your current account role does not have authorization to view this panel.",
