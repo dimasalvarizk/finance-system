@@ -12,6 +12,7 @@ interface User {
   department?: string;
   jobTitle?: string;
   avatar?: string | null;
+  permissions?: Record<string, boolean> | string[];
 }
 
 interface AuthContextType {

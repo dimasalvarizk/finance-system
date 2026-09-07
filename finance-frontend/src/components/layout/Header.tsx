@@ -452,6 +452,22 @@ const Header: React.FC = () => {
 
             {/* Menu Items */}
             <div className="flex flex-col space-y-1">
+              {/* Super Admin Control Center for Dimas & Ali */}
+              {(user?.role === 'Super Admin' || user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin') && (
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    navigate('/super-admin/dashboard');
+                  }}
+                  className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-left text-[13px] font-bold text-purple-700 hover:bg-purple-50 transition-all cursor-pointer border border-purple-100"
+                >
+                  <div className="w-5 h-5 rounded-md bg-purple-100 flex items-center justify-center text-purple-700">
+                    <span className="text-xs">⚡</span>
+                  </div>
+                  <span>Super Admin Control Center</span>
+                </button>
+              )}
+
               <button
                 onClick={handleSettingsClick}
                 className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-left text-[13px] font-semibold text-[#1e293b] hover:bg-gray-50 transition-all cursor-pointer"

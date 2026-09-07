@@ -14,7 +14,6 @@ const Requests = lazy(() => import('../pages/Requests'));
 const Companies = lazy(() => import('../pages/Companies'));
 const Settings = lazy(() => import('../pages/Settings'));
 const HotelReservations = lazy(() => import('../pages/HotelReservations'));
-const AuditLog = lazy(() => import('../pages/AuditLog'));
 const MyExpenses = lazy(() => import('../pages/MyExpenses'));
 const SubmitExpense = lazy(() => import('../pages/SubmitExpense'));
 const Approvals = lazy(() => import('../pages/Approvals'));
@@ -23,6 +22,7 @@ const InitiateReimbursement = lazy(() => import('../pages/InitiateReimbursement'
 const SetupBeneficiary = lazy(() => import('../pages/SetupBeneficiary'));
 const PreExecutionPayment = lazy(() => import('../pages/PreExecutionPayment'));
 const InternalPlaceholderPage = lazy(() => import('../pages/Internal'));
+const SuperAdminDashboard = lazy(() => import('../pages/SuperAdmin'));
 
 const isInternalEnabled = import.meta.env.VITE_ENABLE_INTERNAL === 'true';
 
@@ -246,10 +246,26 @@ const AppRoutes: React.FC = () => {
           <Route path="/approvals/execute" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
           <Route path="/approvals/execute/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
           <Route
+            path="/super-admin"
+            element={
+              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin' || user?.role === 'Super Admin')
+                ? <SuperAdminDashboard />
+                : <Navigate to="/dashboard" replace />
+            }
+          />
+          <Route
+            path="/super-admin/dashboard"
+            element={
+              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin' || user?.role === 'Super Admin')
+                ? <SuperAdminDashboard />
+                : <Navigate to="/dashboard" replace />
+            }
+          />
+          <Route
             path="/system-audit-hidden"
             element={
-              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin')
-                ? <AuditLog />
+              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin' || user?.role === 'Super Admin')
+                ? <SuperAdminDashboard />
                 : <Navigate to="/dashboard" replace />
             }
           />

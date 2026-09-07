@@ -14,7 +14,7 @@ export const protect = async (req, res, next) => {
       // Fetch user from shared database dst_users table
       const pool = getPool();
       const [rows] = await pool.query(
-        'SELECT id, email, name, role, branch, phone, employeeId, department, jobTitle, avatar FROM dst_users WHERE id = ?',
+        'SELECT id, email, name, role, branch, phone, employeeId, department, jobTitle, avatar, permissions FROM dst_users WHERE id = ?',
         [decoded.id]
       );
       const user = rows[0];
@@ -56,4 +56,21 @@ export const restrictTo = (...roles) => {
     }
     next();
   };
+};
+
+export const isSuperAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Not authenticated' });
+  }
+  const isSuper = req.user.role === 'Super Admin' ||
+    (req.user.name && (req.user.name.includes('Dimas') || req.user.name.includes('Ali') || req.user.name === 'Super Admin')) ||
+    (req.user.email && (req.user.email.includes('admin') || req.user.email.includes('dimas') || req.user.email.includes('ali')));
+
+  if (!isSuper) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access Denied: Super Admin access required (Exclusively for Dimas & Ali).'
+    });
+  }
+  next();
 };

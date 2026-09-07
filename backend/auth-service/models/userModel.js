@@ -19,7 +19,7 @@ export const verifyPassword = async (inputPassword, userPasswordHash) => {
 
 export const getAllUsersDB = async () => {
   const pool = getPool();
-  const [rows] = await pool.query('SELECT id, email, name, role, branch, phone, employeeId, department, jobTitle, status, lastActive FROM dst_users ORDER BY name ASC');
+  const [rows] = await pool.query('SELECT id, email, name, role, branch, phone, employeeId, department, jobTitle, status, lastActive, permissions FROM dst_users ORDER BY name ASC');
   return rows;
 };
 

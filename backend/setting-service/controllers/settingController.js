@@ -7,8 +7,88 @@ import { getPool } from '../config/db.js';
 export const getTeam = async (req, res, next) => {
   try {
     const pool = getPool();
-    const [rows] = await pool.query('SELECT id, name, email, phone, employeeId, role, branch, department, jobTitle, status, lastActive FROM dst_users ORDER BY name ASC');
-    res.status(200).json({ success: true, count: rows.length, data: rows });
+    // Ensure permissions column exists
+    try { await pool.query('ALTER TABLE dst_users ADD COLUMN permissions TEXT DEFAULT NULL'); } catch (e) {}
+
+    const [rows] = await pool.query('SELECT id, name, email, phone, employeeId, role, branch, department, jobTitle, status, lastActive, permissions FROM dst_users ORDER BY name ASC');
+    
+    const formatted = rows.map(r => {
+      let parsedPerms = {};
+      if (r.permissions) {
+        try {
+          parsedPerms = typeof r.permissions === 'string' ? JSON.parse(r.permissions) : r.permissions;
+        } catch (e) {
+          if (typeof r.permissions === 'string') {
+            r.permissions.split(',').forEach(p => {
+              if (p.trim()) parsedPerms[p.trim()] = true;
+            });
+          }
+        }
+      }
+      return {
+        ...r,
+        permissions: parsedPerms
+      };
+    });
+
+    res.status(200).json({ success: true, count: formatted.length, data: formatted });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update User Dynamic Permissions (Super Admin only)
+export const updateUserPermissions = async (req, res, next) => {
+  const { id } = req.params;
+  const { permissions } = req.body;
+
+  try {
+    const pool = getPool();
+    const [userRows] = await pool.query('SELECT id, name, email, role, permissions FROM dst_users WHERE id = ?', [id]);
+    if (userRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const targetUser = userRows[0];
+    const permsJson = typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || '{}');
+
+    await pool.query('UPDATE dst_users SET permissions = ? WHERE id = ?', [permsJson, id]);
+
+    // Record Audit Log in dst_audit_logs
+    try {
+      const logId = `log_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      const performerId = req.user ? req.user.id : 'usr_super_admin';
+      const performerName = req.user ? req.user.name : 'Super Admin';
+      const ip = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+
+      await pool.query(
+        `INSERT INTO dst_audit_logs (id, action, performed_by, performed_by_name, target_user, details, ip_address)
+         VALUES (?, 'UPDATE_PERMISSIONS', ?, ?, ?, ?, ?)`,
+        [
+          logId,
+          performerId,
+          performerName,
+          targetUser.name,
+          JSON.stringify({
+            message: `Updated permissions for ${targetUser.name} (${targetUser.email})`,
+            targetUserId: targetUser.id,
+            targetUserName: targetUser.name,
+            targetUserRole: targetUser.role,
+            previousPermissions: targetUser.permissions,
+            newPermissions: permissions
+          }),
+          ip
+        ]
+      );
+    } catch (auditErr) {
+      console.error('Failed to write audit log for permission update:', auditErr.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Permissions updated successfully for ${targetUser.name}`,
+      data: { id, permissions: typeof permissions === 'object' ? permissions : JSON.parse(permsJson || '{}') }
+    });
   } catch (error) {
     next(error);
   }
@@ -993,6 +1073,139 @@ export const getBackupHistory = async (req, res, next) => {
       count: rows.length,
       data: rows
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ==========================================
+// 10. SYSTEM AUDIT LOGS (Super Admin CRUD)
+// ==========================================
+export const getAuditLogs = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    // Ensure table exists
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS dst_audit_logs (
+          id VARCHAR(50) PRIMARY KEY,
+          action VARCHAR(100) NOT NULL,
+          performed_by VARCHAR(100) NOT NULL,
+          performed_by_name VARCHAR(100),
+          target_user VARCHAR(100),
+          details TEXT,
+          ip_address VARCHAR(50),
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+    } catch (e) {}
+
+    const { action, search, limit = 200 } = req.query;
+    let query = 'SELECT * FROM dst_audit_logs WHERE 1=1';
+    const params = [];
+
+    if (action && action !== 'ALL') {
+      query += ' AND action = ?';
+      params.push(action);
+    }
+
+    if (search) {
+      query += ' AND (performed_by_name LIKE ? OR target_user LIKE ? OR action LIKE ? OR details LIKE ?)';
+      const s = `%${search}%`;
+      params.push(s, s, s, s);
+    }
+
+    query += ' ORDER BY createdAt DESC LIMIT ?';
+    params.push(parseInt(limit) || 200);
+
+    const [rows] = await pool.query(query, params);
+    res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createManualAuditLog = async (req, res, next) => {
+  const { action, target_user, details, ip_address } = req.body;
+  try {
+    if (!action || !details) {
+      return res.status(400).json({ success: false, message: 'Action and details are required' });
+    }
+
+    const pool = getPool();
+    const logId = `log_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const performerId = req.user ? req.user.id : 'usr_super_admin';
+    const performerName = req.user ? req.user.name : 'Super Admin';
+    const clientIp = ip_address || req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+
+    const insertQuery = `
+      INSERT INTO dst_audit_logs (id, action, performed_by, performed_by_name, target_user, details, ip_address)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const detailsStr = typeof details === 'object' ? JSON.stringify(details) : String(details);
+
+    await pool.query(insertQuery, [
+      logId,
+      action,
+      performerId,
+      performerName,
+      target_user || 'System',
+      detailsStr,
+      clientIp
+    ]);
+
+    res.status(201).json({
+      success: true,
+      message: 'Audit log entry created successfully',
+      data: { id: logId, action, performed_by: performerId, performed_by_name: performerName, target_user: target_user || 'System', details: detailsStr, ip_address: clientIp, createdAt: new Date().toISOString() }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAuditLog = async (req, res, next) => {
+  const { id } = req.params;
+  const { action, target_user, details } = req.body;
+  try {
+    const pool = getPool();
+    const [existing] = await pool.query('SELECT * FROM dst_audit_logs WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Audit log not found' });
+    }
+
+    const newAction = action || existing[0].action;
+    const newTarget = target_user !== undefined ? target_user : existing[0].target_user;
+    const newDetails = details !== undefined ? (typeof details === 'object' ? JSON.stringify(details) : String(details)) : existing[0].details;
+
+    await pool.query(
+      'UPDATE dst_audit_logs SET action = ?, target_user = ?, details = ? WHERE id = ?',
+      [newAction, newTarget, newDetails, id]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Audit log entry updated successfully',
+      data: { id, action: newAction, target_user: newTarget, details: newDetails }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteAuditLog = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const pool = getPool();
+    const [existing] = await pool.query('SELECT * FROM dst_audit_logs WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Audit log not found' });
+    }
+
+    await pool.query('DELETE FROM dst_audit_logs WHERE id = ?', [id]);
+    res.status(200).json({ success: true, message: 'Audit log deleted successfully' });
   } catch (error) {
     next(error);
   }

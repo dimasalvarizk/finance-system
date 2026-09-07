@@ -371,6 +371,28 @@ const initializeDatabase = async () => {
     await pool.query(createBackupHistoryQuery);
     console.log("Table 'dst_backup_history' is ready");
 
+    // 10. Create dst_audit_logs table for system & super admin tracking
+    const createAuditLogsQuery = `
+      CREATE TABLE IF NOT EXISTS dst_audit_logs (
+        id VARCHAR(50) PRIMARY KEY,
+        action VARCHAR(100) NOT NULL,
+        performed_by VARCHAR(100) NOT NULL,
+        performed_by_name VARCHAR(100),
+        target_user VARCHAR(100),
+        details TEXT,
+        ip_address VARCHAR(50),
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createAuditLogsQuery);
+    console.log("Table 'dst_audit_logs' is ready");
+
+    // Ensure permissions column exists in dst_users
+    try {
+      await pool.query('ALTER TABLE dst_users ADD COLUMN permissions TEXT DEFAULT NULL');
+    } catch (e) {}
+
   } catch (error) {
     console.error('Database schema/seed failed for setting-service:', error.message);
   }

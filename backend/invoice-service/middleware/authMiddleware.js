@@ -14,7 +14,7 @@ export const protect = async (req, res, next) => {
       // Fetch user details from shared database dst_users table
       const pool = getPool();
       const [rows] = await pool.query(
-        'SELECT id, email, name, role, branch FROM dst_users WHERE id = ?',
+        'SELECT id, email, name, role, branch, permissions FROM dst_users WHERE id = ?',
         [decoded.id]
       );
       const user = rows[0];

@@ -231,3 +231,42 @@ export const updateMaintenanceLocks = async (data: Partial<MaintenanceLockState>
   return response.data.data;
 };
 
+// 16. Dynamic User Permissions (Super Admin only)
+export const updateUserPermissions = async (userId: string, permissions: Record<string, boolean>) => {
+  const response = await settingAPI.put(`/users/${userId}/permissions`, { permissions });
+  return response.data;
+};
+
+// 17. System Audit Logs Management (Super Admin only)
+export interface SystemAuditLog {
+  id: string;
+  action: string;
+  performed_by: string;
+  performed_by_name?: string;
+  target_user?: string;
+  details?: string;
+  ip_address?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export const getAuditLogs = async (params?: { action?: string; search?: string; limit?: number }): Promise<SystemAuditLog[]> => {
+  const response = await settingAPI.get('/audit-logs', { params });
+  return response.data.data;
+};
+
+export const createAuditLog = async (data: { action: string; target_user?: string; details: any; ip_address?: string }) => {
+  const response = await settingAPI.post('/audit-logs', data);
+  return response.data.data;
+};
+
+export const updateAuditLog = async (id: string, data: { action?: string; target_user?: string; details?: any }) => {
+  const response = await settingAPI.put(`/audit-logs/${id}`, data);
+  return response.data.data;
+};
+
+export const deleteAuditLog = async (id: string) => {
+  const response = await settingAPI.delete(`/audit-logs/${id}`);
+  return response.data;
+};
+

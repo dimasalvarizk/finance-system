@@ -13,9 +13,10 @@ import {
   getMaintenanceLocks, updateMaintenanceLocks,
   getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
   getMealTypes, createMealType, updateMealType, deleteMealType,
-  exportFullDatabaseBackup, logBackupHistory, getBackupHistory
+  exportFullDatabaseBackup, logBackupHistory, getBackupHistory,
+  updateUserPermissions, getAuditLogs, createManualAuditLog, updateAuditLog, deleteAuditLog
 } from '../controllers/settingController.js';
-import { protect, restrictTo } from '../middleware/authMiddleware.js';
+import { protect, restrictTo, isSuperAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -28,6 +29,10 @@ router.get('/team', getTeam);
 router.post('/team', restrictTo('Super Admin'), createTeam);
 router.put('/team/:id', restrictTo('Super Admin'), updateTeam);
 router.delete('/team/:id', restrictTo('Super Admin'), deleteTeam);
+
+// 1.1 Dynamic Permission Management (Exclusively Super Admin: Dimas & Ali)
+router.put('/users/:id/permissions', isSuperAdmin, updateUserPermissions);
+router.put('/team/:id/permissions', isSuperAdmin, updateUserPermissions);
 
 // 2. Branches
 router.get('/branches', getBranches);
@@ -83,8 +88,14 @@ router.delete('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant'
 // 12. Full Database Backup Export (All 18 MySQL Tables)
 router.get('/backup/full', exportFullDatabaseBackup);
 
-// 13. Backup History & Audit Logs
+// 13. Backup History
 router.get('/backup/history', getBackupHistory);
 router.post('/backup/history', logBackupHistory);
+
+// 14. System Audit Logs Management (Exclusively Super Admin: Dimas & Ali)
+router.get('/audit-logs', isSuperAdmin, getAuditLogs);
+router.post('/audit-logs', isSuperAdmin, createManualAuditLog);
+router.put('/audit-logs/:id', isSuperAdmin, updateAuditLog);
+router.delete('/audit-logs/:id', isSuperAdmin, deleteAuditLog);
 
 export default router;

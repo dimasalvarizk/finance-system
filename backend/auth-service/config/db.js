@@ -216,6 +216,23 @@ const initializeDatabase = async () => {
     await pool.query(createNotificationsTableQuery);
     console.log("Table 'dst_notifications' is ready");
 
+    // Create dst_audit_logs table for system & super admin tracking
+    const createAuditLogsQuery = `
+      CREATE TABLE IF NOT EXISTS dst_audit_logs (
+        id VARCHAR(50) PRIMARY KEY,
+        action VARCHAR(100) NOT NULL,
+        performed_by VARCHAR(100) NOT NULL,
+        performed_by_name VARCHAR(100),
+        target_user VARCHAR(100),
+        details TEXT,
+        ip_address VARCHAR(50),
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createAuditLogsQuery);
+    console.log("Table 'dst_audit_logs' is ready");
+
     // Only seed default users if the table is empty to avoid wiping user modifications during server restart
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM dst_users');
     if (rows[0].count === 0) {

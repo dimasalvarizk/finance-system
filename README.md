@@ -108,6 +108,17 @@ Sistem dilengkapi modul operasional internal untuk klaim biaya dan reimbursement
 * Khusus pada **Level 2**, sistem menerapkan **Logika OR (ATAU)**: persetujuan dapat disahkan oleh Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani.
 * Setiap level divalidasi ketat terhadap peran pengguna (`role`) yang sedang login.
 
+### 10. Dynamic Permission Management & Super Admin Dashboard (`/super-admin/dashboard`)
+* **Dynamic Permission Matrix**: Manajemen hak akses granular per individu secara real-time langsung dari antarmuka web tanpa perlu deploy ulang kode:
+  * ⚡ **Bypass Approval** (`CAN_BYPASS_APPROVAL`): Pengguna istimewa (contoh: Mr. Khalid) dapat membuat konfirmasi yang langsung disahkan (status `Approved` / `4/4 Approved`), otomatis melewati alur persetujuan Level 1-4, meniadakan notifikasi ke Mr. Hesham, dan langsung menyajikan tombol unduh PDF resmi.
+  * 👥 **Add Team Members** (`CAN_ADD_MEMBERS`): Memberikan izin menambah anggota tim baru.
+  * 🛡️ **Edit/Manage Logs** (`CAN_EDIT_SYSTEM_LOGS`): Izin mengelola dan mengedit catatan audit sistem.
+  * 📊 **View All Reports** (`CAN_VIEW_ALL_REPORTS`): Izin melihat seluruh ringkasan analitik dan laporan keuangan lintas cabang.
+* **Super Admin Mini Dashboard**: Halaman kontrol eksklusif Developer & Super Admin (**Dimas & Ali**) yang diamankan di tingkat backend middleware (`isSuperAdmin`) dan frontend route guard:
+  * **Tab 1: Dynamic Permission Matrix**: Matriks tabel interaktif seluruh staf sistem dengan toggle switch instan, metrik statistik hak akses, dan pencarian cepat.
+  * **Tab 2: System Audit Logs Management**: Jejak audit komprehensif (`dst_audit_logs`) dengan filter aksi, pencarian kata kunci, tambah catatan audit manual, edit catatan log, dan hapus log usang.
+* **Audit Trail Otomatis**: Setiap pembaruan izin pengguna dan penerbitan konfirmasi jalur bypass secara otomatis direkam ke dalam database audit sistem dengan timestamp, alamat IP, dan payload perubahan.
+
 ---
 
 ## 🗄️ Struktur Database (MySQL)
@@ -116,7 +127,8 @@ Sistem menggunakan database relasional **Aiven Cloud MySQL** dengan tabel berawa
 
 | Nama Tabel | Deskripsi Data | Layanan Pengelola |
 | :--- | :--- | :--- |
-| `dst_users` | Kredensial pengguna, peran (*role*), kantor cabang, dan data profil. | `auth-service` / `setting-service` |
+| `dst_users` | Kredensial pengguna, peran (*role*), kantor cabang, data profil, dan izin granular (`permissions` JSON). | `auth-service` / `setting-service` |
+| `dst_audit_logs` | Jejak audit sistem, pembaruan izin pengguna, bypass persetujuan, dan catatan administratif manual. | `setting-service` / `invoice-service` / `request-service` |
 | `dst_sessions` | Riwayat sesi perangkat aktif pengguna. | `auth-service` / `setting-service` |
 | `dst_login_logs` | Catatan audit aktivitas login (IP, User Agent, status). | `auth-service` |
 | `dst_notifications` | Pesan notifikasi in-app untuk pengguna (title, message, unread status). | `auth-service` |

@@ -44,40 +44,65 @@ export const createRequest = async (req, res, next) => {
       });
     }
 
+    // Check if user has CAN_BYPASS_APPROVAL permission
+    let hasBypassApproval = false;
+    if (req.user && req.user.permissions) {
+      try {
+        const p = typeof req.user.permissions === 'string' ? JSON.parse(req.user.permissions) : req.user.permissions;
+        if (p.CAN_BYPASS_APPROVAL === true || (Array.isArray(p) && p.includes('CAN_BYPASS_APPROVAL'))) {
+          hasBypassApproval = true;
+        }
+      } catch (e) {
+        if (typeof req.user.permissions === 'string' && req.user.permissions.includes('CAN_BYPASS_APPROVAL')) {
+          hasBypassApproval = true;
+        }
+      }
+    }
+    if (req.user && (req.user.role === 'Super Admin' || req.user.name?.includes('Dimas') || req.user.name?.includes('Ali'))) {
+      hasBypassApproval = true;
+    }
+
     const payload = {
       invoiceNo,
       company,
       companyCode,
       amount,
-      requestedBy,
-      submittedDate,
-      status: '0/4 Pending' // New requests start at Level 1 (0/4 Approved)
+      requestedBy: requestedBy || (req.user ? req.user.name : 'System'),
+      submittedDate: submittedDate || new Date().toISOString().split('T')[0],
+      status: hasBypassApproval ? '4/4 Approved' : '0/4 Pending',
+      level1Note: hasBypassApproval ? 'Auto-Approved (CAN_BYPASS_APPROVAL)' : null,
+      level2Note: hasBypassApproval ? 'Auto-Approved (CAN_BYPASS_APPROVAL)' : null,
+      level3Note: hasBypassApproval ? 'Auto-Approved (CAN_BYPASS_APPROVAL)' : null,
+      level4Note: hasBypassApproval ? 'Auto-Approved (CAN_BYPASS_APPROVAL)' : null,
     };
 
     const newRequest = await createRequestDB(payload);
 
-    // Trigger notification for new request to Level 1 assignees (Chief Accountant)
-    try {
-      const adminIds = ['usr_hesham'];
-      for (const adminId of adminIds) {
-        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: adminId,
-            type: 'approvalRequestAssigned',
-            title: 'Approval request assigned',
-            message: `A new invoice request ${invoiceNo} for ${company} (${amount}) has been submitted by ${requestedBy || 'Accountant'} and is assigned to you for review.`
-          })
-        }).catch(err => console.error('Failed to trigger submission notification:', err.message));
+    // If NOT bypassed, trigger notification to Level 1 assignees (Chief Accountant)
+    if (!hasBypassApproval) {
+      try {
+        const adminIds = ['usr_hesham'];
+        for (const adminId of adminIds) {
+          fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: adminId,
+              type: 'approvalRequestAssigned',
+              title: 'Approval request assigned',
+              message: `A new invoice request ${invoiceNo} for ${company} (${amount}) has been submitted by ${requestedBy || 'Accountant'} and is assigned to you for review.`
+            })
+          }).catch(err => console.error('Failed to trigger submission notification:', err.message));
+        }
+      } catch (err) {
+        console.error('Submission notification trigger error:', err.message);
       }
-    } catch (err) {
-      console.error('Submission notification trigger error:', err.message);
     }
 
     res.status(201).json({
       success: true,
-      message: 'Approval request generated successfully',
+      message: hasBypassApproval ? 'Approval bypassed and auto-approved successfully' : 'Approval request generated successfully',
+      isBypassed: hasBypassApproval,
       data: newRequest
     });
   } catch (error) {

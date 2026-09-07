@@ -11,6 +11,7 @@ import {
   FilePlus,
   CheckSquare,
   Settings as SettingsIcon,
+  ShieldCheck,
 } from 'lucide-react';
 import odstDashboardLogo from '../../assets/odstdahboard.png';
 import { useAuth } from '../../context/AuthContext';
@@ -140,6 +141,14 @@ const Sidebar: React.FC = () => {
           icon: SettingsIcon,
           visible: user?.role !== 'Viewer',
           isLocked: locks.fullSystem || locks.settings,
+        },
+        {
+          id: 'super-admin',
+          label: 'Super Admin',
+          path: '/super-admin/dashboard',
+          aliasPaths: ['/super-admin', '/system-audit-hidden'],
+          icon: ShieldCheck,
+          visible: user?.role === 'Super Admin' || user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin',
         },
       ],
     },

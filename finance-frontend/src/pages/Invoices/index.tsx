@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import StatCard from '../../components/ui/StatCard';
-import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt } from 'lucide-react';
+import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt, Zap, Download } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
 import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments, updateInvoicePayment, deleteInvoicePayment } from '../../services/invoiceService';
@@ -471,6 +471,14 @@ const Invoices: React.FC = () => {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const companySettings = getLocalCompanySettings();
+
+  const hasBypassPermission = Boolean(
+    user?.role === 'Super Admin' ||
+    user?.name?.includes('Dimas') ||
+    user?.name?.includes('Ali') ||
+    (user?.permissions && (Array.isArray(user.permissions) ? user.permissions.includes('CAN_BYPASS_APPROVAL') : (user.permissions as any).CAN_BYPASS_APPROVAL === true))
+  );
+
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -3313,31 +3321,76 @@ const Invoices: React.FC = () => {
       {successModalStep === 1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full p-8 flex flex-col items-center animate-scale-up font-sans">
-            <div className="w-14 h-14 bg-[#ecfdf5] text-[#10b981] rounded-full flex items-center justify-center mb-5 border border-[#d1fae5]">
-              <Check className="w-6 h-6 stroke-[3px]" />
-            </div>
-            <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-2.5 font-sans leading-tight">
-              Confirmation Generated Successfully
-            </h3>
-            <p className="text-[13px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
-              Your confirmation has been generated. Would you like to send a request to get approval for payment?
-            </p>
-            <div className="flex space-x-3 w-full">
-              <button
-                type="button"
-                onClick={() => setSuccessModalStep(0)}
-                className="flex-1 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-bold text-[#475569] hover:bg-gray-50 transition-all font-inter text-center"
-              >
-                No, Thanks
-              </button>
-              <button
-                type="button"
-                onClick={handleSendRequestFromSuccessModal}
-                className="flex-1 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center animate-pulse-subtle"
-              >
-                Send Request
-              </button>
-            </div>
+            {hasBypassPermission ? (
+              <>
+                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-4 border border-emerald-200 shadow-sm">
+                  <Zap className="w-6 h-6 stroke-[2.5px] text-amber-500 fill-amber-500/20" />
+                </div>
+                <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans leading-tight">
+                  Confirmation Auto-Approved!
+                </h3>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-700 text-[11px] font-bold mb-3">
+                  <Check className="w-3.5 h-3.5 stroke-[3px]" />
+                  <span>4/4 Approved (Direct Bypass)</span>
+                </div>
+                <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
+                  Direct bypass authorization active. This confirmation has been automatically approved and is ready for download.
+                </p>
+                <div className="flex space-x-3 w-full">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSuccessModalStep(0);
+                      setJustCreatedInvoice(null);
+                    }}
+                    className="flex-1 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-bold text-[#475569] hover:bg-gray-50 transition-all font-inter text-center"
+                  >
+                    Done
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (justCreatedInvoice) {
+                        setSelectedInvoice({ ...justCreatedInvoice, status: 'Approved' });
+                      }
+                      setSuccessModalStep(0);
+                    }}
+                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>View / PDF</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-14 h-14 bg-[#ecfdf5] text-[#10b981] rounded-full flex items-center justify-center mb-5 border border-[#d1fae5]">
+                  <Check className="w-6 h-6 stroke-[3px]" />
+                </div>
+                <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-2.5 font-sans leading-tight">
+                  Confirmation Generated Successfully
+                </h3>
+                <p className="text-[13px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
+                  Your confirmation has been generated. Would you like to send a request to get approval for payment?
+                </p>
+                <div className="flex space-x-3 w-full">
+                  <button
+                    type="button"
+                    onClick={() => setSuccessModalStep(0)}
+                    className="flex-1 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-bold text-[#475569] hover:bg-gray-50 transition-all font-inter text-center"
+                  >
+                    No, Thanks
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendRequestFromSuccessModal}
+                    className="flex-1 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center animate-pulse-subtle"
+                  >
+                    Send Request
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

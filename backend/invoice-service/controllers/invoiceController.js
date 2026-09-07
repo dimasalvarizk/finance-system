@@ -53,6 +53,29 @@ export const createInvoice = async (req, res, next) => {
     const advAmt = parseFloat(advancePayment || 0);
     const initialRemaining = Math.max(0, rawAmt - advAmt);
 
+    // Check if user has CAN_BYPASS_APPROVAL permission
+    let hasBypassApproval = false;
+    if (req.user && req.user.permissions) {
+      try {
+        const p = typeof req.user.permissions === 'string' ? JSON.parse(req.user.permissions) : req.user.permissions;
+        if (p.CAN_BYPASS_APPROVAL === true || (Array.isArray(p) && p.includes('CAN_BYPASS_APPROVAL'))) {
+          hasBypassApproval = true;
+        }
+      } catch (e) {
+        if (typeof req.user.permissions === 'string' && req.user.permissions.includes('CAN_BYPASS_APPROVAL')) {
+          hasBypassApproval = true;
+        }
+      }
+    }
+    if (req.user && (req.user.role === 'Super Admin' || req.user.name?.includes('Dimas') || req.user.name?.includes('Ali') || req.user.name?.includes('Khalid'))) {
+      // If role or user has privilege
+      if (req.user.role === 'Super Admin' || req.user.name?.includes('Dimas') || req.user.name?.includes('Ali')) {
+        hasBypassApproval = true;
+      }
+    }
+
+    const initialStatus = hasBypassApproval ? 'Approved' : (status || 'Pending');
+
     const newInvoiceData = {
       id: `inv_${Date.now()}`,
       invoiceNo,
@@ -62,7 +85,7 @@ export const createInvoice = async (req, res, next) => {
       serialNo: serialNo || `SR-${Date.now()}`,
       amount,
       date,
-      status: status || 'Pending',
+      status: initialStatus,
       usdToIdrRate,
       sarToIdrRate,
       dueDate,
@@ -83,28 +106,62 @@ export const createInvoice = async (req, res, next) => {
 
     await createInvoiceDB(newInvoiceData);
 
-    // Trigger notification internally to auth-service
-    try {
-      const cleanAmount = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/[^0-9.-]/g, ''));
-      const amountDisplay = isNaN(cleanAmount) ? String(amount) : cleanAmount.toLocaleString('en-US');
+    // If bypass approval, write audit trail and skip approval notification to Level 1
+    if (hasBypassApproval) {
+      try {
+        const pool = getPool();
+        const logId = `log_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        const performerId = req.user ? req.user.id : 'usr_system';
+        const performerName = req.user ? req.user.name : 'System';
+        const ip = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
 
-      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: 'directors',
-          type: 'newInvoiceSubmitted',
-          title: 'New invoice approval request',
-          message: `New invoice ${invoiceNo} ($${amountDisplay}) submitted by ${req.user ? req.user.name : 'Accountant'}.`
-        })
-      }).catch(err => console.error('Failed to trigger submission notification:', err.message));
-    } catch (err) {
-      console.error('Notification trigger error:', err.message);
+        await pool.query(
+          `INSERT INTO dst_audit_logs (id, action, performed_by, performed_by_name, target_user, details, ip_address)
+           VALUES (?, 'CREATE_CONFIRMATION_BYPASS', ?, ?, ?, ?, ?)`,
+          [
+            logId,
+            performerId,
+            performerName,
+            finalCompanyName,
+            JSON.stringify({
+              message: `Confirmation ${invoiceNo} generated directly as Approved (CAN_BYPASS_APPROVAL)`,
+              invoiceNo,
+              amount,
+              currency: currency || 'USD',
+              company: finalCompanyName,
+              creator: performerName
+            }),
+            ip
+          ]
+        );
+      } catch (auditErr) {
+        console.error('Failed to log bypass confirmation creation:', auditErr.message);
+      }
+    } else {
+      // Trigger notification internally to auth-service for normal flow
+      try {
+        const cleanAmount = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/[^0-9.-]/g, ''));
+        const amountDisplay = isNaN(cleanAmount) ? String(amount) : cleanAmount.toLocaleString('en-US');
+
+        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: 'directors',
+            type: 'newInvoiceSubmitted',
+            title: 'New invoice approval request',
+            message: `New invoice ${invoiceNo} ($${amountDisplay}) submitted by ${req.user ? req.user.name : 'Accountant'}.`
+          })
+        }).catch(err => console.error('Failed to trigger submission notification:', err.message));
+      } catch (err) {
+        console.error('Notification trigger error:', err.message);
+      }
     }
 
     res.status(201).json({
       success: true,
-      message: 'Invoice created successfully',
+      message: hasBypassApproval ? 'Confirmation generated and auto-approved successfully' : 'Invoice created successfully',
+      isBypassed: hasBypassApproval,
       data: newInvoiceData
     });
   } catch (error) {
