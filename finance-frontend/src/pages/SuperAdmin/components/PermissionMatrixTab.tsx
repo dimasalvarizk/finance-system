@@ -96,10 +96,10 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
     if (roleFilter === 'ALL') return matchesSearch;
     if (roleFilter === 'BYPASS') {
       const perms = localPermissions[u.id] || u.permissions || {};
-      return matchesSearch && (perms.CAN_BYPASS_APPROVAL || u.role === 'Super Admin');
+      return matchesSearch && (perms.CAN_BYPASS_APPROVAL || checkIsSuperAdmin(u));
     }
     if (roleFilter === 'SUPER_ADMIN') {
-      return matchesSearch && (checkIsSuperAdmin(u) || u.role === 'Super Admin');
+      return matchesSearch && checkIsSuperAdmin(u);
     }
 
     return matchesSearch && u.role === roleFilter;
@@ -111,16 +111,18 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
     return name.slice(0, 2).toUpperCase();
   };
 
-  // Stats calculation
+  // Stats calculation (synchronized with table switch states)
   const totalBypass = users.filter((u) => {
     const p = localPermissions[u.id] || u.permissions || {};
-    return p.CAN_BYPASS_APPROVAL || u.role === 'Super Admin';
+    return p.CAN_BYPASS_APPROVAL || checkIsSuperAdmin(u);
   }).length;
 
   const totalMembersMgr = users.filter((u) => {
     const p = localPermissions[u.id] || u.permissions || {};
-    return p.CAN_ADD_MEMBERS || u.role === 'Super Admin';
+    return p.CAN_ADD_MEMBERS || checkIsSuperAdmin(u);
   }).length;
+
+  const totalSuperAdmins = users.filter((u) => checkIsSuperAdmin(u)).length;
 
   return (
     <div className="space-y-6 font-inter">
@@ -142,9 +144,7 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <div className="text-xl font-bold text-purple-700">
-            {users.filter((u) => u.role === 'Super Admin' || u.name.includes('Dimas') || u.name.includes('Ali')).length}
-          </div>
+          <div className="text-xl font-bold text-purple-700">{totalSuperAdmins}</div>
           <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.superAdmins')}</div>
         </div>
       </div>
