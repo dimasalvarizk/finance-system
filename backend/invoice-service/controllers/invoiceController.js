@@ -588,12 +588,18 @@ export const deletePayment = async (req, res, next) => {
 // @access  Protected (Super Admin / Dimas / Ali only)
 export const getAuditLogs = async (req, res, next) => {
   try {
-    const userName = req.user ? req.user.name : '';
-    // Very strict guard as per PRD
-    if (!userName.includes('Dimas') && !userName.includes('Ali') && userName !== 'Super Admin') {
+    const userNameLower = (req.user?.name || '').toLowerCase();
+    const userEmailLower = (req.user?.email || '').toLowerCase();
+    const isDimasOrAli =
+      userNameLower.includes('dimas') ||
+      userNameLower.includes('ali') ||
+      userEmailLower.includes('dimas') ||
+      userEmailLower.includes('ali');
+
+    if (!isDimasOrAli) {
       return res.status(403).json({
         success: false,
-        message: 'Access Denied: You do not have permission to view audit logs.'
+        message: 'Access Denied: Audit logs are strictly restricted to Dimas & Ali only.'
       });
     }
 

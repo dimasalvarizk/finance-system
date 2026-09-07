@@ -39,6 +39,15 @@ const Sidebar: React.FC = () => {
   const { locks } = useMaintenance();
   const { t } = useTranslation();
 
+  const isDimasOrAli = Boolean(
+    user && (
+      user.name?.toLowerCase().includes('dimas') ||
+      user.name?.toLowerCase().includes('ali') ||
+      user.email?.toLowerCase().includes('dimas') ||
+      user.email?.toLowerCase().includes('ali')
+    )
+  );
+
   const getInitials = (name?: string) => {
     if (!name) return 'EM';
     const parts = name.split(' ');
@@ -148,7 +157,7 @@ const Sidebar: React.FC = () => {
           path: '/super-admin/dashboard',
           aliasPaths: ['/super-admin', '/system-audit-hidden'],
           icon: ShieldCheck,
-          visible: user?.role === 'Super Admin' || user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin',
+          visible: isDimasOrAli,
         },
       ],
     },

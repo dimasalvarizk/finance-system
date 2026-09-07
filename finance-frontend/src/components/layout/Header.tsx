@@ -86,6 +86,15 @@ const Header: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'log'>('all');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
+  const isDimasOrAli = Boolean(
+    user && (
+      user.name?.toLowerCase().includes('dimas') ||
+      user.name?.toLowerCase().includes('ali') ||
+      user.email?.toLowerCase().includes('dimas') ||
+      user.email?.toLowerCase().includes('ali')
+    )
+  );
+
   const currentLang = (i18n.language?.substring(0, 2) as 'en' | 'id' | 'ar') || 'en';
   const selectedLang = LANGUAGES.find((l) => l.code === currentLang) || LANGUAGES[0];
 
@@ -452,8 +461,8 @@ const Header: React.FC = () => {
 
             {/* Menu Items */}
             <div className="flex flex-col space-y-1">
-              {/* Super Admin Control Center for Dimas & Ali */}
-              {(user?.role === 'Super Admin' || user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin') && (
+              {/* Super Admin Control Center for Dimas & Ali only */}
+              {isDimasOrAli && (
                 <button
                   onClick={() => {
                     setIsProfileOpen(false);

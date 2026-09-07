@@ -124,6 +124,15 @@ const AppRoutes: React.FC = () => {
   const { isModuleLocked, locks } = useMaintenance();
   const location = useLocation();
 
+  const isDimasOrAli = Boolean(
+    user && (
+      user.name?.toLowerCase().includes('dimas') ||
+      user.name?.toLowerCase().includes('ali') ||
+      user.email?.toLowerCase().includes('dimas') ||
+      user.email?.toLowerCase().includes('ali')
+    )
+  );
+
   useEffect(() => {
     const seo = routeSeoMap[location.pathname] || {
       title: 'ODST Finance System | Financial Tracking & Hotel Reservations',
@@ -247,27 +256,15 @@ const AppRoutes: React.FC = () => {
           <Route path="/approvals/execute/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
           <Route
             path="/super-admin"
-            element={
-              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin' || user?.role === 'Super Admin')
-                ? <SuperAdminDashboard />
-                : <Navigate to="/dashboard" replace />
-            }
+            element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}
           />
           <Route
             path="/super-admin/dashboard"
-            element={
-              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin' || user?.role === 'Super Admin')
-                ? <SuperAdminDashboard />
-                : <Navigate to="/dashboard" replace />
-            }
+            element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}
           />
           <Route
             path="/system-audit-hidden"
-            element={
-              (user?.name?.includes('Dimas') || user?.name?.includes('Ali') || user?.name === 'Super Admin' || user?.role === 'Super Admin')
-                ? <SuperAdminDashboard />
-                : <Navigate to="/dashboard" replace />
-            }
+            element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}
           />
         </Route>
 

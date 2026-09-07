@@ -22,12 +22,15 @@ const SuperAdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Exclusively for Dimas, Ali, or Super Admin role
-  const isSuperAdmin =
-    user?.role === 'Super Admin' ||
-    user?.name?.includes('Dimas') ||
-    user?.name?.includes('Ali') ||
-    user?.name === 'Super Admin';
+  // Exclusively for Dimas & Ali only
+  const isSuperAdmin = Boolean(
+    user && (
+      user.name?.toLowerCase().includes('dimas') ||
+      user.name?.toLowerCase().includes('ali') ||
+      user.email?.toLowerCase().includes('dimas') ||
+      user.email?.toLowerCase().includes('ali')
+    )
+  );
 
   const fetchUsers = async () => {
     try {

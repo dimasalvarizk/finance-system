@@ -62,14 +62,20 @@ export const isSuperAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ success: false, message: 'Not authenticated' });
   }
-  const isSuper = req.user.role === 'Super Admin' ||
-    (req.user.name && (req.user.name.includes('Dimas') || req.user.name.includes('Ali') || req.user.name === 'Super Admin')) ||
-    (req.user.email && (req.user.email.includes('admin') || req.user.email.includes('dimas') || req.user.email.includes('ali')));
 
-  if (!isSuper) {
+  const userNameLower = (req.user.name || '').toLowerCase();
+  const userEmailLower = (req.user.email || '').toLowerCase();
+
+  const isDimasOrAli =
+    userNameLower.includes('dimas') ||
+    userNameLower.includes('ali') ||
+    userEmailLower.includes('dimas') ||
+    userEmailLower.includes('ali');
+
+  if (!isDimasOrAli) {
     return res.status(403).json({
       success: false,
-      message: 'Access Denied: Super Admin access required (Exclusively for Dimas & Ali).'
+      message: 'Access Denied: Super Admin access is strictly restricted to Dimas & Ali only.'
     });
   }
   next();
