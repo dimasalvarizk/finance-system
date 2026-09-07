@@ -11,21 +11,20 @@ import {
 import { getTeamMembers } from '../../services/settingService';
 import { PermissionMatrixTab } from './components/PermissionMatrixTab';
 import { AuditLogsTab } from './components/AuditLogsTab';
-
+import SystemBackupTab from '../Settings/components/SystemBackupTab';
 import { isSuperAdminUser } from '../../utils/superAdminAuth';
 
 const SuperAdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'permissions' | 'audit_logs'>('permissions');
+  const [activeTab, setActiveTab] = useState<'permissions' | 'audit_logs' | 'data_backup'>('permissions');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   // Exclusively for Dimas & Ali only (Strict Email Verification)
   const isSuperAdmin = isSuperAdminUser(user);
-
 
   const fetchUsers = async () => {
     try {
@@ -119,10 +118,10 @@ const SuperAdminDashboard: React.FC = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center space-x-2 border-b border-slate-200">
+          <div className="flex items-center space-x-2 border-b border-slate-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab('permissions')}
-              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap ${
                 activeTab === 'permissions'
                   ? 'border-[#1d2857] text-[#1d2857]'
                   : 'border-transparent text-slate-400 hover:text-slate-700'
@@ -132,7 +131,7 @@ const SuperAdminDashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('audit_logs')}
-              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap ${
                 activeTab === 'audit_logs'
                   ? 'border-[#1d2857] text-[#1d2857]'
                   : 'border-transparent text-slate-400 hover:text-slate-700'
@@ -140,10 +139,20 @@ const SuperAdminDashboard: React.FC = () => {
             >
               {t('superAdmin.tabs.auditLogs')}
             </button>
+            <button
+              onClick={() => setActiveTab('data_backup')}
+              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap ${
+                activeTab === 'data_backup'
+                  ? 'border-[#1d2857] text-[#1d2857]'
+                  : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              {t('superAdmin.tabs.dataBackup')}
+            </button>
           </div>
 
           {/* Tab Content */}
-          {activeTab === 'permissions' ? (
+          {activeTab === 'permissions' && (
             loading ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 text-xs">
                 <div className="flex items-center justify-center space-x-2">
@@ -154,9 +163,11 @@ const SuperAdminDashboard: React.FC = () => {
             ) : (
               <PermissionMatrixTab users={users} onRefresh={fetchUsers} />
             )
-          ) : (
-            <AuditLogsTab />
           )}
+
+          {activeTab === 'audit_logs' && <AuditLogsTab />}
+
+          {activeTab === 'data_backup' && <SystemBackupTab />}
         </div>
       </main>
     </div>
@@ -164,3 +175,4 @@ const SuperAdminDashboard: React.FC = () => {
 };
 
 export default SuperAdminDashboard;
+

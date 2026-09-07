@@ -71,8 +71,8 @@ router.put('/company', restrictTo('Super Admin', 'Chief Accountant', 'Division D
 
 // 10. System Maintenance Broadcast & Module Locks
 router.get('/maintenance/status', getMaintenanceLocks);
-router.post('/maintenance/locks', updateMaintenanceLocks);
-router.post('/maintenance', triggerMaintenanceNotif);
+router.post('/maintenance/locks', isSuperAdmin, updateMaintenanceLocks);
+router.post('/maintenance', isSuperAdmin, triggerMaintenanceNotif);
 
 // 11. HB Management
 router.get('/hb/room-types', getRoomTypes);
@@ -85,12 +85,13 @@ router.post('/hb/meal-types', restrictTo('Super Admin', 'Chief Accountant', 'Div
 router.put('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), updateMealType);
 router.delete('/hb/meal-types/:id', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Madinah Branch Accountant'), deleteMealType);
 
-// 12. Full Database Backup Export (All 18 MySQL Tables)
-router.get('/backup/full', exportFullDatabaseBackup);
+// 12. Full Database Backup Export (All 18 MySQL Tables - Exclusively Dimas & Ali)
+router.get('/backup/full', isSuperAdmin, exportFullDatabaseBackup);
 
-// 13. Backup History
-router.get('/backup/history', getBackupHistory);
-router.post('/backup/history', logBackupHistory);
+// 13. Backup History (Exclusively Dimas & Ali)
+router.get('/backup/history', isSuperAdmin, getBackupHistory);
+router.post('/backup/history', isSuperAdmin, logBackupHistory);
+
 
 // 14. System Audit Logs Management (Exclusively Super Admin: Dimas & Ali)
 router.get('/audit-logs', isSuperAdmin, getAuditLogs);

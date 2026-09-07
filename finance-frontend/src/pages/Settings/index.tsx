@@ -14,28 +14,17 @@ import ServicesTab from './components/ServicesTab';
 import CompanyInfoTab from './components/CompanyInfoTab';
 import HBManagementTab from './components/HBManagementTab';
 
-import SystemBackupTab from './components/SystemBackupTab';
-
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const isSuperAdmin = user?.role === 'Super Admin';
   const isAdminOrDirector = ['Super Admin', 'Chief Accountant', 'Division Director'].includes(user?.role || '');
 
-  // Perizinan Khusus IT (Ali & Dimas) atau Super Admin (Mr. Emad Moustafa)
-  const userNameLower = (user?.name || '').toLowerCase();
-  const userEmailLower = (user?.email || '').toLowerCase();
-  const isIT = userNameLower.includes('ali') || 
-               userNameLower.includes('dimas') || 
-               userEmailLower.includes('ali') || 
-               userEmailLower.includes('dimas');
-
-  const isAuthorizedBackup = isSuperAdmin || isIT;
-
   const [activeTab, setActiveTab] = useState(
-    isSuperAdmin || isAuthorizedBackup ? 'System Backup' :
+    isSuperAdmin ? 'Manage Team' :
     isAdminOrDirector ? 'Branch / Office' : 'Edit Profile'
   );
+
 
   return (
     <div className="flex min-h-screen w-full bg-[#f4f6fa] select-none font-inter">
@@ -62,7 +51,6 @@ const Settings: React.FC = () => {
           {/* Navigation Tabs bar */}
           <div className="border-b border-[#e2e8f0] flex items-center w-full pt-1 flex-shrink-0 text-[13px] overflow-x-auto no-scrollbar scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {[
-              ...(isAuthorizedBackup ? [{ id: 'System Backup', label: t('settings.dataBackup') }] : []),
               ...(isSuperAdmin ? [{ id: 'Manage Team', label: t('settings.team') }] : []),
               ...(isAdminOrDirector ? [{ id: 'Branch / Office', label: t('settings.branches') }] : []),
               { id: 'Notifications', label: t('settings.notifications') },
@@ -95,8 +83,8 @@ const Settings: React.FC = () => {
 
           {/* Render Tab Contents */}
           <div className="pt-2">
-            {activeTab === 'System Backup' && <SystemBackupTab />}
             {activeTab === 'Manage Team' && <ManageTeamTab />}
+
             {activeTab === 'Branch / Office' && <BranchOfficeTab />}
             {activeTab === 'Notifications' && <NotificationsTab />}
             {activeTab === 'Edit Profile' && <EditProfileTab />}
