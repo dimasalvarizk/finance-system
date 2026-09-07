@@ -184,6 +184,7 @@ export const logBackupHistory = async (data: {
   exportType: string;
   filename: string;
   recordCount?: number;
+  exportedBy?: string;
   backupPayload?: any;
 }) => {
   const response = await settingAPI.post('/backup/history', data);

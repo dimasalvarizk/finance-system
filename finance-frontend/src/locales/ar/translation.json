@@ -1125,7 +1125,8 @@
       "permissionMatrix": "مصفوفة الصلاحيات",
       "users": "مستخدم",
       "auditLogs": "سجلات تدقيق النظام",
-      "dataBackup": "النسخ الاحتياطي والصيانة"
+      "dataBackup": "النسخ الاحتياطي للبيانات",
+      "systemMaintenance": "صيانة النظام"
     },
     "stats": {
       "totalUsers": "إجمالي المستخدمين",

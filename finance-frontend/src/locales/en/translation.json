@@ -870,7 +870,7 @@
     "cloudBackupNote": "* Automatic cloud backups run continuously on your active production database server.",
     "adminItOnly": "System Admin & IT Only",
     "accessRestricted": "Access Restricted",
-    "backupAccessRestrictedDesc": "This system backup section is strictly restricted. Only Super Admin (Mr. Emad Moustafa) and IT Administrators (Ali & Dimas) are authorized to access and download full database backups.",
+    "backupAccessRestrictedDesc": "This system backup section is strictly restricted. Only IT Administrators (Dimas & Ali) are authorized to access and download full database backups.",
     "exportCsvDesc": "Download individual datasets compatible with Microsoft Excel & Google Sheets",
     "exportInvoicesDesc": "All financial confirmation entries",
     "exportReservationsDesc": "Hotel reservation & room data",
@@ -1124,7 +1124,8 @@
       "permissionMatrix": "Permission Matrix",
       "users": "Users",
       "auditLogs": "System Audit Logs",
-      "dataBackup": "Data Backup & Maintenance"
+      "dataBackup": "Data Backup",
+      "systemMaintenance": "System Maintenance"
     },
     "stats": {
       "totalUsers": "Total Users",

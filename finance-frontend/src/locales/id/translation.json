@@ -870,7 +870,7 @@
     "cloudBackupNote": "* Cadangan cloud otomatis berjalan secara berkelanjutan pada server basis data produksi aktif Anda.",
     "adminItOnly": "Khusus Admin Sistem & IT",
     "accessRestricted": "Akses Dibatasi",
-    "backupAccessRestrictedDesc": "Bagian pencadangan sistem ini dibatasi secara ketat. Hanya Super Admin (Mr. Emad Moustafa) dan Administrator IT (Ali & Dimas) yang berwenang untuk mengakses dan mengunduh cadangan lengkap basis data.",
+    "backupAccessRestrictedDesc": "Bagian pencadangan sistem ini dibatasi secara ketat. Hanya Administrator IT (Dimas & Ali) yang berwenang untuk mengakses dan mengunduh cadangan lengkap basis data.",
     "exportCsvDesc": "Unduh dataset terpisah yang kompatibel dengan Microsoft Excel & Google Sheets",
     "exportInvoicesDesc": "Semua entri konfirmasi keuangan",
     "exportReservationsDesc": "Data reservasi & kamar hotel",
@@ -1124,7 +1124,8 @@
       "permissionMatrix": "Matriks Izin",
       "users": "Pengguna",
       "auditLogs": "Log Audit Sistem",
-      "dataBackup": "Pencadangan Data & Pemeliharaan"
+      "dataBackup": "Pencadangan Data",
+      "systemMaintenance": "Pemeliharaan Sistem"
     },
     "stats": {
       "totalUsers": "Total Pengguna",

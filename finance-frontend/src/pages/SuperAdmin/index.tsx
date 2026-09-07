@@ -11,14 +11,15 @@ import {
 import { getTeamMembers } from '../../services/settingService';
 import { PermissionMatrixTab } from './components/PermissionMatrixTab';
 import { AuditLogsTab } from './components/AuditLogsTab';
-import SystemBackupTab from '../Settings/components/SystemBackupTab';
+import { DataBackupTab } from './components/DataBackupTab';
+import { SystemMaintenanceTab } from './components/SystemMaintenanceTab';
 import { isSuperAdminUser } from '../../utils/superAdminAuth';
 
 const SuperAdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'permissions' | 'audit_logs' | 'data_backup'>('permissions');
+  const [activeTab, setActiveTab] = useState<'permissions' | 'audit_logs' | 'data_backup' | 'maintenance'>('permissions');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -151,6 +152,16 @@ const SuperAdminDashboard: React.FC = () => {
             >
               {t('superAdmin.tabs.dataBackup')}
             </button>
+            <button
+              onClick={() => setActiveTab('maintenance')}
+              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap ${
+                activeTab === 'maintenance'
+                  ? 'border-[#1d2857] text-[#1d2857]'
+                  : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              {t('superAdmin.tabs.systemMaintenance')}
+            </button>
           </div>
 
           {/* Tab Content */}
@@ -169,7 +180,9 @@ const SuperAdminDashboard: React.FC = () => {
 
           {activeTab === 'audit_logs' && <AuditLogsTab />}
 
-          {activeTab === 'data_backup' && <SystemBackupTab />}
+          {activeTab === 'data_backup' && <DataBackupTab />}
+
+          {activeTab === 'maintenance' && <SystemMaintenanceTab />}
         </div>
       </main>
     </div>
