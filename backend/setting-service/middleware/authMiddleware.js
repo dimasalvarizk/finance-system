@@ -58,33 +58,24 @@ export const restrictTo = (...roles) => {
   };
 };
 
-const SUPER_ADMIN_EMAILS = [
+const ALLOWED_SUPER_ADMIN_EMAILS = [
   'alvarizkidimas@gmail.com',
-  'ali@odst.id',
-  'dimas@odst.id',
-  'dimasalvarizk@gmail.com'
+  'ali@odst.id'
 ];
 
 export const isSuperAdmin = (req, res, next) => {
-  if (!req.user) {
+  if (!req.user || !req.user.email) {
     return res.status(401).json({ success: false, message: 'Not authenticated' });
   }
 
   const userEmail = (req.user.email || '').toLowerCase().trim();
 
-  // Strict email whitelist check (prevents false matches like 'khalid')
-  const isAuthorizedSuperAdmin =
-    SUPER_ADMIN_EMAILS.includes(userEmail) ||
-    userEmail === 'alvarizkidimas@gmail.com' ||
-    userEmail === 'ali@odst.id' ||
-    userEmail.startsWith('alvarizkidimas@') ||
-    userEmail.startsWith('ali@odst.id') ||
-    userEmail.startsWith('dimas@');
-
-  if (!isAuthorizedSuperAdmin) {
+  // EXCLUSIVELY and ONLY restricted to alvarizkidimas@gmail.com and ali@odst.id
+  // Other Super Admins or roles are strictly denied.
+  if (!ALLOWED_SUPER_ADMIN_EMAILS.includes(userEmail)) {
     return res.status(403).json({
       success: false,
-      message: 'Access Denied: Super Admin Control Center is strictly restricted to Dimas (alvarizkidimas@gmail.com) & Ali (ali@odst.id).'
+      message: 'Access Denied: Super Admin Control Center is exclusively restricted to alvarizkidimas@gmail.com and ali@odst.id.'
     });
   }
   next();
