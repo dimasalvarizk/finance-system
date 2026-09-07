@@ -39,11 +39,12 @@ export const AuditLogsTab: React.FC = () => {
       setLoading(true);
       const data = await getAuditLogs();
       setLogs(data || []);
+      setActionFeedback(null);
     } catch (err: any) {
       console.error('Failed to load audit logs:', err);
       setActionFeedback({
         type: 'error',
-        message: t('superAdmin.feedback.logsLoadFailed')
+        message: err?.response?.data?.message || t('superAdmin.feedback.logsLoadFailed')
       });
     } finally {
       setLoading(false);

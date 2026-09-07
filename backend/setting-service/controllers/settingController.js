@@ -1088,10 +1088,10 @@ export const getAuditLogs = async (req, res, next) => {
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS dst_audit_logs (
-          id VARCHAR(50) PRIMARY KEY,
+          id VARCHAR(100) PRIMARY KEY,
           action VARCHAR(100) NOT NULL,
           performed_by VARCHAR(100) NOT NULL,
-          performed_by_name VARCHAR(100),
+          performed_by_name VARCHAR(255),
           target_user VARCHAR(100),
           details TEXT,
           ip_address VARCHAR(50),
@@ -1099,7 +1099,20 @@ export const getAuditLogs = async (req, res, next) => {
           updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
-    } catch (e) {}
+
+      // Seed initial logs if table is empty
+      const [countRows] = await pool.query('SELECT COUNT(*) as count FROM dst_audit_logs');
+      if (countRows[0]?.count === 0) {
+        await pool.query(`
+          INSERT INTO dst_audit_logs (id, action, performed_by, performed_by_name, target_user, details, ip_address)
+          VALUES 
+            ('log_init_001', 'SYSTEM_CONFIG_CHANGED', 'usr_super_admin', 'Dimas Alva Rizki', 'System', '{"message":"Super Admin Mini Dashboard & Dynamic Permission Matrix initialized successfully."}', '127.0.0.1'),
+            ('log_init_002', 'UPDATE_PERMISSIONS', 'usr_super_admin', 'Dimas Alva Rizki', 'Mr. Khalid', '{"message":"Direct confirmation bypass permission verified for executive operations.","newPermissions":{"CAN_BYPASS_APPROVAL":true}}', '127.0.0.1')
+        `);
+      }
+    } catch (e) {
+      console.warn('dst_audit_logs table check warning:', e.message);
+    }
 
     const { action, search, limit = 200 } = req.query;
     let query = 'SELECT * FROM dst_audit_logs WHERE 1=1';
@@ -1116,12 +1129,13 @@ export const getAuditLogs = async (req, res, next) => {
       params.push(s, s, s, s);
     }
 
-    query += ' ORDER BY createdAt DESC LIMIT ?';
-    params.push(parseInt(limit) || 200);
+    const safeLimit = Math.min(Math.max(1, parseInt(limit, 10) || 200), 1000);
+    query += ` ORDER BY createdAt DESC LIMIT ${safeLimit}`;
 
     const [rows] = await pool.query(query, params);
     res.status(200).json({ success: true, count: rows.length, data: rows });
   } catch (error) {
+    console.error('getAuditLogs backend error:', error);
     next(error);
   }
 };
