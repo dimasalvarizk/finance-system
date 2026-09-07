@@ -16,6 +16,7 @@ const Settings = lazy(() => import('../pages/Settings'));
 const HotelReservations = lazy(() => import('../pages/HotelReservations'));
 const AuditLog = lazy(() => import('../pages/AuditLog'));
 const InternalPlaceholderPage = lazy(() => import('../pages/Internal'));
+const MyExpenses = lazy(() => import('../pages/MyExpenses'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#f4f6fa]">
@@ -181,9 +182,9 @@ const AppRoutes: React.FC = () => {
               )
             }
           />
-          <Route path="/my-expenses" element={<InternalPlaceholderPage />} />
-          <Route path="/internal/expenses" element={<InternalPlaceholderPage />} />
-          <Route path="/internal/my-expenses" element={<InternalPlaceholderPage />} />
+          <Route path="/my-expenses" element={<MyExpenses />} />
+          <Route path="/internal/expenses" element={<MyExpenses />} />
+          <Route path="/internal/my-expenses" element={<MyExpenses />} />
           <Route path="/submit-expense" element={<InternalPlaceholderPage />} />
           <Route path="/internal/submit-expense" element={<InternalPlaceholderPage />} />
           <Route path="/approvals" element={<InternalPlaceholderPage />} />
