@@ -116,6 +116,7 @@ const Sidebar: React.FC = () => {
           aliasPaths: ['/internal/expenses', '/internal/my-expenses'],
           icon: Wallet,
           visible: true,
+          isLocked: locks.fullSystem || locks.myExpenses,
         },
         {
           id: 'submit-expense',
@@ -124,6 +125,7 @@ const Sidebar: React.FC = () => {
           aliasPaths: ['/internal/submit-expense'],
           icon: FilePlus,
           visible: true,
+          isLocked: locks.fullSystem || locks.submitExpense,
         },
         {
           id: 'approvals',
@@ -132,6 +134,7 @@ const Sidebar: React.FC = () => {
           aliasPaths: ['/internal/approvals'],
           icon: CheckSquare,
           visible: true,
+          isLocked: locks.fullSystem || locks.approvals,
         },
       ] : [],
     },

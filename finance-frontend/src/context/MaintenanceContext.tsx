@@ -6,7 +6,7 @@ interface MaintenanceContextType {
   locks: MaintenanceLockState;
   loading: boolean;
   isITAdmin: boolean;
-  isModuleLocked: (moduleKey: 'dashboard' | 'invoices' | 'requests' | 'companies' | 'hotelReservations' | 'settings' | 'fullSystem') => boolean;
+  isModuleLocked: (moduleKey: 'dashboard' | 'invoices' | 'requests' | 'companies' | 'hotelReservations' | 'settings' | 'fullSystem' | 'myExpenses' | 'submitExpense' | 'approvals') => boolean;
   refreshLocks: () => Promise<void>;
   toggleLock: (moduleKey: keyof MaintenanceLockState, extra?: { message?: string; estimatedTime?: string }) => Promise<void>;
 }
@@ -19,6 +19,9 @@ const DEFAULT_STATE: MaintenanceLockState = {
   companies: false,
   hotelReservations: false,
   settings: false,
+  myExpenses: false,
+  submitExpense: false,
+  approvals: false,
   message: 'Modul ini sedang dalam pemeliharaan berkala untuk peningkatan performa sistem.',
   estimatedTime: '',
   lockedBy: '',
@@ -60,7 +63,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => clearInterval(interval);
   }, [fetchLocks]);
 
-  const isModuleLocked = useCallback((moduleKey: 'dashboard' | 'invoices' | 'requests' | 'companies' | 'hotelReservations' | 'settings' | 'fullSystem'): boolean => {
+  const isModuleLocked = useCallback((moduleKey: 'dashboard' | 'invoices' | 'requests' | 'companies' | 'hotelReservations' | 'settings' | 'fullSystem' | 'myExpenses' | 'submitExpense' | 'approvals'): boolean => {
     // IT Administrators (Dimas, Ali, Super Admin) always bypass lock
     if (isITAdmin) return false;
 
@@ -71,6 +74,9 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (moduleKey === 'companies' && locks.companies) return true;
     if (moduleKey === 'hotelReservations' && locks.hotelReservations) return true;
     if (moduleKey === 'settings' && locks.settings) return true;
+    if (moduleKey === 'myExpenses' && locks.myExpenses) return true;
+    if (moduleKey === 'submitExpense' && locks.submitExpense) return true;
+    if (moduleKey === 'approvals' && locks.approvals) return true;
 
     return false;
   }, [locks, isITAdmin]);

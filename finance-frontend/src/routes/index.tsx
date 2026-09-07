@@ -224,33 +224,303 @@ const AppRoutes: React.FC = () => {
               )
             }
           />
-          <Route path="/my-expenses" element={isInternalEnabled ? <MyExpenses /> : <InternalPlaceholderPage />} />
-          <Route path="/internal/expenses" element={isInternalEnabled ? <MyExpenses /> : <InternalPlaceholderPage />} />
-          <Route path="/internal/my-expenses" element={isInternalEnabled ? <MyExpenses /> : <InternalPlaceholderPage />} />
-          <Route path="/submit-expense" element={isInternalEnabled ? <SubmitExpense /> : <InternalPlaceholderPage />} />
-          <Route path="/internal/submit-expense" element={isInternalEnabled ? <SubmitExpense /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals" element={isInternalEnabled ? <Approvals /> : <InternalPlaceholderPage />} />
-          <Route path="/internal/approvals" element={isInternalEnabled ? <Approvals /> : <InternalPlaceholderPage />} />
-          <Route path="/expense-approval" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
-          <Route path="/expense-approval/:id" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/action" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/action/:id" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
-          <Route path="/internal/approvals/action/:id" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
-          <Route path="/initiate-reimbursement" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
-          <Route path="/initiate-reimbursement/:id" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/reimburse" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/reimburse/:id" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
-          <Route path="/internal/approvals/reimburse/:id" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
-          <Route path="/setup-beneficiary" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
-          <Route path="/setup-beneficiary/:id" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/beneficiary" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/beneficiary/:id" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
-          <Route path="/pre-execution-payment" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
-          <Route path="/pre-execution-payment/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
-          <Route path="/pre-execution-review" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
-          <Route path="/pre-execution-review/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/execute" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
-          <Route path="/approvals/execute/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
+          <Route
+            path="/my-expenses"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('myExpenses') ? (
+                <MaintenanceScreen moduleName="Modul Pengeluaran Saya (My Expenses)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <MyExpenses />
+              )
+            }
+          />
+          <Route
+            path="/internal/expenses"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('myExpenses') ? (
+                <MaintenanceScreen moduleName="Modul Pengeluaran Saya (My Expenses)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <MyExpenses />
+              )
+            }
+          />
+          <Route
+            path="/internal/my-expenses"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('myExpenses') ? (
+                <MaintenanceScreen moduleName="Modul Pengeluaran Saya (My Expenses)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <MyExpenses />
+              )
+            }
+          />
+          <Route
+            path="/submit-expense"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('submitExpense') ? (
+                <MaintenanceScreen moduleName="Modul Ajukan Pengeluaran (Submit Expense)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <SubmitExpense />
+              )
+            }
+          />
+          <Route
+            path="/internal/submit-expense"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('submitExpense') ? (
+                <MaintenanceScreen moduleName="Modul Ajukan Pengeluaran (Submit Expense)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <SubmitExpense />
+              )
+            }
+          />
+          <Route
+            path="/approvals"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Persetujuan & Pembayaran Klaim (Approvals)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <Approvals />
+              )
+            }
+          />
+          <Route
+            path="/internal/approvals"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Persetujuan & Pembayaran Klaim (Approvals)" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <Approvals />
+              )
+            }
+          />
+          <Route
+            path="/expense-approval"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Audit & Persetujuan Klaim" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <ExpenseApproval />
+              )
+            }
+          />
+          <Route
+            path="/expense-approval/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Audit & Persetujuan Klaim" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <ExpenseApproval />
+              )
+            }
+          />
+          <Route
+            path="/approvals/action"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Audit & Persetujuan Klaim" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <ExpenseApproval />
+              )
+            }
+          />
+          <Route
+            path="/approvals/action/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Audit & Persetujuan Klaim" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <ExpenseApproval />
+              )
+            }
+          />
+          <Route
+            path="/internal/approvals/action/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Audit & Persetujuan Klaim" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <ExpenseApproval />
+              )
+            }
+          />
+          <Route
+            path="/initiate-reimbursement"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Eksekusi Reimbursement" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <InitiateReimbursement />
+              )
+            }
+          />
+          <Route
+            path="/initiate-reimbursement/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Eksekusi Reimbursement" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <InitiateReimbursement />
+              )
+            }
+          />
+          <Route
+            path="/approvals/reimburse"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Eksekusi Reimbursement" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <InitiateReimbursement />
+              )
+            }
+          />
+          <Route
+            path="/approvals/reimburse/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Eksekusi Reimbursement" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <InitiateReimbursement />
+              )
+            }
+          />
+          <Route
+            path="/internal/approvals/reimburse/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Eksekusi Reimbursement" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <InitiateReimbursement />
+              )
+            }
+          />
+          <Route
+            path="/setup-beneficiary"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Data Rekening Karyawan" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <SetupBeneficiary />
+              )
+            }
+          />
+          <Route
+            path="/setup-beneficiary/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Data Rekening Karyawan" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <SetupBeneficiary />
+              )
+            }
+          />
+          <Route
+            path="/approvals/beneficiary"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Data Rekening Karyawan" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <SetupBeneficiary />
+              )
+            }
+          />
+          <Route
+            path="/approvals/beneficiary/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Data Rekening Karyawan" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <SetupBeneficiary />
+              )
+            }
+          />
+          <Route
+            path="/pre-execution-payment"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Pembayaran Bank" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <PreExecutionPayment />
+              )
+            }
+          />
+          <Route
+            path="/pre-execution-payment/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Pembayaran Bank" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <PreExecutionPayment />
+              )
+            }
+          />
+          <Route
+            path="/pre-execution-review"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Pembayaran Bank" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <PreExecutionPayment />
+              )
+            }
+          />
+          <Route
+            path="/pre-execution-review/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Pembayaran Bank" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <PreExecutionPayment />
+              )
+            }
+          />
+          <Route
+            path="/approvals/execute"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Pembayaran Bank" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <PreExecutionPayment />
+              )
+            }
+          />
+          <Route
+            path="/approvals/execute/:id"
+            element={
+              !isInternalEnabled ? <InternalPlaceholderPage /> :
+              isModuleLocked('approvals') ? (
+                <MaintenanceScreen moduleName="Modul Pembayaran Bank" message={locks.message} estimatedTime={locks.estimatedTime} />
+              ) : (
+                <PreExecutionPayment />
+              )
+            }
+          />
           <Route
             path="/super-admin"
             element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}

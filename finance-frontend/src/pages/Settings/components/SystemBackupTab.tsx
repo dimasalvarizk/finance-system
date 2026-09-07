@@ -171,6 +171,12 @@ const SystemBackupTab: React.FC = () => {
             await toggleLock('requests', { message: broadcastMessage, estimatedTime: broadcastSchedule });
           } else if (broadcastScope === 'Companies') {
             await toggleLock('companies', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'My Expenses') {
+            await toggleLock('myExpenses', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'Submit Expense') {
+            await toggleLock('submitExpense', { message: broadcastMessage, estimatedTime: broadcastSchedule });
+          } else if (broadcastScope === 'Approvals' || broadcastScope === 'Expense Approvals') {
+            await toggleLock('approvals', { message: broadcastMessage, estimatedTime: broadcastSchedule });
           } else if (broadcastScope === 'Settings' || broadcastScope === 'Settings & DB') {
             await toggleLock('settings', { message: broadcastMessage, estimatedTime: broadcastSchedule });
           } else if (broadcastScope === 'All System') {
@@ -668,7 +674,97 @@ const SystemBackupTab: React.FC = () => {
             </button>
           </div>
 
-          {/* Card 6: Settings */}
+          {/* Card 6: My Expenses (Internal) */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.myExpenses 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">{t('nav.myExpenses')}</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.myExpenses ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.myExpenses ? t('settings.statusLocked') : t('settings.statusActive')}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.myExpenses ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('myExpenses', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.myExpenses
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.myExpenses ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
+            </button>
+          </div>
+
+          {/* Card 7: Submit Expense (Internal) */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.submitExpense 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">{t('nav.submitExpense')}</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.submitExpense ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.submitExpense ? t('settings.statusLocked') : t('settings.statusActive')}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.submitExpense ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('submitExpense', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.submitExpense
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.submitExpense ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
+            </button>
+          </div>
+
+          {/* Card 8: Approvals (Internal) */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            locks.approvals 
+              ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-900">{t('nav.approvals')}</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                locks.approvals ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {locks.approvals ? t('settings.statusLocked') : t('settings.statusActive')}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              {locks.approvals ? t('settings.pageClosedForUsers') : t('settings.pageNormalForUsers')}
+            </p>
+            <button
+              type="button"
+              onClick={() => toggleLock('approvals', { message: broadcastMessage || locks.message, estimatedTime: broadcastSchedule || locks.estimatedTime })}
+              className={`w-full py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                locks.approvals
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+              }`}
+            >
+              {locks.approvals ? t('settings.unlockModuleBtn') : t('settings.lockModuleBtn')}
+            </button>
+          </div>
+
+          {/* Card 9: Settings */}
           <div className={`p-4 rounded-xl border transition-all ${
             locks.settings 
               ? 'bg-rose-50/70 border-rose-300 shadow-sm' 
@@ -698,7 +794,7 @@ const SystemBackupTab: React.FC = () => {
             </button>
           </div>
 
-          {/* Card 7: Full System Lock */}
+          {/* Card 10: Full System Lock */}
           <div className={`p-4 rounded-xl border transition-all ${
             locks.fullSystem 
               ? 'bg-rose-100 border-rose-400 shadow-sm' 
@@ -811,6 +907,18 @@ const SystemBackupTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => applyTemplate(
+                    'Approvals',
+                    'Normal',
+                    'Besok pukul 22:00 - 22:30 WIB',
+                    'Pembaruan modul alur pengajuan & persetujuan klaim pengeluaran internal (Internal Expenses & Approvals).'
+                  )}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer"
+                >
+                  Internal Reimbursement & Approvals
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(
                     'All System',
                     'Normal',
                     'Hari Minggu pukul 01:00 - 02:00 WIB',
@@ -836,6 +944,9 @@ const SystemBackupTab: React.FC = () => {
                   { id: 'Requests', label: 'Requests' },
                   { id: 'Companies', label: 'Companies' },
                   { id: 'Hotel Reservations', label: 'Hotel Reservations' },
+                  { id: 'My Expenses', label: 'My Expenses' },
+                  { id: 'Submit Expense', label: 'Submit Expense' },
+                  { id: 'Approvals', label: 'Approvals' },
                   { id: 'Settings', label: 'Settings' },
                 ].map((s) => (
                   <button

@@ -215,6 +215,9 @@ export interface MaintenanceLockState {
   companies: boolean;
   hotelReservations: boolean;
   settings: boolean;
+  myExpenses?: boolean;
+  submitExpense?: boolean;
+  approvals?: boolean;
   message?: string;
   estimatedTime?: string;
   lockedBy?: string;
