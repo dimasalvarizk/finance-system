@@ -1,81 +1,94 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import { Wallet, FilePlus, CheckSquare, Sparkles, Clock } from 'lucide-react';
 
 interface ModuleConfig {
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  defaultTitle: string;
+  subtitleKey: string;
+  defaultSubtitle: string;
   category: string;
   icon: React.ElementType;
-  description: string;
 }
 
 const moduleConfigMap: Record<string, ModuleConfig> = {
   '/my-expenses': {
-    title: 'My Expenses',
-    subtitle: 'Track and manage your submitted reimbursement and expense reports',
+    titleKey: 'expenses.title',
+    defaultTitle: 'My Expenses',
+    subtitleKey: 'expenses.subtitle',
+    defaultSubtitle: 'Track and manage your submitted reimbursement and expense reports',
     category: 'INTERNAL EXPENSES',
-    icon: Wallet,
-    description: 'Modul pengelolaan riwayat pengeluaran dan klaim internal sedang dalam tahap pengembangan aktif.'
+    icon: Wallet
   },
   '/internal/expenses': {
-    title: 'My Expenses',
-    subtitle: 'Track and manage your submitted reimbursement and expense reports',
+    titleKey: 'expenses.title',
+    defaultTitle: 'My Expenses',
+    subtitleKey: 'expenses.subtitle',
+    defaultSubtitle: 'Track and manage your submitted reimbursement and expense reports',
     category: 'INTERNAL EXPENSES',
-    icon: Wallet,
-    description: 'Modul pengelolaan riwayat pengeluaran dan klaim internal sedang dalam tahap pengembangan aktif.'
+    icon: Wallet
   },
   '/internal/my-expenses': {
-    title: 'My Expenses',
-    subtitle: 'Track and manage your submitted reimbursement and expense reports',
+    titleKey: 'expenses.title',
+    defaultTitle: 'My Expenses',
+    subtitleKey: 'expenses.subtitle',
+    defaultSubtitle: 'Track and manage your submitted reimbursement and expense reports',
     category: 'INTERNAL EXPENSES',
-    icon: Wallet,
-    description: 'Modul pengelolaan riwayat pengeluaran dan klaim internal sedang dalam tahap pengembangan aktif.'
+    icon: Wallet
   },
   '/submit-expense': {
-    title: 'Submit Expense',
-    subtitle: 'Create a new internal operational expense claim with receipts',
+    titleKey: 'submitExpense.title',
+    defaultTitle: 'Submit Expense',
+    subtitleKey: 'submitExpense.subtitle',
+    defaultSubtitle: 'Create a new internal operational expense claim with receipts',
     category: 'INTERNAL EXPENSES',
-    icon: FilePlus,
-    description: 'Modul formulir pengajuan bukti bayar dan klaim pengeluaran baru sedang dalam tahap pengembangan aktif.'
+    icon: FilePlus
   },
   '/internal/submit-expense': {
-    title: 'Submit Expense',
-    subtitle: 'Create a new internal operational expense claim with receipts',
+    titleKey: 'submitExpense.title',
+    defaultTitle: 'Submit Expense',
+    subtitleKey: 'submitExpense.subtitle',
+    defaultSubtitle: 'Create a new internal operational expense claim with receipts',
     category: 'INTERNAL EXPENSES',
-    icon: FilePlus,
-    description: 'Modul formulir pengajuan bukti bayar dan klaim pengeluaran baru sedang dalam tahap pengembangan aktif.'
+    icon: FilePlus
   },
   '/approvals': {
-    title: 'Approvals',
-    subtitle: 'Review, approve, or reject pending internal team expense requests',
+    titleKey: 'approvals.title',
+    defaultTitle: 'Approvals',
+    subtitleKey: 'approvals.subtitle',
+    defaultSubtitle: 'Review, approve, or reject pending internal team expense requests',
     category: 'INTERNAL EXPENSES',
-    icon: CheckSquare,
-    description: 'Modul persetujuan berjenjang untuk pengeluaran tim internal sedang dalam tahap pengembangan aktif.'
+    icon: CheckSquare
   },
   '/internal/approvals': {
-    title: 'Approvals',
-    subtitle: 'Review, approve, or reject pending internal team expense requests',
+    titleKey: 'approvals.title',
+    defaultTitle: 'Approvals',
+    subtitleKey: 'approvals.subtitle',
+    defaultSubtitle: 'Review, approve, or reject pending internal team expense requests',
     category: 'INTERNAL EXPENSES',
-    icon: CheckSquare,
-    description: 'Modul persetujuan berjenjang untuk pengeluaran tim internal sedang dalam tahap pengembangan aktif.'
+    icon: CheckSquare
   }
 };
 
 const InternalPlaceholderPage: React.FC = () => {
   const location = useLocation();
+  const { t } = useTranslation();
 
   const config = moduleConfigMap[location.pathname] || {
-    title: 'Internal Module',
-    subtitle: 'Internal workflow and management module',
+    titleKey: 'nav.internal',
+    defaultTitle: 'Internal Module',
+    subtitleKey: 'nav.internal',
+    defaultSubtitle: 'Internal workflow and management module',
     category: 'INTERNAL',
-    icon: Sparkles,
-    description: 'Modul ini sedang dalam tahap pengembangan.'
+    icon: Sparkles
   };
 
   const Icon = config.icon;
+  const title = t(config.titleKey) || config.defaultTitle;
+  const subtitle = t(config.subtitleKey) || config.defaultSubtitle;
 
   return (
     <div className="flex min-h-screen w-full bg-[#f4f6fa] select-none font-inter">
@@ -92,13 +105,13 @@ const InternalPlaceholderPage: React.FC = () => {
                   {config.category}
                 </span>
                 <span className="text-[11px] font-semibold text-slate-400">/</span>
-                <span className="text-[11px] font-semibold text-slate-500">Coming Soon</span>
+                <span className="text-[11px] font-semibold text-slate-500">{t('common.inProgress') || 'In Progress'}</span>
               </div>
               <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
-                {config.title}
+                {title}
               </h1>
               <p className="text-[13px] text-[#64748b] font-medium">
-                {config.subtitle}
+                {subtitle}
               </p>
             </div>
           </div>
@@ -112,13 +125,13 @@ const InternalPlaceholderPage: React.FC = () => {
             <div className="max-w-md space-y-2">
               <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[11.5px] font-bold border border-blue-200">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Modul Sedang Dikembangkan</span>
+                <span>{title}</span>
               </div>
               <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-                Fitur {config.title} Segera Hadir
+                {title}
               </h2>
               <p className="text-[13px] text-slate-500 leading-relaxed font-normal">
-                {config.description} Halaman ini disiapkan sebagai navigasi menu internal untuk rilis mendatang.
+                {subtitle}
               </p>
             </div>
 
@@ -133,3 +146,4 @@ const InternalPlaceholderPage: React.FC = () => {
 };
 
 export default InternalPlaceholderPage;
+

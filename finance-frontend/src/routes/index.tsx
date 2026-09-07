@@ -15,9 +15,13 @@ const Companies = lazy(() => import('../pages/Companies'));
 const Settings = lazy(() => import('../pages/Settings'));
 const HotelReservations = lazy(() => import('../pages/HotelReservations'));
 const AuditLog = lazy(() => import('../pages/AuditLog'));
-const InternalPlaceholderPage = lazy(() => import('../pages/Internal'));
 const MyExpenses = lazy(() => import('../pages/MyExpenses'));
 const SubmitExpense = lazy(() => import('../pages/SubmitExpense'));
+const Approvals = lazy(() => import('../pages/Approvals'));
+const ExpenseApproval = lazy(() => import('../pages/ExpenseApproval'));
+const InitiateReimbursement = lazy(() => import('../pages/InitiateReimbursement'));
+const SetupBeneficiary = lazy(() => import('../pages/SetupBeneficiary'));
+const PreExecutionPayment = lazy(() => import('../pages/PreExecutionPayment'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#f4f6fa]">
@@ -77,6 +81,34 @@ const routeSeoMap: Record<string, { title: string; desc: string }> = {
   '/internal/approvals': {
     title: 'Internal Approvals - ODST Finance System',
     desc: 'Review and approve internal operational expense requests.'
+  },
+  '/expense-approval': {
+    title: 'Expense Approval Action - ODST Finance System',
+    desc: 'Review and process pending reimbursement claim and audit receipt documents.'
+  },
+  '/approvals/action': {
+    title: 'Expense Approval Action - ODST Finance System',
+    desc: 'Review and process pending reimbursement claim and audit receipt documents.'
+  },
+  '/initiate-reimbursement': {
+    title: 'Initiate Bank Reimbursement - ODST Finance System',
+    desc: 'Confirm claim details and initiate immediate automatic payout through integrated bank API.'
+  },
+  '/approvals/reimburse': {
+    title: 'Initiate Bank Reimbursement - ODST Finance System',
+    desc: 'Confirm claim details and initiate immediate automatic payout through integrated bank API.'
+  },
+  '/setup-beneficiary': {
+    title: 'Setup Beneficiary Account - ODST Finance System',
+    desc: 'Provide and verify destination banking credentials and IBAN for instant expense reimbursement settlement.'
+  },
+  '/pre-execution-payment': {
+    title: 'Pre-Execution Payment Review - ODST Finance System',
+    desc: 'Perform dual-factor authorization and execute host-to-host direct bank settlement.'
+  },
+  '/pre-execution-review': {
+    title: 'Pre-Execution Payment Review - ODST Finance System',
+    desc: 'Perform dual-factor authorization and execute host-to-host direct bank settlement.'
   },
   '/settings': {
     title: 'System Settings & Data Backup - ODST Finance System',
@@ -188,8 +220,28 @@ const AppRoutes: React.FC = () => {
           <Route path="/internal/my-expenses" element={<MyExpenses />} />
           <Route path="/submit-expense" element={<SubmitExpense />} />
           <Route path="/internal/submit-expense" element={<SubmitExpense />} />
-          <Route path="/approvals" element={<InternalPlaceholderPage />} />
-          <Route path="/internal/approvals" element={<InternalPlaceholderPage />} />
+          <Route path="/approvals" element={<Approvals />} />
+          <Route path="/internal/approvals" element={<Approvals />} />
+          <Route path="/expense-approval" element={<ExpenseApproval />} />
+          <Route path="/expense-approval/:id" element={<ExpenseApproval />} />
+          <Route path="/approvals/action" element={<ExpenseApproval />} />
+          <Route path="/approvals/action/:id" element={<ExpenseApproval />} />
+          <Route path="/internal/approvals/action/:id" element={<ExpenseApproval />} />
+          <Route path="/initiate-reimbursement" element={<InitiateReimbursement />} />
+          <Route path="/initiate-reimbursement/:id" element={<InitiateReimbursement />} />
+          <Route path="/approvals/reimburse" element={<InitiateReimbursement />} />
+          <Route path="/approvals/reimburse/:id" element={<InitiateReimbursement />} />
+          <Route path="/internal/approvals/reimburse/:id" element={<InitiateReimbursement />} />
+          <Route path="/setup-beneficiary" element={<SetupBeneficiary />} />
+          <Route path="/setup-beneficiary/:id" element={<SetupBeneficiary />} />
+          <Route path="/approvals/beneficiary" element={<SetupBeneficiary />} />
+          <Route path="/approvals/beneficiary/:id" element={<SetupBeneficiary />} />
+          <Route path="/pre-execution-payment" element={<PreExecutionPayment />} />
+          <Route path="/pre-execution-payment/:id" element={<PreExecutionPayment />} />
+          <Route path="/pre-execution-review" element={<PreExecutionPayment />} />
+          <Route path="/pre-execution-review/:id" element={<PreExecutionPayment />} />
+          <Route path="/approvals/execute" element={<PreExecutionPayment />} />
+          <Route path="/approvals/execute/:id" element={<PreExecutionPayment />} />
           <Route
             path="/system-audit-hidden"
             element={

@@ -402,6 +402,7 @@ export const deleteReservation = async (req, res, next) => {
 // 6. Add hotel payment history (Installment tracking)
 export const addHotelPaymentHistory = async (req, res, next) => {
   const { id } = req.params;
+  try {
     const { amount, currency, paymentDate, note } = req.body;
     if (!amount || !paymentDate) {
       return res.status(400).json({ success: false, message: 'Amount and paymentDate are required' });
@@ -503,26 +504,25 @@ export const addHotelPaymentHistory = async (req, res, next) => {
       [newRemaining, isPaidVal, statusVal, id, id]
     );
 
-      // Trigger notification internally to auth-service
-      try {
-        let targetUserId = 'usr_super_admin';
-        if (resv.employeeName) {
-          const [userRows] = await pool.query('SELECT id FROM dst_users WHERE name = ?', [resv.employeeName]);
-          if (userRows.length > 0) targetUserId = userRows[0].id;
-        }
+    // Trigger notification internally to auth-service
+    try {
+      let targetUserId = 'usr_super_admin';
+      if (resv.employeeName) {
+        const [userRows] = await pool.query('SELECT id FROM dst_users WHERE name = ?', [resv.employeeName]);
+        if (userRows.length > 0) targetUserId = userRows[0].id;
+      }
 
-        fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: targetUserId,
-            type: 'paymentReceived',
-            title: 'Payment received',
-            message: `Payment of ${numericAmount.toLocaleString('en-US')} ${resv.currency || 'SAR'} recorded for hotel reservation ${resv.reservationNo}.`
-          })
-        }).catch(err => {});
-      } catch (notifErr) {}
-    }
+      fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: targetUserId,
+          type: 'paymentReceived',
+          title: 'Payment received',
+          message: `Payment of ${numericAmount.toLocaleString('en-US')} ${resv.currency || 'SAR'} recorded for hotel reservation ${resv.reservationNo}.`
+        })
+      }).catch(err => {});
+    } catch (notifErr) {}
 
     res.status(201).json({
       success: true,
