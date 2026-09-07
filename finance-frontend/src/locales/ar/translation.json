@@ -76,6 +76,7 @@
     "submitExpense": "تقديم مصروف",
     "approvals": "الموافقات",
     "settings": "الإعدادات",
+    "superAdmin": "المشرف العام",
     "comingSoon": "قريباً"
   },
   "header": {
@@ -88,6 +89,7 @@
     "settings": "الإعدادات",
     "switchAccount": "تبديل الحساب",
     "language": "اللغة",
+    "superAdminDashboard": "لوحة تحكم المشرف العام",
     "logOut": "تسجيل الخروج"
   },
   "dashboard": {
@@ -255,7 +257,16 @@
     "uploadingPaymentProof": "جارٍ تحميل إثبات الدفع",
     "convertingImage": "جارٍ تحويل الصورة والتحميل إلى الخادم. يرجى الانتظار...",
     "paymentProofViewerTitle": "صورة إثبات التحويل / PDF",
-    "downloadImage": "تنزيل الصورة"
+    "downloadImage": "تنزيل الصورة",
+    "confirmationAutoApproved": "تم اعتماد التأكيد تلقائياً",
+    "bypassApprovedDesc": "تم تفعيل التجاوز المباشر. تم اعتماد التأكيد وجاهز للتحميل.",
+    "confirmationGeneratedSuccess": "تم إنشاء التأكيد بنجاح",
+    "confirmationGeneratedDesc": "تم إنشاء التأكيد بنجاح. هل ترغب في إرسال طلب للحصول على موافقة السداد؟",
+    "noThanks": "لا، شكراً",
+    "sendRequest": "إرسال الطلب",
+    "requestSentSuccess": "تم إرسال الطلب بنجاح",
+    "requestSentDesc": "تم إرسال طلب الاعتماد بنجاح. سيتم إشعارك فور اعتماده.",
+    "viewPdf": "عرض / PDF"
   },
   "requests": {
     "title": "طلبات الاعتماد المالي",
@@ -1095,5 +1106,111 @@
     "closeInspector": "إغلاق نافذة الفحص",
     "nextStep": "الخطوة التالية",
     "prevStep": "الخطوة السابقة"
+  },
+  "superAdmin": {
+    "badge": "مركز تحكم المشرف العام",
+    "title": "إدارة الصلاحيات الديناميكية وسجلات التدقيق",
+    "subtitle": "تكوين صلاحيات المستخدمين في الوقت الفعلي ومتابعة سجلات التدقيق للنظام.",
+    "refreshData": "تحديث البيانات",
+    "restrictedTitle": "الوصول مقيد",
+    "restrictedDesc": "لوحة تحكم المشرف العام مخصصة حصرياً لمديري النظام (ديماس وعلي). حسابك الحالي لا يملك الصلاحية للوصول إلى هذه اللوحة.",
+    "returnToDashboard": "العودة للوحة التحكم",
+    "tabs": {
+      "permissionMatrix": "مصفوفة الصلاحيات",
+      "users": "مستخدم",
+      "auditLogs": "سجلات تدقيق النظام"
+    },
+    "stats": {
+      "totalUsers": "إجمالي المستخدمين",
+      "bypassApproved": "تجاوز الاعتماد مفعل",
+      "canAddMembers": "إضافة الأعضاء",
+      "superAdmins": "المشرفون العامون"
+    },
+    "searchPlaceholder": "البحث بالاسم، البريد الإلكتروني، الدور، أو الفرع...",
+    "filterLabel": "تصفية:",
+    "filters": {
+      "allUsers": "جميع المستخدمين",
+      "bypassEnabled": "تجاوز الاعتماد مفعّل",
+      "superAdmins": "المشرفون العامون"
+    },
+    "table": {
+      "userRole": "المستخدم والدور",
+      "branchDept": "الفرع / القسم",
+      "bypassApproval": "تجاوز الاعتماد",
+      "addMembers": "إضافة أعضاء",
+      "manageLogs": "إدارة السجلات",
+      "viewReports": "عرض التقارير",
+      "noUsers": "لم يتم العثور على أعضاء مطابقين.",
+      "role": "الدور:",
+      "globalOffice": "المكتب الرئيسي",
+      "enabled": "مفعّل",
+      "disabled": "معطّل",
+      "superAdminBadge": "مشرف عام",
+      "vipBadge": "VIP"
+    },
+    "feedback": {
+      "updatedPerm": "تم تحديث الصلاحية \"{{key}}\" للمستخدم {{name}} إلى {{status}}.",
+      "updateFailed": "فشل في تحديث الصلاحية للمستخدم {{name}}.",
+      "manualLogRecorded": "تم تسجيل ملاحظة التدقيق اليدوية بنجاح.",
+      "logUpdated": "تم تحديث سجل التدقيق بنجاح.",
+      "logDeleted": "تم حذف سجل التدقيق نهائياً.",
+      "logsLoadFailed": "فشل في تحميل سجلات التدقيق. تأكد من تسجيل الدخول كمشرف عام.",
+      "deleteFailed": "فشل في حذف سجل التدقيق."
+    },
+    "audit": {
+      "searchPlaceholder": "بحث السجلات بالمستخدم، الإجراء، عنوان IP أو التفاصيل...",
+      "allActions": "جميع الإجراءات",
+      "filterBypass": "تأكيدات التجاوز",
+      "filterPerms": "تغيير الصلاحيات",
+      "filterAdminNotes": "ملاحظات الإدارة",
+      "filterSecurity": "أحداث الأمان",
+      "filterSystem": "تغييرات النظام",
+      "addManualLog": "إضافة سجل يدوي",
+      "timestamp": "التاريخ والوقت",
+      "actionEvent": "نوع الإجراء",
+      "performedBy": "تم بواسطة",
+      "targetEntity": "الجهة المستهدفة",
+      "remarksDetails": "تفاصيل وملاحظات التدقيق",
+      "actions": "الإجراءات",
+      "loading": "جارٍ تحميل سجلات تدقيق النظام...",
+      "noLogs": "لا توجد سجلات تدقيق مطابقة لمعايير البحث.",
+      "editTooltip": "تعديل ملاحظات السجل",
+      "deleteTooltip": "حذف السجل",
+      "deleteTitle": "حذف سجل التدقيق؟",
+      "deleteDesc": "هل أنت متأكد من رغبتك في حذف سجل التدقيق رقم: {{id}} نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+      "confirmDelete": "نعم، حذف",
+      "dismiss": "إغلاق",
+      "badges": {
+        "bypass": "تجاوز التأكيد",
+        "updatePerms": "تحديث الصلاحيات",
+        "adminNote": "ملاحظة إدارية"
+      }
+    },
+    "modal": {
+      "addTitle": "إضافة سجل تدقيق للنظام",
+      "editTitle": "تعديل سجل التدقيق",
+      "addSubtitle": "تسجيل ملاحظة تدقيق تشغيلية",
+      "editSubtitle": "رقم السجل: {{id}}",
+      "actionLabel": "نوع الإجراء / الحدث *",
+      "targetLabel": "المستخدم / الكيان المستهدف",
+      "targetPlaceholder": "مثال: Mr. Khalid, DST-System, finance_token",
+      "ipLabel": "عنوان IP (اختياري)",
+      "ipPlaceholder": "مثال: 187.52.126.215 أو 127.0.0.1",
+      "remarksLabel": "ملاحظات وتفاصيل التدقيق *",
+      "remarksPlaceholder": "أدخل الملاحظات الخاصة بمسار التدقيق هذا...",
+      "save": "إضافة سجل تدقيق",
+      "update": "تحديث السجل",
+      "saving": "جارٍ الحفظ...",
+      "options": {
+        "manual": "ملاحظة إدارية يدوية",
+        "security": "تدقيق الأمان والوصول",
+        "sysConfig": "تغيير إعدادات النظام",
+        "updatePerms": "تحديث صلاحيات المستخدم",
+        "financeOverride": "تجاوز معاملة مالية",
+        "compliance": "مراجعة الامتثال والتدقيق"
+      },
+      "errorEmpty": "يرجى تقديم تفاصيل أو ملاحظات لسجل التدقيق هذا."
+    }
   }
 }
+

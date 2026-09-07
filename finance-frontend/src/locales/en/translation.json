@@ -76,6 +76,7 @@
     "submitExpense": "Submit Expense",
     "approvals": "Approvals",
     "settings": "Settings",
+    "superAdmin": "Super Admin",
     "comingSoon": "coming soon"
   },
   "header": {
@@ -88,6 +89,7 @@
     "settings": "Settings",
     "switchAccount": "Switch Account",
     "language": "Language",
+    "superAdminDashboard": "Super Admin Dashboard",
     "logOut": "Log Out"
   },
   "dashboard": {
@@ -255,7 +257,16 @@
     "uploadingPaymentProof": "Uploading Payment Proof",
     "convertingImage": "Converting image and uploading to server. Please wait...",
     "paymentProofViewerTitle": "Payment Transfer Photo / PDF",
-    "downloadImage": "Download Image"
+    "downloadImage": "Download Image",
+    "confirmationAutoApproved": "Confirmation Auto-Approved",
+    "bypassApprovedDesc": "Direct bypass active. Your confirmation has been approved and is ready for download.",
+    "confirmationGeneratedSuccess": "Confirmation Generated Successfully",
+    "confirmationGeneratedDesc": "Your confirmation has been generated. Would you like to send a request to get approval for payment?",
+    "noThanks": "No, Thanks",
+    "sendRequest": "Send Request",
+    "requestSentSuccess": "Request Sent Successfully",
+    "requestSentDesc": "Your approval request has been sent successfully. You will be notified once it is approved.",
+    "viewPdf": "View / PDF"
   },
   "requests": {
     "title": "Approval Requests",
@@ -1095,5 +1106,111 @@
     "closeInspector": "Close Inspector",
     "nextStep": "Next Step",
     "prevStep": "Prev Step"
+  },
+  "superAdmin": {
+    "badge": "SUPER ADMIN CONTROL CENTER",
+    "title": "Dynamic Permission Management & Audit Logs",
+    "subtitle": "Configure real-time privileges per user and monitor system audit trails.",
+    "refreshData": "Refresh Data",
+    "restrictedTitle": "Access Restricted",
+    "restrictedDesc": "The Super Admin Mini Dashboard is exclusively reserved for System Administrators (Dimas & Ali). Your current account role does not have authorization to view this panel.",
+    "returnToDashboard": "Return to Dashboard",
+    "tabs": {
+      "permissionMatrix": "Permission Matrix",
+      "users": "Users",
+      "auditLogs": "System Audit Logs"
+    },
+    "stats": {
+      "totalUsers": "Total Users",
+      "bypassApproved": "Bypass Approved",
+      "canAddMembers": "Can Add Members",
+      "superAdmins": "Super Admins"
+    },
+    "searchPlaceholder": "Search by name, email, role, or branch...",
+    "filterLabel": "Filter:",
+    "filters": {
+      "allUsers": "All Users",
+      "bypassEnabled": "Bypass Enabled",
+      "superAdmins": "Super Admins"
+    },
+    "table": {
+      "userRole": "User & Role",
+      "branchDept": "Branch / Department",
+      "bypassApproval": "Bypass Approval",
+      "addMembers": "Add Members",
+      "manageLogs": "Manage Logs",
+      "viewReports": "View Reports",
+      "noUsers": "No matching team members found.",
+      "role": "Role:",
+      "globalOffice": "Global Office",
+      "enabled": "ENABLED",
+      "disabled": "DISABLED",
+      "superAdminBadge": "SUPER ADMIN",
+      "vipBadge": "VIP"
+    },
+    "feedback": {
+      "updatedPerm": "Updated \"{{key}}\" for {{name}} to {{status}}.",
+      "updateFailed": "Failed to update permission for {{name}}.",
+      "manualLogRecorded": "Manual audit log entry recorded successfully.",
+      "logUpdated": "Audit log entry updated successfully.",
+      "logDeleted": "Audit log entry removed permanently.",
+      "logsLoadFailed": "Failed to load system audit logs. Make sure you are logged in as Super Admin.",
+      "deleteFailed": "Failed to delete audit log entry."
+    },
+    "audit": {
+      "searchPlaceholder": "Search logs by user, action, IP, or details...",
+      "allActions": "All Actions",
+      "filterBypass": "Bypass Confirmations",
+      "filterPerms": "Permission Changes",
+      "filterAdminNotes": "Admin Notes",
+      "filterSecurity": "Security Events",
+      "filterSystem": "System Changes",
+      "addManualLog": "Add Manual Log",
+      "timestamp": "Timestamp",
+      "actionEvent": "Action Event",
+      "performedBy": "Performed By",
+      "targetEntity": "Target Entity",
+      "remarksDetails": "Audit Details / Remarks",
+      "actions": "Actions",
+      "loading": "Loading system audit logs...",
+      "noLogs": "No audit log entries matching your criteria.",
+      "editTooltip": "Edit Log Remarks",
+      "deleteTooltip": "Delete Log Entry",
+      "deleteTitle": "Delete Audit Log Entry?",
+      "deleteDesc": "Are you sure you want to permanently delete audit record ID: {{id}}? This action cannot be undone.",
+      "confirmDelete": "Yes, Delete",
+      "dismiss": "Dismiss",
+      "badges": {
+        "bypass": "BYPASS CONFIRMATION",
+        "updatePerms": "UPDATE PERMISSIONS",
+        "adminNote": "ADMIN NOTE"
+      }
+    },
+    "modal": {
+      "addTitle": "Add System Audit Log",
+      "editTitle": "Edit Audit Log Entry",
+      "addSubtitle": "Record an operational audit note",
+      "editSubtitle": "Log ID: {{id}}",
+      "actionLabel": "Action / Event Type *",
+      "targetLabel": "Target User / Entity",
+      "targetPlaceholder": "e.g. Mr. Khalid, DST-System, finance_token",
+      "ipLabel": "IP Address (Optional)",
+      "ipPlaceholder": "e.g. 187.52.126.215 or 127.0.0.1",
+      "remarksLabel": "Audit Remarks & Details *",
+      "remarksPlaceholder": "Enter notes regarding this audit trail entry...",
+      "save": "Add Audit Entry",
+      "update": "Update Log Entry",
+      "saving": "Saving...",
+      "options": {
+        "manual": "Manual Administrative Note",
+        "security": "Security & Access Audit",
+        "sysConfig": "System Configuration Changed",
+        "updatePerms": "User Permissions Update",
+        "financeOverride": "Financial Transaction Override",
+        "compliance": "Compliance & Audit Review"
+      },
+      "errorEmpty": "Please provide details or remarks for this audit log."
+    }
   }
 }
+

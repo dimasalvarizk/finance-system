@@ -76,6 +76,7 @@
     "submitExpense": "Ajukan Pengeluaran",
     "approvals": "Persetujuan Klaim",
     "settings": "Pengaturan",
+    "superAdmin": "Super Admin",
     "comingSoon": "segera hadir"
   },
   "header": {
@@ -88,6 +89,7 @@
     "settings": "Pengaturan",
     "switchAccount": "Ganti Akun",
     "language": "Bahasa",
+    "superAdminDashboard": "Dashboard Super Admin",
     "logOut": "Keluar"
   },
   "dashboard": {
@@ -255,7 +257,16 @@
     "uploadingPaymentProof": "Mengunggah Bukti Pembayaran",
     "convertingImage": "Mengonversi gambar dan mengunggah ke server. Harap tunggu...",
     "paymentProofViewerTitle": "Foto Bukti Transfer / PDF",
-    "downloadImage": "Unduh Gambar"
+    "downloadImage": "Unduh Gambar",
+    "confirmationAutoApproved": "Konfirmasi Disetujui Otomatis",
+    "bypassApprovedDesc": "Bypass langsung aktif. Konfirmasi Anda telah disetujui dan siap diunduh.",
+    "confirmationGeneratedSuccess": "Konfirmasi Berhasil Dibuat",
+    "confirmationGeneratedDesc": "Konfirmasi Anda telah dibuat. Apakah Anda ingin mengirim permintaan persetujuan untuk pembayaran?",
+    "noThanks": "Tidak, Terima Kasih",
+    "sendRequest": "Kirim Permintaan",
+    "requestSentSuccess": "Permintaan Berhasil Dikirim",
+    "requestSentDesc": "Permintaan persetujuan Anda telah berhasil dikirim. Anda akan diberitahu setelah disetujui.",
+    "viewPdf": "Lihat / PDF"
   },
   "requests": {
     "title": "Permintaan Persetujuan",
@@ -1095,5 +1106,111 @@
     "closeInspector": "Tutup Inspektor",
     "nextStep": "Langkah Berikutnya",
     "prevStep": "Langkah Sebelumnya"
+  },
+  "superAdmin": {
+    "badge": "PUSAT KONTROL SUPER ADMIN",
+    "title": "Manajemen Izin Dinamis & Log Audit",
+    "subtitle": "Konfigurasi hak istimewa pengguna secara real-time dan pantau riwayat audit sistem.",
+    "refreshData": "Segarkan Data",
+    "restrictedTitle": "Akses Dibatasi",
+    "restrictedDesc": "Dashboard Super Admin Mini khusus untuk Administrator Sistem (Dimas & Ali). Akun Anda saat ini tidak memiliki izin untuk mengakses panel ini.",
+    "returnToDashboard": "Kembali ke Dashboard",
+    "tabs": {
+      "permissionMatrix": "Matriks Izin",
+      "users": "Pengguna",
+      "auditLogs": "Log Audit Sistem"
+    },
+    "stats": {
+      "totalUsers": "Total Pengguna",
+      "bypassApproved": "Bypass Disetujui",
+      "canAddMembers": "Dapat Tambah Anggota",
+      "superAdmins": "Super Admin"
+    },
+    "searchPlaceholder": "Cari berdasarkan nama, email, peran, atau cabang...",
+    "filterLabel": "Filter:",
+    "filters": {
+      "allUsers": "Semua Pengguna",
+      "bypassEnabled": "Bypass Aktif",
+      "superAdmins": "Super Admin"
+    },
+    "table": {
+      "userRole": "Pengguna & Peran",
+      "branchDept": "Cabang / Departemen",
+      "bypassApproval": "Bypass Persetujuan",
+      "addMembers": "Tambah Anggota",
+      "manageLogs": "Kelola Log",
+      "viewReports": "Lihat Laporan",
+      "noUsers": "Tidak ada anggota tim yang cocok.",
+      "role": "Peran:",
+      "globalOffice": "Kantor Pusat",
+      "enabled": "AKTIF",
+      "disabled": "NONAKTIF",
+      "superAdminBadge": "SUPER ADMIN",
+      "vipBadge": "VIP"
+    },
+    "feedback": {
+      "updatedPerm": "Izin \"{{key}}\" untuk {{name}} berhasil diubah menjadi {{status}}.",
+      "updateFailed": "Gagal memperbarui izin untuk {{name}}.",
+      "manualLogRecorded": "Catatan audit manual berhasil disimpan.",
+      "logUpdated": "Entri log audit berhasil diperbarui.",
+      "logDeleted": "Entri log audit berhasil dihapus secara permanen.",
+      "logsLoadFailed": "Gagal memuat log audit sistem. Pastikan Anda login sebagai Super Admin.",
+      "deleteFailed": "Gagal menghapus entri log audit."
+    },
+    "audit": {
+      "searchPlaceholder": "Cari log berdasarkan pengguna, aksi, IP, atau rincian...",
+      "allActions": "Semua Aksi",
+      "filterBypass": "Bypass Konfirmasi",
+      "filterPerms": "Perubahan Izin",
+      "filterAdminNotes": "Catatan Admin",
+      "filterSecurity": "Aktivitas Keamanan",
+      "filterSystem": "Perubahan Sistem",
+      "addManualLog": "Tambah Log Manual",
+      "timestamp": "Waktu",
+      "actionEvent": "Jenis Aksi",
+      "performedBy": "Dilakukan Oleh",
+      "targetEntity": "Entitas Sasaran",
+      "remarksDetails": "Rincian Audit / Catatan",
+      "actions": "Aksi",
+      "loading": "Memuat log audit sistem...",
+      "noLogs": "Tidak ada entri log audit yang sesuai dengan kriteria.",
+      "editTooltip": "Ubah Catatan Log",
+      "deleteTooltip": "Hapus Entri Log",
+      "deleteTitle": "Hapus Entri Log Audit?",
+      "deleteDesc": "Apakah Anda yakin ingin menghapus permanen ID rekaman audit: {{id}}? Tindakan ini tidak dapat dibatalkan.",
+      "confirmDelete": "Ya, Hapus",
+      "dismiss": "Tutup",
+      "badges": {
+        "bypass": "BYPASS KONFIRMASI",
+        "updatePerms": "UBAH IZIN",
+        "adminNote": "CATATAN ADMIN"
+      }
+    },
+    "modal": {
+      "addTitle": "Tambah Log Audit Sistem",
+      "editTitle": "Ubah Entri Log Audit",
+      "addSubtitle": "Catat catatan operasional audit",
+      "editSubtitle": "ID Log: {{id}}",
+      "actionLabel": "Jenis Aksi / Peristiwa *",
+      "targetLabel": "Pengguna / Entitas Sasaran",
+      "targetPlaceholder": "misal: Mr. Khalid, DST-System, finance_token",
+      "ipLabel": "Alamat IP (Opsional)",
+      "ipPlaceholder": "misal: 187.52.126.215 atau 127.0.0.1",
+      "remarksLabel": "Catatan Audit & Rincian *",
+      "remarksPlaceholder": "Masukkan catatan terkait jejak audit ini...",
+      "save": "Tambah Entri Audit",
+      "update": "Simpan Perubahan",
+      "saving": "Menyimpan...",
+      "options": {
+        "manual": "Catatan Administratif Manual",
+        "security": "Audit Keamanan & Akses",
+        "sysConfig": "Perubahan Konfigurasi Sistem",
+        "updatePerms": "Pembaruan Izin Pengguna",
+        "financeOverride": "Override Transaksi Keuangan",
+        "compliance": "Tinjauan Kepatuhan & Audit"
+      },
+      "errorEmpty": "Harap berikan rincian atau catatan untuk log audit ini."
+    }
   }
 }
+

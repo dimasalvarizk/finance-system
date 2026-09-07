@@ -3327,10 +3327,10 @@ const Invoices: React.FC = () => {
                   <Check className="w-6 h-6 stroke-[3px]" />
                 </div>
                 <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-1 font-sans leading-tight">
-                  Confirmation Auto-Approved
+                  {t('invoices.confirmationAutoApproved')}
                 </h3>
                 <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
-                  Direct bypass active. Your confirmation has been approved and is ready for download.
+                  {t('invoices.bypassApprovedDesc')}
                 </p>
                 <div className="flex space-x-3 w-full">
                   <button
@@ -3339,9 +3339,9 @@ const Invoices: React.FC = () => {
                       setSuccessModalStep(0);
                       setJustCreatedInvoice(null);
                     }}
-                    className="flex-1 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-bold text-[#475569] hover:bg-gray-50 transition-all font-inter text-center"
+                    className="flex-1 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-bold text-[#475569] hover:bg-gray-50 transition-all font-inter text-center cursor-pointer"
                   >
-                    Done
+                    {t('common.done')}
                   </button>
                   <button
                     type="button"
@@ -3354,7 +3354,7 @@ const Invoices: React.FC = () => {
                     className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
-                    <span>View / PDF</span>
+                    <span>{t('invoices.viewPdf')}</span>
                   </button>
                 </div>
               </>
@@ -3364,25 +3364,25 @@ const Invoices: React.FC = () => {
                   <Check className="w-6 h-6 stroke-[3px]" />
                 </div>
                 <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-2.5 font-sans leading-tight">
-                  Confirmation Generated Successfully
+                  {t('invoices.confirmationGeneratedSuccess')}
                 </h3>
                 <p className="text-[13px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
-                  Your confirmation has been generated. Would you like to send a request to get approval for payment?
+                  {t('invoices.confirmationGeneratedDesc')}
                 </p>
                 <div className="flex space-x-3 w-full">
                   <button
                     type="button"
                     onClick={() => setSuccessModalStep(0)}
-                    className="flex-1 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-bold text-[#475569] hover:bg-gray-50 transition-all font-inter text-center"
+                    className="flex-1 py-2.5 border border-[#cbd5e1] rounded-xl text-[13px] font-bold text-[#475569] hover:bg-gray-50 transition-all font-inter text-center cursor-pointer"
                   >
-                    No, Thanks
+                    {t('invoices.noThanks')}
                   </button>
                   <button
                     type="button"
                     onClick={handleSendRequestFromSuccessModal}
-                    className="flex-1 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center animate-pulse-subtle"
+                    className="flex-1 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center animate-pulse-subtle cursor-pointer"
                   >
-                    Send Request
+                    {t('invoices.sendRequest')}
                   </button>
                 </div>
               </>
@@ -3399,17 +3399,17 @@ const Invoices: React.FC = () => {
               <Check className="w-6 h-6 stroke-[3px]" />
             </div>
             <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-2.5 font-sans leading-tight">
-              Request Sent Successfully
+              {t('invoices.requestSentSuccess')}
             </h3>
             <p className="text-[13px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
-              Your approval request has been sent successfully. You will be notified once it is approved.
+              {t('invoices.requestSentDesc')}
             </p>
             <button
               type="button"
               onClick={() => setSuccessModalStep(0)}
-              className="w-full py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center"
+              className="w-full py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[13px] font-bold rounded-xl shadow-sm transition-all font-inter text-center cursor-pointer"
             >
-              Done
+              {t('common.done')}
             </button>
           </div>
         </div>

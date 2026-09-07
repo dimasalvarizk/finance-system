@@ -153,7 +153,7 @@ const Sidebar: React.FC = () => {
         },
         {
           id: 'super-admin',
-          label: 'Super Admin',
+          label: t('nav.superAdmin') || 'Super Admin',
           path: '/super-admin/dashboard',
           aliasPaths: ['/super-admin', '/system-audit-hidden'],
           icon: ShieldCheck,

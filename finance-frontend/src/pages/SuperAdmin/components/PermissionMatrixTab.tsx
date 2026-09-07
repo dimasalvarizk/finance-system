@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { updateUserPermissions } from '../../../services/settingService';
 
 interface UserItem {
@@ -23,6 +24,7 @@ interface PermissionMatrixTabProps {
 }
 
 export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users, onRefresh }) => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
@@ -57,7 +59,11 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
       await updateUserPermissions(user.id, updatedPerms);
       setFeedback({
         type: 'success',
-        message: `Updated "${permissionKey}" for ${user.name} to ${newStatus ? 'ENABLED' : 'DISABLED'}.`
+        message: t('superAdmin.feedback.updatedPerm', {
+          key: permissionKey,
+          name: user.name,
+          status: newStatus ? t('superAdmin.table.enabled') : t('superAdmin.table.disabled')
+        })
       });
       // Silent refresh
       await onRefresh();
@@ -70,7 +76,7 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
       }));
       setFeedback({
         type: 'error',
-        message: err?.response?.data?.message || `Failed to update permission for ${user.name}.`
+        message: err?.response?.data?.message || t('superAdmin.feedback.updateFailed', { name: user.name })
       });
     } finally {
       setSavingUserId(null);
@@ -119,24 +125,24 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="text-xl font-bold text-slate-900">{users.length}</div>
-          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Total Users</div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.totalUsers')}</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="text-xl font-bold text-amber-700">{totalBypass}</div>
-          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Bypass Approved</div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.bypassApproved')}</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="text-xl font-bold text-emerald-700">{totalMembersMgr}</div>
-          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Can Add Members</div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.canAddMembers')}</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="text-xl font-bold text-purple-700">
             {users.filter((u) => u.role === 'Super Admin' || u.name.includes('Dimas') || u.name.includes('Ali')).length}
           </div>
-          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Super Admins</div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.superAdmins')}</div>
         </div>
       </div>
 
@@ -161,29 +167,31 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name, email, role, or branch..."
+            placeholder={t('superAdmin.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1d2857] focus:bg-white transition-all"
           />
         </div>
 
         <div className="flex items-center space-x-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Filter:</span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+            {t('superAdmin.filterLabel')}
+          </span>
           {['ALL', 'BYPASS', 'SUPER_ADMIN', 'Accountant', 'Chief Accountant', 'Division Director'].map((f) => (
             <button
               key={f}
               onClick={() => setRoleFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                 roleFilter === f
                   ? 'bg-[#1d2857] text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {f === 'ALL'
-                ? 'All Users'
+                ? t('superAdmin.filters.allUsers')
                 : f === 'BYPASS'
-                ? 'Bypass Enabled'
+                ? t('superAdmin.filters.bypassEnabled')
                 : f === 'SUPER_ADMIN'
-                ? 'Super Admins'
+                ? t('superAdmin.filters.superAdmins')
                 : f}
             </button>
           ))}
@@ -197,22 +205,22 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
             <thead className="bg-slate-50">
               <tr>
                 <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  User & Role
+                  {t('superAdmin.table.userRole')}
                 </th>
                 <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  Branch / Department
+                  {t('superAdmin.table.branchDept')}
                 </th>
                 <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Bypass Approval
+                  {t('superAdmin.table.bypassApproval')}
                 </th>
                 <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Add Members
+                  {t('superAdmin.table.addMembers')}
                 </th>
                 <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Manage Logs
+                  {t('superAdmin.table.manageLogs')}
                 </th>
                 <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  View Reports
+                  {t('superAdmin.table.viewReports')}
                 </th>
               </tr>
             </thead>
@@ -220,7 +228,7 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-xs">
-                    No matching team members found.
+                    {t('superAdmin.table.noUsers')}
                   </td>
                 </tr>
               ) : (
@@ -249,18 +257,18 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                               <span className="text-xs font-bold text-slate-900">{user.name}</span>
                               {isSuperAdminUser && (
                                 <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                  SUPER ADMIN
+                                  {t('superAdmin.table.superAdminBadge')}
                                 </span>
                               )}
                               {user.name.includes('Khalid') && (
                                 <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                  VIP
+                                  {t('superAdmin.table.vipBadge')}
                                 </span>
                               )}
                             </div>
                             <div className="text-[11px] text-slate-500">{user.email}</div>
                             <div className="text-[10.5px] font-medium text-slate-400 mt-0.5">
-                              Role: <span className="text-slate-700 font-semibold">{user.role}</span>
+                              {t('superAdmin.table.role')} <span className="text-slate-700 font-semibold">{user.role}</span>
                             </div>
                           </div>
                         </div>
@@ -269,7 +277,7 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                       {/* Branch Column */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-xs text-slate-700 font-medium">
-                          {user.branch || 'Global Office'}
+                          {user.branch || t('superAdmin.table.globalOffice')}
                         </div>
                         {user.department && (
                           <div className="text-[11px] text-slate-400 mt-0.5">{user.department}</div>
@@ -295,9 +303,9 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
                             {perms.CAN_BYPASS_APPROVAL || isSuperAdminUser ? (
-                              <span className="text-amber-700">ENABLED</span>
+                              <span className="text-amber-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
-                              <span className="text-slate-400">DISABLED</span>
+                              <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
                             )}
                           </span>
                         </div>
@@ -322,9 +330,9 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
                             {perms.CAN_ADD_MEMBERS || isSuperAdminUser ? (
-                              <span className="text-emerald-700">ENABLED</span>
+                              <span className="text-emerald-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
-                              <span className="text-slate-400">DISABLED</span>
+                              <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
                             )}
                           </span>
                         </div>
@@ -349,9 +357,9 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
                             {perms.CAN_EDIT_SYSTEM_LOGS || isSuperAdminUser ? (
-                              <span className="text-purple-700">ENABLED</span>
+                              <span className="text-purple-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
-                              <span className="text-slate-400">DISABLED</span>
+                              <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
                             )}
                           </span>
                         </div>
@@ -376,9 +384,9 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
                             {perms.CAN_VIEW_ALL_REPORTS || isSuperAdminUser ? (
-                              <span className="text-blue-700">ENABLED</span>
+                              <span className="text-blue-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
-                              <span className="text-slate-400">DISABLED</span>
+                              <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
                             )}
                           </span>
                         </div>

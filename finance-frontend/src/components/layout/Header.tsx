@@ -471,7 +471,7 @@ const Header: React.FC = () => {
                   className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-left text-[13px] font-semibold text-purple-700 hover:bg-purple-50 transition-all cursor-pointer"
                 >
                   <ShieldCheck className="w-4 h-4 text-purple-600" />
-                  <span>Super Admin Dashboard</span>
+                  <span>{t('header.superAdminDashboard') || 'Super Admin Dashboard'}</span>
                 </button>
               )}
 

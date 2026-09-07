@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { SystemAuditLog } from '../../../services/settingService';
 
 interface LogModalProps {
@@ -10,15 +11,6 @@ interface LogModalProps {
   mode: 'add' | 'edit';
 }
 
-const ACTION_OPTIONS = [
-  { value: 'MANUAL_LOG_ENTRY', label: 'Manual Administrative Note' },
-  { value: 'SECURITY_AUDIT', label: 'Security & Access Audit' },
-  { value: 'SYSTEM_CONFIG_CHANGED', label: 'System Configuration Changed' },
-  { value: 'UPDATE_PERMISSIONS', label: 'User Permissions Update' },
-  { value: 'FINANCE_OVERRIDE', label: 'Financial Transaction Override' },
-  { value: 'COMPLIANCE_REVIEW', label: 'Compliance & Audit Review' }
-];
-
 export const LogModal: React.FC<LogModalProps> = ({
   isOpen,
   onClose,
@@ -26,12 +18,22 @@ export const LogModal: React.FC<LogModalProps> = ({
   initialData,
   mode
 }) => {
+  const { t } = useTranslation();
   const [action, setAction] = useState('MANUAL_LOG_ENTRY');
   const [targetUser, setTargetUser] = useState('');
   const [detailsText, setDetailsText] = useState('');
   const [ipAddress, setIpAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const ACTION_OPTIONS = [
+    { value: 'MANUAL_LOG_ENTRY', label: t('superAdmin.modal.options.manual') },
+    { value: 'SECURITY_AUDIT', label: t('superAdmin.modal.options.security') },
+    { value: 'SYSTEM_CONFIG_CHANGED', label: t('superAdmin.modal.options.sysConfig') },
+    { value: 'UPDATE_PERMISSIONS', label: t('superAdmin.modal.options.updatePerms') },
+    { value: 'FINANCE_OVERRIDE', label: t('superAdmin.modal.options.financeOverride') },
+    { value: 'COMPLIANCE_REVIEW', label: t('superAdmin.modal.options.compliance') }
+  ];
 
   useEffect(() => {
     if (initialData && mode === 'edit') {
@@ -58,7 +60,7 @@ export const LogModal: React.FC<LogModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!detailsText.trim()) {
-      setError('Please provide details or remarks for this audit log.');
+      setError(t('superAdmin.modal.errorEmpty'));
       return;
     }
 
@@ -74,7 +76,7 @@ export const LogModal: React.FC<LogModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error('Failed to save audit log:', err);
-      setError(err?.response?.data?.message || 'Failed to save audit log. Please try again.');
+      setError(err?.response?.data?.message || t('superAdmin.feedback.manualLogRecorded'));
     } finally {
       setLoading(false);
     }
@@ -87,15 +89,15 @@ export const LogModal: React.FC<LogModalProps> = ({
         <div className="px-6 py-4 bg-[#1d2857] text-white flex items-center justify-between">
           <div>
             <h3 className="font-bold text-base leading-tight">
-              {mode === 'add' ? 'Add System Audit Log' : 'Edit Audit Log Entry'}
+              {mode === 'add' ? t('superAdmin.modal.addTitle') : t('superAdmin.modal.editTitle')}
             </h3>
             <p className="text-xs text-slate-300 mt-0.5">
-              {mode === 'add' ? 'Record an operational audit note' : `Log ID: ${initialData?.id || ''}`}
+              {mode === 'add' ? t('superAdmin.modal.addSubtitle') : t('superAdmin.modal.editSubtitle', { id: initialData?.id || '' })}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -113,7 +115,7 @@ export const LogModal: React.FC<LogModalProps> = ({
           {/* Action Type */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Action / Event Type *
+              {t('superAdmin.modal.actionLabel')}
             </label>
             <select
               value={action}
@@ -131,13 +133,13 @@ export const LogModal: React.FC<LogModalProps> = ({
           {/* Target User / Entity */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Target User / Entity
+              {t('superAdmin.modal.targetLabel')}
             </label>
             <input
               type="text"
               value={targetUser}
               onChange={(e) => setTargetUser(e.target.value)}
-              placeholder="e.g. Mr. Khalid, DST-System, finance_token"
+              placeholder={t('superAdmin.modal.targetPlaceholder')}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1d2857] focus:bg-white transition-all"
             />
           </div>
@@ -145,13 +147,13 @@ export const LogModal: React.FC<LogModalProps> = ({
           {/* IP Address (Optional) */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              IP Address (Optional)
+              {t('superAdmin.modal.ipLabel')}
             </label>
             <input
               type="text"
               value={ipAddress}
               onChange={(e) => setIpAddress(e.target.value)}
-              placeholder="e.g. 187.52.126.215 or 127.0.0.1"
+              placeholder={t('superAdmin.modal.ipPlaceholder')}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1d2857] focus:bg-white transition-all"
             />
           </div>
@@ -159,13 +161,13 @@ export const LogModal: React.FC<LogModalProps> = ({
           {/* Remarks / Details */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Audit Remarks & Details *
+              {t('superAdmin.modal.remarksLabel')}
             </label>
             <textarea
               rows={4}
               value={detailsText}
               onChange={(e) => setDetailsText(e.target.value)}
-              placeholder="Enter notes regarding this audit trail entry..."
+              placeholder={t('superAdmin.modal.remarksPlaceholder')}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1d2857] focus:bg-white transition-all resize-none"
               required
             />
@@ -177,22 +179,22 @@ export const LogModal: React.FC<LogModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-[#1d2857] hover:bg-[#2b3a7a] text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center space-x-2 disabled:opacity-50"
+              className="px-5 py-2.5 bg-[#1d2857] hover:bg-[#2b3a7a] text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <>
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Saving...</span>
+                  <span>{t('superAdmin.modal.saving')}</span>
                 </>
               ) : (
-                <span>{mode === 'add' ? 'Add Audit Entry' : 'Update Log Entry'}</span>
+                <span>{mode === 'add' ? t('superAdmin.modal.save') : t('superAdmin.modal.update')}</span>
               )}
             </button>
           </div>
