@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import {
@@ -183,6 +184,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
 ];
 
 const MyExpenses: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [expenses, setExpenses] = useState<ExpenseClaim[]>(() => {
@@ -357,7 +359,7 @@ const MyExpenses: React.FC = () => {
             </div>
 
             <button
-              onClick={() => setIsNewExpenseModalOpen(true)}
+              onClick={() => navigate('/submit-expense')}
               className="inline-flex items-center space-x-2 px-4 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[13px] rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
