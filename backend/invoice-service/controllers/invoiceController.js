@@ -588,18 +588,20 @@ export const deletePayment = async (req, res, next) => {
 // @access  Protected (Super Admin / Dimas / Ali only)
 export const getAuditLogs = async (req, res, next) => {
   try {
-    const userNameLower = (req.user?.name || '').toLowerCase();
-    const userEmailLower = (req.user?.email || '').toLowerCase();
-    const isDimasOrAli =
-      userNameLower.includes('dimas') ||
-      userNameLower.includes('ali') ||
-      userEmailLower.includes('dimas') ||
-      userEmailLower.includes('ali');
+    const userEmail = (req.user?.email || '').toLowerCase().trim();
+    const isAuthorizedSuperAdmin =
+      userEmail === 'alvarizkidimas@gmail.com' ||
+      userEmail === 'ali@odst.id' ||
+      userEmail === 'dimas@odst.id' ||
+      userEmail === 'dimasalvarizk@gmail.com' ||
+      userEmail.startsWith('alvarizkidimas@') ||
+      userEmail.startsWith('ali@odst.id') ||
+      userEmail.startsWith('dimas@');
 
-    if (!isDimasOrAli) {
+    if (!isAuthorizedSuperAdmin) {
       return res.status(403).json({
         success: false,
-        message: 'Access Denied: Audit logs are strictly restricted to Dimas & Ali only.'
+        message: 'Access Denied: Audit logs are strictly restricted to Dimas (alvarizkidimas@gmail.com) & Ali (ali@odst.id).'
       });
     }
 

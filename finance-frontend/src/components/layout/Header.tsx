@@ -7,6 +7,8 @@ import { useMaintenance } from '../../context/MaintenanceContext';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../services/authService';
 import notificationSound from '../../assets/notification.mp3';
 import saudiFlagImg from '../../assets/saudi-flag.png';
+import { isSuperAdminUser } from '../../utils/superAdminAuth';
+
 
 const USFlag: React.FC<{ className?: string }> = ({ className = 'w-5 h-3.5' }) => (
   <svg className={`${className} rounded-[2px] shadow-xs flex-shrink-0 object-cover`} viewBox="0 0 640 480">
@@ -86,14 +88,8 @@ const Header: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'log'>('all');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  const isDimasOrAli = Boolean(
-    user && (
-      user.name?.toLowerCase().includes('dimas') ||
-      user.name?.toLowerCase().includes('ali') ||
-      user.email?.toLowerCase().includes('dimas') ||
-      user.email?.toLowerCase().includes('ali')
-    )
-  );
+  const isDimasOrAli = isSuperAdminUser(user);
+
 
   const currentLang = (i18n.language?.substring(0, 2) as 'en' | 'id' | 'ar') || 'en';
   const selectedLang = LANGUAGES.find((l) => l.code === currentLang) || LANGUAGES[0];

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { updateUserPermissions } from '../../../services/settingService';
+import { isSuperAdminUser as checkIsSuperAdmin } from '../../../utils/superAdminAuth';
+
 
 interface UserItem {
   id: string;
@@ -97,8 +99,9 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
       return matchesSearch && (perms.CAN_BYPASS_APPROVAL || u.role === 'Super Admin');
     }
     if (roleFilter === 'SUPER_ADMIN') {
-      return matchesSearch && (u.role === 'Super Admin' || u.name.includes('Dimas') || u.name.includes('Ali'));
+      return matchesSearch && (checkIsSuperAdmin(u) || u.role === 'Super Admin');
     }
+
     return matchesSearch && u.role === roleFilter;
   });
 
@@ -234,9 +237,9 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
               ) : (
                 filteredUsers.map((user) => {
                   const perms = localPermissions[user.id] || user.permissions || {};
-                  const isSuperAdminUser =
-                    user.role === 'Super Admin' || user.name.includes('Dimas') || user.name.includes('Ali');
+                  const isSuperAdminUser = checkIsSuperAdmin(user);
                   const isSaving = savingUserId === user.id;
+
 
                   return (
                     <tr key={user.id} className="hover:bg-slate-50/70 transition-colors">

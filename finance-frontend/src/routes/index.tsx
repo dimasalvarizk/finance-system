@@ -4,6 +4,8 @@ import ProtectedRoute from '../components/layout/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import { useMaintenance } from '../context/MaintenanceContext';
 import MaintenanceScreen from '../components/ui/MaintenanceScreen';
+import { isSuperAdminUser } from '../utils/superAdminAuth';
+
 
 // Lazy-loaded pages for fast initial bundle loading & high Lighthouse performance
 const Login = lazy(() => import('../pages/Auth/Login'));
@@ -124,14 +126,9 @@ const AppRoutes: React.FC = () => {
   const { isModuleLocked, locks } = useMaintenance();
   const location = useLocation();
 
-  const isDimasOrAli = Boolean(
-    user && (
-      user.name?.toLowerCase().includes('dimas') ||
-      user.name?.toLowerCase().includes('ali') ||
-      user.email?.toLowerCase().includes('dimas') ||
-      user.email?.toLowerCase().includes('ali')
-    )
-  );
+  const isDimasOrAli = isSuperAdminUser(user);
+
+
 
   useEffect(() => {
     const seo = routeSeoMap[location.pathname] || {

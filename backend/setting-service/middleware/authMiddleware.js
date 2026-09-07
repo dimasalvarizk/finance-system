@@ -58,27 +58,33 @@ export const restrictTo = (...roles) => {
   };
 };
 
+const SUPER_ADMIN_EMAILS = [
+  'alvarizkidimas@gmail.com',
+  'ali@odst.id',
+  'dimas@odst.id',
+  'dimasalvarizk@gmail.com'
+];
+
 export const isSuperAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ success: false, message: 'Not authenticated' });
   }
 
-  const userNameLower = (req.user.name || '').toLowerCase();
-  const userEmailLower = (req.user.email || '').toLowerCase();
-  const userRoleLower = (req.user.role || '').toLowerCase();
+  const userEmail = (req.user.email || '').toLowerCase().trim();
 
-  const isDimasOrAli =
-    userNameLower.includes('dimas') ||
-    userNameLower.includes('ali') ||
-    userEmailLower.includes('dimas') ||
-    userEmailLower.includes('ali') ||
-    userRoleLower === 'super admin' ||
-    userRoleLower === 'superadmin';
+  // Strict email whitelist check (prevents false matches like 'khalid')
+  const isAuthorizedSuperAdmin =
+    SUPER_ADMIN_EMAILS.includes(userEmail) ||
+    userEmail === 'alvarizkidimas@gmail.com' ||
+    userEmail === 'ali@odst.id' ||
+    userEmail.startsWith('alvarizkidimas@') ||
+    userEmail.startsWith('ali@odst.id') ||
+    userEmail.startsWith('dimas@');
 
-  if (!isDimasOrAli) {
+  if (!isAuthorizedSuperAdmin) {
     return res.status(403).json({
       success: false,
-      message: 'Access Denied: Super Admin access is strictly restricted to Dimas & Ali (Super Admins).'
+      message: 'Access Denied: Super Admin Control Center is strictly restricted to Dimas (alvarizkidimas@gmail.com) & Ali (ali@odst.id).'
     });
   }
   next();

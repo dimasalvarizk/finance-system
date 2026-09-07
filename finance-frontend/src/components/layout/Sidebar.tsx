@@ -16,6 +16,7 @@ import {
 import odstDashboardLogo from '../../assets/odstdahboard.png';
 import { useAuth } from '../../context/AuthContext';
 import { useMaintenance } from '../../context/MaintenanceContext';
+import { isSuperAdminUser } from '../../utils/superAdminAuth';
 
 interface NavItem {
   id: string;
@@ -39,14 +40,8 @@ const Sidebar: React.FC = () => {
   const { locks } = useMaintenance();
   const { t } = useTranslation();
 
-  const isDimasOrAli = Boolean(
-    user && (
-      user.name?.toLowerCase().includes('dimas') ||
-      user.name?.toLowerCase().includes('ali') ||
-      user.email?.toLowerCase().includes('dimas') ||
-      user.email?.toLowerCase().includes('ali')
-    )
-  );
+  const isDimasOrAli = isSuperAdminUser(user);
+
 
   const getInitials = (name?: string) => {
     if (!name) return 'EM';

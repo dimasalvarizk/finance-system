@@ -12,6 +12,8 @@ import { getTeamMembers } from '../../services/settingService';
 import { PermissionMatrixTab } from './components/PermissionMatrixTab';
 import { AuditLogsTab } from './components/AuditLogsTab';
 
+import { isSuperAdminUser } from '../../utils/superAdminAuth';
+
 const SuperAdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -21,15 +23,9 @@ const SuperAdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Exclusively for Dimas & Ali only
-  const isSuperAdmin = Boolean(
-    user && (
-      user.name?.toLowerCase().includes('dimas') ||
-      user.name?.toLowerCase().includes('ali') ||
-      user.email?.toLowerCase().includes('dimas') ||
-      user.email?.toLowerCase().includes('ali')
-    )
-  );
+  // Exclusively for Dimas & Ali only (Strict Email Verification)
+  const isSuperAdmin = isSuperAdminUser(user);
+
 
   const fetchUsers = async () => {
     try {
