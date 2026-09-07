@@ -90,7 +90,7 @@ const Sidebar: React.FC = () => {
         },
         {
           id: 'invoices',
-          label: t('nav.invoices') || t('nav.confirmations') || 'Invoices',
+          label: t('nav.confirmations') || 'Confirmations',
           path: '/invoices',
           icon: FileText,
           visible: true,
