@@ -36,7 +36,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-7 sm:p-9 space-y-7 max-w-[920px] w-full mx-auto">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-7 sm:p-9 space-y-7 w-full mx-auto">
       <h2 className="text-[17px] font-bold text-slate-900 tracking-tight">
         {t('preExecutionPayment.reviewTitle') || 'Transaction Review'}
       </h2>

@@ -60,7 +60,7 @@ const SetupBeneficiary: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
 
-        <div className="flex-1 p-6 sm:p-8 space-y-7 max-w-[1200px] w-full mx-auto">
+        <div className="flex-1 p-6 sm:p-8 space-y-7 max-w-[1400px] w-full mx-auto">
           {/* Top Title & Header */}
           <div className="space-y-1">
             <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">

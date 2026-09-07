@@ -38,7 +38,7 @@ export const BeneficiaryBankingForm: React.FC<BeneficiaryBankingFormProps> = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-7 sm:p-9 space-y-6 max-w-[820px] w-full mx-auto"
+      className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-7 sm:p-9 space-y-6 w-full"
     >
       <h2 className="text-[17px] font-bold text-slate-900 tracking-tight">
         {t('setupBeneficiary.title') || 'Beneficiary Banking Form'}

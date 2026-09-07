@@ -40,7 +40,7 @@ export const ApiSettlementTunnelCard: React.FC<ApiSettlementTunnelCardProps> = (
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-8 sm:p-12 space-y-9 max-w-[920px] w-full mx-auto font-sans">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-8 sm:p-12 space-y-9 w-full mx-auto font-sans">
       {/* Centered Loading Animation */}
       <div className="text-center space-y-3">
         <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto ring-8 ring-blue-50/50">
