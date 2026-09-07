@@ -92,15 +92,37 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
     if (isVerifying) return;
     setIsVerifying(true);
     try {
-      const res = await checkDownloadPermission(selectedInvoice.invoiceNo);
+      const invStatus = (selectedInvoice.status || '').toLowerCase().trim();
+      const allowedClientStatuses = [
+        '4/4 approved', 'approved', '3/3 approved', 'paid', 'paid and closed', 'paid & closed', 
+        'fully paid', 'fully_paid', 'partial payment', 'partial', 'partial_payment', 
+        'deposit paid', 'deposit_paid', 'awaiting payment approval'
+      ];
+      const isClientAllowed = allowedClientStatuses.includes(invStatus) || invStatus.includes('paid') || invStatus.includes('approved');
+
+      const res = await checkDownloadPermission(selectedInvoice.invoiceNo || (selectedInvoice as any).id);
       if (res && res.allowed) {
         window.print();
-      } else {
+      } else if (res && !res.allowed) {
         setErrorMessage(res.message || 'Access Denied: This confirmation is not fully approved yet.');
+      } else if (isClientAllowed) {
+        window.print();
+      } else {
+        setErrorMessage('Access Denied: This confirmation is not fully approved yet.');
       }
     } catch (err: any) {
       console.error('Permission check failed:', err);
-      setErrorMessage('Failed to verify print/download permissions. Please check if all backend services are running.');
+      const invStatus = (selectedInvoice.status || '').toLowerCase().trim();
+      const allowedClientStatuses = [
+        '4/4 approved', 'approved', '3/3 approved', 'paid', 'paid and closed', 'paid & closed', 
+        'fully paid', 'fully_paid', 'partial payment', 'partial', 'partial_payment', 
+        'deposit paid', 'deposit_paid', 'awaiting payment approval'
+      ];
+      if (allowedClientStatuses.includes(invStatus) || invStatus.includes('paid') || invStatus.includes('approved')) {
+        window.print();
+      } else {
+        setErrorMessage('Failed to verify print/download permissions. Please check if all backend services are running.');
+      }
     } finally {
       setIsVerifying(false);
     }

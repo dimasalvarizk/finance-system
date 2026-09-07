@@ -67,7 +67,7 @@ export const getAllRequestsDB = async () => {
 // Fetch request by invoice number or request ID
 export const getRequestByInvoiceNoDB = async (invoiceNo) => {
   const pool = getPool();
-  const [rows] = await pool.query('SELECT * FROM dst_requests WHERE invoiceNo = ? OR reqNo = ?', [invoiceNo, invoiceNo]);
+  const [rows] = await pool.query('SELECT * FROM dst_requests WHERE invoiceNo = ? OR reqNo = ? OR id = ?', [invoiceNo, invoiceNo, invoiceNo]);
   const req = rows[0];
   if (!req) return null;
 

@@ -144,6 +144,9 @@ services:
   # --- DATABASE MYSQL ---
   mysql-db:
     image: mysql:8.0
+    ports:
+      # production
+      # - "${MYSQL_PORT:-3306}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}

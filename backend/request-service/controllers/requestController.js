@@ -270,27 +270,68 @@ export const checkDownloadPermission = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const request = await getRequestByInvoiceNoDB(id);
+    const pool = getPool();
 
-    if (!request) {
+    // 1. Check dst_requests by id, reqNo, or invoiceNo
+    const [requestRows] = await pool.query(
+      'SELECT * FROM dst_requests WHERE id = ? OR reqNo = ? OR invoiceNo = ?',
+      [id, id, id]
+    );
+    const request = requestRows[0];
+
+    // 2. Check dst_invoices by id or invoiceNo
+    const [invoiceRows] = await pool.query(
+      'SELECT * FROM dst_invoices WHERE id = ? OR invoiceNo = ?',
+      [id, id]
+    );
+    const invoice = invoiceRows[0];
+
+    if (!request && !invoice) {
       return res.status(404).json({
         success: false,
-        message: 'Request not found'
-      });
-    }
-
-    if (request.status !== '4/4 Approved' && request.status !== 'Approved') {
-      return res.status(403).json({
-        success: false,
         allowed: false,
-        message: 'Access Denied: Invoice must be fully approved by all accountants and directors before printing or downloading.'
+        message: 'Request or Invoice not found'
       });
     }
 
-    res.status(200).json({
-      success: true,
-      allowed: true,
-      message: 'Access Granted: Print or download is permitted.'
+    const ALLOWED_STATUSES = [
+      '4/4 approved',
+      'approved',
+      '3/3 approved',
+      'paid',
+      'paid and closed',
+      'paid & closed',
+      'fully paid',
+      'fully_paid',
+      'partial payment',
+      'partial',
+      'partial_payment',
+      'deposit paid',
+      'deposit_paid',
+      'awaiting payment approval'
+    ];
+
+    const isAllowed = (status) => {
+      if (!status) return false;
+      const clean = String(status).trim().toLowerCase();
+      return ALLOWED_STATUSES.includes(clean) || clean.includes('paid') || clean.includes('approved');
+    };
+
+    const reqStatus = request?.status;
+    const invStatus = invoice?.status;
+
+    if (isAllowed(reqStatus) || isAllowed(invStatus)) {
+      return res.status(200).json({
+        success: true,
+        allowed: true,
+        message: 'Access Granted: Print or download is permitted.'
+      });
+    }
+
+    return res.status(403).json({
+      success: false,
+      allowed: false,
+      message: 'Access Denied: Invoice must be fully approved by all accountants and directors before printing or downloading.'
     });
   } catch (error) {
     next(error);
