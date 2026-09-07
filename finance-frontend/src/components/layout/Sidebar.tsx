@@ -99,11 +99,11 @@ const Sidebar: React.FC = () => {
       ],
     },
     {
-      title: (import.meta.env.VITE_ENABLE_INTERNAL === 'true' || (import.meta.env.DEV && import.meta.env.VITE_ENABLE_INTERNAL !== 'false'))
+      title: (import.meta.env.VITE_ENABLE_INTERNAL === 'true')
         ? (t('nav.internal') || 'INTERNAL')
         : `${t('nav.internal') || 'INTERNAL'} (${t('nav.comingSoon') || 'coming soon'})`,
       showIfEmpty: true,
-      items: (import.meta.env.VITE_ENABLE_INTERNAL === 'true' || (import.meta.env.DEV && import.meta.env.VITE_ENABLE_INTERNAL !== 'false')) ? [
+      items: (import.meta.env.VITE_ENABLE_INTERNAL === 'true') ? [
         {
           id: 'my-expenses',
           label: t('nav.myExpenses') || 'My Expenses',

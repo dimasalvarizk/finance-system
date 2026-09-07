@@ -24,7 +24,7 @@ const SetupBeneficiary = lazy(() => import('../pages/SetupBeneficiary'));
 const PreExecutionPayment = lazy(() => import('../pages/PreExecutionPayment'));
 const InternalPlaceholderPage = lazy(() => import('../pages/Internal'));
 
-const isInternalEnabled = import.meta.env.VITE_ENABLE_INTERNAL === 'true' || (import.meta.env.DEV && import.meta.env.VITE_ENABLE_INTERNAL !== 'false');
+const isInternalEnabled = import.meta.env.VITE_ENABLE_INTERNAL === 'true';
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#f4f6fa]">
