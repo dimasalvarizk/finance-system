@@ -10,18 +10,7 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('lucide-react')) return 'vendor-icons';
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'vendor-react';
-            if (id.includes('axios')) return 'vendor-axios';
-            return 'vendor-libs';
-          }
-        }
-      }
-    }
+    chunkSizeWarningLimit: 1500
   }
 })
+
