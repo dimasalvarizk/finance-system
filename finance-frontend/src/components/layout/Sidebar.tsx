@@ -29,6 +29,7 @@ interface NavItem {
 interface NavSection {
   title: string;
   items: NavItem[];
+  showIfEmpty?: boolean;
 }
 
 const Sidebar: React.FC = () => {
@@ -98,8 +99,11 @@ const Sidebar: React.FC = () => {
       ],
     },
     {
-      title: t('nav.internal') || 'INTERNAL',
-      items: [
+      title: (import.meta.env.VITE_ENABLE_INTERNAL === 'true' || (import.meta.env.DEV && import.meta.env.VITE_ENABLE_INTERNAL !== 'false'))
+        ? (t('nav.internal') || 'INTERNAL')
+        : `${t('nav.internal') || 'INTERNAL'} (${t('nav.comingSoon') || 'coming soon'})`,
+      showIfEmpty: true,
+      items: (import.meta.env.VITE_ENABLE_INTERNAL === 'true' || (import.meta.env.DEV && import.meta.env.VITE_ENABLE_INTERNAL !== 'false')) ? [
         {
           id: 'my-expenses',
           label: t('nav.myExpenses') || 'My Expenses',
@@ -124,7 +128,7 @@ const Sidebar: React.FC = () => {
           icon: CheckSquare,
           visible: true,
         },
-      ],
+      ] : [],
     },
     {
       title: t('nav.others') || 'OTHERS',
@@ -159,7 +163,7 @@ const Sidebar: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 custom-sidebar-scroll font-inter">
         {navSections.map((section) => {
           const visibleItems = section.items.filter((item) => item.visible !== false);
-          if (visibleItems.length === 0) return null;
+          if (visibleItems.length === 0 && !section.showIfEmpty) return null;
 
           return (
             <div key={section.title} className="space-y-1">

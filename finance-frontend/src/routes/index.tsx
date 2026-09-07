@@ -22,6 +22,9 @@ const ExpenseApproval = lazy(() => import('../pages/ExpenseApproval'));
 const InitiateReimbursement = lazy(() => import('../pages/InitiateReimbursement'));
 const SetupBeneficiary = lazy(() => import('../pages/SetupBeneficiary'));
 const PreExecutionPayment = lazy(() => import('../pages/PreExecutionPayment'));
+const InternalPlaceholderPage = lazy(() => import('../pages/Internal'));
+
+const isInternalEnabled = import.meta.env.VITE_ENABLE_INTERNAL === 'true' || (import.meta.env.DEV && import.meta.env.VITE_ENABLE_INTERNAL !== 'false');
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#f4f6fa]">
@@ -215,33 +218,33 @@ const AppRoutes: React.FC = () => {
               )
             }
           />
-          <Route path="/my-expenses" element={<MyExpenses />} />
-          <Route path="/internal/expenses" element={<MyExpenses />} />
-          <Route path="/internal/my-expenses" element={<MyExpenses />} />
-          <Route path="/submit-expense" element={<SubmitExpense />} />
-          <Route path="/internal/submit-expense" element={<SubmitExpense />} />
-          <Route path="/approvals" element={<Approvals />} />
-          <Route path="/internal/approvals" element={<Approvals />} />
-          <Route path="/expense-approval" element={<ExpenseApproval />} />
-          <Route path="/expense-approval/:id" element={<ExpenseApproval />} />
-          <Route path="/approvals/action" element={<ExpenseApproval />} />
-          <Route path="/approvals/action/:id" element={<ExpenseApproval />} />
-          <Route path="/internal/approvals/action/:id" element={<ExpenseApproval />} />
-          <Route path="/initiate-reimbursement" element={<InitiateReimbursement />} />
-          <Route path="/initiate-reimbursement/:id" element={<InitiateReimbursement />} />
-          <Route path="/approvals/reimburse" element={<InitiateReimbursement />} />
-          <Route path="/approvals/reimburse/:id" element={<InitiateReimbursement />} />
-          <Route path="/internal/approvals/reimburse/:id" element={<InitiateReimbursement />} />
-          <Route path="/setup-beneficiary" element={<SetupBeneficiary />} />
-          <Route path="/setup-beneficiary/:id" element={<SetupBeneficiary />} />
-          <Route path="/approvals/beneficiary" element={<SetupBeneficiary />} />
-          <Route path="/approvals/beneficiary/:id" element={<SetupBeneficiary />} />
-          <Route path="/pre-execution-payment" element={<PreExecutionPayment />} />
-          <Route path="/pre-execution-payment/:id" element={<PreExecutionPayment />} />
-          <Route path="/pre-execution-review" element={<PreExecutionPayment />} />
-          <Route path="/pre-execution-review/:id" element={<PreExecutionPayment />} />
-          <Route path="/approvals/execute" element={<PreExecutionPayment />} />
-          <Route path="/approvals/execute/:id" element={<PreExecutionPayment />} />
+          <Route path="/my-expenses" element={isInternalEnabled ? <MyExpenses /> : <InternalPlaceholderPage />} />
+          <Route path="/internal/expenses" element={isInternalEnabled ? <MyExpenses /> : <InternalPlaceholderPage />} />
+          <Route path="/internal/my-expenses" element={isInternalEnabled ? <MyExpenses /> : <InternalPlaceholderPage />} />
+          <Route path="/submit-expense" element={isInternalEnabled ? <SubmitExpense /> : <InternalPlaceholderPage />} />
+          <Route path="/internal/submit-expense" element={isInternalEnabled ? <SubmitExpense /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals" element={isInternalEnabled ? <Approvals /> : <InternalPlaceholderPage />} />
+          <Route path="/internal/approvals" element={isInternalEnabled ? <Approvals /> : <InternalPlaceholderPage />} />
+          <Route path="/expense-approval" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
+          <Route path="/expense-approval/:id" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/action" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/action/:id" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
+          <Route path="/internal/approvals/action/:id" element={isInternalEnabled ? <ExpenseApproval /> : <InternalPlaceholderPage />} />
+          <Route path="/initiate-reimbursement" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
+          <Route path="/initiate-reimbursement/:id" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/reimburse" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/reimburse/:id" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
+          <Route path="/internal/approvals/reimburse/:id" element={isInternalEnabled ? <InitiateReimbursement /> : <InternalPlaceholderPage />} />
+          <Route path="/setup-beneficiary" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
+          <Route path="/setup-beneficiary/:id" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/beneficiary" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/beneficiary/:id" element={isInternalEnabled ? <SetupBeneficiary /> : <InternalPlaceholderPage />} />
+          <Route path="/pre-execution-payment" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
+          <Route path="/pre-execution-payment/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
+          <Route path="/pre-execution-review" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
+          <Route path="/pre-execution-review/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/execute" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
+          <Route path="/approvals/execute/:id" element={isInternalEnabled ? <PreExecutionPayment /> : <InternalPlaceholderPage />} />
           <Route
             path="/system-audit-hidden"
             element={

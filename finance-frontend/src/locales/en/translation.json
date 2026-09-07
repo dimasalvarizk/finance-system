@@ -75,7 +75,8 @@
     "myExpenses": "My Expenses",
     "submitExpense": "Submit Expense",
     "approvals": "Approvals",
-    "settings": "Settings"
+    "settings": "Settings",
+    "comingSoon": "coming soon"
   },
   "header": {
     "operatingBranch": "Operating Branch:",
