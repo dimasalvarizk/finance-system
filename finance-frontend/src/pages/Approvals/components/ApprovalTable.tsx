@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, X, Send } from 'lucide-react';
+import { Search, X, Send, Trash2 } from 'lucide-react';
 import type { ApprovedExpenseItem } from '../types';
 
 interface ApprovalTableProps {
@@ -17,6 +17,7 @@ interface ApprovalTableProps {
   onToggleRow: (id: string, e: React.MouseEvent) => void;
   onOpenClaimDetail: (item: ApprovedExpenseItem) => void;
   onOpenPayrollModal: () => void;
+  onOpenBulkDeleteModal: () => void;
   onOpenBankTransferModal: () => void;
   formatAmount: (num: number, curr?: string) => string;
 }
@@ -35,6 +36,7 @@ export const ApprovalTable: React.FC<ApprovalTableProps> = ({
   onToggleRow,
   onOpenClaimDetail,
   onOpenPayrollModal,
+  onOpenBulkDeleteModal,
   onOpenBankTransferModal,
   formatAmount
 }) => {
@@ -50,7 +52,7 @@ export const ApprovalTable: React.FC<ApprovalTableProps> = ({
           <h2 className="text-[15px] font-bold text-slate-900 tracking-tight flex items-center">
             <span>Approved Expenses — Ready for Payment</span>
             {selectedIds.length > 0 && (
-              <span className="ml-2.5 px-2 py-0.5 rounded text-[11px] font-bold bg-[#dcfce7] text-[#15803d]">
+              <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#dcfce7] text-[#15803d]">
                 {selectedIds.length} {t('common.selected') || 'Selected'}
               </span>
             )}
@@ -62,21 +64,33 @@ export const ApprovalTable: React.FC<ApprovalTableProps> = ({
           {selectedIds.length > 0 ? (
             <div className="flex items-center space-x-2.5 animate-fade-in">
               <button
+                type="button"
                 onClick={onOpenPayrollModal}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 bg-white text-slate-700 font-semibold text-[12.5px] rounded-xl transition-all cursor-pointer shadow-xs"
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 bg-white text-slate-700 font-semibold text-[12.5px] rounded-xl transition-all cursor-pointer shadow-xs whitespace-nowrap"
               >
                 {t('approvals.addToPayroll') || 'Add to Payroll'}
               </button>
 
               <button
+                type="button"
+                onClick={onOpenBulkDeleteModal}
+                className="px-4 py-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold text-[12.5px] rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs whitespace-nowrap"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{t('approvals.delete') || 'Delete'}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={onOpenBankTransferModal}
-                className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[12.5px] rounded-xl flex items-center space-x-2 transition-all cursor-pointer shadow-xs"
+                className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[12.5px] rounded-xl flex items-center space-x-2 transition-all cursor-pointer shadow-xs whitespace-nowrap"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{t('approvals.transferToBank') || 'Transfer to Bank'}</span>
               </button>
             </div>
           ) : null}
+
 
           {/* Search Box */}
           <div className="relative">

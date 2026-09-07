@@ -8,6 +8,7 @@ import { ApprovalStatCards } from './components/ApprovalStatCards';
 import { ApprovalTable } from './components/ApprovalTable';
 import { ClaimAuditModal } from './components/ClaimAuditModal';
 import { AddToPayrollModal } from './components/AddToPayrollModal';
+import { BulkDeleteModal } from './components/BulkDeleteModal';
 import { BankTransferModal } from './components/BankTransferModal';
 import { ActionSuccessModal } from './components/ActionSuccessModal';
 
@@ -36,11 +37,13 @@ const Approvals: React.FC = () => {
   // Modals state
   const [selectedClaimDetail, setSelectedClaimDetail] = useState<ApprovedExpenseItem | null>(null);
   const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [isBankTransferModalOpen, setIsBankTransferModalOpen] = useState(false);
   const [payrollPeriod, setPayrollPeriod] = useState('October 2026 Cycle (End of Month)');
   const [transferRef, setTransferRef] = useState(`TRF-DISB-${Date.now().toString().slice(-6)}`);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [actionSuccessData, setActionSuccessData] = useState<ActionSuccessPayload | null>(null);
+
 
   const saveItems = (updated: ApprovedExpenseItem[]) => {
     setItems(updated);
@@ -160,6 +163,25 @@ const Approvals: React.FC = () => {
     }, 600);
   };
 
+  // Action: Bulk Delete Selected Claims
+  const handleConfirmBulkDelete = () => {
+    setIsProcessingAction(true);
+    setTimeout(() => {
+      const deletedCount = selectedItems.length;
+      const updated = items.filter((item) => !selectedIds.includes(item.id));
+      saveItems(updated);
+      setIsProcessingAction(false);
+      setIsBulkDeleteModalOpen(false);
+      setSelectedIds([]);
+      setActionSuccessData({
+        isOpen: true,
+        title: 'Claims Deleted Successfully!',
+        message: `${deletedCount} claim(s) have been permanently removed from the payment queue.`,
+        type: 'bank'
+      });
+    }, 400);
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-[#f8fafc] select-none font-inter">
       <Sidebar />
@@ -199,6 +221,7 @@ const Approvals: React.FC = () => {
             onToggleRow={handleToggleRow}
             onOpenClaimDetail={(item) => setSelectedClaimDetail(item)}
             onOpenPayrollModal={() => setIsPayrollModalOpen(true)}
+            onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
             onOpenBankTransferModal={() => {
               setTransferRef(`TRF-DISB-${Date.now().toString().slice(-6)}`);
               setIsBankTransferModalOpen(true);
@@ -212,6 +235,15 @@ const Approvals: React.FC = () => {
       <ClaimAuditModal
         item={selectedClaimDetail}
         onClose={() => setSelectedClaimDetail(null)}
+        formatAmount={formatAmount}
+      />
+
+      <BulkDeleteModal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        selectedItems={selectedItems}
+        isProcessing={isProcessingAction}
+        onConfirm={handleConfirmBulkDelete}
         formatAmount={formatAmount}
       />
 
@@ -246,5 +278,6 @@ const Approvals: React.FC = () => {
     </div>
   );
 };
+
 
 export default Approvals;
