@@ -1081,46 +1081,84 @@ export const getBackupHistory = async (req, res, next) => {
 // ==========================================
 // 10. SYSTEM AUDIT LOGS (Super Admin CRUD)
 // ==========================================
+// Helper function to guarantee all dst_audit_logs columns exist
+const ensureAuditLogsTable = async (pool) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS dst_audit_logs (
+        id VARCHAR(100) PRIMARY KEY,
+        action VARCHAR(100) NOT NULL DEFAULT 'MANUAL_LOG_ENTRY',
+        performed_by VARCHAR(100) NOT NULL DEFAULT 'usr_super_admin',
+        performed_by_name VARCHAR(255) DEFAULT 'Super Admin',
+        target_user VARCHAR(100) DEFAULT 'System',
+        details TEXT,
+        ip_address VARCHAR(50) DEFAULT '127.0.0.1',
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    const cols = [
+      { name: 'action', type: "VARCHAR(100) NOT NULL DEFAULT 'MANUAL_LOG_ENTRY'" },
+      { name: 'performed_by', type: "VARCHAR(100) NOT NULL DEFAULT 'usr_super_admin'" },
+      { name: 'performed_by_name', type: "VARCHAR(255) DEFAULT 'Super Admin'" },
+      { name: 'target_user', type: "VARCHAR(100) DEFAULT 'System'" },
+      { name: 'details', type: "TEXT" },
+      { name: 'ip_address', type: "VARCHAR(50) DEFAULT '127.0.0.1'" },
+      { name: 'createdAt', type: "DATETIME DEFAULT CURRENT_TIMESTAMP" },
+      { name: 'updatedAt', type: "DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" }
+    ];
+
+    for (const col of cols) {
+      try {
+        await pool.query(`SELECT ${col.name} FROM dst_audit_logs LIMIT 1`);
+      } catch (err) {
+        try {
+          await pool.query(`ALTER TABLE dst_audit_logs ADD COLUMN ${col.name} ${col.type}`);
+        } catch (alterErr) {
+          console.warn(`Could not add column ${col.name} to dst_audit_logs:`, alterErr.message);
+        }
+      }
+    }
+
+    // Sync old legacy columns if present
+    try {
+      await pool.query('UPDATE dst_audit_logs SET createdAt = created_at WHERE createdAt IS NULL AND created_at IS NOT NULL');
+    } catch (e) {}
+    try {
+      await pool.query('UPDATE dst_audit_logs SET performed_by_name = user_name WHERE (performed_by_name IS NULL OR performed_by_name = "") AND user_name IS NOT NULL');
+    } catch (e) {}
+    try {
+      await pool.query('UPDATE dst_audit_logs SET action = action_type WHERE (action IS NULL OR action = "") AND action_type IS NOT NULL');
+    } catch (e) {}
+
+    // Seed initial logs if table is empty
+    const [countRows] = await pool.query('SELECT COUNT(*) as count FROM dst_audit_logs');
+    if (countRows[0]?.count === 0) {
+      await pool.query(`
+        INSERT INTO dst_audit_logs (id, action, performed_by, performed_by_name, target_user, details, ip_address)
+        VALUES 
+          ('log_init_001', 'SYSTEM_CONFIG_CHANGED', 'usr_super_admin', 'Dimas Alva Rizki', 'System', '{"message":"Super Admin Mini Dashboard & Dynamic Permission Matrix initialized successfully."}', '127.0.0.1'),
+          ('log_init_002', 'UPDATE_PERMISSIONS', 'usr_super_admin', 'Dimas Alva Rizki', 'Mr. Khalid', '{"message":"Direct confirmation bypass permission verified for executive operations.","newPermissions":{"CAN_BYPASS_APPROVAL":true}}', '127.0.0.1')
+      `);
+    }
+  } catch (e) {
+    console.warn('ensureAuditLogsTable warning:', e.message);
+  }
+};
+
 export const getAuditLogs = async (req, res, next) => {
   try {
     const pool = getPool();
-    // Ensure table exists
-    try {
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS dst_audit_logs (
-          id VARCHAR(100) PRIMARY KEY,
-          action VARCHAR(100) NOT NULL,
-          performed_by VARCHAR(100) NOT NULL,
-          performed_by_name VARCHAR(255),
-          target_user VARCHAR(100),
-          details TEXT,
-          ip_address VARCHAR(50),
-          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-      `);
-
-      // Seed initial logs if table is empty
-      const [countRows] = await pool.query('SELECT COUNT(*) as count FROM dst_audit_logs');
-      if (countRows[0]?.count === 0) {
-        await pool.query(`
-          INSERT INTO dst_audit_logs (id, action, performed_by, performed_by_name, target_user, details, ip_address)
-          VALUES 
-            ('log_init_001', 'SYSTEM_CONFIG_CHANGED', 'usr_super_admin', 'Dimas Alva Rizki', 'System', '{"message":"Super Admin Mini Dashboard & Dynamic Permission Matrix initialized successfully."}', '127.0.0.1'),
-            ('log_init_002', 'UPDATE_PERMISSIONS', 'usr_super_admin', 'Dimas Alva Rizki', 'Mr. Khalid', '{"message":"Direct confirmation bypass permission verified for executive operations.","newPermissions":{"CAN_BYPASS_APPROVAL":true}}', '127.0.0.1')
-        `);
-      }
-    } catch (e) {
-      console.warn('dst_audit_logs table check warning:', e.message);
-    }
+    await ensureAuditLogsTable(pool);
 
     const { action, search, limit = 200 } = req.query;
-    let query = 'SELECT * FROM dst_audit_logs WHERE 1=1';
+    let query = 'SELECT id, action, performed_by, performed_by_name, target_user, details, ip_address, COALESCE(createdAt, NOW()) as createdAt, updatedAt FROM dst_audit_logs WHERE 1=1';
     const params = [];
 
     if (action && action !== 'ALL') {
-      query += ' AND action = ?';
-      params.push(action);
+      query += ' AND (action = ? OR action_type = ?)';
+      params.push(action, action);
     }
 
     if (search) {
@@ -1130,7 +1168,7 @@ export const getAuditLogs = async (req, res, next) => {
     }
 
     const safeLimit = Math.min(Math.max(1, parseInt(limit, 10) || 200), 1000);
-    query += ` ORDER BY createdAt DESC LIMIT ${safeLimit}`;
+    query += ` ORDER BY COALESCE(createdAt, id) DESC LIMIT ${safeLimit}`;
 
     const [rows] = await pool.query(query, params);
     res.status(200).json({ success: true, count: rows.length, data: rows });
@@ -1148,6 +1186,7 @@ export const createManualAuditLog = async (req, res, next) => {
     }
 
     const pool = getPool();
+    await ensureAuditLogsTable(pool);
     const logId = `log_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     const performerId = req.user ? req.user.id : 'usr_super_admin';
     const performerName = req.user ? req.user.name : 'Super Admin';
@@ -1185,6 +1224,7 @@ export const updateAuditLog = async (req, res, next) => {
   const { action, target_user, details } = req.body;
   try {
     const pool = getPool();
+    await ensureAuditLogsTable(pool);
     const [existing] = await pool.query('SELECT * FROM dst_audit_logs WHERE id = ?', [id]);
     if (existing.length === 0) {
       return res.status(404).json({ success: false, message: 'Audit log not found' });
@@ -1213,6 +1253,7 @@ export const deleteAuditLog = async (req, res, next) => {
   const { id } = req.params;
   try {
     const pool = getPool();
+    await ensureAuditLogsTable(pool);
     const [existing] = await pool.query('SELECT * FROM dst_audit_logs WHERE id = ?', [id]);
     if (existing.length === 0) {
       return res.status(404).json({ success: false, message: 'Audit log not found' });

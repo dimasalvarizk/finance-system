@@ -374,18 +374,44 @@ const initializeDatabase = async () => {
     // 10. Create dst_audit_logs table for system & super admin tracking
     const createAuditLogsQuery = `
       CREATE TABLE IF NOT EXISTS dst_audit_logs (
-        id VARCHAR(50) PRIMARY KEY,
-        action VARCHAR(100) NOT NULL,
-        performed_by VARCHAR(100) NOT NULL,
-        performed_by_name VARCHAR(100),
-        target_user VARCHAR(100),
+        id VARCHAR(100) PRIMARY KEY,
+        action VARCHAR(100) NOT NULL DEFAULT 'MANUAL_LOG_ENTRY',
+        performed_by VARCHAR(100) NOT NULL DEFAULT 'usr_super_admin',
+        performed_by_name VARCHAR(255) DEFAULT 'Super Admin',
+        target_user VARCHAR(100) DEFAULT 'System',
         details TEXT,
-        ip_address VARCHAR(50),
-        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ip_address VARCHAR(50) DEFAULT '127.0.0.1',
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
     await pool.query(createAuditLogsQuery);
+
+    const auditCols = [
+      { name: 'action', type: "VARCHAR(100) NOT NULL DEFAULT 'MANUAL_LOG_ENTRY'" },
+      { name: 'performed_by', type: "VARCHAR(100) NOT NULL DEFAULT 'usr_super_admin'" },
+      { name: 'performed_by_name', type: "VARCHAR(255) DEFAULT 'Super Admin'" },
+      { name: 'target_user', type: "VARCHAR(100) DEFAULT 'System'" },
+      { name: 'details', type: "TEXT" },
+      { name: 'ip_address', type: "VARCHAR(50) DEFAULT '127.0.0.1'" },
+      { name: 'createdAt', type: "DATETIME DEFAULT CURRENT_TIMESTAMP" },
+      { name: 'updatedAt', type: "DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" }
+    ];
+
+    for (const col of auditCols) {
+      try {
+        await pool.query(`SELECT ${col.name} FROM dst_audit_logs LIMIT 1`);
+      } catch (err) {
+        try {
+          await pool.query(`ALTER TABLE dst_audit_logs ADD COLUMN ${col.name} ${col.type}`);
+        } catch (e) {}
+      }
+    }
+
+    try {
+      await pool.query('UPDATE dst_audit_logs SET createdAt = created_at WHERE createdAt IS NULL AND created_at IS NOT NULL');
+    } catch (e) {}
+
     console.log("Table 'dst_audit_logs' is ready");
 
     // Ensure permissions column exists in dst_users
