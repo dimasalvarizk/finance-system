@@ -1,10 +1,13 @@
 import express from 'express';
-import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof, addPaymentHistory, getPaymentHistory, updatePayment, deletePayment, getAuditLogs } from '../controllers/invoiceController.js';
+import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof, addPaymentHistory, getPaymentHistory, updatePayment, deletePayment, getAuditLogs, getInvoiceStatus } from '../controllers/invoiceController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// All routes require authentication
+// Public status lookup for external system integration (e.g., Umrah Operations System)
+router.get('/:invoiceNo/status', getInvoiceStatus);
+
+// All other routes require authentication
 router.use(protect);
 
 // Audit logs route (Highly restricted)

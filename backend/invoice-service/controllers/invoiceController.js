@@ -551,3 +551,52 @@ export const getAuditLogs = async (req, res, next) => {
   }
 };
 
+// @desc    Get invoice status by invoice number (for external integrations like Umrah System)
+// @route   GET /api/invoices/:invoiceNo/status
+// @access  Public / Integration
+export const getInvoiceStatus = async (req, res, next) => {
+  const { invoiceNo } = req.params;
+
+  try {
+    const invoice = await getInvoiceByIdDB(invoiceNo);
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: `Invoice '${invoiceNo}' not found.`
+      });
+    }
+
+    const st = String(invoice.status || '').toLowerCase().trim();
+    const isApproved = ['approved', '4/4 approved', '3/3 approved', 'paid', 'paid and closed', 'fully_paid', 'fully paid', 'partial payment', 'deposit paid'].includes(st) || st.includes('paid') || st.includes('approved');
+    const isPaid = ['paid', 'paid and closed', 'paid & closed', 'fully paid', 'fully_paid'].includes(st);
+    const isPartial = st.includes('partial') || st.includes('deposit');
+
+    const totalAmount = parseFloat(String(invoice.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const totalPaid = invoice.totalPaid || 0;
+    const remainingBalance = invoice.remainingBalance ?? Math.max(0, totalAmount - totalPaid);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        invoiceNo: invoice.invoiceNo,
+        company: invoice.company,
+        companyCode: invoice.companyCode,
+        status: invoice.status,
+        isApproved,
+        isPaid,
+        isPartial,
+        totalAmount,
+        totalPaid,
+        remainingBalance,
+        currency: invoice.currency || 'USD',
+        date: invoice.date,
+        dueDate: invoice.dueDate,
+        approvalStatus: invoice.requestStatus || (isApproved ? 'Approved' : 'Pending')
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
