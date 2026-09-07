@@ -62,11 +62,19 @@
     "refresh": "تحديث"
   },
   "nav": {
+    "overview": "نظرة عامة",
+    "external": "خارجي",
+    "internal": "داخلي",
+    "others": "أخرى",
     "dashboard": "لوحة التحكم",
-    "confirmations": "تأكيدات الحجز",
+    "confirmations": "الفواتير",
+    "invoices": "الفواتير",
     "requests": "طلبات الاعتماد",
     "companies": "الشركات",
     "hotelReservations": "حجوزات الفنادق",
+    "myExpenses": "مصاريفي",
+    "submitExpense": "تقديم مصروف",
+    "approvals": "الموافقات",
     "settings": "الإعدادات"
   },
   "header": {

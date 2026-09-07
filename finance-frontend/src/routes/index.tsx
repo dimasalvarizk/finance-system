@@ -15,6 +15,7 @@ const Companies = lazy(() => import('../pages/Companies'));
 const Settings = lazy(() => import('../pages/Settings'));
 const HotelReservations = lazy(() => import('../pages/HotelReservations'));
 const AuditLog = lazy(() => import('../pages/AuditLog'));
+const InternalPlaceholderPage = lazy(() => import('../pages/Internal'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#f4f6fa]">
@@ -36,7 +37,7 @@ const routeSeoMap: Record<string, { title: string; desc: string }> = {
     desc: 'Real-time financial metrics, total confirmations, revenue analytics, and pending requests overview.'
   },
   '/invoices': {
-    title: 'General Confirmations & Payment Tracking - ODST Finance System',
+    title: 'Invoices & Payment Tracking - ODST Finance System',
     desc: 'Track advance payments, deposit ledgers, installment breakdown, and overpayment credit balances.'
   },
   '/requests': {
@@ -50,6 +51,30 @@ const routeSeoMap: Record<string, { title: string; desc: string }> = {
   '/hotel-reservations': {
     title: 'Hotel Reservations & Bookings - ODST Finance System',
     desc: 'Track hotel reservation vouchers, room allocations, check-in dates, and deposit tracking.'
+  },
+  '/my-expenses': {
+    title: 'My Expenses - ODST Finance System',
+    desc: 'Internal expense tracking and employee reimbursement history.'
+  },
+  '/internal/expenses': {
+    title: 'My Expenses - ODST Finance System',
+    desc: 'Internal expense tracking and employee reimbursement history.'
+  },
+  '/submit-expense': {
+    title: 'Submit Expense - ODST Finance System',
+    desc: 'Submit internal operational expense claims and receipts.'
+  },
+  '/internal/submit-expense': {
+    title: 'Submit Expense - ODST Finance System',
+    desc: 'Submit internal operational expense claims and receipts.'
+  },
+  '/approvals': {
+    title: 'Internal Approvals - ODST Finance System',
+    desc: 'Review and approve internal operational expense requests.'
+  },
+  '/internal/approvals': {
+    title: 'Internal Approvals - ODST Finance System',
+    desc: 'Review and approve internal operational expense requests.'
   },
   '/settings': {
     title: 'System Settings & Data Backup - ODST Finance System',
@@ -156,6 +181,13 @@ const AppRoutes: React.FC = () => {
               )
             }
           />
+          <Route path="/my-expenses" element={<InternalPlaceholderPage />} />
+          <Route path="/internal/expenses" element={<InternalPlaceholderPage />} />
+          <Route path="/internal/my-expenses" element={<InternalPlaceholderPage />} />
+          <Route path="/submit-expense" element={<InternalPlaceholderPage />} />
+          <Route path="/internal/submit-expense" element={<InternalPlaceholderPage />} />
+          <Route path="/approvals" element={<InternalPlaceholderPage />} />
+          <Route path="/internal/approvals" element={<InternalPlaceholderPage />} />
           <Route
             path="/system-audit-hidden"
             element={

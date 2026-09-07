@@ -62,11 +62,19 @@
     "refresh": "Segarkan"
   },
   "nav": {
+    "overview": "Overview",
+    "external": "External",
+    "internal": "Internal",
+    "others": "Others",
     "dashboard": "Dashboard",
-    "confirmations": "Konfirmasi",
-    "requests": "Persetujuan",
+    "confirmations": "Invoices",
+    "invoices": "Invoices",
+    "requests": "Requests",
     "companies": "Perusahaan",
     "hotelReservations": "Reservasi Hotel",
+    "myExpenses": "My Expenses",
+    "submitExpense": "Submit Expense",
+    "approvals": "Approvals",
     "settings": "Pengaturan"
   },
   "header": {

@@ -62,11 +62,19 @@
     "refresh": "Refresh"
   },
   "nav": {
+    "overview": "Overview",
+    "external": "External",
+    "internal": "Internal",
+    "others": "Others",
     "dashboard": "Dashboard",
-    "confirmations": "Confirmations",
+    "confirmations": "Invoices",
+    "invoices": "Invoices",
     "requests": "Requests",
     "companies": "Companies",
     "hotelReservations": "Hotel Reservations",
+    "myExpenses": "My Expenses",
+    "submitExpense": "Submit Expense",
+    "approvals": "Approvals",
     "settings": "Settings"
   },
   "header": {
