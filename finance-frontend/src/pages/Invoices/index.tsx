@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import StatCard from '../../components/ui/StatCard';
-import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt, Zap, Download } from 'lucide-react';
+import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt, Download } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
 import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments, updateInvoicePayment, deleteInvoicePayment } from '../../services/invoiceService';
@@ -3323,18 +3323,14 @@ const Invoices: React.FC = () => {
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full p-8 flex flex-col items-center animate-scale-up font-sans">
             {hasBypassPermission ? (
               <>
-                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-4 border border-emerald-200 shadow-sm">
-                  <Zap className="w-6 h-6 stroke-[2.5px] text-amber-500 fill-amber-500/20" />
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3 border border-emerald-200">
+                  <Check className="w-6 h-6 stroke-[3px]" />
                 </div>
-                <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans leading-tight">
-                  Confirmation Auto-Approved!
+                <h3 className="text-[17px] font-bold text-[#0c0d0f] text-center mb-1 font-sans leading-tight">
+                  Confirmation Auto-Approved
                 </h3>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-700 text-[11px] font-bold mb-3">
-                  <Check className="w-3.5 h-3.5 stroke-[3px]" />
-                  <span>4/4 Approved (Direct Bypass)</span>
-                </div>
                 <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans leading-relaxed mb-6">
-                  Direct bypass authorization active. This confirmation has been automatically approved and is ready for download.
+                  Direct bypass active. Your confirmation has been approved and is ready for download.
                 </p>
                 <div className="flex space-x-3 w-full">
                   <button

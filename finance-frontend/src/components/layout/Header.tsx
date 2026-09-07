@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut, ChevronDown, Check } from 'lucide-react';
+import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut, ChevronDown, Check, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -468,12 +468,10 @@ const Header: React.FC = () => {
                     setIsProfileOpen(false);
                     navigate('/super-admin/dashboard');
                   }}
-                  className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-left text-[13px] font-bold text-purple-700 hover:bg-purple-50 transition-all cursor-pointer border border-purple-100"
+                  className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-left text-[13px] font-semibold text-purple-700 hover:bg-purple-50 transition-all cursor-pointer"
                 >
-                  <div className="w-5 h-5 rounded-md bg-purple-100 flex items-center justify-center text-purple-700">
-                    <span className="text-xs">⚡</span>
-                  </div>
-                  <span>Super Admin Control Center</span>
+                  <ShieldCheck className="w-4 h-4 text-purple-600" />
+                  <span>Super Admin Dashboard</span>
                 </button>
               )}
 

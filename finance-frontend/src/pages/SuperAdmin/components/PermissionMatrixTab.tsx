@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Search,
-  Zap,
-  UserPlus,
-  Shield,
-  FileSpreadsheet,
-  CheckCircle2,
-  AlertCircle,
-  Users,
-  Building2,
-  Sparkles
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import { updateUserPermissions } from '../../../services/settingService';
 
 interface UserItem {
@@ -127,70 +116,45 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
   return (
     <div className="space-y-6 font-inter">
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-            <Users className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-slate-800">{users.length}</div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Team Members</div>
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <div className="text-xl font-bold text-slate-900">{users.length}</div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Total Users</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-amber-200/80 shadow-sm flex items-center space-x-4 bg-gradient-to-br from-white to-amber-50/30">
-          <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
-            <Zap className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-amber-700">{totalBypass}</div>
-            <div className="text-xs font-semibold text-amber-700/80 uppercase tracking-wider">Bypass Approval Enabled</div>
-          </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <div className="text-xl font-bold text-amber-700">{totalBypass}</div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Bypass Approved</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-emerald-200/80 shadow-sm flex items-center space-x-4 bg-gradient-to-br from-white to-emerald-50/30">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
-            <UserPlus className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-emerald-700">{totalMembersMgr}</div>
-            <div className="text-xs font-semibold text-emerald-700/80 uppercase tracking-wider">Can Add Members</div>
-          </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <div className="text-xl font-bold text-emerald-700">{totalMembersMgr}</div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Can Add Members</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-purple-200/80 shadow-sm flex items-center space-x-4 bg-gradient-to-br from-white to-purple-50/30">
-          <div className="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-500/20">
-            <Shield className="w-6 h-6" />
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <div className="text-xl font-bold text-purple-700">
+            {users.filter((u) => u.role === 'Super Admin' || u.name.includes('Dimas') || u.name.includes('Ali')).length}
           </div>
-          <div>
-            <div className="text-2xl font-bold text-purple-700">
-              {users.filter((u) => u.role === 'Super Admin' || u.name.includes('Dimas') || u.name.includes('Ali')).length}
-            </div>
-            <div className="text-xs font-semibold text-purple-700/80 uppercase tracking-wider">Super Admins</div>
-          </div>
+          <div className="text-[11px] font-medium text-slate-500 mt-0.5">Super Admins</div>
         </div>
       </div>
 
       {/* Toast Feedback */}
       {feedback && (
         <div
-          className={`p-4 rounded-xl flex items-center space-x-3 text-xs font-semibold shadow-sm transition-all ${
+          className={`p-3.5 rounded-xl flex items-center space-x-2.5 text-xs font-semibold shadow-xs transition-all ${
             feedback.type === 'success'
               ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
               : 'bg-red-50 border border-red-200 text-red-800'
           }`}
         >
-          {feedback.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          ) : (
-            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-          )}
           <span>{feedback.message}</span>
         </div>
       )}
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -210,16 +174,16 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
               onClick={() => setRoleFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
                 roleFilter === f
-                  ? 'bg-[#1d2857] text-white shadow-sm'
+                  ? 'bg-[#1d2857] text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {f === 'ALL'
-                ? 'All Team'
+                ? 'All Users'
                 : f === 'BYPASS'
-                ? '⚡ Bypass Enabled'
+                ? 'Bypass Enabled'
                 : f === 'SUPER_ADMIN'
-                ? '🛡️ Super Admins'
+                ? 'Super Admins'
                 : f}
             </button>
           ))}
@@ -227,52 +191,28 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
       </div>
 
       {/* Permission Matrix Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   User & Role
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  Branch / Office
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  Branch / Department
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-amber-700 uppercase tracking-wider bg-amber-50/50">
-                  <div className="flex items-center justify-center space-x-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Bypass Approval</span>
-                  </div>
-                  <span className="block text-[10px] font-normal text-amber-600/80 lowercase mt-0.5">
-                    Instant Approve & Download
-                  </span>
+                <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Bypass Approval
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-emerald-700 uppercase tracking-wider">
-                  <div className="flex items-center justify-center space-x-1.5">
-                    <UserPlus className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Add Members</span>
-                  </div>
-                  <span className="block text-[10px] font-normal text-emerald-600/80 lowercase mt-0.5">
-                    Team management
-                  </span>
+                <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Add Members
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-purple-700 uppercase tracking-wider">
-                  <div className="flex items-center justify-center space-x-1.5">
-                    <Shield className="w-3.5 h-3.5 text-purple-600" />
-                    <span>Manage Logs</span>
-                  </div>
-                  <span className="block text-[10px] font-normal text-purple-600/80 lowercase mt-0.5">
-                    Audit log editing
-                  </span>
+                <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Manage Logs
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-blue-700 uppercase tracking-wider">
-                  <div className="flex items-center justify-center space-x-1.5">
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
-                    <span>View Reports</span>
-                  </div>
-                  <span className="block text-[10px] font-normal text-blue-600/80 lowercase mt-0.5">
-                    Branch analytics
-                  </span>
+                <th className="px-6 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  View Reports
                 </th>
               </tr>
             </thead>
@@ -296,10 +236,10 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
                           <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-sm ${
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                               isSuperAdminUser
-                                ? 'bg-gradient-to-br from-purple-600 to-indigo-700 text-white'
-                                : 'bg-[#1d2857] text-white'
+                                ? 'bg-purple-700 text-white'
+                                : 'bg-slate-800 text-white'
                             }`}
                           >
                             {getInitials(user.name)}
@@ -308,14 +248,13 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                             <div className="flex items-center space-x-2">
                               <span className="text-xs font-bold text-slate-900">{user.name}</span>
                               {isSuperAdminUser && (
-                                <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                                   SUPER ADMIN
                                 </span>
                               )}
                               {user.name.includes('Khalid') && (
-                                <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center space-x-1">
-                                  <Sparkles className="w-2.5 h-2.5" />
-                                  <span>VIP User</span>
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                  VIP
                                 </span>
                               )}
                             </div>
@@ -329,9 +268,8 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
 
                       {/* Branch Column */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-1.5 text-xs text-slate-600 font-medium">
-                          <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{user.branch || 'Global Office'}</span>
+                        <div className="text-xs text-slate-700 font-medium">
+                          {user.branch || 'Global Office'}
                         </div>
                         {user.department && (
                           <div className="text-[11px] text-slate-400 mt-0.5">{user.department}</div>

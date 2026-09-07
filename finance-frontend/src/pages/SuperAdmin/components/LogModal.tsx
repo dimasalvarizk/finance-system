@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, FileText, User, Globe, AlertCircle } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
 import type { SystemAuditLog } from '../../../services/settingService';
 
 interface LogModalProps {
@@ -84,19 +84,14 @@ export const LogModal: React.FC<LogModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn font-inter">
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
         {/* Header */}
-        <div className="px-6 py-5 bg-gradient-to-r from-[#1d2857] to-[#2b3a7a] text-white flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-              <ShieldCheck className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <h3 className="font-bold text-base leading-tight">
-                {mode === 'add' ? 'Add System Audit Log' : 'Edit Audit Log Entry'}
-              </h3>
-              <p className="text-xs text-slate-300">
-                {mode === 'add' ? 'Record a manual audit trail or operational note' : `Editing log ID: ${initialData?.id || ''}`}
-              </p>
-            </div>
+        <div className="px-6 py-4 bg-[#1d2857] text-white flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-base leading-tight">
+              {mode === 'add' ? 'Add System Audit Log' : 'Edit Audit Log Entry'}
+            </h3>
+            <p className="text-xs text-slate-300 mt-0.5">
+              {mode === 'add' ? 'Record an operational audit note' : `Log ID: ${initialData?.id || ''}`}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -117,9 +112,8 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* Action Type */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-              <FileText className="w-3.5 h-3.5 text-slate-500" />
-              <span>Action / Event Type *</span>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Action / Event Type *
             </label>
             <select
               value={action}
@@ -136,9 +130,8 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* Target User / Entity */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-              <User className="w-3.5 h-3.5 text-slate-500" />
-              <span>Target User / Entity</span>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Target User / Entity
             </label>
             <input
               type="text"
@@ -151,9 +144,8 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* IP Address (Optional) */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-              <Globe className="w-3.5 h-3.5 text-slate-500" />
-              <span>IP Address (Optional)</span>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              IP Address (Optional)
             </label>
             <input
               type="text"
@@ -166,15 +158,14 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* Remarks / Details */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-              <FileText className="w-3.5 h-3.5 text-slate-500" />
-              <span>Audit Remarks & Details *</span>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Audit Remarks & Details *
             </label>
             <textarea
               rows={4}
               value={detailsText}
               onChange={(e) => setDetailsText(e.target.value)}
-              placeholder="Enter comprehensive notes regarding this audit trail entry..."
+              placeholder="Enter notes regarding this audit trail entry..."
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1d2857] focus:bg-white transition-all resize-none"
               required
             />

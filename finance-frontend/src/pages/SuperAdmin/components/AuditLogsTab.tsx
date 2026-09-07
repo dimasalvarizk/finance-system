@@ -5,14 +5,7 @@ import {
   RefreshCw,
   Edit2,
   Trash2,
-  Zap,
-  UserCheck,
-  AlertTriangle,
-  Globe,
-  Clock,
-  User,
-  CheckCircle2,
-  Info
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -104,36 +97,32 @@ export const AuditLogsTab: React.FC = () => {
     switch (action) {
       case 'CREATE_CONFIRMATION_BYPASS':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center space-x-1">
-            <Zap className="w-3 h-3 text-amber-600" />
-            <span>BYPASS CONFIRMATION</span>
+          <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            BYPASS CONFIRMATION
           </span>
         );
       case 'UPDATE_PERMISSIONS':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-300 flex items-center space-x-1">
-            <UserCheck className="w-3 h-3 text-purple-600" />
-            <span>UPDATE PERMISSIONS</span>
+          <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-purple-50 text-purple-800 border border-purple-200">
+            UPDATE PERMISSIONS
           </span>
         );
       case 'MANUAL_LOG_ENTRY':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300 flex items-center space-x-1">
-            <Info className="w-3 h-3 text-blue-600" />
-            <span>ADMIN NOTE</span>
+          <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+            ADMIN NOTE
           </span>
         );
       case 'USER_CREATED':
       case 'USER_DELETED':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center space-x-1">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-            <span>{action}</span>
+          <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            {action}
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+          <span className="px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
             {action}
           </span>
         );
@@ -157,23 +146,16 @@ export const AuditLogsTab: React.FC = () => {
       {/* Toast Feedback */}
       {actionFeedback && (
         <div
-          className={`p-4 rounded-xl flex items-center justify-between shadow-sm transition-all text-xs font-semibold ${
+          className={`p-3.5 rounded-xl flex items-center justify-between shadow-xs transition-all text-xs font-semibold ${
             actionFeedback.type === 'success'
               ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
               : 'bg-red-50 border border-red-200 text-red-800'
           }`}
         >
-          <div className="flex items-center space-x-2">
-            {actionFeedback.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            ) : (
-              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
-            )}
-            <span>{actionFeedback.message}</span>
-          </div>
+          <span>{actionFeedback.message}</span>
           <button
             onClick={() => setActionFeedback(null)}
-            className="text-slate-400 hover:text-slate-600 text-xs"
+            className="text-slate-400 hover:text-slate-600 text-xs ml-4"
           >
             Dismiss
           </button>
@@ -181,7 +163,7 @@ export const AuditLogsTab: React.FC = () => {
       )}
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Search */}
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -202,11 +184,11 @@ export const AuditLogsTab: React.FC = () => {
             className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1d2857]"
           >
             <option value="ALL">All Actions</option>
-            <option value="CREATE_CONFIRMATION_BYPASS">⚡ Bypass Confirmations</option>
-            <option value="UPDATE_PERMISSIONS">🛡️ Permission Changes</option>
-            <option value="MANUAL_LOG_ENTRY">📝 Admin Notes</option>
-            <option value="SECURITY_AUDIT">🔒 Security Events</option>
-            <option value="SYSTEM_CONFIG_CHANGED">⚙️ System Changes</option>
+            <option value="CREATE_CONFIRMATION_BYPASS">Bypass Confirmations</option>
+            <option value="UPDATE_PERMISSIONS">Permission Changes</option>
+            <option value="MANUAL_LOG_ENTRY">Admin Notes</option>
+            <option value="SECURITY_AUDIT">Security Events</option>
+            <option value="SYSTEM_CONFIG_CHANGED">System Changes</option>
           </select>
 
           <button
@@ -224,7 +206,7 @@ export const AuditLogsTab: React.FC = () => {
               setModalMode('add');
               setModalOpen(true);
             }}
-            className="px-4 py-2 bg-[#1d2857] hover:bg-[#2b3a7a] text-white text-xs font-bold rounded-xl shadow-sm hover:shadow transition-all flex items-center space-x-1.5"
+            className="px-4 py-2 bg-[#1d2857] hover:bg-[#2b3a7a] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center space-x-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Manual Log</span>
@@ -233,7 +215,7 @@ export const AuditLogsTab: React.FC = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
@@ -280,41 +262,30 @@ export const AuditLogsTab: React.FC = () => {
                   return (
                     <tr key={log.id} className="hover:bg-slate-50/70 transition-colors">
                       {/* Timestamp */}
-                      <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
-                        <div className="flex items-center space-x-1.5 font-medium">
-                          <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                          <span>
-                            {log.createdAt
-                              ? format(new Date(log.createdAt), 'dd MMM yyyy, HH:mm:ss')
-                              : '-'}
-                          </span>
+                      <td className="px-6 py-3.5 whitespace-nowrap text-xs text-slate-600">
+                        <div className="font-medium text-slate-800">
+                          {log.createdAt
+                            ? format(new Date(log.createdAt), 'dd MMM yyyy, HH:mm:ss')
+                            : '-'}
                         </div>
                         <div className="text-[10px] text-slate-400 font-mono mt-0.5">{log.id}</div>
                       </td>
 
                       {/* Action Event */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-3.5 whitespace-nowrap">
                         {getActionBadge(log.action)}
                       </td>
 
                       {/* Performed By */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
-                            <User className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <div className="text-xs font-bold text-slate-900">
-                              {log.performed_by_name || log.performed_by || 'Super Admin'}
-                            </div>
-                            {log.ip_address && (
-                              <div className="text-[10px] text-slate-400 flex items-center space-x-1 font-mono">
-                                <Globe className="w-2.5 h-2.5" />
-                                <span>{log.ip_address}</span>
-                              </div>
-                            )}
-                          </div>
+                      <td className="px-6 py-3.5 whitespace-nowrap">
+                        <div className="text-xs font-bold text-slate-900">
+                          {log.performed_by_name || log.performed_by || 'Super Admin'}
                         </div>
+                        {log.ip_address && (
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                            {log.ip_address}
+                          </div>
+                        )}
                       </td>
 
                       {/* Target Entity */}

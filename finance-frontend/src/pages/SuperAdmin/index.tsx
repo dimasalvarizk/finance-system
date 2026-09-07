@@ -5,10 +5,7 @@ import Header from '../../components/layout/Header';
 import { useAuth } from '../../context/AuthContext';
 import {
   ShieldAlert,
-  ShieldCheck,
-  RefreshCw,
-  Sliders,
-  FileText
+  RefreshCw
 } from 'lucide-react';
 import { getTeamMembers } from '../../services/settingService';
 import { PermissionMatrixTab } from './components/PermissionMatrixTab';
@@ -94,18 +91,17 @@ const SuperAdminDashboard: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-md flex items-center space-x-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                  <span>SUPER ADMIN CONTROL CENTER</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-md">
+                  SUPER ADMIN CONTROL CENTER
                 </span>
                 <span className="text-[11px] font-semibold text-slate-400">/</span>
-                <span className="text-[11px] font-semibold text-slate-500">Exclusively for Dimas & Ali</span>
+                <span className="text-[11px] font-semibold text-slate-500">Dimas & Ali</span>
               </div>
-              <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
+              <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">
                 Dynamic Permission Management & Audit Logs
               </h1>
               <p className="text-[13px] text-[#64748b] font-medium">
-                Configure real-time privileges per user (e.g. Bypass Approval for Mr. Khalid) and manage system audit trails.
+                Configure real-time privileges per user and monitor system audit trails.
               </p>
             </div>
 
@@ -114,7 +110,7 @@ const SuperAdminDashboard: React.FC = () => {
               <button
                 onClick={handleManualRefresh}
                 disabled={refreshing}
-                className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center space-x-2"
+                className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl shadow-xs transition-all flex items-center space-x-2"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
                 <span>Refresh Data</span>
@@ -126,25 +122,23 @@ const SuperAdminDashboard: React.FC = () => {
           <div className="flex items-center space-x-2 border-b border-slate-200">
             <button
               onClick={() => setActiveTab('permissions')}
-              className={`pb-3 px-4 text-xs font-bold transition-all flex items-center space-x-2 border-b-2 ${
+              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 ${
                 activeTab === 'permissions'
                   ? 'border-[#1d2857] text-[#1d2857]'
                   : 'border-transparent text-slate-400 hover:text-slate-700'
               }`}
             >
-              <Sliders className="w-4 h-4" />
-              <span>Permission Matrix ({users.length} Users)</span>
+              Permission Matrix ({users.length} Users)
             </button>
             <button
               onClick={() => setActiveTab('audit_logs')}
-              className={`pb-3 px-4 text-xs font-bold transition-all flex items-center space-x-2 border-b-2 ${
+              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 ${
                 activeTab === 'audit_logs'
                   ? 'border-[#1d2857] text-[#1d2857]'
                   : 'border-transparent text-slate-400 hover:text-slate-700'
               }`}
             >
-              <FileText className="w-4 h-4" />
-              <span>System Audit Logs & Trails</span>
+              System Audit Logs
             </button>
           </div>
 
