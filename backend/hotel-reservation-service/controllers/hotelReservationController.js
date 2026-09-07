@@ -402,11 +402,9 @@ export const deleteReservation = async (req, res, next) => {
 // 6. Add hotel payment history (Installment tracking)
 export const addHotelPaymentHistory = async (req, res, next) => {
   const { id } = req.params;
-  const { amount, paymentDate, note } = req.body;
-
-  try {
+    const { amount, currency, paymentDate, note } = req.body;
     if (!amount || !paymentDate) {
-      return res.status(400).json({ success: false, message: 'Please provide amount and paymentDate' });
+      return res.status(400).json({ success: false, message: 'Amount and paymentDate are required' });
     }
 
     const numericAmount = parseFloat(amount);
@@ -415,49 +413,95 @@ export const addHotelPaymentHistory = async (req, res, next) => {
     }
 
     const pool = getPool();
+    // Self-healing columns
+    try { await pool.query("ALTER TABLE dst_payment_history ADD COLUMN currency VARCHAR(10) DEFAULT 'SAR'"); } catch (e) {}
+    try { await pool.query("ALTER TABLE dst_payment_history ADD COLUMN proofUrl LONGTEXT DEFAULT NULL"); } catch (e) {}
+    try { await pool.query("ALTER TABLE dst_payment_history ADD COLUMN exchange_rate DECIMAL(15,4) DEFAULT 1.0000"); } catch (e) {}
+
+    const [resvRows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ? OR reservationNo = ?', [id, id]);
+    if (resvRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Hotel reservation not found' });
+    }
+    const resv = resvRows[0];
+    const baseCurrency = (resv.currency || 'USD').toUpperCase();
+    const payCurrency = (currency || baseCurrency).toUpperCase();
+
+    let usdToIdr = parseFloat(resv.usdToIdrRate || 18025);
+    let sarToIdr = parseFloat(resv.sarToIdrRate || 4800);
+    let usdToSar = (usdToIdr && sarToIdr) ? (usdToIdr / sarToIdr) : 3.75;
+
+    let rateUsed = 1;
+    let amountInBase = numericAmount;
+    if (payCurrency !== baseCurrency) {
+      if (baseCurrency === 'SAR') {
+        if (payCurrency === 'IDR' || payCurrency === 'RP') { rateUsed = sarToIdr; amountInBase = numericAmount / sarToIdr; }
+        else if (payCurrency === 'USD') { rateUsed = usdToSar; amountInBase = numericAmount * usdToSar; }
+      } else if (baseCurrency === 'USD') {
+        if (payCurrency === 'IDR' || payCurrency === 'RP') { rateUsed = usdToIdr; amountInBase = numericAmount / usdToIdr; }
+        else if (payCurrency === 'SAR') { rateUsed = usdToSar; amountInBase = numericAmount / usdToSar; }
+      } else if (baseCurrency === 'IDR' || baseCurrency === 'RP') {
+        if (payCurrency === 'SAR') { rateUsed = sarToIdr; amountInBase = numericAmount * sarToIdr; }
+        else if (payCurrency === 'USD') { rateUsed = usdToIdr; amountInBase = numericAmount * usdToIdr; }
+      }
+    }
+
     const paymentId = `pay_${Date.now()}`;
     const insertQuery = `
-      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, paymentDate, note, createdBy)
-      VALUES (?, ?, 'HOTEL', ?, ?, ?, ?)
+      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, currency, exchange_rate, paymentDate, note, createdBy)
+      VALUES (?, ?, 'HOTEL', ?, ?, ?, ?, ?, ?)
     `;
     await pool.query(insertQuery, [
       paymentId,
       id,
       numericAmount,
+      payCurrency,
+      rateUsed,
       paymentDate,
       note || '',
       req.user ? req.user.name : 'System'
     ]);
 
     // Calculate total rooms price for remaining balance
-    const [resvRows] = await pool.query('SELECT * FROM dst_hotel_reservations WHERE id = ? OR reservationNo = ?', [id, id]);
-    if (resvRows.length > 0) {
-      const resv = resvRows[0];
-      let totalAmount = 0;
-      try {
-        const rooms = typeof resv.rooms === 'string' ? JSON.parse(resv.rooms) : resv.rooms;
-        totalAmount = rooms.reduce((acc, r) => acc + (parseFloat(r.totalPrice) || 0), 0);
-      } catch (e) {}
+    let totalAmount = 0;
+    try {
+      const rooms = typeof resv.rooms === 'string' ? JSON.parse(resv.rooms) : resv.rooms;
+      totalAmount = rooms.reduce((acc, r) => acc + (parseFloat(r.totalPrice) || 0), 0);
+    } catch (e) {}
 
-      const advPayment = parseFloat(resv.advancePayment || 0);
+    const advPayment = parseFloat(resv.advancePayment || 0);
 
-      const [sumRows] = await pool.query(
-        "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'HOTEL'",
-        [id]
-      );
-      const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
-      const newRemaining = Math.max(0, totalAmount - advPayment - totalInstallments);
+    const [allHistory] = await pool.query(
+      "SELECT * FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'HOTEL'",
+      [id]
+    );
 
-      let isPaidVal = newRemaining <= 0 ? 1 : 0;
-      let statusVal = resv.status;
-      if (newRemaining <= 0) {
-        statusVal = 'Paid and closed';
+    let totalInstallmentsInBase = 0;
+    for (const h of allHistory) {
+      const hCurr = (h.currency || baseCurrency).toUpperCase();
+      const hAmt = parseFloat(h.amount) || 0;
+      if (hCurr === baseCurrency) {
+        totalInstallmentsInBase += hAmt;
+      } else if (baseCurrency === 'SAR') {
+        totalInstallmentsInBase += (hCurr === 'IDR' || hCurr === 'RP') ? (hAmt / sarToIdr) : (hAmt * usdToSar);
+      } else if (baseCurrency === 'USD') {
+        totalInstallmentsInBase += (hCurr === 'IDR' || hCurr === 'RP') ? (hAmt / usdToIdr) : (hAmt / usdToSar);
+      } else if (baseCurrency === 'IDR' || baseCurrency === 'RP') {
+        totalInstallmentsInBase += (hCurr === 'SAR') ? (hAmt * sarToIdr) : (hAmt * usdToIdr);
       }
+    }
 
-      await pool.query(
-        'UPDATE dst_hotel_reservations SET remainingBalance = ?, isPaid = ?, status = ? WHERE id = ? OR reservationNo = ?',
-        [newRemaining, isPaidVal, statusVal, id, id]
-      );
+    const newRemaining = Math.max(0, totalAmount - advPayment - totalInstallmentsInBase);
+
+    let isPaidVal = newRemaining <= 0 ? 1 : 0;
+    let statusVal = resv.status;
+    if (newRemaining <= 0) {
+      statusVal = 'Paid and closed';
+    }
+
+    await pool.query(
+      'UPDATE dst_hotel_reservations SET remainingBalance = ?, isPaid = ?, status = ? WHERE id = ? OR reservationNo = ?',
+      [newRemaining, isPaidVal, statusVal, id, id]
+    );
 
       // Trigger notification internally to auth-service
       try {

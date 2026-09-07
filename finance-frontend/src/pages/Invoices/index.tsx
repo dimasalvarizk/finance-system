@@ -3461,14 +3461,27 @@ const Invoices: React.FC = () => {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6 overflow-y-auto">
-              
-              {/* Metric Summary Cards */}
+                            {/* Metric Summary Cards */}
               {(() => {
                 const inv = paymentHistoryModal.invoice!;
                 const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                const baseCurrency = (inv.currency || 'USD').toUpperCase();
                 const advAmt = parseFloat(String(inv.advancePayment || 0));
-                const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                const totalPaidSoFar = advAmt + totalInstallments;
+
+                const rates = {
+                  usdToIdr: inv.usdToIdrRate || configuredRates.usdToIdr || 18025,
+                  sarToIdr: inv.sarToIdrRate || configuredRates.sarToIdr || 4800,
+                  usdToSar: (inv.usdToIdrRate && inv.sarToIdrRate) ? (inv.usdToIdrRate / inv.sarToIdrRate) : (configuredRates.usdToSar || 3.75)
+                };
+
+                let totalInstallmentsInBase = 0;
+                paymentHistoryList.forEach(item => {
+                  const payCurr = (item.currency || baseCurrency).toUpperCase();
+                  const payAmt = parseFloat(item.amount) || 0;
+                  totalInstallmentsInBase += convertPrice(payAmt, payCurr, baseCurrency, rates);
+                });
+
+                const totalPaidInBase = advAmt + totalInstallmentsInBase;
                 const invStatusClean = String(inv.status || '').toLowerCase().trim();
                 const canAddPayment = 
                   invStatusClean === '4/4 approved' ||
@@ -3479,23 +3492,48 @@ const Invoices: React.FC = () => {
                   invStatusClean.includes('paid') ||
                   invStatusClean === 'overdue';
 
-                const remaining = Math.max(0, rawAmt - totalPaidSoFar);
-                const currency = inv.currency || 'USD';
+                const remaining = Math.max(0, rawAmt - totalPaidInBase);
+
+                // Multi-Currency Total Paid Display Logic (PRD AC 2)
+                let totalPaidDisplay = '';
+                let totalPaidSubtext = '';
+
+                if (paymentHistoryList.length === 0) {
+                  totalPaidDisplay = formatPrice(advAmt, baseCurrency);
+                } else {
+                  const uniqueCurrencies = Array.from(new Set(paymentHistoryList.map(p => (p.currency || baseCurrency).toUpperCase())));
+                  if (uniqueCurrencies.length === 1 && advAmt === 0) {
+                    const payCurr = uniqueCurrencies[0];
+                    const totalRaw = paymentHistoryList.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                    totalPaidDisplay = formatPrice(totalRaw, payCurr);
+                    if (payCurr !== baseCurrency) {
+                      totalPaidSubtext = `≈ ${formatPrice(totalPaidInBase, baseCurrency)}`;
+                    }
+                  } else {
+                    totalPaidDisplay = formatPrice(totalPaidInBase, baseCurrency);
+                    const breakdown = paymentHistoryList.map(p => formatPrice(parseFloat(p.amount) || 0, p.currency || baseCurrency));
+                    if (advAmt > 0) breakdown.unshift(formatPrice(advAmt, baseCurrency));
+                    totalPaidSubtext = breakdown.join(' + ');
+                  }
+                }
 
                 return (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('invoices.totalBilled')}</span>
-                        <span className="text-[15px] font-extrabold text-slate-800">{formatPrice(rawAmt, currency)}</span>
+                        <span className="text-[15px] font-extrabold text-slate-800">{formatPrice(rawAmt, baseCurrency)}</span>
                       </div>
                       <div className="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">
                         <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">{t('invoices.totalPaid')}</span>
-                        <span className="text-[15px] font-extrabold text-blue-800">{formatPrice(totalPaidSoFar, currency)}</span>
+                        <span className="text-[15px] font-extrabold text-blue-800">{totalPaidDisplay}</span>
+                        {totalPaidSubtext && (
+                          <span className="text-[10.5px] font-semibold text-blue-600/80 block mt-0.5">{totalPaidSubtext}</span>
+                        )}
                       </div>
                       <div className="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-100">
                         <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">{t('invoices.remainingDue')}</span>
-                        <span className="text-[15px] font-extrabold text-emerald-800">{formatPrice(remaining, currency)}</span>
+                        <span className="text-[15px] font-extrabold text-emerald-800">{formatPrice(remaining, baseCurrency)}</span>
                       </div>
                     </div>
 
@@ -3537,59 +3575,69 @@ const Invoices: React.FC = () => {
                               </td>
                             </tr>
                           ) : paymentHistoryList.length > 0 ? (
-                            paymentHistoryList.map((pay, pIdx) => (
-                              <tr key={pay.id || pIdx} className="hover:bg-slate-50/50">
-                                <td className="px-4 py-3 font-semibold text-slate-700">
-                                  {pay.paymentDate ? pay.paymentDate.split('T')[0] : 'N/A'}
-                                </td>
-                                <td className="px-4 py-3 font-bold text-emerald-600">
-                                  {formatPrice(pay.amount, pay.currency || currency)}
-                                </td>
-                                <td className="px-4 py-3 text-slate-600 font-medium">
-                                  {pay.createdBy || 'System'}
-                                </td>
-                                <td className="px-4 py-3">
-                                  {pay.proofUrl ? (
-                                    <button
-                                      onClick={() => setViewingProofBase64(pay.proofUrl)}
-                                      className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
-                                    >
-                                      <span>{t('invoices.viewProof')}</span>
-                                    </button>
-                                  ) : pay.note ? (
-                                    <span className="text-slate-500 italic text-[11.5px]" title={pay.note}>
-                                      {pay.note}
-                                    </span>
-                                  ) : (
-                                    <span className="text-slate-300 font-mono text-[11px]">-</span>
-                                  )}
-                                </td>
-                                <td className="px-4 py-3 text-right">
-                                  {user?.role !== 'Viewer' && (
-                                    <div className="flex items-center justify-end space-x-1.5">
+                            paymentHistoryList.map((pay, pIdx) => {
+                              const payCurr = (pay.currency || baseCurrency).toUpperCase();
+                              const isCrossCurrency = payCurr !== baseCurrency;
+                              const convertedBase = isCrossCurrency ? convertPrice(parseFloat(pay.amount) || 0, payCurr, baseCurrency, rates) : null;
+                              return (
+                                <tr key={pay.id || pIdx} className="hover:bg-slate-50/50">
+                                  <td className="px-4 py-3 font-semibold text-slate-700">
+                                    {pay.paymentDate ? pay.paymentDate.split('T')[0] : 'N/A'}
+                                  </td>
+                                  <td className="px-4 py-3 font-bold text-emerald-600">
+                                    <div>{formatPrice(parseFloat(pay.amount) || 0, payCurr)}</div>
+                                    {convertedBase !== null && (
+                                      <span className="text-[10.5px] text-slate-400 font-normal block">
+                                        ≈ {formatPrice(convertedBase, baseCurrency)}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 text-slate-600 font-medium">
+                                    {pay.createdBy || 'System'}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    {pay.proofUrl ? (
                                       <button
-                                        onClick={() => handleOpenEditPayment(pay)}
-                                        title={t('common.edit')}
-                                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 font-bold text-[11.5px] rounded-lg transition-all cursor-pointer"
+                                        onClick={() => setViewingProofBase64(pay.proofUrl)}
+                                        className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 cursor-pointer"
                                       >
-                                        {t('common.edit')}
+                                        <span>{t('invoices.viewProof')}</span>
                                       </button>
-                                      <button
-                                        onClick={() => setDeletingPaymentId(pay.id)}
-                                        title={t('common.delete')}
-                                        className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-[11.5px] rounded-lg transition-all cursor-pointer"
-                                      >
-                                        {t('common.delete')}
-                                      </button>
-                                    </div>
-                                  )}
-                                </td>
-                              </tr>
-                            ))
+                                    ) : pay.note ? (
+                                      <span className="text-slate-500 italic text-[11.5px]" title={pay.note}>
+                                        {pay.note}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-300 font-mono text-[11px]">-</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 text-right">
+                                    {user?.role !== 'Viewer' && (
+                                      <div className="flex items-center justify-end space-x-1.5">
+                                        <button
+                                          onClick={() => handleOpenEditPayment(pay)}
+                                          className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+                                          title={t('common.edit')}
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          onClick={() => setDeletingPaymentId(pay.id)}
+                                          className="p-1.5 hover:bg-rose-50 rounded-lg text-rose-500 hover:text-rose-700 transition-all cursor-pointer"
+                                          title={t('common.delete')}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })
                           ) : (
                             <tr>
-                              <td colSpan={5} className="px-4 py-6 text-center text-slate-400 text-[12px]">
-                                {t('invoices.noInstallmentsRecorded')}
+                              <td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-[12.5px]">
+                                {t('invoices.noPaymentsRecorded')}
                               </td>
                             </tr>
                           )}
@@ -3600,13 +3648,23 @@ const Invoices: React.FC = () => {
                 );
               })()}
             </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setPaymentHistoryModal({ isOpen: false, invoice: null })}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] transition-all cursor-pointer"
+              >
+                {t('common.close')}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Add / Edit Payment Sub-Modal */}
+      {/* Add / Edit Payment Modal */}
       {isAddPaymentModalOpen && paymentHistoryModal.invoice && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsAddPaymentModalOpen(false)}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-md p-4 animate-fade-in" onClick={() => setIsAddPaymentModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-scale-up font-sans" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-[16px] font-bold text-[#0c0d0f]">{editingPaymentId ? t('invoices.editPaymentRecord') : t('invoices.recordNewPayment')}</h3>
@@ -3631,10 +3689,23 @@ const Invoices: React.FC = () => {
                       setAddPayAmount(e.target.value);
                       const inv = paymentHistoryModal.invoice!;
                       const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                      const baseCurrency = (inv.currency || 'USD').toUpperCase();
                       const advAmt = parseFloat(String(inv.advancePayment || 0));
-                      const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                      const rem = Math.max(0, rawAmt - advAmt - totalInstallments);
-                      if (parseFloat(e.target.value) > rem) {
+                      const rates = {
+                        usdToIdr: inv.usdToIdrRate || configuredRates.usdToIdr || 18025,
+                        sarToIdr: inv.sarToIdrRate || configuredRates.sarToIdr || 4800,
+                        usdToSar: (inv.usdToIdrRate && inv.sarToIdrRate) ? (inv.usdToIdrRate / inv.sarToIdrRate) : (configuredRates.usdToSar || 3.75)
+                      };
+                      let totalInstallmentsInBase = 0;
+                      paymentHistoryList.forEach(item => {
+                        const payCurr = (item.currency || baseCurrency).toUpperCase();
+                        const payAmt = parseFloat(item.amount) || 0;
+                        totalInstallmentsInBase += convertPrice(payAmt, payCurr, baseCurrency, rates);
+                      });
+                      const remInBase = Math.max(0, rawAmt - advAmt - totalInstallmentsInBase);
+                      const numAdd = parseFloat(e.target.value || '0');
+                      const addInBase = convertPrice(numAdd, addPayCurrency, baseCurrency, rates);
+                      if (addInBase > remInBase && remInBase > 0) {
                         setSaveOverpaymentCredit(true);
                       } else {
                         setSaveOverpaymentCredit(false);
@@ -3656,6 +3727,28 @@ const Invoices: React.FC = () => {
                   </select>
                 </div>
               </div>
+
+              {/* Converted Helper Display if cross-currency */}
+              {(() => {
+                const inv = paymentHistoryModal.invoice!;
+                const baseCurrency = (inv.currency || 'USD').toUpperCase();
+                const payCurr = (addPayCurrency || baseCurrency).toUpperCase();
+                if (payCurr !== baseCurrency && addPayAmount && parseFloat(addPayAmount) > 0) {
+                  const rates = {
+                    usdToIdr: inv.usdToIdrRate || configuredRates.usdToIdr || 18025,
+                    sarToIdr: inv.sarToIdrRate || configuredRates.sarToIdr || 4800,
+                    usdToSar: (inv.usdToIdrRate && inv.sarToIdrRate) ? (inv.usdToIdrRate / inv.sarToIdrRate) : (configuredRates.usdToSar || 3.75)
+                  };
+                  const convertedVal = convertPrice(parseFloat(addPayAmount), payCurr, baseCurrency, rates);
+                  return (
+                    <div className="text-[11.5px] font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center justify-between">
+                      <span>{t('invoices.equivalentInBase') || 'Nilai Ekuivalen'}:</span>
+                      <span className="font-bold text-slate-800">{formatPrice(convertedVal, baseCurrency)}</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('invoices.paymentDate')}</label>
@@ -3719,17 +3812,31 @@ const Invoices: React.FC = () => {
               {(() => {
                 const inv = paymentHistoryModal.invoice!;
                 const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+                const baseCurrency = (inv.currency || 'USD').toUpperCase();
                 const advAmt = parseFloat(String(inv.advancePayment || 0));
-                const totalInstallments = paymentHistoryList.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                const rem = Math.max(0, rawAmt - advAmt - totalInstallments);
-                const numAdd = parseFloat(addPayAmount || '0');
+                const rates = {
+                  usdToIdr: inv.usdToIdrRate || configuredRates.usdToIdr || 18025,
+                  sarToIdr: inv.sarToIdrRate || configuredRates.sarToIdr || 4800,
+                  usdToSar: (inv.usdToIdrRate && inv.sarToIdrRate) ? (inv.usdToIdrRate / inv.sarToIdrRate) : (configuredRates.usdToSar || 3.75)
+                };
 
-                if (numAdd > rem && rem > 0) {
-                  const overAmt = numAdd - rem;
+                let totalInstallmentsInBase = 0;
+                paymentHistoryList.forEach(item => {
+                  const payCurr = (item.currency || baseCurrency).toUpperCase();
+                  const payAmt = parseFloat(item.amount) || 0;
+                  totalInstallmentsInBase += convertPrice(payAmt, payCurr, baseCurrency, rates);
+                });
+
+                const remInBase = Math.max(0, rawAmt - advAmt - totalInstallmentsInBase);
+                const numAdd = parseFloat(addPayAmount || '0');
+                const addInBase = convertPrice(numAdd, addPayCurrency, baseCurrency, rates);
+
+                if (addInBase > remInBase && remInBase > 0) {
+                  const overAmtInBase = addInBase - remInBase;
                   return (
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
                       <span className="text-[12px] font-bold text-amber-800 block">
-                        {t('invoices.overpaymentDetected', { amount: formatPrice(overAmt, inv.currency || 'USD') })}
+                        {t('invoices.overpaymentDetected', { amount: formatPrice(overAmtInBase, baseCurrency) })}
                       </span>
                       <label className="flex items-center space-x-2 text-[12px] font-semibold text-amber-900 cursor-pointer">
                         <input

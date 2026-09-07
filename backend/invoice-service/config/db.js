@@ -233,6 +233,17 @@ const initializeDatabase = async () => {
       }
     }
 
+    try {
+      await pool.query('SELECT exchange_rate FROM dst_payment_history LIMIT 1');
+    } catch (err) {
+      console.log('Adding exchange_rate column to dst_payment_history...');
+      try {
+        await pool.query("ALTER TABLE dst_payment_history ADD COLUMN exchange_rate DECIMAL(15,4) DEFAULT 1.0000");
+      } catch (alterErr) {
+        console.error('Failed to add exchange_rate to dst_payment_history:', alterErr.message);
+      }
+    }
+
     // Create dst_audit_logs table if not exists (Private Audit Log Feature)
     const createAuditLogsTableQuery = `
       CREATE TABLE IF NOT EXISTS dst_audit_logs (

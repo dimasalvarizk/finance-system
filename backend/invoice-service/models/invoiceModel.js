@@ -12,6 +12,52 @@ const cleanAgentName = (agent) => {
   return agent;
 };
 
+// Convert payment amount from payment currency to base currency
+export const convertPaymentToBase = (amount, payCurrency, baseCurrency, rates = {}) => {
+  const payCurr = (payCurrency || 'SAR').toUpperCase();
+  const baseCurr = (baseCurrency || 'USD').toUpperCase();
+  const numAmt = parseFloat(amount) || 0;
+
+  if (payCurr === baseCurr) {
+    return { amountInBase: numAmt, exchangeRateUsed: 1 };
+  }
+
+  const usdToIdr = parseFloat(rates.usdToIdr || rates.usdToIdrRate || 18025);
+  const sarToIdr = parseFloat(rates.sarToIdr || rates.sarToIdrRate || 4800);
+  const usdToSar = parseFloat(rates.usdToSar || (usdToIdr / sarToIdr) || 3.75);
+
+  let amountInBase = numAmt;
+  let exchangeRateUsed = 1;
+
+  if (baseCurr === 'SAR') {
+    if (payCurr === 'IDR' || payCurr === 'RP') {
+      exchangeRateUsed = sarToIdr;
+      amountInBase = numAmt / sarToIdr;
+    } else if (payCurr === 'USD') {
+      exchangeRateUsed = usdToSar;
+      amountInBase = numAmt * usdToSar;
+    }
+  } else if (baseCurr === 'USD') {
+    if (payCurr === 'IDR' || payCurr === 'RP') {
+      exchangeRateUsed = usdToIdr;
+      amountInBase = numAmt / usdToIdr;
+    } else if (payCurr === 'SAR') {
+      exchangeRateUsed = usdToSar;
+      amountInBase = numAmt / usdToSar;
+    }
+  } else if (baseCurr === 'IDR' || baseCurr === 'RP') {
+    if (payCurr === 'SAR') {
+      exchangeRateUsed = sarToIdr;
+      amountInBase = numAmt * sarToIdr;
+    } else if (payCurr === 'USD') {
+      exchangeRateUsed = usdToIdr;
+      amountInBase = numAmt * usdToIdr;
+    }
+  }
+
+  return { amountInBase: parseFloat(amountInBase.toFixed(2)), exchangeRateUsed };
+};
+
 // Get all invoices (optionally filtered by createdBy for Accountant)
 export const getAllInvoicesDB = async (createdByFilter = null) => {
   const pool = getPool();
@@ -56,17 +102,9 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
   let query = `
     SELECT i.*, 
            COALESCE(c.agent, i.custom_agent, i.agent) AS agent,
-           COALESCE(p.totalInstallments, 0) AS totalInstallments,
-           (COALESCE(p.totalInstallments, 0) + COALESCE(i.advancePayment, 0)) AS totalPaid,
            r.status AS requestStatus
     FROM dst_invoices i
     LEFT JOIN dst_companies c ON i.companyCode = c.code
-    LEFT JOIN (
-      SELECT referenceId, SUM(amount) AS totalInstallments 
-      FROM dst_payment_history 
-      WHERE moduleType = 'CONFIRMATION' 
-      GROUP BY referenceId
-    ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
     LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
     ORDER BY i.createdAt DESC
   `;
@@ -76,17 +114,9 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
     query = `
       SELECT i.*, 
              COALESCE(c.agent, i.custom_agent, i.agent) AS agent,
-             COALESCE(p.totalInstallments, 0) AS totalInstallments,
-             (COALESCE(p.totalInstallments, 0) + COALESCE(i.advancePayment, 0)) AS totalPaid,
              r.status AS requestStatus
       FROM dst_invoices i
       LEFT JOIN dst_companies c ON i.companyCode = c.code
-      LEFT JOIN (
-        SELECT referenceId, SUM(amount) AS totalInstallments 
-        FROM dst_payment_history 
-        WHERE moduleType = 'CONFIRMATION' 
-        GROUP BY referenceId
-      ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
       LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
       WHERE i.createdBy = ? OR i.createdBy IS NULL 
       ORDER BY i.createdAt DESC
@@ -96,17 +126,34 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
   
   const [invoices] = await pool.query(query, queryParams);
 
-  // Fetch items and enforce strict payment/remaining calculations
+  // Fetch all payment history records to accurately convert multi-currency installments
+  const [allPayments] = await pool.query("SELECT * FROM dst_payment_history WHERE moduleType = 'CONFIRMATION'");
+  const paymentsByRef = {};
+  for (const p of allPayments) {
+    if (!paymentsByRef[p.referenceId]) paymentsByRef[p.referenceId] = [];
+    paymentsByRef[p.referenceId].push(p);
+  }
+
+  // Fetch items and enforce strict multi-currency payment/remaining calculations
   for (const inv of invoices) {
     inv.agent = cleanAgentName(inv.agent);
-    
     const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const baseCurrency = (inv.currency || 'USD').toUpperCase();
     const advAmt = parseFloat(String(inv.advancePayment || 0));
-    const totalInst = parseFloat(String(inv.totalInstallments || 0));
-    const totalPaid = advAmt + totalInst;
 
+    const invPayments = paymentsByRef[inv.invoiceNo] || paymentsByRef[inv.id] || [];
+    let totalInstInBase = 0;
+    for (const p of invPayments) {
+      const { amountInBase } = convertPaymentToBase(p.amount, p.currency, baseCurrency, {
+        usdToIdr: inv.usdToIdrRate,
+        sarToIdr: inv.sarToIdrRate
+      });
+      totalInstInBase += amountInBase;
+    }
+
+    const totalPaid = advAmt + totalInstInBase;
     inv.totalPaid = totalPaid;
-    inv.totalInstallments = totalInst;
+    inv.totalInstallments = totalInstInBase;
     inv.remainingBalance = Math.max(0, rawAmt - totalPaid);
 
     // Strict status correction if totalPaid is 0
@@ -344,31 +391,36 @@ export const getInvoiceByIdDB = async (id) => {
   const [rows] = await pool.query(`
     SELECT i.*, 
            COALESCE(c.agent, i.custom_agent, i.agent) AS agent,
-           COALESCE(p.totalInstallments, 0) AS totalInstallments,
-           (COALESCE(p.totalInstallments, 0) + COALESCE(i.advancePayment, 0)) AS totalPaid,
            r.status AS requestStatus
     FROM dst_invoices i
     LEFT JOIN dst_companies c ON i.companyCode = c.code
-    LEFT JOIN (
-      SELECT referenceId, SUM(amount) AS totalInstallments 
-      FROM dst_payment_history 
-      WHERE moduleType = 'CONFIRMATION' 
-      GROUP BY referenceId
-    ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
     LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
     WHERE i.id = ? OR i.invoiceNo = ?
   `, [id, id]);
   if (rows.length > 0) {
     const inv = rows[0];
     inv.agent = cleanAgentName(inv.agent);
-    
     const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const baseCurrency = (inv.currency || 'USD').toUpperCase();
     const advAmt = parseFloat(String(inv.advancePayment || 0));
-    const totalInst = parseFloat(String(inv.totalInstallments || 0));
-    const totalPaid = advAmt + totalInst;
 
+    const [payments] = await pool.query(
+      "SELECT * FROM dst_payment_history WHERE (referenceId = ? OR referenceId = ?) AND moduleType = 'CONFIRMATION' ORDER BY paymentDate DESC, createdAt DESC",
+      [inv.invoiceNo, inv.id]
+    );
+
+    let totalInstInBase = 0;
+    for (const p of payments) {
+      const { amountInBase } = convertPaymentToBase(p.amount, p.currency, baseCurrency, {
+        usdToIdr: inv.usdToIdrRate,
+        sarToIdr: inv.sarToIdrRate
+      });
+      totalInstInBase += amountInBase;
+    }
+
+    const totalPaid = advAmt + totalInstInBase;
     inv.totalPaid = totalPaid;
-    inv.totalInstallments = totalInst;
+    inv.totalInstallments = totalInstInBase;
     inv.remainingBalance = Math.max(0, rawAmt - totalPaid);
 
     // Strict status correction if totalPaid is 0
@@ -379,6 +431,7 @@ export const getInvoiceByIdDB = async (id) => {
 
     const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
     inv.items = items;
+    inv.payments = payments;
     return inv;
   }
   return null;
@@ -397,17 +450,28 @@ export const addPaymentHistoryDB = async (paymentData) => {
   try {
     await connection.beginTransaction();
 
-    // Self-healing: Ensure currency and proofUrl columns exist in production table
+    // Self-healing: Ensure currency, proofUrl, and exchange_rate columns exist in production table
     try {
       await connection.query("ALTER TABLE dst_payment_history ADD COLUMN currency VARCHAR(10) DEFAULT 'SAR'");
     } catch (e) {}
     try {
       await connection.query("ALTER TABLE dst_payment_history ADD COLUMN proofUrl LONGTEXT DEFAULT NULL");
     } catch (e) {}
+    try {
+      await connection.query("ALTER TABLE dst_payment_history ADD COLUMN exchange_rate DECIMAL(15,4) DEFAULT 1.0000");
+    } catch (e) {}
+
+    const [invRows] = await connection.query('SELECT currency, usdToIdrRate, sarToIdrRate FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [paymentData.referenceId, paymentData.referenceId]);
+    const inv = invRows[0];
+    const baseCurrency = (inv?.currency || 'USD').toUpperCase();
+    const { exchangeRateUsed } = convertPaymentToBase(paymentData.amount, paymentData.currency, baseCurrency, {
+      usdToIdr: inv?.usdToIdrRate,
+      sarToIdr: inv?.sarToIdrRate
+    });
 
     const insertQuery = `
-      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, currency, paymentDate, note, proofUrl, createdBy)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO dst_payment_history (id, referenceId, moduleType, amount, currency, exchange_rate, paymentDate, note, proofUrl, createdBy)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     await connection.query(insertQuery, [
       paymentData.id,
@@ -415,6 +479,7 @@ export const addPaymentHistoryDB = async (paymentData) => {
       paymentData.moduleType,
       paymentData.amount,
       paymentData.currency || 'SAR',
+      paymentData.exchangeRate || exchangeRateUsed || 1,
       paymentData.paymentDate,
       paymentData.note || null,
       paymentData.proofUrl || null,
@@ -448,21 +513,49 @@ export const recalculateInvoiceBalance = async (connection, referenceId) => {
   if (invoiceRows.length > 0) {
     const inv = invoiceRows[0];
     const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const baseCurrency = (inv.currency || 'USD').toUpperCase();
     const advPayment = parseFloat(inv.advancePayment || 0);
 
-    const [sumRows] = await connection.query(
-      "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
+    let rates = {
+      usdToIdr: inv.usdToIdrRate || 18025,
+      sarToIdr: inv.sarToIdrRate || 4800,
+      usdToSar: (inv.usdToIdrRate && inv.sarToIdrRate) ? (inv.usdToIdrRate / inv.sarToIdrRate) : 3.75
+    };
+    try {
+      const [rateRows] = await connection.query('SELECT usdToIdr, sarToIdr, usdToSar FROM dst_exchange_rates WHERE id = ?', ['current']);
+      if (rateRows.length > 0) {
+        rates.usdToIdr = parseFloat(rateRows[0].usdToIdr || rates.usdToIdr);
+        rates.sarToIdr = parseFloat(rateRows[0].sarToIdr || rates.sarToIdr);
+        rates.usdToSar = parseFloat(rateRows[0].usdToSar || rates.usdToSar);
+      }
+    } catch (e) {}
+
+    const [paymentRows] = await connection.query(
+      "SELECT * FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
       [referenceId]
     );
-    const totalInstallments = parseFloat(sumRows[0]?.totalPaid || 0);
-    const totalPaid = advPayment + totalInstallments;
+
+    let totalInstallmentsInBase = 0;
+    for (const p of paymentRows) {
+      const { amountInBase, exchangeRateUsed } = convertPaymentToBase(p.amount, p.currency, baseCurrency, rates);
+      totalInstallmentsInBase += amountInBase;
+
+      // Update exchange_rate if not already populated
+      if (!p.exchange_rate || parseFloat(p.exchange_rate) === 1) {
+        try {
+          await connection.query('UPDATE dst_payment_history SET exchange_rate = ? WHERE id = ?', [exchangeRateUsed, p.id]);
+        } catch (e) {}
+      }
+    }
+
+    const totalPaid = advPayment + totalInstallmentsInBase;
     const newRemaining = Math.max(0, rawAmt - totalPaid);
 
     let newStatus = inv.status;
     if (totalPaid >= rawAmt && rawAmt > 0) {
       newStatus = 'FULLY_PAID';
     } else if (totalPaid > 0) {
-      newStatus = totalInstallments > 0 ? 'PARTIAL' : 'DEPOSIT_PAID';
+      newStatus = totalInstallmentsInBase > 0 ? 'PARTIAL' : 'DEPOSIT_PAID';
     } else {
       // Total Paid is exactly 0: restore approval status from dst_requests
       const [reqRows] = await connection.query('SELECT status FROM dst_requests WHERE invoiceNo = ?', [inv.invoiceNo]);
@@ -499,13 +592,22 @@ export const updatePaymentHistoryDB = async (paymentId, paymentData) => {
     }
     const referenceId = existing[0].referenceId;
 
+    const [invRows] = await connection.query('SELECT currency, usdToIdrRate, sarToIdrRate FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [referenceId, referenceId]);
+    const inv = invRows[0];
+    const baseCurrency = (inv?.currency || 'USD').toUpperCase();
+    const { exchangeRateUsed } = convertPaymentToBase(paymentData.amount, paymentData.currency, baseCurrency, {
+      usdToIdr: inv?.usdToIdrRate,
+      sarToIdr: inv?.sarToIdrRate
+    });
+
     await connection.query(
       `UPDATE dst_payment_history 
-       SET amount = ?, currency = ?, paymentDate = ?, note = ?, proofUrl = ?
+       SET amount = ?, currency = ?, exchange_rate = ?, paymentDate = ?, note = ?, proofUrl = ?
        WHERE id = ?`,
       [
         paymentData.amount,
         paymentData.currency || 'SAR',
+        paymentData.exchangeRate || exchangeRateUsed || 1,
         paymentData.paymentDate,
         paymentData.note || null,
         paymentData.proofUrl || null,
