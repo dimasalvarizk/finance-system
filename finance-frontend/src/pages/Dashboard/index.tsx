@@ -12,8 +12,37 @@ import { formatCurrency, formatNumber, formatLocalizedDate } from '../../i18n';
 import { X, FileText, Folder } from 'lucide-react';
 import BranchFinancialReportPrint, { type ReportMeta, type BranchReport } from '../../components/ui/BranchFinancialReportPrint';
 import { getInvoices } from '../../services/invoiceService';
-import { getBranches } from '../../services/settingService';
+import { getBranches, getExchangeRates } from '../../services/settingService';
 import NetworkErrorState from '../../components/ui/NetworkErrorState';
+
+export const isInvoiceOverdue = (inv: any): boolean => {
+  if (!inv) return false;
+  const status = String(inv.status || '').toLowerCase();
+  const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
+
+  if (
+    status === 'overdue' ||
+    status === 'cancelled due to overdue' ||
+    status === 'rejected' ||
+    status.includes('overdue')
+  ) {
+    return true;
+  }
+
+  if (status === 'cancelled' && (notes.includes('overdue') || notes.includes('auto-cancelled') || notes.includes('unpaid past due date'))) {
+    return true;
+  }
+
+  if (inv.dueDate && !status.includes('paid') && status !== 'approved' && status !== 'archived') {
+    const dueTime = new Date(inv.dueDate).getTime();
+    const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
+    if (dueTime < todayTime) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 // Dynamic branch reports computed from database
 const getInvoiceBranch = (inv: any, dbBranches: any[]): string => {
@@ -65,6 +94,11 @@ const Dashboard: React.FC = () => {
   };
   const [invoices, setInvoices] = useState<any[]>([]);
   const [dbBranches, setDbBranches] = useState<any[]>([]);
+  const [configuredRates, setConfiguredRates] = useState<{ usdToIdr: number; sarToIdr: number; usdToSar: number }>({
+    usdToIdr: 18025,
+    sarToIdr: 4800,
+    usdToSar: 3.75
+  });
 
   // New Loading & Error States
   const [loading, setLoading] = useState(false);
@@ -96,12 +130,20 @@ const Dashboard: React.FC = () => {
     if (!isSilent) setLoading(true);
     setError(null);
     try {
-      const [fetchedInvoices, fetchedBranches] = await Promise.all([
+      const [fetchedInvoices, fetchedBranches, fetchedRates] = await Promise.all([
         getInvoices(),
-        getBranches()
+        getBranches(),
+        getExchangeRates().catch(() => null)
       ]);
       if (fetchedInvoices) setInvoices(fetchedInvoices);
       if (fetchedBranches) setDbBranches(fetchedBranches);
+      if (fetchedRates) {
+        setConfiguredRates({
+          usdToIdr: parseFloat(String(fetchedRates.usdToIdr || 18025)),
+          sarToIdr: parseFloat(String(fetchedRates.sarToIdr || 4800)),
+          usdToSar: parseFloat(String(fetchedRates.usdToSar || 3.75))
+        });
+      }
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
       if (!isSilent) setError('Failed to fetch dashboard metrics. Please check server connections.');
@@ -141,6 +183,7 @@ const Dashboard: React.FC = () => {
 
   const parseAmount = (amtStr: any): number => {
     if (!amtStr) return 0;
+    if (typeof amtStr === 'number') return isNaN(amtStr) ? 0 : amtStr;
     const str = String(amtStr);
     const val = parseFloat(str.replace(/[^0-9.-]+/g, ""));
     return isNaN(val) ? 0 : val;
@@ -157,13 +200,17 @@ const Dashboard: React.FC = () => {
       amtStr.includes('SAR') ? 'SAR' : 'USD'
     );
 
+    const defaultUsdToIdr = configuredRates.usdToIdr || 18025;
+    const defaultSarToIdr = configuredRates.sarToIdr || 4800;
+    const defaultUsdToSar = configuredRates.usdToSar || (defaultUsdToIdr / defaultSarToIdr) || 3.75;
+
+    const usdToIdr = Number(inv.usdToIdrRate) || defaultUsdToIdr;
+    const sarToIdr = Number(inv.sarToIdrRate) || defaultSarToIdr;
+    const usdToSar = Number(inv.usdToSarRate) || defaultUsdToSar || (usdToIdr / sarToIdr) || 3.75;
+
     if (detectedCurrency === 'RP' || detectedCurrency === 'IDR') {
-      const rate = inv.usdToIdrRate || 18025;
-      return amountVal / rate;
+      return amountVal / usdToIdr;
     } else if (detectedCurrency === 'SAR') {
-      const usdToIdr = inv.usdToIdrRate || 18025;
-      const sarToIdr = inv.sarToIdrRate || 4800;
-      const usdToSar = usdToIdr / sarToIdr || 3.75;
       return amountVal / usdToSar;
     }
     return amountVal;
@@ -204,11 +251,13 @@ const Dashboard: React.FC = () => {
     }
 
     let remaining = rawAmt;
-    if (inv.remainingBalance !== null && inv.remainingBalance !== undefined) {
+    if (inv.remainingBalance !== null && inv.remainingBalance !== undefined && inv.remainingBalance !== '') {
       remaining = parseFloat(String(inv.remainingBalance));
     } else if (inv.advancePayment) {
       remaining = Math.max(0, rawAmt - parseFloat(String(inv.advancePayment)));
     }
+
+    if (remaining <= 0) return 0;
 
     return convertCurrencyToUsd(remaining, inv);
   };
@@ -250,21 +299,7 @@ const Dashboard: React.FC = () => {
 
         stats[branch].sent += 1;
         const status = String(inv.status || 'Pending').toLowerCase();
-        const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
-
-        let isOverdue = status === 'overdue' ||
-          status === 'cancelled due to overdue' ||
-          status === 'rejected' ||
-          status.includes('overdue') ||
-          (status === 'cancelled' && (notes.includes('overdue') || notes.includes('auto-cancelled') || notes.includes('unpaid past due date')));
-
-        if (!isOverdue && inv.dueDate && !status.includes('paid') && status !== 'approved' && status !== 'archived') {
-          const dueTime = new Date(inv.dueDate).getTime();
-          const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
-          if (dueTime < todayTime) {
-            isOverdue = true;
-          }
-        }
+        const isOverdue = isInvoiceOverdue(inv);
 
         // 1. Revenue & Approvals: Collected cash revenue (includes partial payments & installments)
         const paidAmt = getInvoicePaidAmountInUsd(inv);
@@ -291,7 +326,7 @@ const Dashboard: React.FC = () => {
     }
 
     return stats;
-  }, [invoices, dbBranches]);
+  }, [invoices, dbBranches, configuredRates]);
 
   const pendingInvoices = Array.isArray(invoices) ? invoices.filter(inv => {
     if (!inv) return false;
@@ -303,39 +338,16 @@ const Dashboard: React.FC = () => {
   const totalInvoicesCount = Array.isArray(invoices) ? invoices.length : 0;
   const pendingCount = Object.values(branchStats).reduce((sum, b) => sum + b.pending, 0);
   const totalOutstanding = Object.values(branchStats).reduce((sum, b) => sum + b.outstanding, 0);
-  const totalOverdueCount = Object.values(branchStats).reduce((sum, b) => sum + b.overdue, 0);
+
+  const overdueInvoicesList = Array.isArray(invoices) ? invoices.filter(inv => isInvoiceOverdue(inv)) : [];
+  const totalOverdueCount = overdueInvoicesList.length;
+  const totalOverdueAmount = overdueInvoicesList.reduce((sum, inv) => {
+    return sum + getInvoiceOutstandingInUsd(inv);
+  }, 0);
 
   const formattedTotalRev = formatCurrency(totalRev, 'USD', i18n.language, 0);
-
-  let totalOverdueAmount = 0;
-  if (Array.isArray(invoices)) {
-    invoices.forEach(inv => {
-      if (!inv) return;
-      const status = String(inv.status || '').toLowerCase();
-      const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
-
-      let isOverdue = status === 'overdue' ||
-        status === 'cancelled due to overdue' ||
-        status === 'rejected' ||
-        status.includes('overdue') ||
-        (status === 'cancelled' && (notes.includes('overdue') || notes.includes('auto-cancelled') || notes.includes('unpaid past due date')));
-
-      if (!isOverdue && inv.dueDate && !status.includes('paid') && status !== 'approved' && status !== 'archived') {
-        const dueTime = new Date(inv.dueDate).getTime();
-        const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
-        if (dueTime < todayTime) {
-          isOverdue = true;
-        }
-      }
-
-      if (isOverdue) {
-        totalOverdueAmount += getInvoiceOutstandingInUsd(inv);
-      }
-    });
-  }
-
   const formattedOverdueBalance = formatCurrency(
-    totalOverdueAmount > 0 ? totalOverdueAmount : totalOutstanding,
+    totalOverdueAmount,
     'USD',
     i18n.language,
     0

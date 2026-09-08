@@ -11,7 +11,7 @@ import { createRequest } from '../../services/requestService';
 import { getExchangeRates, getServices, getTeamMembers, getTaxSetting, getCompanySetting } from '../../services/settingService';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { formatLocalizedDate } from '../../i18n';
+import { formatCurrency, formatLocalizedDate } from '../../i18n';
 import NetworkErrorState from '../../components/ui/NetworkErrorState';
 
 export interface Invoice {
@@ -898,18 +898,33 @@ const Invoices: React.FC = () => {
     );
   };
 
-  // Helper untuk mendeteksi apakah invoice dibatalkan otomatis karena melewati due date
-  const isInvoiceOverdue = (inv: any) => {
-    if (inv.status !== 'Cancelled') return false;
-    const reason = (inv.rejectionReason || '').toLowerCase();
-    if (reason.includes('auto-cancelled') || reason.includes('unpaid past due date') || reason.includes('overdue')) {
+  // Helper untuk mendeteksi apakah invoice dibatalkan otomatis / overdue
+  const isInvoiceOverdue = (inv: any): boolean => {
+    if (!inv) return false;
+    const status = String(inv.status || '').toLowerCase();
+    const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
+
+    if (
+      status === 'overdue' ||
+      status === 'cancelled due to overdue' ||
+      status === 'rejected' ||
+      status.includes('overdue')
+    ) {
       return true;
     }
-    if (inv.dueDate) {
+
+    if (status === 'cancelled' && (notes.includes('overdue') || notes.includes('auto-cancelled') || notes.includes('unpaid past due date'))) {
+      return true;
+    }
+
+    if (inv.dueDate && !status.includes('paid') && status !== 'approved' && status !== 'archived') {
       const dueTime = new Date(inv.dueDate).getTime();
       const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
-      if (dueTime < todayTime) return true;
+      if (dueTime < todayTime) {
+        return true;
+      }
     }
+
     return false;
   };
 
@@ -1388,26 +1403,51 @@ const Invoices: React.FC = () => {
     return (st.includes('pending') || st === 'pending review' || st === '0/3 pending' || st === '1/3 approved' || st === '2/3 approved' || st === '0/4 pending' || st === '1/4 approved' || st === '2/4 approved' || st === '3/4 approved') && !st.includes('partial') && !st.includes('deposit');
   }).length;
 
-  const overdueInvoicesList = invoices.filter(inv => {
-    if (!inv) return false;
+  const getInvoiceOutstandingInUsd = (inv: any): number => {
+    if (!inv) return 0;
+    const rawAmt = parseExchangeRate(inv.amount, false);
     const st = String(inv.status || '').toLowerCase();
-    return st === 'overdue' || st === 'cancelled due to overdue' || isInvoiceOverdue(inv) || st === 'rejected';
-  });
+
+    // If fully paid or approved or archived, no outstanding balance
+    if (st === 'fully_paid' || st === 'paid' || st === 'paid and closed' || st === 'approved' || st === 'archived') {
+      return 0;
+    }
+
+    let remaining = rawAmt;
+    if (inv.remainingBalance !== null && inv.remainingBalance !== undefined && inv.remainingBalance !== '') {
+      remaining = parseFloat(String(inv.remainingBalance));
+    } else if (inv.advancePayment) {
+      remaining = Math.max(0, rawAmt - parseFloat(String(inv.advancePayment)));
+    }
+
+    if (remaining <= 0) return 0;
+
+    const curr = inv.currency || (String(inv.amount || '').includes('Rp') ? 'IDR' : String(inv.amount || '').includes('SAR') ? 'SAR' : 'USD');
+    const defaultUsdToIdr = configuredRates.usdToIdr || 18025;
+    const defaultSarToIdr = configuredRates.sarToIdr || 4800;
+    const defaultUsdToSar = configuredRates.usdToSar || (defaultUsdToIdr / defaultSarToIdr) || 3.75;
+
+    const usdToIdr = Number(inv.usdToIdrRate) || defaultUsdToIdr;
+    const sarToIdr = Number(inv.sarToIdrRate) || defaultSarToIdr;
+    const usdToSar = Number(inv.usdToSarRate) || defaultUsdToSar || (usdToIdr / sarToIdr) || 3.75;
+
+    const converted = calculateConvertedTotals(remaining, curr, usdToIdr, sarToIdr, usdToSar);
+    return converted.usdVal;
+  };
+
+  const overdueInvoicesList = invoices.filter(inv => isInvoiceOverdue(inv));
   const overdueCount = overdueInvoicesList.length;
 
   const totalOverdueAmountUSD = overdueInvoicesList.reduce((sum, inv) => {
-    const rawAmt = parseExchangeRate(inv.amount, false);
-    const curr = inv.currency || (String(inv.amount || '').includes('Rp') ? 'IDR' : String(inv.amount || '').includes('SAR') ? 'SAR' : 'USD');
-    const converted = calculateConvertedTotals(rawAmt, curr, configuredRates.usdToIdr, configuredRates.sarToIdr, configuredRates.usdToSar);
-    return sum + converted.usdVal;
+    return sum + getInvoiceOutstandingInUsd(inv);
   }, 0);
 
-  const formattedOverdueBalance = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(totalOverdueAmountUSD);
+  const formattedOverdueBalance = formatCurrency(
+    totalOverdueAmountUSD,
+    'USD',
+    i18n.language,
+    0
+  );
 
   const dynamicApproved = approvedCount;
   const dynamicPending = pendingCount;
