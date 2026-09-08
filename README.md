@@ -1,18 +1,18 @@
 # 💼 Manazil AL.Mukhtara Group - Finance System
 
-Sistem Keuangan Terintegrasi (Finance System) **Manazil AL.Mukhtara Group** adalah platform berbasis web enterprise yang dirancang khusus untuk mengelola operasional keuangan, pencatatan konfirmasi transaksi (*Confirmations*), reservasi hotel & akomodasi umrah/haji, katalog layanan pariwisata, manajemen kantor cabang, backup data sistem, riwayat pembayaran bertahap (*installments*), notifikasi otomatis (*In-App & Email*), input klien manual (*one-off client*), dukungan multibahasa (*i18n*), sistem persetujuan konfirmasi (*Confirmation Approval*) multi-tahap, serta modul operasional internal (*Internal Expenses & Reimbursement Management*).
+Sistem Keuangan Terintegrasi (Finance System) **Manazil AL.Mukhtara Group** adalah platform enterprise berbasis web modern yang dirancang khusus untuk mengelola operasional keuangan global, pencatatan konfirmasi transaksi (*Confirmations*), rekonsiliasi multi-valuta otomatis (*Multi-Currency Engine*), saldo kredit klien (*Client Credit Balance*), reservasi hotel & akomodasi umrah/haji, katalog layanan pariwisata, manajemen kantor cabang, backup data sistem, notifikasi otomatis (*In-App & Email*), input klien manual (*one-off client*), dukungan penuh 3 bahasa (*i18n: Indonesia, English, Arabic*), alur persetujuan konfirmasi 4-tahap (*Confirmation 4-Level Approval*), serta modul operasional internal (*Internal Expenses, 3-Tier Executive Authorization & Host-to-Host Bank Disbursement*).
 
-Aplikasi ini menggunakan arsitektur **Microservices** di sisi backend untuk modularitas tinggi dan performa optimal, serta **Single Page Application (SPA)** di sisi frontend untuk antarmuka pengguna yang dinamis, interaktif, responsif, dan premium.
+Aplikasi ini menggunakan arsitektur **Microservices** di sisi backend untuk modularitas, ketahanan tinggi, dan skalabilitas optimal, serta **Single Page Application (SPA)** di sisi frontend untuk antarmuka pengguna yang dinamis, interaktif, responsif, dan berstandar internasional.
 
 ---
 
 ## 🛠️ Arsitektur Teknologi
 
-Sistem dibangun dengan menggunakan teknologi modern untuk menjamin performa, keamanan, dan skalabilitas tinggi:
+Sistem dibangun dengan menggunakan teknologi terdepan untuk menjamin performa, keamanan, dan skalabilitas tinggi:
 
 ```mermaid
 graph TD
-    Client[React Frontend - Vite / Tailwind CSS / i18next] -->|HTTP/REST| Gateway[API Gateway - Port 5000]
+    Client[React Frontend - Vite / Tailwind CSS / i18next / React 19] -->|HTTP/REST| Gateway[API Gateway - Port 5000]
     
     Gateway -->|/api/auth| AuthService[Auth Service - Port 5001]
     Gateway -->|/api/invoices| InvoiceService[Invoice/Confirmation Service - Port 5002]
@@ -20,110 +20,106 @@ graph TD
     Gateway -->|/api/companies| CompanyService[Company Service - Port 5004]
     Gateway -->|/api/settings| SettingService[Setting Service - Port 5005]
     Gateway -->|/api/hotel-reservations| HotelService[Hotel Reservation Service - Port 5006]
+    Gateway -->|/api/expenses| ExpenseService[Expense & Reimbursement Service - Port 5007]
 
-    AuthService --> Database[(Aiven Cloud MySQL: dst_tables)]
+    AuthService --> Database[(Aiven Cloud MySQL: defaultdb / dst_tables)]
     InvoiceService --> Database
     RequestService --> Database
     CompanyService --> Database
     SettingService --> Database
     HotelService --> Database
+    ExpenseService --> Database
 ```
 
-### 1. Backend (Microservices)
+### 1. Backend (8 Microservices Architecture)
 Setiap layanan backend dibangun menggunakan **Node.js (Express framework, ESM)** dan berkomunikasi secara independen ke database Aiven Cloud MySQL bersama (`dst_tables`):
-* **`api-gateway` (Port 5000)**: Pintu masuk utama (*reverse proxy*) yang menyatukan seluruh layanan backend menggunakan `http-proxy-middleware` dan mengelola CORS untuk komunikasi dengan frontend.
-* **`auth-service` (Port 5001)**: Menangani registrasi, login, autentikasi berbasis JSON Web Token (JWT), enkripsi kata sandi menggunakan `bcryptjs`, audit log masuk, pelacakan sesi pengguna, serta pusat pengiriman email notifikasi (`nodemailer` / SMTP).
-* **`invoice-service` (Port 5002)**: Mengelola pencatatan konfirmasi masuk (*Confirmations*), klien *one-off* manual, rincian item transaksi belanja, riwayat pembayaran bertahap (*multi-payment installments*), serta kredit saldo overpayment perusahaan.
-* **`request-service` (Port 5003)**: Pusat logika bisnis untuk pengajuan dan pemrosesan approval bertingkat (4-level approval system) serta cron checker jatuh tempo untuk antrean persetujuan.
-* **`company-service` (Port 5004)**: Mengelola data entitas atau mitra bisnis/klien tetap (perusahaan terdaftar) serta saldo kredit (*credit balance*).
+* **`api-gateway` (Port 5000)**: Pintu masuk utama (*reverse proxy*) yang menyatukan seluruh layanan backend menggunakan `http-proxy-middleware`, mengelola CORS, dan merutekan request ke microservices terkait.
+* **`auth-service` (Port 5001)**: Menangani registrasi, login, autentikasi berbasis JSON Web Token (JWT), enkripsi kata sandi dengan `bcryptjs`, audit log masuk, pelacakan sesi pengguna, serta pusat pengiriman email notifikasi (`nodemailer` / SMTP).
+* **`invoice-service` (Port 5002)**: Mengelola pencatatan konfirmasi (*Confirmations*), klien *one-off* manual, rincian item transaksi, riwayat pembayaran bertahap (*multi-payment installments*), serta rekonsiliasi pembayaran multi-mata uang (*multi-currency conversion IDR/USD/SAR*).
+* **`request-service` (Port 5003)**: Pusat logika bisnis untuk alur persetujuan bertingkat (*4-level approval system*) konfirmasi eksternal serta cron checker jatuh tempo untuk antrean persetujuan.
+* **`company-service` (Port 5004)**: Mengelola master data mitra bisnis/klien korporat terdaftar serta pembaruan saldo kredit (*credit balance ledger*).
 * **`setting-service` (Port 5005)**: Mengelola konfigurasi sistem meliputi manajemen tim, kantor cabang operasional, preferensi notifikasi pengguna, nilai tukar mata uang asing harian (USD, SAR, IDR), profil pengguna, keamanan akun, backup sistem, dan katalog harga layanan standar.
-* **`hotel-reservation-service` (Port 5006)**: Mengelola seluruh siklus reservasi hotel, daftar kamar & akomodasi, verifikasi persetujuan oleh Mr. Karim Gharba, unggah bukti transfer/invoice, riwayat pembayaran kamar, serta cron checker jatuh tempo dan auto-cancellation hotel.
+* **`hotel-reservation-service` (Port 5006)**: Mengelola seluruh siklus reservasi hotel, alokasi kamar & akomodasi, verifikasi persetujuan oleh Mr. Karim Gharba, unggah bukti transfer/invoice, riwayat pembayaran kamar, serta cron checker jatuh tempo dan auto-cancellation hotel.
+* **`expense-service` (Port 5007)**: Pusat operasional klaim pengeluaran internal (*Internal Corporate Expenses*), penyimpanan nota digital, siklus verifikasi 3-tier eksekutif, data perbankan penerima reimbursement, dan audit log Host-to-Host settlement.
 
 ### 2. Frontend (Single Page Application)
 Aplikasi antarmuka pengguna dibangun dengan:
 * **React (v19)** & **TypeScript** untuk pengembangan antarmuka terstruktur, modular, dan type-safe.
-* **Vite** sebagai build tool ultra-cepat.
-* **Tailwind CSS** untuk desain tata letak UI yang modern, responsif, dan elegan.
-* **i18next** & **react-i18next** untuk sistem lokalisasi multibahasa (Indonesia, English, Arabic).
-* **React Router Dom** untuk navigasi halaman tanpa reload.
+* **Vite** sebagai build tool modern berkecepatan tinggi.
+* **Tailwind CSS** untuk desain tata letak UI yang bersih, responsif, dan elegan.
+* **i18next** & **react-i18next** untuk sistem lokalisasi trilingual instan (Indonesia, English, Arabic).
+* **React Router Dom (v7)** untuk navigasi halaman SPA tanpa reload.
 * **Axios** untuk integrasi panggilan API terpusat dengan interceptor otentikasi JWT.
-* **Lucide React** sebagai pustaka ikon visual premium.
+* **Lucide React** sebagai pustaka ikon visual modern.
 
 ---
 
 ## ✨ Fitur Utama Sistem Keuangan
 
-### 1. Modul Confirmations (Pencatatan & Pelacakan Konfirmasi Transaksi)
-* **Penggantian Nama Modul Resmi**: Label menu dan modul diseragamkan menjadi **Confirmations** (*التأكيدات* dalam bahasa Arab dan *Konfirmasi* dalam bahasa Indonesia) untuk mencerminkan proses penerbitan konfirmasi resmi transaksi eksternal.
+### 1. Modul Confirmations & Rekonsiliasi Multi-Valuta
+* **Modul Confirmations Resmi**: Label menu dan modul diseragamkan menjadi **Confirmations** (*التأكيدات* dalam bahasa Arab dan *Konfirmasi* dalam bahasa Indonesia) untuk mencerminkan proses penerbitan konfirmasi resmi transaksi eksternal.
+* **Rekonsiliasi Pembayaran Multi-Valuta (Cross-Currency Engine)**:
+  * Pembayaran klien dalam mata uang berbeda (misal: klien membayar IDR / Rupiah pada invoice berdenominasi SAR atau USD) secara otomatis dikonversi ke mata uang dasar invoice menggunakan kurs transaksi harian.
+  * Mencegah pembengkakan saldo kredit akibat ketidakcocokan mata uang (contoh: pembayaran Rp37.000.000 otomatis dikonversi menjadi ekuivalen SAR/USD sebelum menghitung sisa tagihan dan overpayment).
 * **Opsi Klien One-Off ("Others")**: Pilihan fleksibel untuk membuat konfirmasi tanpa menyimpan ke master data mitra tetap `dst_companies`, menjaga kebersihan master data.
 * **Format Penomoran Otomatis**: Transaksi klien manual otomatis menggunakan format nomor konfirmasi dengan prefix `OTH` (contoh: `OTH-0903-001`).
 
-### 2. Modul Internal Expenses & Reimbursement (Feature Flag Ready)
-Sistem dilengkapi modul operasional internal untuk klaim biaya dan reimbursement tim:
-* **My Expenses (`/my-expenses`)**: Melacak status pengajuan biaya operasional pribadi.
-* **Submit Expense (`/submit-expense`)**: Formulir pengajuan klaim biaya operasional baru lengkap dengan upload bukti kuitansi (*receipt dropzone*).
-* **Approvals (`/approvals`)**: Dashboard persetujuan klaim biaya internal untuk auditor dan manajer.
-* **Alur Approval & Pencairan**:
-  * *Expense Approval Action* (`/approvals/action/:id`): Verifikasi rincian kuitansi dan profil klaim.
-  * *Initiate Reimbursement* (`/approvals/reimburse/:id`): Ringkasan pembayaran dan pemilihan metode transfer.
-  * *Setup Beneficiary* (`/approvals/beneficiary/:id`): Pengaturan rekening bank penerima reimbursement.
-  * *Pre-Execution Payment Review* (`/approvals/execute/:id`): Verifikasi pra-eksekusi, jejak audit kepatuhan (*audit trail*), dan dispatch pembayaran.
+### 2. Modul Internal Expenses & Reimbursement (3-Tier Executive Approval & H2H Banking)
+Sistem dilengkapi modul komprehensif untuk pengajuan, audit, persetujuan, dan pencairan klaim pengeluaran internal:
+* **My Expenses (`/my-expenses`)**: Melacak seluruh status pengajuan klaim biaya operasional staf secara real-time.
+* **Submit Expense (`/submit-expense`)**: Formulir pengajuan klaim biaya baru lengkap dengan dropzone unggah bukti nota/kuitansi digital (*support PDF, JPG, PNG, WEBP maks 15MB*).
+* **Approvals Dashboard (`/approvals`)**: Pusat kendali audit bagi auditor keuangan dan approver eksekutif.
+* **Rantai Otorisasi 3 Tingkat Eksekutif (3-Tier Executive Authorization Chain)**:
+  1. **Tahap 1**: Mr. Hesham Mokhtar (*Finance Director*)
+  2. **Tahap 2**: Mr. Khalid Idriss (*Branch General Manager*)
+  3. **Tahap 3**: Mr. Emad Moustafa (*Financial Controller / Treasury*)
+  * Hak persetujuan dikunci ketat per tahap (stage gating); staf lain dan Super Admin dibatasi dari hak persetujuan demi kepatuhan audit.
+* **Pencairan Host-to-Host (SNAP BI / SARIE Payout Gateway)**:
+  * **Setup Beneficiary (`/setup-beneficiary/:id`)**: Konfigurasi dan inkuiri rekening bank karyawan secara langsung melalui protokol SNAP BI / SARIE.
+  * **Initiate Reimbursement (`/initiate-reimbursement/:id`)**: Pemilihan sumber rekening debit korporat dan pemicu pembayaran instan.
+  * **Pre-Execution Payment Review (`/pre-execution-payment/:id`)**: Verifikasi 2-Faktor (2FA OTP), inspeksi jejak audit kriptografis (*SHA-256 Verified Immutable*), dan pencetakan voucher transfer resmi.
 * **Dual-Environment Feature Flag (`VITE_ENABLE_INTERNAL`)**:
-  * **Di Production (Sistem Utama)**: Bagian internal otomatis disembunyikan dan hanya menampilkan header kategori **`INTERNAL (coming soon)`** (Arab: `داخلي (قريباً)`).
-  * **Di Testing**: Variabel `VITE_ENABLE_INTERNAL=true` membuka seluruh menu dan fitur internal untuk pengujian tim.
+  * **Production Mode**: Bagian internal aman disembunyikan dengan label **`INTERNAL (coming soon)`** (Arab: `داخلي (قريباً)`).
+  * **Testing Mode**: Mengaktifkan seluruh modul internal untuk evaluasi menyeluruh.
 
-### 3. Dukungan Multibahasa Penuh (Internationalization / i18n)
-* **3 Bahasa Resmi**: Sistem mendukung **Bahasa Indonesia (`id`)**, **English (`en`)**, dan **Arabic (`ar`)** di seluruh halaman aplikasi (Dashboard, Confirmations, Requests, Companies, Hotel Reservations, Settings, dan Modals).
-* **Language Switcher Cepat**: Pengguna dapat mengganti bahasa kapan saja melalui dropdown pemilih bahasa di Header atas.
-* **Proteksi Integritas Cetak PDF**: Seluruh dokumen cetak resmi (Konfirmasi, Laporan Finansial Cabang, Reservasi Hotel) **tetap 100% dalam bahasa Inggris standar internasional** tanpa terpengaruh oleh bahasa antarmuka UI.
+### 3. Dukungan Trilingual Penuh (Indonesia, English, Arabic)
+* **3 Bahasa Resmi**: Sistem mendukung **Bahasa Indonesia (`id`)**, **English (`en`)**, dan **Arabic (`ar`)** dengan kesetaraan 100% di seluruh modul (Dashboard, Confirmations, Requests, Companies, Hotel Reservations, Settings, Expenses, Approvals, dan Modal Dialog).
+* **RTL (Right-to-Left) Ready**: Tata letak antarmuka mendukung kenyamanan pengguna berbahasa Arab.
+* **Proteksi Integritas Cetak PDF**: Seluruh dokumen cetak resmi (Konfirmasi, Laporan Finansial Cabang, Reservasi Hotel, Voucher Audit) **tetap 100% dalam bahasa Inggris standar internasional** tanpa terpengaruh oleh bahasa antarmuka UI.
 
-### 4. Perhitungan Real-Time Total Revenue (Collected Cash Inflow)
+### 4. Manajemen Saldo Kredit Klien & Reset Kontrol
+* **Kredit Lebih Bayar (*Overpayment Credit Balance*)**: Kelebihan dana pembayaran invoice otomatis tercatat sebagai saldo kredit mitra pada tabel `dst_companies`.
+* **Pengendalian Saldo Kredit di Direktori Perusahaan**: Tampilan profil perusahaan menampilkan ringkasan saldo kredit terkini dalam format mata uang SAR dengan opsi *Reset Saldo* untuk rekonsiliasi manual oleh staf keuangan.
+
+### 5. Perhitungan Real-Time Total Revenue (Collected Cash Inflow)
 * **Collected Cash Standard**: Kartu *Total Revenue* di dashboard menghitung arus kas riil yang telah diterima (100% dari konfirmasi yang telah approved/paid penuh **ditambah** porsi nominal yang telah dibayarkan pada invoice berstatus partial payment / deposit).
-* **Outstanding Balance Otomatis**: Tagihan dengan status partial payment secara otomatis hanya menghitung sisa saldo yang belum terbayar (*remaining balance*).
-* **Format Mata Uang USD Standar**: Nominal dalam mata uang USD disajikan secara bersih dengan simbol `$` standar (contoh: `$53.33`).
-* **Status Badges Baru**: Tabel konfirmasi dilengkapi badge informatif: `Fully Paid` (hijau), `Partial Payment` (biru), dan `Deposit Paid` (amber/kuning).
+* **Outstanding Balance Otomatis**: Tagihan berstatus partial payment secara otomatis hanya menghitung sisa saldo yang belum terbayar (*remaining balance*).
+* **Status Badges Informatif**: Tabel konfirmasi dilengkapi badge informatif: `Fully Paid` (hijau), `Partial Payment` (biru), dan `Deposit Paid` (amber/kuning).
 
-### 5. Sistem Notifikasi Otomatis Menyeluruh (In-App & Email)
+### 6. Sistem Notifikasi Otomatis Menyeluruh (In-App & Email)
 * **Kustomisasi Preferensi Mandiri**: Pengguna dapat mengatur preferensi penerimaan notifikasi via In-App (lonceng header & audio alert) dan/atau Email resmi di menu **Settings ➔ Notifications** (`dst_notification_settings`).
 * **Kategori Notifikasi**:
   * **Confirmation Notifications**: *New confirmation submitted*, *Confirmation approved*, *Confirmation rejected*, *Payment received*.
   * **Approval Notifications**: *Approval request assigned*, *Approval completed*, *Approval overdue*.
   * **System Notifications**: *Security alerts*, *Team member changes*, *System maintenance*.
 
-### 6. Background Cron Job Terjadwal (Dedicated Overdue Checkers)
+### 7. Background Cron Job Terjadwal (Dedicated Overdue Checkers)
 * **`request-service` Cron (`overdueChecker.js`)**: Memeriksa antrean approval konfirmasi (`dst_requests`) setiap hari pukul **08:00 AM** dan mengirimkan alert `approvalOverdue` ke approver terkait.
 * **`hotel-reservation-service` Cron (`overdueChecker.js`)**: Memindai reservasi hotel aktif (`dst_hotel_reservations`) yang belum lunas dan telah melewati batas `dueDate`, secara otomatis memperbarui status menjadi **Cancelled** (*Auto-Cancelled: Unpaid past due date*) dan mengirimkan alert anti-duplikasi.
 
-### 7. Modul Hotel Reservations & Cetak PDF Presisi
-* **Tab "Reservations" vs "Requests"**: Tab reservasi menampilkan data operasional aktif (`Confirmed`, `Tentative`, `Paid`, `Overdue`, `Cancelled`). Tab requests mencatat seluruh riwayat permintaan awal.
-* **Alur Approval Mandiri Mr. Karim**: Verifikasi khusus reservasi kamar hotel oleh Mr. Karim Gharba dengan penerbitan nomor konfirmasi (`CNF-...`).
-* **Format Dokumen Cetak Standar Internasional**: Format PDF invoice dan reservasi mencantumkan blok tanda tangan resmi Financial Controller (*Mr. Emad Moustafa*), posisi **Due Date** di bawah tanda tangan, dan metadata resmi *Graha Al Badgel, Jakarta, Indonesia 12740*.
-
-### 8. Multi-Payment History & Overpayment Credit
-* **Pencatatan Cicilan Bertahap**: Dukungan pencatatan pembayaran berulang/bertahap pada modul konfirmasi maupun reservasi hotel (`dst_payment_history`).
-* **Kredit Lebih Bayar (*Overpayment Credit*)**: Kelebihan dana akumulasi pembayaran otomatis dialokasikan ke saldo kredit klien (*credit balance*) di `dst_companies` untuk transaksi mendatang.
-
-### 9. Sistem Persetujuan 4-Level & Logika OR
-* Alur persetujuan 4 Level terstruktur: `0/4 Pending -> 1/4 -> 2/4 -> 3/4 -> 4/4 Approved`.
-* Khusus pada **Level 2**, sistem menerapkan **Logika OR (ATAU)**: persetujuan dapat disahkan oleh Mr. Karim Gharba **ATAU** Mr. Raed AlBadrani.
-* Setiap level divalidasi ketat terhadap peran pengguna (`role`) yang sedang login.
-
-### 10. Dynamic Permission Management & Super Admin Dashboard (`/super-admin/dashboard`)
+### 8. Dynamic Permission Management & Super Admin Dashboard (`/super-admin/dashboard`)
 * **Dynamic Permission Matrix**: Manajemen hak akses granular per individu secara real-time langsung dari antarmuka web tanpa perlu deploy ulang kode:
-  * ⚡ **Bypass Approval** (`CAN_BYPASS_APPROVAL`): Pengguna istimewa (contoh: Mr. Khalid) dapat membuat konfirmasi yang langsung disahkan (status `Approved` / `4/4 Approved`), otomatis melewati alur persetujuan Level 1-4, meniadakan notifikasi ke Mr. Hesham, dan langsung menyajikan tombol unduh PDF resmi.
+  * ⚡ **Bypass Approval** (`CAN_BYPASS_APPROVAL`): Pengguna istimewa (contoh: Mr. Khalid) dapat membuat konfirmasi yang langsung disahkan (status `Approved` / `4/4 Approved`).
   * 👥 **Add Team Members** (`CAN_ADD_MEMBERS`): Memberikan izin menambah anggota tim baru.
   * 🛡️ **Edit/Manage Logs** (`CAN_EDIT_SYSTEM_LOGS`): Izin mengelola dan mengedit catatan audit sistem.
   * 📊 **View All Reports** (`CAN_VIEW_ALL_REPORTS`): Izin melihat seluruh ringkasan analitik dan laporan keuangan lintas cabang.
-* **Super Admin Mini Dashboard**: Halaman kontrol eksklusif Developer & Super Admin (**Dimas & Ali**) yang diamankan di tingkat backend middleware (`isSuperAdmin`) dan frontend route guard:
-  * **Tab 1: Dynamic Permission Matrix**: Matriks tabel interaktif seluruh staf sistem dengan toggle switch instan, metrik statistik hak akses, dan pencarian cepat.
-  * **Tab 2: System Audit Logs Management**: Jejak audit komprehensif (`dst_audit_logs`) dengan filter aksi, pencarian kata kunci, tambah catatan audit manual, edit catatan log, dan hapus log usang.
-* **Audit Trail Otomatis**: Setiap pembaruan izin pengguna dan penerbitan konfirmasi jalur bypass secara otomatis direkam ke dalam database audit sistem dengan timestamp, alamat IP, dan payload perubahan.
+* **Super Admin Control Center**: Halaman kontrol eksklusif Developer & Super Admin (**Dimas & Ali**) yang diamankan di tingkat backend middleware (`isSuperAdmin`) dan frontend route guard.
 
 ---
 
 ## 🗄️ Struktur Database (MySQL)
 
-Sistem menggunakan database relasional **Aiven Cloud MySQL** dengan tabel berawalan `dst_`:
+Sistem menggunakan database relasional **Aiven Cloud MySQL** dengan tabel terkelola berawalan `dst_`:
 
 | Nama Tabel | Deskripsi Data | Layanan Pengelola |
 | :--- | :--- | :--- |
@@ -144,10 +140,13 @@ Sistem menggunakan database relasional **Aiven Cloud MySQL** dengan tabel berawa
 | `dst_services` | Katalog harga dan jenis layanan standar pariwisata. | `setting-service` |
 | `dst_company_settings` | Konfigurasi profil perusahaan dan nomor rekening perbankan. | `setting-service` |
 | `dst_hotel_reservations` | Data reservasi hotel, kamar (*rooms JSON*), tamu, status verifikasi Karim, dan sisa saldo. | `hotel-reservation-service` |
+| `dst_corporate_expenses` | Data pengajuan klaim pengeluaran internal, bukti kuitansi, tahapan otorisasi 3-tier, data bank penerima, dan trace H2H settlement. | `expense-service` |
 
 ---
 
-## 🔄 Alur Kerja Persetujuan (Approval Workflow)
+## 🔄 Alur Kerja Persetujuan (Approval Workflows)
+
+### 1. Alur Persetujuan Konfirmasi Eksternal (4-Tier Chain)
 
 ```mermaid
 sequenceDiagram
@@ -187,17 +186,46 @@ sequenceDiagram
     Accountant->>Invoice Service: 9. Unduh/Cetak PDF Resmi (English Standard) & Eksekusi Pembayaran
 ```
 
+### 2. Alur Klaim Biaya Internal & Pencairan Bank (3-Tier Executive & H2H Banking)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Staff as Employee / Submitter
+    actor DirFin as Finance Director (Mr. Hesham)
+    actor GM as Branch GM (Mr. Khalid)
+    actor Controller as Financial Controller (Mr. Emad)
+
+    Staff->>Expense Service: 1. Submit Expense Claim & Upload Nota Digital
+    Expense Service-->>Auth Service: 2. Notifikasi Tahap 1 ke Mr. Hesham
+    
+    Note over DirFin: Tahap 1 Authorization
+    DirFin->>Expense Service: 3. Review Nota & Approve Tahap 1
+    Expense Service-->>Auth Service: Notifikasi Tahap 2 ke Mr. Khalid
+
+    Note over GM: Tahap 2 Authorization
+    GM->>Expense Service: 4. Approve Tahap 2 (Branch GM)
+    Expense Service-->>Auth Service: Notifikasi Tahap 3 ke Mr. Emad
+
+    Note over Controller: Tahap 3 Authorization & H2H Payout
+    Controller->>Expense Service: 5. Approve Tahap 3 (Fully Approved 3/3)
+    Controller->>Expense Service: 6. Inisiasi Payout Bank (SNAP BI / SARIE)
+    Controller->>Expense Service: 7. Dual-Factor Authentication (2FA OTP)
+    Expense Service->>Expense Service: 8. Eksekusi H2H Settlement & Generate SHA-256 Audit Log
+    Expense Service->>Staff: 9. Dana Cair ke Rekening Bank Staf & Voucher Siap Diunduh
+```
+
 ---
 
 ## 🚀 Panduan Memulai (Quick Start)
 
 ### Prasyarat
-* **Node.js** (Minimal v18+)
+* **Node.js** (Minimal v18.0.0+)
 * **MySQL Server** (Aiven Cloud MySQL atau MySQL Server lokal)
 * **Git**
 
-### 1. Instalasi Dependensi
-Jalankan perintah berikut di direktori root proyek untuk menginstal seluruh dependensi backend dan frontend secara otomatis:
+### 1. Instalasi Seluruh Dependensi
+Jalankan perintah berikut di direktori root proyek untuk menginstal seluruh dependensi backend (8 microservices) dan frontend secara otomatis:
 ```bash
 npm run install:all
 ```
@@ -210,23 +238,26 @@ Pastikan berkas `.env` telah dikonfigurasi pada masing-masing microservice dan f
 * `backend/company-service/.env`
 * `backend/setting-service/.env`
 * `backend/hotel-reservation-service/.env`
+* `backend/expense-service/.env`
 * `backend/api-gateway/.env`
 * `finance-frontend/.env`
 
 ### 3. Menjalankan Aplikasi dalam Mode Pengembangan (Dev Mode)
-Jalankan perintah berikut di root folder untuk menyalakan seluruh 7 microservice dan frontend secara bersamaan:
+Jalankan perintah berikut di root folder untuk menyalakan seluruh 8 microservice dan frontend secara bersamaan dalam satu terminal:
 ```bash
 npm run dev
 ```
 Setelah aktif:
-* **Frontend**: Buka [http://localhost:5173](http://localhost:5173) di browser Anda.
+* **Frontend SPA**: Buka [http://localhost:5173](http://localhost:5173) di browser.
 * **API Gateway**: Berjalan pada `http://localhost:5000`.
 
-### 4. Menjalankan Aplikasi Menggunakan Docker Compose (Produksi / VPS)
+### 4. Menjalankan Aplikasi Menggunakan Docker Compose (Produksi / Coolify VPS)
 Untuk deployment terpadu menggunakan container Docker:
 ```bash
 docker compose up --build -d
 ```
+* Arsitektur Docker Compose telah dioptimalkan untuk **Coolify / Traefik Reverse Proxy**:
+  * Menggunakan direktif `expose` internal tanpa mengikat host port 80/5000 secara kaku, mencegah bentrok port pada server produksi.
 
 ### 5. Pengaturan Environment Coolify (Testing vs Production)
 Untuk mengatur ketersediaan modul internal pada Coolify:
@@ -235,4 +266,4 @@ Untuk mengatur ketersediaan modul internal pada Coolify:
 
 ---
 
-*Dokumentasi ini terus diperbarui seiring dengan evolusi fitur dan penyempurnaan sistem keuangan Manazil AL.Mukhtara Group.*
+*Dokumentasi ini terus diperbarui seiring dengan evolusi fitur, keamanan, dan standar kepatuhan sistem keuangan Manazil AL.Mukhtara Group.*
