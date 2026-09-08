@@ -71,9 +71,11 @@ import {
   Trash2
 } from "lucide-react";
 import { getCompanies, createCompany, updateCompany, getInvoices, deleteCompany, updateCompanyCreditBalance } from "../../services/invoiceService";
+import { getExchangeRates } from "../../services/settingService";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import { formatCurrency } from "../../i18n";
 
 export interface Company {
   name: string;
@@ -95,6 +97,11 @@ const Companies: React.FC = () => {
 
   const [companies, setCompanies] = useState<Company[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [configuredRates, setConfiguredRates] = useState<{ usdToIdr: number; sarToIdr: number; usdToSar: number }>({
+    usdToIdr: 18025,
+    sarToIdr: 4800,
+    usdToSar: 3.75
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,12 +109,20 @@ const Companies: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const [compList, invList] = await Promise.all([
+      const [compList, invList, rates] = await Promise.all([
         getCompanies(),
-        getInvoices()
+        getInvoices(),
+        getExchangeRates().catch(() => null)
       ]);
       if (compList) setCompanies(compList);
       if (invList) setInvoices(invList);
+      if (rates) {
+        setConfiguredRates({
+          usdToIdr: parseFloat(String(rates.usdToIdr || 18025)),
+          sarToIdr: parseFloat(String(rates.sarToIdr || 4800)),
+          usdToSar: parseFloat(String(rates.usdToSar || 3.75))
+        });
+      }
     } catch (err) {
       console.error("Failed to load companies data from API:", err);
       setError("Failed to load partner companies. Please check backend connections.");
@@ -194,9 +209,8 @@ const Companies: React.FC = () => {
     return isNaN(parsed) ? 0 : parsed;
   };
 
-  const getInvoiceAmountInUsd = (inv: any): number => {
-    if (!inv) return 0;
-    const rawAmt = parseAmount(inv.amount);
+  const convertCurrencyToUsd = (amountVal: number, inv: any): number => {
+    if (!amountVal || isNaN(amountVal)) return 0;
     const currency = String(inv.currency || '').toUpperCase();
     
     // Auto-detect currency from amount string if currency field is missing/empty
@@ -206,16 +220,92 @@ const Companies: React.FC = () => {
       amtStr.includes('SAR') ? 'SAR' : 'USD'
     );
 
+    const defaultUsdToIdr = configuredRates.usdToIdr || 18025;
+    const defaultSarToIdr = configuredRates.sarToIdr || 4800;
+    const defaultUsdToSar = configuredRates.usdToSar || (defaultUsdToIdr / defaultSarToIdr) || 3.75;
+
+    const usdToIdr = Number(inv.usdToIdrRate) || defaultUsdToIdr;
+    const sarToIdr = Number(inv.sarToIdrRate) || defaultSarToIdr;
+    const usdToSar = Number(inv.usdToSarRate) || defaultUsdToSar || (usdToIdr / sarToIdr) || 3.75;
+
     if (detectedCurrency === 'RP' || detectedCurrency === 'IDR') {
-      const rate = inv.usdToIdrRate || 18025;
-      return rawAmt / rate;
+      return amountVal / usdToIdr;
     } else if (detectedCurrency === 'SAR') {
-      const usdToIdr = inv.usdToIdrRate || 18025;
-      const sarToIdr = inv.sarToIdrRate || 4800;
-      const usdToSar = usdToIdr / sarToIdr || 3.75;
-      return rawAmt / usdToSar;
+      return amountVal / usdToSar;
     }
-    return rawAmt;
+    return amountVal;
+  };
+
+  const isInvoiceOverdue = (inv: any): boolean => {
+    if (!inv) return false;
+    const status = String(inv.status || '').toLowerCase();
+    const notes = String(inv.rejectionReason || inv.notes || '').toLowerCase();
+
+    if (
+      status === 'overdue' ||
+      status === 'cancelled due to overdue' ||
+      status === 'rejected' ||
+      status.includes('overdue')
+    ) {
+      return true;
+    }
+
+    if (status === 'cancelled' && (notes.includes('overdue') || notes.includes('auto-cancelled') || notes.includes('unpaid past due date'))) {
+      return true;
+    }
+
+    if (inv.dueDate && !status.includes('paid') && status !== 'approved' && status !== 'archived') {
+      const dueTime = new Date(inv.dueDate).getTime();
+      const todayTime = new Date(new Date().toISOString().split('T')[0]).getTime();
+      if (dueTime < todayTime) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const getInvoicePaidAmountInUsd = (inv: any): number => {
+    if (!inv) return 0;
+    const rawAmt = parseAmount(inv.amount);
+    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const totalInst = parseFloat(String(inv.totalInstallments || 0));
+    const totalPaid = inv.totalPaid !== undefined 
+      ? parseFloat(String(inv.totalPaid)) 
+      : (advAmt + totalInst);
+
+    const status = String(inv.status || '').toLowerCase();
+
+    if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || (totalPaid >= rawAmt && rawAmt > 0)) {
+      return convertCurrencyToUsd(rawAmt, inv);
+    }
+
+    if (totalPaid > 0) {
+      return convertCurrencyToUsd(totalPaid, inv);
+    }
+
+    return 0;
+  };
+
+  const getInvoiceOutstandingInUsd = (inv: any): number => {
+    if (!inv) return 0;
+    const rawAmt = parseAmount(inv.amount);
+    const status = String(inv.status || '').toLowerCase();
+
+    if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || status === 'approved' || status === 'archived') {
+      return 0;
+    }
+
+    let remaining = rawAmt;
+    if (inv.remainingBalance !== null && inv.remainingBalance !== undefined && inv.remainingBalance !== '') {
+      remaining = parseFloat(String(inv.remainingBalance));
+    } else if (inv.advancePayment) {
+      remaining = Math.max(0, rawAmt - parseFloat(String(inv.advancePayment)));
+    }
+
+    if (remaining <= 0) return 0;
+
+    return convertCurrencyToUsd(remaining, inv);
   };
 
   const reportData = useMemo(() => {
@@ -228,22 +318,42 @@ const Companies: React.FC = () => {
     let pendingCount = 0;
     let overdueCount = 0;
 
+    const companyStats: Record<string, { revenue: number; amtPaid: number; pending: number; overdue: number }> = {};
+    
+    companies.forEach((comp) => {
+      companyStats[comp.code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
+    });
+
     invoices.forEach((inv) => {
-      const amt = getInvoiceAmountInUsd(inv);
-      totalRevenue += amt;
+      const grossAmt = convertCurrencyToUsd(parseAmount(inv.amount), inv);
+      const paidAmt = getInvoicePaidAmountInUsd(inv);
+      const outstandingAmt = getInvoiceOutstandingInUsd(inv);
+      const isOverdue = isInvoiceOverdue(inv);
       const status = (inv.status || "").toLowerCase();
-      if (status.includes("paid")) {
-        totalPaid += amt;
+      const code = inv.companyCode || (
+        companies.find(c => c.name.toLowerCase() === (inv.company || '').toLowerCase())?.code
+      ) || "GEN";
+
+      totalRevenue += grossAmt;
+      totalPaid += paidAmt;
+
+      if (!companyStats[code]) {
+        companyStats[code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
+      }
+
+      companyStats[code].revenue += grossAmt;
+      companyStats[code].amtPaid += paidAmt;
+
+      if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || (paidAmt >= grossAmt && grossAmt > 0)) {
         paidCount++;
-      } else if (status.includes("pending")) {
-        totalPending += amt;
-        pendingCount++;
-      } else if (status.includes("overdue")) {
-        totalOverdue += amt;
+      } else if (isOverdue) {
+        totalOverdue += outstandingAmt;
         overdueCount++;
+        companyStats[code].overdue += outstandingAmt;
       } else {
-        totalPending += amt;
+        totalPending += outstandingAmt;
         pendingCount++;
+        companyStats[code].pending += outstandingAmt;
       }
     });
 
@@ -253,11 +363,12 @@ const Companies: React.FC = () => {
 
     const monthlyGroups: Record<string, { revenue: number; sent: number; paid: number; orderDate: Date }> = {};
     invoices.forEach((inv) => {
-      const amt = getInvoiceAmountInUsd(inv);
+      const amt = convertCurrencyToUsd(parseAmount(inv.amount), inv);
       const dateObj = new Date(inv.date);
       if (isNaN(dateObj.getTime())) return;
       const monthLabel = dateObj.toLocaleDateString("en-US", { month: "short", year: "numeric" });
       const status = (inv.status || "").toLowerCase();
+      const paidAmt = getInvoicePaidAmountInUsd(inv);
 
       if (!monthlyGroups[monthLabel]) {
         const orderDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
@@ -266,7 +377,7 @@ const Companies: React.FC = () => {
 
       monthlyGroups[monthLabel].revenue += amt;
       monthlyGroups[monthLabel].sent += 1;
-      if (status.includes("paid")) {
+      if (status.includes("paid") || paidAmt >= amt) {
         monthlyGroups[monthLabel].paid += 1;
       }
     });
@@ -280,31 +391,6 @@ const Companies: React.FC = () => {
         paid: data.paid,
         expenses: data.revenue * 0.5,
       }));
-
-    const companyStats: Record<string, { revenue: number; amtPaid: number; pending: number; overdue: number }> = {};
-    
-    companies.forEach((comp) => {
-      companyStats[comp.code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
-    });
-
-    invoices.forEach((inv) => {
-      const amt = getInvoiceAmountInUsd(inv);
-      const status = (inv.status || "").toLowerCase();
-      const code = inv.companyCode || "GEN";
-
-      if (!companyStats[code]) {
-        companyStats[code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
-      }
-
-      companyStats[code].revenue += amt;
-      if (status.includes("paid")) {
-        companyStats[code].amtPaid += amt;
-      } else if (status.includes("overdue")) {
-        companyStats[code].overdue += amt;
-      } else {
-        companyStats[code].pending += amt;
-      }
-    });
 
     const companyBreakdown = companies.map((comp) => {
       const stats = companyStats[comp.code] || { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
@@ -321,7 +407,7 @@ const Companies: React.FC = () => {
     const sortedCompanyBreakdown = [...companyBreakdown].sort((a, b) => b.revenue - a.revenue);
 
     const revenueShare = sortedCompanyBreakdown.map((item) => {
-      const pct = totalRevenue > 0 ? Math.round((item.revenue / totalRevenue) * 100) : 0;
+      const pct = totalRevenue > 0 ? Number(((item.revenue / totalRevenue) * 100).toFixed(1)) : 0;
       return {
         company: item.company,
         revenue: item.revenue,
@@ -366,7 +452,7 @@ const Companies: React.FC = () => {
         },
       },
     };
-  }, [invoices, companies]);
+  }, [invoices, companies, configuredRates]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -1430,15 +1516,15 @@ const Companies: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.totalRevenue')}</span>
-                  <div className="text-[20px] font-bold text-[#0c0d0f] font-mono mt-1.5">{"$" + reportData.summary.totalRevenue.toLocaleString()}</div>
+                  <div className="text-[20px] font-bold text-[#0c0d0f] font-mono mt-1.5">{formatCurrency(reportData.summary.totalRevenue, 'USD', undefined, 2)}</div>
                 </div>
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.netProfit')}</span>
-                  <div className="text-[20px] font-bold text-[#10b981] font-mono mt-1.5">{"$" + reportData.summary.netProfit.toLocaleString()}</div>
+                  <div className="text-[20px] font-bold text-[#10b981] font-mono mt-1.5">{formatCurrency(reportData.summary.netProfit, 'USD', undefined, 2)}</div>
                 </div>
                 <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.outstanding')}</span>
-                  <div className="text-[20px] font-bold text-[#ef4444] font-mono mt-1.5">{"$" + reportData.summary.outstanding.toLocaleString()}</div>
+                  <div className="text-[20px] font-bold text-[#ef4444] font-mono mt-1.5">{formatCurrency(reportData.summary.outstanding, 'USD', undefined, 2)}</div>
                 </div>
               </div>
 
@@ -1450,18 +1536,18 @@ const Companies: React.FC = () => {
                     <thead>
                       <tr className="bg-[#223F6E] border-b border-[#223F6E] text-white">
                         <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.month')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.revenue')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.invoicesSent')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.invoicesPaid')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.revenue')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-center">{t('companies.invoicesSent')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-center">{t('companies.invoicesPaid')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[#475569]">
                       {reportData.monthlyOverview.map((row, idx) => (
                         <tr key={row.month} className={idx % 2 === 1 ? "bg-slate-50/20 hover:bg-slate-50/50" : "hover:bg-slate-50/50"}>
                           <td className="py-3 px-4 font-semibold text-[#0c0d0f]">{row.month}</td>
-                          <td className="py-3 px-4 font-mono">{"$" + row.revenue.toLocaleString()}</td>
-                          <td className="py-3 px-4">{row.sent}</td>
-                          <td className="py-3 px-4">{row.paid}</td>
+                          <td className="py-3 px-4 font-mono text-right">{formatCurrency(row.revenue, 'USD', undefined, 2)}</td>
+                          <td className="py-3 px-4 text-center">{row.sent}</td>
+                          <td className="py-3 px-4 text-center">{row.paid}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1478,10 +1564,10 @@ const Companies: React.FC = () => {
                       <tr className="bg-[#223F6E] border-b border-[#223F6E] text-white">
                         <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.companyName')}</th>
                         <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.companyCode')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.revenue')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.amountPaid')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.pending')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.overdue')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.revenue')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.amountPaid')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.pending')}</th>
+                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.overdue')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[#475569] font-medium">
@@ -1489,10 +1575,10 @@ const Companies: React.FC = () => {
                         <tr key={row.code} className={idx % 2 === 1 ? "bg-slate-50/20 hover:bg-slate-50/50" : "hover:bg-slate-50/50"}>
                           <td className="py-3 px-4 font-bold text-[#0c0d0f]">{row.company}</td>
                           <td className="py-3 px-4 text-slate-400 font-mono">{row.code}</td>
-                          <td className="py-3 px-4 font-mono">{"$" + row.revenue.toLocaleString()}</td>
-                          <td className="py-3 px-4 font-mono">{"$" + row.amtPaid.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-[#f59e0b] font-bold font-mono">{"$" + row.pending.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-[#ef4444] font-bold font-mono">{"$" + row.overdue.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-mono text-right">{formatCurrency(row.revenue, 'USD', undefined, 2)}</td>
+                          <td className="py-3 px-4 font-mono text-emerald-700 font-semibold text-right">{formatCurrency(row.amtPaid, 'USD', undefined, 2)}</td>
+                          <td className="py-3 px-4 text-[#f59e0b] font-bold font-mono text-right">{formatCurrency(row.pending, 'USD', undefined, 2)}</td>
+                          <td className="py-3 px-4 text-[#ef4444] font-bold font-mono text-right">{formatCurrency(row.overdue, 'USD', undefined, 2)}</td>
                         </tr>
                       ))}
                     </tbody>
