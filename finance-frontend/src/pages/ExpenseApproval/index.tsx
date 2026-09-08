@@ -438,10 +438,10 @@ const ExpenseApproval: React.FC = () => {
 
     setActionNotification({
       isOpen: true,
-      title: `Tahap ${currentActiveStepNumber} Disetujui!`,
+      title: t('expenseApproval.stageApprovedTitle', { step: currentActiveStepNumber }),
       message: currentActiveStepNumber === 3
-        ? `Klaim reimbursement ${claim.claimId} telah disetujui penuh (3/3) oleh Mr. Emad Moustafa dan siap dicairkan.`
-        : `Persetujuan Tahap ${currentActiveStepNumber} (${matchedApproverName}) berhasil disimpan. Klaim dialihkan ke tahap berikutnya.`,
+        ? t('expenseApproval.fullyApprovedMsg', { claimId: claim.claimId })
+        : t('expenseApproval.stepApprovedMsg', { step: currentActiveStepNumber, name: matchedApproverName }),
       type: 'approve'
     });
   };
@@ -450,8 +450,8 @@ const ExpenseApproval: React.FC = () => {
     if (!canApproveCurrentStep) {
       setActionNotification({
         isOpen: true,
-        title: 'Akses Ditolak',
-        message: restrictionReason || 'Anda tidak berwenang menolak klaim pada tahap ini.',
+        title: t('expenseApproval.accessDeniedTitle') || 'Akses Ditolak',
+        message: restrictionReason || t('expenseApproval.accessDeniedRejectMsg') || 'Anda tidak berwenang menolak klaim pada tahap ini.',
         type: 'reject'
       });
       return;
@@ -473,8 +473,8 @@ const ExpenseApproval: React.FC = () => {
 
     setActionNotification({
       isOpen: true,
-      title: 'Claim Rejected',
-      message: `Reimbursement claim ${claim.claimId} has been rejected.${comment ? ` Reason: "${comment}"` : ''}`,
+      title: t('expenseApproval.claimRejectedTitle') || 'Claim Rejected',
+      message: `${t('expenseApproval.claimRejectedMsg', { claimId: claim.claimId })}${comment ? ` Reason: "${comment}"` : ''}`,
       type: 'reject'
     });
   };
@@ -483,8 +483,8 @@ const ExpenseApproval: React.FC = () => {
     if (!canApproveCurrentStep) {
       setActionNotification({
         isOpen: true,
-        title: 'Akses Ditolak',
-        message: restrictionReason || 'Anda tidak berwenang meminta klarifikasi pada tahap ini.',
+        title: t('expenseApproval.accessDeniedTitle') || 'Akses Ditolak',
+        message: restrictionReason || t('expenseApproval.accessDeniedClarifyMsg') || 'Anda tidak berwenang meminta klarifikasi pada tahap ini.',
         type: 'reject'
       });
       return;
@@ -492,8 +492,8 @@ const ExpenseApproval: React.FC = () => {
 
     setActionNotification({
       isOpen: true,
-      title: 'Clarification Requested',
-      message: `A notification has been sent to ${claim.employeeName} requesting additional details.${comment ? ` Note: "${comment}"` : ''}`,
+      title: t('expenseApproval.clarificationRequestedTitle') || 'Clarification Requested',
+      message: `${t('expenseApproval.clarificationRequestedMsg', { name: claim.employeeName })}${comment ? ` Note: "${comment}"` : ''}`,
       type: 'clarify'
     });
   };
@@ -502,8 +502,8 @@ const ExpenseApproval: React.FC = () => {
     if (matchedApproverName !== 'Mr. Emad Moustafa') {
       setActionNotification({
         isOpen: true,
-        title: 'Akses Ditolak',
-        message: 'Hanya Mr. Emad Moustafa (Financial Controller / Treasury) yang dapat menginisiasi pencairan bank.',
+        title: t('expenseApproval.accessDeniedTitle') || 'Akses Ditolak',
+        message: t('expenseApproval.accessDeniedDisburseMsg') || 'Hanya Mr. Emad Moustafa (Financial Controller / Treasury) yang dapat menginisiasi pencairan bank.',
         type: 'reject'
       });
       return;

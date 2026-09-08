@@ -1145,7 +1145,7 @@ const Companies: React.FC = () => {
               <div className="bg-emerald-50/70 border border-emerald-100/90 rounded-xl p-3.5 flex items-center justify-between">
                 <div>
                   <span className="text-emerald-800 block text-[11px] font-bold uppercase tracking-wider mb-0.5 font-sans">
-                    {t('companies.creditBalance') || 'Credit Balance (Saldo Kredit)'}
+                    {t('companies.creditBalance') || 'Credit Balance'}
                   </span>
                   <span className="font-extrabold text-emerald-700 text-[15px] font-mono">
                     SAR {parseFloat(String(selectedCompany.creditBalance || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -1155,7 +1155,7 @@ const Companies: React.FC = () => {
                   <button
                     type="button"
                     onClick={async () => {
-                      if (window.confirm(`Reset saldo kredit untuk ${selectedCompany.name} ke SAR 0.00?`)) {
+                      if (window.confirm(t('companies.resetCreditConfirm', { name: selectedCompany.name }) || `Reset credit balance for ${selectedCompany.name} to SAR 0.00?`)) {
                         try {
                           await updateCompanyCreditBalance(selectedCompany.code, 0, 'set');
                           setSelectedCompany(prev => prev ? { ...prev, creditBalance: 0 } : null);
@@ -1167,7 +1167,7 @@ const Companies: React.FC = () => {
                     }}
                     className="px-2.5 py-1 text-[11px] font-bold text-emerald-800 bg-white hover:bg-emerald-100/60 rounded-lg border border-emerald-200 transition-all cursor-pointer shadow-2xs"
                   >
-                    Reset Saldo
+                    {t('companies.resetCredit') || 'Reset Credit'}
                   </button>
                 )}
               </div>

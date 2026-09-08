@@ -59,10 +59,10 @@ export const BeneficiaryBankCard: React.FC<BeneficiaryBankCardProps> = ({
       {claim.status === 'Disbursed' || claim.status === 'Paid' ? (
         <div className="p-4 rounded-xl space-y-1.5 border bg-emerald-50 border-emerald-200">
           <h4 className="text-[11.5px] font-extrabold uppercase tracking-wider text-emerald-800">
-            STATUS: DANA TELAH DITRANSFER & LUNAS
+            {t('initiateReimbursement.disbursedAlertTitle')}
           </h4>
           <p className="text-[11.5px] font-medium leading-relaxed text-emerald-700">
-            Transaksi pembayaran untuk klaim ini telah berhasil diproses ke rekening penerima di atas. Pembayaran ganda dinonaktifkan demi keamanan.
+            {t('initiateReimbursement.disbursedAlertDesc')}
           </p>
         </div>
       ) : (
@@ -107,7 +107,7 @@ export const BeneficiaryBankCard: React.FC<BeneficiaryBankCardProps> = ({
             onClick={onInitiatePayment}
             className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[12.5px] shadow-sm hover:shadow transition-all cursor-pointer flex items-center justify-center space-x-2 flex-1"
           >
-            <span>{t('preExecutionPayment.auditTrail') || 'Lihat Bukti Transfer & Audit'}</span>
+            <span>{t('initiateReimbursement.viewTransferProofAndAudit') || t('preExecutionPayment.auditTrail') || 'Lihat Bukti Transfer & Audit'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
