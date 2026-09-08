@@ -438,8 +438,23 @@ export const convertCurrency = (amount, fromCurr = 'SAR', toCurr = 'SAR', rates 
   const num = parseFloat(amount) || 0;
   if (from === to || num === 0) return num;
 
+  // Support explicit exchange rate passed in rates
+  if (rates.exchangeRate && parseFloat(rates.exchangeRate) > 0) {
+    const rate = parseFloat(rates.exchangeRate);
+    if ((from === 'IDR' || from === 'RP') && (to === 'SAR' || to === 'USD')) {
+      return rate > 1 ? (num / rate) : (num * rate);
+    } else if ((to === 'IDR' || to === 'RP') && (from === 'SAR' || from === 'USD')) {
+      return rate > 1 ? (num * rate) : (num / rate);
+    } else if (from === 'USD' && to === 'SAR') {
+      return rate > 1 ? (num * rate) : (num / rate);
+    } else if (from === 'SAR' && to === 'USD') {
+      return rate > 1 ? (num / rate) : (num * rate);
+    }
+  }
+
   const usdToIdr = parseFloat(rates.usdToIdr) || 18025;
   const sarToIdr = parseFloat(rates.sarToIdr) || 4800;
+  const usdToSar = parseFloat(rates.usdToSar || (usdToIdr / sarToIdr)) || 3.75;
 
   // 1. Convert source to IDR
   let amountInIdr = num;
@@ -447,7 +462,7 @@ export const convertCurrency = (amount, fromCurr = 'SAR', toCurr = 'SAR', rates 
   else if (from === 'USD') amountInIdr = num * usdToIdr;
 
   // 2. Convert IDR to target currency
-  if (to === 'IDR') return amountInIdr;
+  if (to === 'IDR' || to === 'RP') return amountInIdr;
   if (to === 'SAR') return amountInIdr / sarToIdr;
   if (to === 'USD') return amountInIdr / usdToIdr;
   return num;
@@ -473,7 +488,7 @@ export const reconcileInvoicePayments = async (invoiceNo, saveOverpaymentCredit 
     };
 
     const [payRows] = await pool.query(
-      "SELECT amount, currency FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
+      "SELECT amount, currency, exchange_rate FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
       [invoiceNo]
     );
 
@@ -481,7 +496,8 @@ export const reconcileInvoicePayments = async (invoiceNo, saveOverpaymentCredit 
     for (const p of payRows) {
       const pAmt = parseFloat(p.amount) || 0;
       const pCurr = (p.currency || baseCurrency).toUpperCase();
-      totalInstallmentsInBase += convertCurrency(pAmt, pCurr, baseCurrency, rates);
+      const pRate = parseFloat(p.exchange_rate) || undefined;
+      totalInstallmentsInBase += convertCurrency(pAmt, pCurr, baseCurrency, { ...rates, exchangeRate: pRate });
     }
 
     const totalPaidSoFarInBase = advPayment + totalInstallmentsInBase;
@@ -499,7 +515,7 @@ export const reconcileInvoicePayments = async (invoiceNo, saveOverpaymentCredit 
       [remainingBalanceInBase.toFixed(2), newStatus, invoiceNo, invoiceNo]
     );
 
-    // Overpayment Credit Handling: Denominated strictly in baseCurrency
+    // Overpayment Credit Handling: Denominated strictly in baseCurrency (FR-1.3)
     if (saveOverpaymentCredit && (companyCode || inv.companyCode) && totalPaidSoFarInBase > (rawAmt + 0.01)) {
       const targetCompany = (companyCode || inv.companyCode).toUpperCase();
       const overpaymentInBase = totalPaidSoFarInBase - rawAmt;
@@ -519,7 +535,7 @@ export const reconcileInvoicePayments = async (invoiceNo, saveOverpaymentCredit 
 // @access  Protected
 export const addPaymentHistory = async (req, res, next) => {
   const { invoiceNo } = req.params;
-  const { amount, currency, paymentDate, note, proofUrl, saveOverpaymentCredit, companyCode } = req.body;
+  const { amount, currency, paymentDate, note, proofUrl, saveOverpaymentCredit, companyCode, exchangeRate, exchange_rate } = req.body;
 
   try {
     if (!amount || !paymentDate) {
@@ -531,12 +547,15 @@ export const addPaymentHistory = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
     }
 
+    const parsedRate = parseFloat(exchangeRate || exchange_rate);
+
     const paymentData = {
       id: `pay_${Date.now()}`,
       referenceId: invoiceNo,
       moduleType: 'CONFIRMATION',
       amount: numericAmount,
       currency: currency || 'SAR',
+      exchangeRate: (!isNaN(parsedRate) && parsedRate > 0) ? parsedRate : undefined,
       paymentDate,
       note: note || '',
       proofUrl: proofUrl || null,

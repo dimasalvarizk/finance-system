@@ -119,11 +119,24 @@ export const updateCompanyCredit = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'creditAmount must be a valid number' });
     }
 
-    await updateCompanyCreditDB(code, numericCredit, mode || 'add');
+    await updateCompanyCreditDB(code, numericCredit, mode || 'add', req.user);
 
     res.status(200).json({
       success: true,
       message: `Credit balance updated for company ${code}`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetCompanyCredit = async (req, res, next) => {
+  const { code } = req.params;
+  try {
+    await updateCompanyCreditDB(code, 0, 'set', req.user);
+    res.status(200).json({
+      success: true,
+      message: `Credit balance for company ${code} reset to 0.00 successfully`
     });
   } catch (error) {
     next(error);
