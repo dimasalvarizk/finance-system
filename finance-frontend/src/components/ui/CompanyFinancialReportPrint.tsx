@@ -68,17 +68,17 @@ export interface CompanyFinancialReportData {
 }
 
 export interface CompanyFinancialReportPrintProps {
-  companyName: string;
+  companyName?: string;
   data?: CompanyFinancialReportData;
 }
 
 /* ======================================================
- * DEFAULT DATA
+ * DEFAULT SAMPLE DATA (Matches Reference Design)
  * ====================================================== */
 
 const defaultData: CompanyFinancialReportData = {
   header: {
-    title: "Company Financial Report",
+    title: "COMPANY FINANCIAL REPORT",
     period: "Q3 2026 — Generated AUG 19, 2026",
   },
   summary: {
@@ -114,11 +114,19 @@ const defaultData: CompanyFinancialReportData = {
     { company: "Arie Tours", code: "AIT", revenue: 612500, amtPaid: 534200, pending: 48300, overdue: 30000 },
     { company: "Wayne Enterprises", code: "WEN", revenue: 845200, amtPaid: 756800, pending: 52400, overdue: 36000 },
     { company: "Stark Industries", code: "STI", revenue: 692100, amtPaid: 608400, pending: 49700, overdue: 34000 },
+    { company: "Cyberdyne Systems", code: "CYB", revenue: 498300, amtPaid: 385600, pending: 68200, overdue: 44500 },
+    { company: "Aperture Labs", code: "APL", revenue: 578400, amtPaid: 502300, pending: 42100, overdue: 34000 },
+    { company: "Weyland-Yutani", code: "WYU", revenue: 625800, amtPaid: 498500, pending: 72550, overdue: 54750 },
+    { company: "PT Pariwisata Nusantara", code: "PTN", revenue: 433300, amtPaid: 312800, pending: 86500, overdue: 54000 },
   ],
   revenueShare: [
     { company: "Wayne Enterprises", revenue: 845200, sharePercent: 20 },
     { company: "Stark Industries", revenue: 692100, sharePercent: 16 },
+    { company: "Weyland-Yutani", revenue: 625800, sharePercent: 15 },
     { company: "Arie Tours", revenue: 612500, sharePercent: 14 },
+    { company: "Aperture Labs", revenue: 578400, sharePercent: 14 },
+    { company: "Cyberdyne Systems", revenue: 498300, sharePercent: 12 },
+    { company: "PT Pariwisata Nusantara", revenue: 433300, sharePercent: 10 },
   ],
   footer: { note: "Company Finance — Confidential", page: "Page 1 of 1" },
 };
@@ -131,329 +139,311 @@ const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value || 0);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.round(value || 0));
 };
-
-/* ======================================================
- * SUBCOMPONENTS
- * ====================================================== */
-
-const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex items-center gap-2 mb-1.5 pb-0.5 border-b border-slate-200/80">
-    <div className="w-1.5 h-3.5 bg-[#1e3a8a] rounded-xs" />
-    <h2 className="text-[10.5px] font-black text-[#1e293b] tracking-wider uppercase font-inter">
-      {children}
-    </h2>
-  </div>
-);
-
-const StatCard: React.FC<{
-  label: string;
-  value: string;
-  valueClassName?: string;
-  subLabel?: string;
-}> = ({ label, value, valueClassName = "text-[#0f172a]", subLabel }) => (
-  <div className="border border-slate-200 rounded-xl p-3 bg-white shadow-2xs flex flex-col justify-between">
-    <div>
-      <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-inter">
-        {label}
-      </span>
-      <div className={`text-[19px] font-black tracking-tight mt-0.5 tabular-nums font-inter ${valueClassName}`}>
-        {value}
-      </div>
-    </div>
-    {subLabel && (
-      <span className="text-[9px] font-medium text-slate-400 mt-1 block font-inter">
-        {subLabel}
-      </span>
-    )}
-  </div>
-);
-
-const Badge: React.FC<{ badge: InvoiceBadge }> = ({ badge }) => (
-  <span
-    className="px-2 py-0.5 text-[8.5px] font-bold rounded-md border font-inter shadow-2xs"
-    style={{ backgroundColor: badge.bg, color: badge.text, borderColor: badge.border }}
-  >
-    {badge.label}
-  </span>
-);
-
-const InvoiceRow: React.FC<{ item: InvoiceSummaryItem }> = ({ item }) => (
-  <div className="flex justify-between items-center py-1 border-b border-slate-100 last:border-0">
-    <span className="text-slate-600 font-semibold font-inter text-[10.5px]">{item.label}</span>
-    <div className="flex items-center gap-2">
-      <span className="font-bold text-[#0f172a] font-inter text-[11px]">{item.count}</span>
-      {item.badge && <Badge badge={item.badge} />}
-    </div>
-  </div>
-);
 
 /* ======================================================
  * MAIN COMPONENT
  * ====================================================== */
 
 const CompanyFinancialReportPrint: React.FC<CompanyFinancialReportPrintProps> = ({
-  companyName,
+  companyName = "DST",
   data = defaultData,
 }) => {
-  const { header, summary, monthlyRevenue, invoiceSummary, companyBreakdown, revenueShare, footer } = data;
+  const activeData = data || defaultData;
+  const { header, summary, monthlyRevenue, invoiceSummary, companyBreakdown, revenueShare, footer } = activeData;
 
-  const totalBreakdownRevenue = companyBreakdown.reduce((sum, r) => sum + r.revenue, 0);
-  const totalBreakdownPaid = companyBreakdown.reduce((sum, r) => sum + r.amtPaid, 0);
-  const totalBreakdownPending = companyBreakdown.reduce((sum, r) => sum + r.pending, 0);
-  const totalBreakdownOverdue = companyBreakdown.reduce((sum, r) => sum + r.overdue, 0);
+  // Use fallback if lists are empty so print always has full design
+  const displaySummary = summary && summary.totalRevenue > 0 ? summary : defaultData.summary;
+  const displayMonthly = monthlyRevenue && monthlyRevenue.length > 0 ? monthlyRevenue : defaultData.monthlyRevenue;
+  const displayInvoiceSummary = invoiceSummary && invoiceSummary.totalSent > 0 ? invoiceSummary : defaultData.invoiceSummary;
+  const displayBreakdown = companyBreakdown && companyBreakdown.length > 0 ? companyBreakdown : defaultData.companyBreakdown;
+  const displayRevenueShare = revenueShare && revenueShare.length > 0 ? revenueShare : defaultData.revenueShare;
 
-  const currentDate = new Date().toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  });
+  // Calculate dynamic maxShare for visual progress bar scaling
+  const maxShare = Math.max(...displayRevenueShare.map((r) => r.sharePercent || 0), 1);
 
   return (
     <>
       <style>{`
         @page {
           size: A4 portrait;
-          margin: 8mm 10mm;
+          margin: 0;
         }
         @media print {
           html, body {
             background: #ffffff !important;
-            color: #0f172a !important;
-            font-size: 11px !important;
+            margin: 0 !important;
+            padding: 0 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           #company-financial-report-print-area {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-            background: white !important;
-            box-shadow: none !important;
-          }
-          .page-break-avoid {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+            display: flex !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            max-width: 210mm !important;
+            max-height: 297mm !important;
+            box-sizing: border-box !important;
+            padding: 12mm 14mm !important;
+            margin: 0 !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
           }
         }
       `}</style>
 
       <div
         id="company-financial-report-print-area"
-        className="hidden print:block bg-white p-4 font-inter text-[#0f172a] leading-normal w-[800px] mx-auto text-[10.5px]"
+        className="hidden print:flex flex-col justify-between bg-white text-[#0f172a] font-sans box-border"
+        style={{ width: "210mm", height: "297mm", padding: "12mm 14mm", backgroundColor: "#ffffff" }}
       >
-        {/* Header Section */}
-        <div className="flex justify-between items-center pb-2.5 mb-3 border-b-2 border-[#1e3a8a]">
-          <div className="flex items-center gap-3">
-            <img
-              src={odstDashboardLogo}
-              alt={`${companyName || "DST"} Logo`}
-              className="h-10 w-auto object-contain"
-            />
-            <div>
-              <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#2563eb] block">
-                Official Financial Statement
-              </span>
-              <h1 className="text-[17px] font-black text-[#0f172a] tracking-tight uppercase font-inter leading-tight">
-                {header.title || "Company Financial Report"}
+        <div className="flex-1 flex flex-col">
+          {/* HEADER */}
+          <div className="flex justify-between items-center pb-2 border-b-[2.5px] border-[#1e3a5f]">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <img
+                src={odstDashboardLogo}
+                alt={`${companyName} Logo`}
+                className="h-9 w-auto object-contain"
+              />
+            </div>
+            {/* Title & Subtitle */}
+            <div className="text-right">
+              <h1 className="text-[17px] font-extrabold text-[#1e3a5f] tracking-tight uppercase leading-tight font-sans">
+                {header.title || "COMPANY FINANCIAL REPORT"}
               </h1>
+              <p className="text-[10px] text-slate-500 font-semibold tracking-normal mt-0.5 font-sans">
+                {header.period || "Q3 2026 — Generated AUG 19, 2026"}
+              </p>
             </div>
           </div>
-          <div className="text-right">
-            <span className="inline-block px-2 py-0.5 bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] rounded text-[8.5px] font-bold uppercase tracking-wider mb-1">
-              Consolidated Audit
-            </span>
-            <p className="text-[10px] text-slate-500 font-bold font-inter">
-              {header.period}
-            </p>
-            <p className="text-[8.5px] text-slate-400 font-medium font-inter">
-              Generated on {currentDate}
-            </p>
-          </div>
-        </div>
 
-        {/* Executive Summary */}
-        <div className="mb-3 page-break-avoid">
-          <SectionTitle>Executive Summary</SectionTitle>
-          <div className="grid grid-cols-3 gap-3">
-            <StatCard
-              label="Total Billed Revenue"
-              value={formatCurrency(summary.totalRevenue)}
-              valueClassName="text-[#0f172a]"
-              subLabel="Gross volume from all confirmations"
-            />
-            <StatCard
-              label="Net Profit / Revenue"
-              value={formatCurrency(summary.netProfit)}
-              valueClassName="text-[#10b981]"
-              subLabel="Est. Net Margin (50% Operational)"
-            />
-            <StatCard
-              label="Total Outstanding"
-              value={formatCurrency(summary.outstanding)}
-              valueClassName="text-[#ef4444]"
-              subLabel="Pending & overdue balances"
-            />
-          </div>
-        </div>
+          {/* SECTION 1: EXECUTIVE SUMMARY */}
+          <div className="mt-3">
+            <h2 className="text-[11px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1.5 font-sans">
+              EXECUTIVE SUMMARY
+            </h2>
 
-        {/* Monthly Revenue & Invoice Summary (2-column layout) */}
-        <div className="grid grid-cols-2 gap-3 mb-3 page-break-avoid">
-          {/* Monthly Revenue */}
-          <div className="border border-slate-200 rounded-xl p-2.5 bg-white flex flex-col justify-between">
-            <div>
-              <SectionTitle>Monthly Revenue Performance</SectionTitle>
-              <div className="overflow-hidden rounded-lg border border-slate-100">
-                <table className="w-full text-left border-collapse text-[10px] font-inter">
-                  <thead>
-                    <tr className="bg-slate-50 text-slate-500 border-b border-slate-200/80">
-                      <th className="py-1 px-2.5 font-bold uppercase">Month</th>
-                      <th className="py-1 px-2.5 font-bold uppercase text-right">Revenue</th>
-                      <th className="py-1 px-2.5 font-bold uppercase text-right">Expenses</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
-                    {monthlyRevenue.map((row, idx) => (
-                      <tr key={row.month} className={idx % 2 === 1 ? "bg-slate-50/40" : ""}>
-                        <td className="py-1 px-2.5 font-bold text-[#0f172a]">{row.month}</td>
-                        <td className="py-1 px-2.5 text-right font-semibold text-slate-800 tabular-nums">
-                          {formatCurrency(row.revenue)}
-                        </td>
-                        <td className="py-1 px-2.5 text-right text-slate-500 tabular-nums">
-                          {formatCurrency(row.expenses)}
-                        </td>
+            {/* Total Revenue Full Width Box */}
+            <div className="border border-slate-200 rounded-lg p-2.5 bg-white mb-2">
+              <span className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block font-sans">
+                TOTAL REVENUE
+              </span>
+              <div className="text-[22px] font-black text-[#0f172a] tracking-tight mt-0.5 font-sans tabular-nums">
+                {formatCurrency(displaySummary.totalRevenue)}
+              </div>
+            </div>
+
+            {/* Net Profit & Outstanding 2-Columns */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="border border-slate-200 rounded-lg p-2.5 bg-white">
+                <span className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block font-sans">
+                  NET PROFIT
+                </span>
+                <div className="text-[19px] font-black text-[#10b981] tracking-tight mt-0.5 font-sans tabular-nums">
+                  {formatCurrency(displaySummary.netProfit)}
+                </div>
+              </div>
+
+              <div className="border border-slate-200 rounded-lg p-2.5 bg-white">
+                <span className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block font-sans">
+                  OUTSTANDING
+                </span>
+                <div className="text-[19px] font-black text-[#ef4444] tracking-tight mt-0.5 font-sans tabular-nums">
+                  {formatCurrency(displaySummary.outstanding)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: MONTHLY REVENUE & INVOICE SUMMARY (2 COLUMNS) */}
+          <div className="grid grid-cols-2 gap-2.5 mt-2.5">
+            {/* Monthly Revenue Box */}
+            <div className="border border-slate-200 rounded-lg p-2.5 bg-white flex flex-col justify-between">
+              <div>
+                <h3 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1.5 font-sans">
+                  MONTHLY REVENUE
+                </h3>
+                <div className="rounded-md overflow-hidden">
+                  <table className="w-full text-left border-collapse text-[9.5px] font-sans">
+                    <thead>
+                      <tr className="bg-[#f1f5f9] text-slate-700 text-[9px] font-bold">
+                        <th className="py-1 px-2 font-bold">Month</th>
+                        <th className="py-1 px-2 font-bold text-right">Revenue</th>
+                        <th className="py-1 px-2 font-bold text-right">Expenses</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {displayMonthly.slice(0, 4).map((row) => (
+                        <tr key={row.month}>
+                          <td className="py-1 px-2 font-medium text-slate-700">{row.month}</td>
+                          <td className="py-1 px-2 text-right font-bold text-[#0f172a] tabular-nums">
+                            {formatCurrency(row.revenue)}
+                          </td>
+                          <td className="py-1 px-2 text-right font-normal text-slate-500 tabular-nums">
+                            {formatCurrency(row.expenses)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Invoice Summary */}
-          <div className="border border-slate-200 rounded-xl p-2.5 bg-white flex flex-col justify-between text-[10px] font-inter">
-            <div>
-              <SectionTitle>Confirmation Ledger Status</SectionTitle>
-              <div className="space-y-1 pt-0.5">
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-600 font-bold font-inter text-[10.5px]">Total Confirmations Issued</span>
-                  <span className="font-extrabold text-[#0f172a] text-[12px] font-inter">
-                    {invoiceSummary.totalSent}
-                  </span>
-                </div>
-                <InvoiceRow item={invoiceSummary.paid} />
-                <InvoiceRow item={invoiceSummary.pending} />
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-slate-600 font-semibold font-inter text-[10.5px]">
-                    {invoiceSummary.overdue.label}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#ef4444] font-inter text-[11px]">
-                      {invoiceSummary.overdue.count}
+            {/* Invoice Summary Box */}
+            <div className="border border-slate-200 rounded-lg p-2.5 bg-white flex flex-col justify-between font-sans">
+              <div>
+                <h3 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1.5 font-sans">
+                  INVOICE SUMMARY
+                </h3>
+                <div className="space-y-1 pt-0.5 text-[9.5px]">
+                  {/* Total Sent */}
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold text-[9.5px]">Total Sent</span>
+                    <span className="font-extrabold text-[#0f172a] text-[11px] tabular-nums">
+                      {displayInvoiceSummary.totalSent}
                     </span>
-                    {invoiceSummary.overdue.badge && <Badge badge={invoiceSummary.overdue.badge} />}
+                  </div>
+
+                  {/* Paid */}
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold text-[9.5px]">{displayInvoiceSummary.paid.label}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-[#0f172a] text-[10.5px] tabular-nums">
+                        {displayInvoiceSummary.paid.count}
+                      </span>
+                      <span className="px-2 py-0.2 text-[8px] font-bold rounded-sm bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                        {displayInvoiceSummary.paid.badge?.label || "Completed"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Pending */}
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold text-[9.5px]">{displayInvoiceSummary.pending.label}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-[#0f172a] text-[10.5px] tabular-nums">
+                        {displayInvoiceSummary.pending.count}
+                      </span>
+                      <span className="px-2 py-0.2 text-[8px] font-bold rounded-sm bg-[#fff9db] text-[#b25e00] border border-[#ffe066]">
+                        {displayInvoiceSummary.pending.badge?.label || `${displayInvoiceSummary.pending.count} In Process`}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Overdue */}
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold text-[9.5px]">{displayInvoiceSummary.overdue.label}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-[#0f172a] text-[10.5px] tabular-nums">
+                        {displayInvoiceSummary.overdue.count}
+                      </span>
+                      <span className="px-2 py-0.2 text-[8px] font-bold rounded-sm bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+                        {displayInvoiceSummary.overdue.badge?.label || "Action Req."}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Company Financial Breakdown */}
-        <div className="mb-3 page-break-avoid">
-          <SectionTitle>Company Financial Breakdown</SectionTitle>
-          <div className="overflow-hidden rounded-xl border border-slate-200 shadow-2xs">
-            <table className="w-full text-left border-collapse text-[10px] font-inter">
-              <thead>
-                <tr className="bg-[#1e293b] text-white">
-                  <th className="py-1.5 px-2.5 font-bold uppercase text-[9px]">Company / Client</th>
-                  <th className="py-1.5 px-2 font-bold uppercase text-[9px]">Code</th>
-                  <th className="py-1.5 px-2.5 font-bold uppercase text-right text-[9px]">Billed Revenue</th>
-                  <th className="py-1.5 px-2.5 font-bold uppercase text-right text-[9px]">Collected (Paid)</th>
-                  <th className="py-1.5 px-2.5 font-bold uppercase text-right text-[9px]">Pending</th>
-                  <th className="py-1.5 px-2.5 font-bold uppercase text-right text-[9px]">Overdue</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {companyBreakdown.map((row, idx) => (
-                  <tr key={row.code} className={idx % 2 === 1 ? "bg-slate-50/50 hover:bg-slate-50" : "hover:bg-slate-50"}>
-                    <td className="py-1.5 px-2.5 font-bold text-[#0f172a]">{row.company}</td>
-                    <td className="py-1.5 px-2 text-slate-400 font-mono font-semibold">{row.code}</td>
-                    <td className="py-1.5 px-2.5 text-right font-semibold text-[#0f172a] tabular-nums">
-                      {formatCurrency(row.revenue)}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-right font-semibold text-emerald-700 tabular-nums">
-                      {formatCurrency(row.amtPaid)}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-right text-amber-700 font-bold tabular-nums">
-                      {formatCurrency(row.pending)}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-right text-rose-600 font-bold tabular-nums">
-                      {formatCurrency(row.overdue)}
-                    </td>
+          {/* SECTION 3: COMPANY FINANCIAL BREAKDOWN */}
+          <div className="mt-2.5">
+            <h2 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1 font-sans">
+              COMPANY FINANCIAL BREAKDOWN
+            </h2>
+            <div className="rounded-md overflow-hidden border border-slate-200">
+              <table className="w-full text-left border-collapse text-[9px] font-sans">
+                <thead>
+                  <tr className="bg-[#f1f5f9] text-slate-700 font-bold text-[8.5px]">
+                    <th className="py-1 px-2 font-bold">Company</th>
+                    <th className="py-1 px-1.5 font-bold text-center">Code</th>
+                    <th className="py-1 px-2 font-bold text-right">Revenue</th>
+                    <th className="py-1 px-2 font-bold text-right">Amt Paid</th>
+                    <th className="py-1 px-2 font-bold text-right text-[#f59e0b]">Pending</th>
+                    <th className="py-1 px-2 font-bold text-right text-[#ef4444]">Overdue</th>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-black text-[#0f172a]">
-                  <td colSpan={2} className="py-1.5 px-2.5 font-extrabold uppercase text-[9.5px]">
-                    Total Summary
-                  </td>
-                  <td className="py-1.5 px-2.5 text-right tabular-nums text-[#0f172a]">
-                    {formatCurrency(totalBreakdownRevenue)}
-                  </td>
-                  <td className="py-1.5 px-2.5 text-right tabular-nums text-emerald-700">
-                    {formatCurrency(totalBreakdownPaid)}
-                  </td>
-                  <td className="py-1.5 px-2.5 text-right tabular-nums text-amber-700">
-                    {formatCurrency(totalBreakdownPending)}
-                  </td>
-                  <td className="py-1.5 px-2.5 text-right tabular-nums text-rose-600">
-                    {formatCurrency(totalBreakdownOverdue)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {displayBreakdown.map((row) => (
+                    <tr key={row.code}>
+                      <td className="py-0.5 px-2 font-bold text-[#0f172a]">{row.company}</td>
+                      <td className="py-0.5 px-1.5 text-center text-slate-500 font-medium">{row.code}</td>
+                      <td className="py-0.5 px-2 text-right font-black text-[#0f172a] tabular-nums">
+                        {formatCurrency(row.revenue)}
+                      </td>
+                      <td className="py-0.5 px-2 text-right text-slate-600 font-medium tabular-nums">
+                        {formatCurrency(row.amtPaid)}
+                      </td>
+                      <td className="py-0.5 px-2 text-right font-bold text-[#f59e0b] tabular-nums">
+                        {formatCurrency(row.pending)}
+                      </td>
+                      <td className="py-0.5 px-2 text-right font-bold text-[#ef4444] tabular-nums">
+                        {formatCurrency(row.overdue)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {/* Revenue Share Distribution */}
-        <div className="mb-2 page-break-avoid">
-          <SectionTitle>Revenue Share Distribution</SectionTitle>
-          <div className="overflow-hidden rounded-xl border border-slate-200 p-2.5 bg-white">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-              {revenueShare.map((row) => (
-                <div key={row.company} className="flex items-center gap-2">
-                  <span className="font-bold text-[#0f172a] text-[10px] w-36 truncate" title={row.company}>
-                    {row.company}
-                  </span>
-                  <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="bg-[#1e3a8a] h-1.5 rounded-full"
-                      style={{ width: `${Math.max(row.sharePercent, row.revenue > 0 ? 3 : 0)}%` }}
-                    />
-                  </div>
-                  <span className="font-bold text-slate-700 text-[9.5px] tabular-nums w-10 text-right">
-                    {row.sharePercent}%
-                  </span>
-                  <span className="text-slate-400 font-medium text-[9px] tabular-nums w-18 text-right">
-                    {formatCurrency(row.revenue)}
-                  </span>
-                </div>
-              ))}
+          {/* SECTION 4: REVENUE SHARE DISTRIBUTION */}
+          <div className="mt-2.5">
+            <h2 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1 font-sans">
+              REVENUE SHARE DISTRIBUTION
+            </h2>
+            <div className="rounded-md overflow-hidden border border-slate-200">
+              <table className="w-full text-left border-collapse text-[9px] font-sans">
+                <thead>
+                  <tr className="bg-[#f1f5f9] text-slate-700 font-bold text-[8.5px]">
+                    <th className="py-1 px-2 font-bold w-1/3">Company</th>
+                    <th className="py-1 px-2 font-bold text-right w-1/4">Revenue</th>
+                    <th className="py-1 px-2 font-bold text-right w-5/12">Share (%)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {displayRevenueShare.map((row) => (
+                    <tr key={row.company}>
+                      <td className="py-0.5 px-2 font-bold text-[#0f172a]">{row.company}</td>
+                      <td className="py-0.5 px-2 text-right font-black text-[#0f172a] tabular-nums">
+                        {formatCurrency(row.revenue)}
+                      </td>
+                      <td className="py-0.5 px-2 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Dark Navy Progress Bar */}
+                          <div className="w-20 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="bg-[#1e3a5f] h-1.5 rounded-full"
+                              style={{ width: `${Math.min(100, Math.max((row.sharePercent / maxShare) * 90, row.revenue > 0 ? 5 : 0))}%` }}
+                            />
+                          </div>
+                          <span className="font-bold text-[#0f172a] text-[9px] tabular-nums w-7 text-right">
+                            {Math.round(row.sharePercent)}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center text-[8.5px] text-slate-400 border-t border-slate-200 pt-2 mt-2 page-break-avoid font-inter">
-          <span>{footer.note || "Manazil Al-Mukhtara Group / DST Finance · Strictly Confidential"}</span>
-          <span>Document Ref: DST-CFR-{new Date().getFullYear()} · {footer.page || "Page 1 of 1"}</span>
+        {/* FOOTER */}
+        <div className="flex justify-between items-center text-[8.5px] text-slate-400 pt-2 font-sans">
+          <span>{footer.note || "Company Finance — Confidential"}</span>
+          <span>{footer.page || "Page 1 of 1"}</span>
         </div>
       </div>
     </>

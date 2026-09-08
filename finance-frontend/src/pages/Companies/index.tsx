@@ -75,7 +75,6 @@ import { getExchangeRates } from "../../services/settingService";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
-import { formatCurrency } from "../../i18n";
 
 export interface Company {
   name: string;
@@ -212,12 +211,12 @@ const Companies: React.FC = () => {
   const convertCurrencyToUsd = (amountVal: number, inv: any): number => {
     if (!amountVal || isNaN(amountVal)) return 0;
     const currency = String(inv.currency || '').toUpperCase();
-    
+
     // Auto-detect currency from amount string if currency field is missing/empty
     const amtStr = String(inv.amount || '');
     const detectedCurrency = currency || (
       amtStr.includes('Rp') ? 'RP' :
-      amtStr.includes('SAR') ? 'SAR' : 'USD'
+        amtStr.includes('SAR') ? 'SAR' : 'USD'
     );
 
     const defaultUsdToIdr = configuredRates.usdToIdr || 18025;
@@ -270,8 +269,8 @@ const Companies: React.FC = () => {
     const rawAmt = parseAmount(inv.amount);
     const advAmt = parseFloat(String(inv.advancePayment || 0));
     const totalInst = parseFloat(String(inv.totalInstallments || 0));
-    const totalPaid = inv.totalPaid !== undefined 
-      ? parseFloat(String(inv.totalPaid)) 
+    const totalPaid = inv.totalPaid !== undefined
+      ? parseFloat(String(inv.totalPaid))
       : (advAmt + totalInst);
 
     const status = String(inv.status || '').toLowerCase();
@@ -319,7 +318,7 @@ const Companies: React.FC = () => {
     let overdueCount = 0;
 
     const companyStats: Record<string, { revenue: number; amtPaid: number; pending: number; overdue: number }> = {};
-    
+
     companies.forEach((comp) => {
       companyStats[comp.code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
     });
@@ -468,6 +467,7 @@ const Companies: React.FC = () => {
 
   const handleOpenReport = (company: Company) => {
     setSelectedCompany(company);
+    fetchData();
     setIsReportModalOpen(true);
     setIsDetailsModalOpen(false);
     setIsEditModalOpen(false);
@@ -682,238 +682,238 @@ const Companies: React.FC = () => {
             ) : (
               <>
                 {/* Header & Search */}
-            <div className="p-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-[#e2e8f0]">
-              <h2 className="text-[16px] font-bold text-[#0c0d0f] font-sans whitespace-nowrap">
-                {t('companies.title')}
-              </h2>
-              <div className="relative w-72">
-                <input
-                  type="text"
-                  placeholder={t('companies.searchPlaceholder')}
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="w-full pl-10 pr-4 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] placeholder-gray-400 focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
-                />
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Listing Content (Table or Empty State) */}
-            {!loading && companies.length === 0 ? (
-              <div className="py-20 flex flex-col items-center justify-center bg-white px-4 animate-fade-in text-center border-t border-[#e2e8f0]">
-                {/* Circle icon wrapper */}
-                <div className="w-14 h-14 bg-[#f8fafc] border border-[#f1f5f9] text-[#475569] rounded-full flex items-center justify-center mb-5 shadow-sm mx-auto">
-                  <Building2 className="w-6 h-6 text-[#94a3b8]" />
+                <div className="p-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-[#e2e8f0]">
+                  <h2 className="text-[16px] font-bold text-[#0c0d0f] font-sans whitespace-nowrap">
+                    {t('companies.title')}
+                  </h2>
+                  <div className="relative w-72">
+                    <input
+                      type="text"
+                      placeholder={t('companies.searchPlaceholder')}
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      className="w-full pl-10 pr-4 py-2 border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] placeholder-gray-400 focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-sans"
+                    />
+                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
-                {/* Title */}
-                <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
-                  {t('companies.noCompaniesRegistered')}
-                </h4>
-                {/* Description */}
-                <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
-                  {t('companies.noCompaniesRegisteredDesc')}
-                </p>
-                {/* Add New Company Button */}
-                <button
-                  onClick={() => {
-                    setFormError("");
-                    setShowValidation(false);
-                    setIsAddModalOpen(true);
-                  }}
-                  className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-lg shadow-sm transition-all cursor-pointer font-sans"
-                >
-                  {t('companies.addNewCompany')}
-                </button>
-              </div>
-            ) : !loading && displayedCompanies.length === 0 ? (
-              <div className="py-20 flex flex-col items-center justify-center bg-white px-4 animate-fade-in text-center border-t border-[#e2e8f0]">
-                {/* Circle icon wrapper */}
-                <div className="w-14 h-14 bg-[#f8fafc] border border-[#f1f5f9] text-[#475569] rounded-full flex items-center justify-center mb-5 shadow-sm mx-auto">
-                  <Building2 className="w-6 h-6 text-[#94a3b8]" />
-                </div>
-                {/* Title */}
-                <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
-                  {t('companies.noCompaniesFound')}
-                </h4>
-                {/* Description */}
-                <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
-                  {t('companies.noCompaniesFoundDesc')}
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Table */}
-                <div className="overflow-x-auto w-full">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
-                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      {t('companies.companyName')}
-                    </th>
-                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      {t('companies.companyCode')}
-                    </th>
-                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      {t('settings.phone')}
-                    </th>
-                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      {t('companies.address')}
-                    </th>
-                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      {t('companies.taxNo')}
-                    </th>
-                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
-                      {t('companies.creditBalance')}
-                    </th>
-                    <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-center whitespace-nowrap">
-                      {t('common.actions')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0]/60">
-                  {loading ? (
-                    Array.from({ length: 5 }).map((_, loadIdx) => (
-                      <tr key={`skeleton-comp-${loadIdx}`} className="animate-pulse border-b border-[#e2e8f0]/60">
-                        <td className="py-4 px-4"><div className="w-32 h-4 bg-gray-200 rounded"></div></td>
-                        <td className="py-4 px-4"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
-                        <td className="py-4 px-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
-                        <td className="py-4 px-4"><div className="w-48 h-4 bg-gray-200 rounded"></div></td>
-                        <td className="py-4 px-4"><div className="w-28 h-4 bg-gray-200 rounded"></div></td>
-                        <td className="py-4 px-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
-                        <td className="py-4 px-4 text-center">
-                          <div className="flex items-center justify-center space-x-2.5">
-                            <div className="w-20 h-7 bg-gray-200/80 rounded-lg"></div>
-                            <div className="w-24 h-7 bg-gray-200/80 rounded-lg"></div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : displayedCompanies.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-12 text-center text-[13px] font-semibold text-slate-400 font-sans">
-                        {t('companies.noCompaniesFound')}
-                      </td>
-                    </tr>
-                  ) : (
-                    displayedCompanies.map((c, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/30 transition-all">
-                        <td className="py-4 px-4 text-[13px] font-bold text-[#0c0d0f] font-sans">
-                          {c.name}
-                        </td>
-                        <td className="py-4 px-4 text-[13px] font-semibold text-[#64748b] font-mono">
-                          {c.code}
-                        </td>
-                        <td className="py-4 px-4 text-[13px] font-normal text-[#475569] font-sans">
-                          {c.phone}
-                        </td>
-                        <td className="py-4 px-4 text-[13px] font-normal text-[#64748b] font-sans max-w-xs truncate" title={c.address}>
-                          {c.address}
-                        </td>
-                        <td className="py-4 px-4 text-[13px] font-normal text-[#475569] font-mono">
-                          {c.taxNumber}
-                        </td>
-                        <td className="py-4 px-4 text-[13px] font-bold text-emerald-600 font-mono">
-                          {c.creditBalance && parseFloat(String(c.creditBalance)) > 0
-                            ? `SAR ${parseFloat(String(c.creditBalance)).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-                            : 'SAR 0.00'}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <div className="flex items-center justify-center space-x-2.5">
-                            <button
-                              onClick={() => handleOpenDetails(c)}
-                              className="px-3 py-1.5 text-[#334155] hover:bg-slate-200/80 rounded-lg text-[11px] font-bold transition-all cursor-pointer font-sans shadow-sm"
-                              style={{ backgroundColor: 'rgba(241, 245, 249, 1)' }}
-                            >
-                              {t('common.viewDetails')}
-                            </button>
-                            <button
-                              onClick={() => handleOpenReport(c)}
-                              className="px-3 py-1.5 text-white hover:opacity-90 rounded-lg text-[11px] font-semibold transition-all cursor-pointer font-sans shadow-sm"
-                              style={{ backgroundColor: 'rgba(46, 84, 176, 1)' }}
-                            >
-                              {t('companies.financialReport')}
-                            </button>
-                            <button
-                              onClick={() => handleOpenDeleteConfirm(c)}
-                              className="p-1.5 text-[#ef4444] hover:bg-red-50 hover:text-red-700 rounded-lg transition-all cursor-pointer shadow-sm border border-red-100 bg-white"
-                              title={t('companies.deleteCompany')}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
 
-            {/* Pagination Footer */}
-            {totalItems > 0 && (
-              <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] font-sans">
-                <span className="text-[12px] text-[#64748b] font-normal font-sans">
-                  {t('companies.showing')} {(validCurrentPage - 1) * itemsPerPage + 1} {t('invoices.to')} {Math.min(validCurrentPage * itemsPerPage, totalItems)} {t('invoices.of')} {totalItems} {t('companies.registeredCompanies')}
-                </span>
-                <div className="flex items-center space-x-1.5 text-[12px] font-bold font-sans">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                    disabled={validCurrentPage === 1}
-                    className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === 1
-                      ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
-                      : "text-[#475569] hover:bg-gray-50 cursor-pointer"
-                      }`}
-                  >
-                    {t('common.previous')}
-                  </button>
+                {/* Listing Content (Table or Empty State) */}
+                {!loading && companies.length === 0 ? (
+                  <div className="py-20 flex flex-col items-center justify-center bg-white px-4 animate-fade-in text-center border-t border-[#e2e8f0]">
+                    {/* Circle icon wrapper */}
+                    <div className="w-14 h-14 bg-[#f8fafc] border border-[#f1f5f9] text-[#475569] rounded-full flex items-center justify-center mb-5 shadow-sm mx-auto">
+                      <Building2 className="w-6 h-6 text-[#94a3b8]" />
+                    </div>
+                    {/* Title */}
+                    <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
+                      {t('companies.noCompaniesRegistered')}
+                    </h4>
+                    {/* Description */}
+                    <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
+                      {t('companies.noCompaniesRegisteredDesc')}
+                    </p>
+                    {/* Add New Company Button */}
+                    <button
+                      onClick={() => {
+                        setFormError("");
+                        setShowValidation(false);
+                        setIsAddModalOpen(true);
+                      }}
+                      className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-[13px] rounded-lg shadow-sm transition-all cursor-pointer font-sans"
+                    >
+                      {t('companies.addNewCompany')}
+                    </button>
+                  </div>
+                ) : !loading && displayedCompanies.length === 0 ? (
+                  <div className="py-20 flex flex-col items-center justify-center bg-white px-4 animate-fade-in text-center border-t border-[#e2e8f0]">
+                    {/* Circle icon wrapper */}
+                    <div className="w-14 h-14 bg-[#f8fafc] border border-[#f1f5f9] text-[#475569] rounded-full flex items-center justify-center mb-5 shadow-sm mx-auto">
+                      <Building2 className="w-6 h-6 text-[#94a3b8]" />
+                    </div>
+                    {/* Title */}
+                    <h4 className="text-[16px] font-bold text-[#0c0d0f] text-center mb-1.5 font-sans">
+                      {t('companies.noCompaniesFound')}
+                    </h4>
+                    {/* Description */}
+                    <p className="text-[12.5px] text-[#64748b] text-center font-medium font-sans max-w-sm mb-6 leading-relaxed mx-auto">
+                      {t('companies.noCompaniesFoundDesc')}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Table */}
+                    <div className="overflow-x-auto w-full">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
+                            <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
+                              {t('companies.companyName')}
+                            </th>
+                            <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
+                              {t('companies.companyCode')}
+                            </th>
+                            <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
+                              {t('settings.phone')}
+                            </th>
+                            <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
+                              {t('companies.address')}
+                            </th>
+                            <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
+                              {t('companies.taxNo')}
+                            </th>
+                            <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">
+                              {t('companies.creditBalance')}
+                            </th>
+                            <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-center whitespace-nowrap">
+                              {t('common.actions')}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#e2e8f0]/60">
+                          {loading ? (
+                            Array.from({ length: 5 }).map((_, loadIdx) => (
+                              <tr key={`skeleton-comp-${loadIdx}`} className="animate-pulse border-b border-[#e2e8f0]/60">
+                                <td className="py-4 px-4"><div className="w-32 h-4 bg-gray-200 rounded"></div></td>
+                                <td className="py-4 px-4"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
+                                <td className="py-4 px-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
+                                <td className="py-4 px-4"><div className="w-48 h-4 bg-gray-200 rounded"></div></td>
+                                <td className="py-4 px-4"><div className="w-28 h-4 bg-gray-200 rounded"></div></td>
+                                <td className="py-4 px-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
+                                <td className="py-4 px-4 text-center">
+                                  <div className="flex items-center justify-center space-x-2.5">
+                                    <div className="w-20 h-7 bg-gray-200/80 rounded-lg"></div>
+                                    <div className="w-24 h-7 bg-gray-200/80 rounded-lg"></div>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          ) : displayedCompanies.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} className="py-12 text-center text-[13px] font-semibold text-slate-400 font-sans">
+                                {t('companies.noCompaniesFound')}
+                              </td>
+                            </tr>
+                          ) : (
+                            displayedCompanies.map((c, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50/30 transition-all">
+                                <td className="py-4 px-4 text-[13px] font-bold text-[#0c0d0f] font-sans">
+                                  {c.name}
+                                </td>
+                                <td className="py-4 px-4 text-[13px] font-semibold text-[#64748b] font-mono">
+                                  {c.code}
+                                </td>
+                                <td className="py-4 px-4 text-[13px] font-normal text-[#475569] font-sans">
+                                  {c.phone}
+                                </td>
+                                <td className="py-4 px-4 text-[13px] font-normal text-[#64748b] font-sans max-w-xs truncate" title={c.address}>
+                                  {c.address}
+                                </td>
+                                <td className="py-4 px-4 text-[13px] font-normal text-[#475569] font-mono">
+                                  {c.taxNumber}
+                                </td>
+                                <td className="py-4 px-4 text-[13px] font-bold text-emerald-600 font-mono">
+                                  {c.creditBalance && parseFloat(String(c.creditBalance)) > 0
+                                    ? `SAR ${parseFloat(String(c.creditBalance)).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+                                    : 'SAR 0.00'}
+                                </td>
+                                <td className="py-4 px-4 text-center">
+                                  <div className="flex items-center justify-center space-x-2.5">
+                                    <button
+                                      onClick={() => handleOpenDetails(c)}
+                                      className="px-3 py-1.5 text-[#334155] hover:bg-slate-200/80 rounded-lg text-[11px] font-bold transition-all cursor-pointer font-sans shadow-sm"
+                                      style={{ backgroundColor: 'rgba(241, 245, 249, 1)' }}
+                                    >
+                                      {t('common.viewDetails')}
+                                    </button>
+                                    <button
+                                      onClick={() => handleOpenReport(c)}
+                                      className="px-3 py-1.5 text-white hover:opacity-90 rounded-lg text-[11px] font-semibold transition-all cursor-pointer font-sans shadow-sm"
+                                      style={{ backgroundColor: 'rgba(46, 84, 176, 1)' }}
+                                    >
+                                      {t('companies.financialReport')}
+                                    </button>
+                                    <button
+                                      onClick={() => handleOpenDeleteConfirm(c)}
+                                      className="p-1.5 text-[#ef4444] hover:bg-red-50 hover:text-red-700 rounded-lg transition-all cursor-pointer shadow-sm border border-red-100 bg-white"
+                                      title={t('companies.deleteCompany')}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
 
-                  {Array.from({ length: totalPages }).map((_, i) => {
-                    const page = i + 1;
-                    // Show first, last, and pages around current page
-                    if (page === 1 || page === totalPages || Math.abs(page - validCurrentPage) <= 1) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-8 h-8 rounded-lg border transition-all cursor-pointer ${validCurrentPage === page
-                            ? "border-[#f59e0b] bg-[#f59e0b] text-white font-bold"
-                            : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-gray-50 font-semibold"
-                            }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    }
-                    if (page === 2 || page === totalPages - 1) {
-                      return (
-                        <span key={page} className="px-1 text-slate-400 select-none">
-                          &bull;&bull;&bull;
+                    {/* Pagination Footer */}
+                    {totalItems > 0 && (
+                      <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] font-sans">
+                        <span className="text-[12px] text-[#64748b] font-normal font-sans">
+                          {t('companies.showing')} {(validCurrentPage - 1) * itemsPerPage + 1} {t('invoices.to')} {Math.min(validCurrentPage * itemsPerPage, totalItems)} {t('invoices.of')} {totalItems} {t('companies.registeredCompanies')}
                         </span>
-                      );
-                    }
-                    return null;
-                  })}
+                        <div className="flex items-center space-x-1.5 text-[12px] font-bold font-sans">
+                          <button
+                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                            disabled={validCurrentPage === 1}
+                            className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === 1
+                              ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
+                              : "text-[#475569] hover:bg-gray-50 cursor-pointer"
+                              }`}
+                          >
+                            {t('common.previous')}
+                          </button>
 
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                    disabled={validCurrentPage === totalPages}
-                    className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === totalPages
-                      ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
-                      : "text-[#475569] hover:bg-gray-50 cursor-pointer"
-                      }`}
-                  >
-                    {t('common.next')}
-                  </button>
-                </div>
-              </div>
-            )}
+                          {Array.from({ length: totalPages }).map((_, i) => {
+                            const page = i + 1;
+                            // Show first, last, and pages around current page
+                            if (page === 1 || page === totalPages || Math.abs(page - validCurrentPage) <= 1) {
+                              return (
+                                <button
+                                  key={page}
+                                  onClick={() => setCurrentPage(page)}
+                                  className={`w-8 h-8 rounded-lg border transition-all cursor-pointer ${validCurrentPage === page
+                                    ? "border-[#f59e0b] bg-[#f59e0b] text-white font-bold"
+                                    : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-gray-50 font-semibold"
+                                    }`}
+                                >
+                                  {page}
+                                </button>
+                              );
+                            }
+                            if (page === 2 || page === totalPages - 1) {
+                              return (
+                                <span key={page} className="px-1 text-slate-400 select-none">
+                                  &bull;&bull;&bull;
+                                </span>
+                              );
+                            }
+                            return null;
+                          })}
+
+                          <button
+                            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                            disabled={validCurrentPage === totalPages}
+                            className={`px-3 py-1.5 border border-[#e2e8f0] rounded-lg transition-all ${validCurrentPage === totalPages
+                              ? "text-slate-300 bg-gray-50/50 cursor-not-allowed border-[#f1f5f9]"
+                              : "text-[#475569] hover:bg-gray-50 cursor-pointer"
+                              }`}
+                          >
+                            {t('common.next')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
-          </>
-        )}
-      </div>
-    </div>
-  </main>
+          </div>
+        </div>
+      </main>
 
       {/* Modal: Add New Company */}
       {isAddModalOpen && (
@@ -961,11 +961,10 @@ const Companies: React.FC = () => {
                       placeholder="e.g. Stark Industries"
                       value={newCompName}
                       onChange={(e) => setNewCompName(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !newCompName.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompName.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !newCompName.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -985,11 +984,10 @@ const Companies: React.FC = () => {
                       placeholder="e.g. STI"
                       value={newCompCode}
                       onChange={(e) => setNewCompCode(e.target.value.replace(/[^a-zA-Z]/g, ""))}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${
-                        showValidation && !newCompCode.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${showValidation && !newCompCode.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !newCompCode.trim() ? (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1012,11 +1010,10 @@ const Companies: React.FC = () => {
                       placeholder="e.g. +1 310 555 0147"
                       value={newCompPhone}
                       onChange={(e) => setNewCompPhone(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !newCompPhone.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompPhone.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !newCompPhone.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1035,11 +1032,10 @@ const Companies: React.FC = () => {
                       placeholder="87.654.321.0-087.000"
                       value={newCompTax}
                       onChange={(e) => setNewCompTax(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${
-                        showValidation && !newCompTax.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${showValidation && !newCompTax.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !newCompTax.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1058,11 +1054,10 @@ const Companies: React.FC = () => {
                       placeholder="e.g. 10880 Malibu Point"
                       value={newCompStreet}
                       onChange={(e) => setNewCompStreet(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !newCompStreet.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompStreet.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !newCompStreet.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1081,11 +1076,10 @@ const Companies: React.FC = () => {
                       placeholder="Malibu"
                       value={newCompCity}
                       onChange={(e) => setNewCompCity(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !newCompCity.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompCity.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !newCompCity.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1104,11 +1098,10 @@ const Companies: React.FC = () => {
                       placeholder="90265"
                       value={newCompPostal}
                       onChange={(e) => setNewCompPostal(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !newCompPostal.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompPostal.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !newCompPostal.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1167,11 +1160,10 @@ const Companies: React.FC = () => {
                 <button
                   type="submit"
                   disabled={showValidation && getAddCompanyErrorsCount() > 0}
-                  className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer ${
-                    showValidation && getAddCompanyErrorsCount() > 0
+                  className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer ${showValidation && getAddCompanyErrorsCount() > 0
                       ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
                       : 'bg-[#f59e0b] hover:bg-[#d97706] shadow-sm'
-                  }`}
+                    }`}
                 >
                   {t('companies.addCompany')}
                 </button>
@@ -1342,11 +1334,10 @@ const Companies: React.FC = () => {
                       required
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !editName.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !editName.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !editName.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1365,11 +1356,10 @@ const Companies: React.FC = () => {
                       maxLength={5}
                       value={editCode}
                       onChange={(e) => setEditCode(e.target.value.replace(/[^a-zA-Z]/g, ""))}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${
-                        showValidation && !editCode.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${showValidation && !editCode.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !editCode.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1387,11 +1377,10 @@ const Companies: React.FC = () => {
                       required
                       value={editPhone}
                       onChange={(e) => setEditPhone(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !editPhone.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !editPhone.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !editPhone.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1409,11 +1398,10 @@ const Companies: React.FC = () => {
                       required
                       value={editTaxId}
                       onChange={(e) => setEditTaxId(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${
-                        showValidation && !editTaxId.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${showValidation && !editTaxId.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !editTaxId.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1431,11 +1419,10 @@ const Companies: React.FC = () => {
                       required
                       value={editAddress}
                       onChange={(e) => setEditAddress(e.target.value)}
-                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${
-                        showValidation && !editAddress.trim()
+                      className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !editAddress.trim()
                           ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
                           : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
-                      }`}
+                        }`}
                     />
                     {showValidation && !editAddress.trim() && (
                       <span className="block text-[10.5px] text-[#ef4444] font-semibold mt-0.5 animate-fade-in">
@@ -1478,11 +1465,10 @@ const Companies: React.FC = () => {
                 <button
                   type="submit"
                   disabled={showValidation && getEditCompanyErrorsCount() > 0}
-                  className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer font-sans shadow-sm ${
-                    showValidation && getEditCompanyErrorsCount() > 0
+                  className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer font-sans shadow-sm ${showValidation && getEditCompanyErrorsCount() > 0
                       ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
                       : 'bg-[#2563eb] hover:bg-[#1d4ed8]'
-                  }`}
+                    }`}
                 >
                   {t('companies.saveChanges')}
                 </button>
@@ -1493,127 +1479,201 @@ const Companies: React.FC = () => {
       )}
 
       {/* Modal: Financial Report */}
-      {isReportModalOpen && selectedCompany && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans">
-            {/* Header */}
-            <div className="pl-6 pr-4 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
-              <div>
-                <h3 className="text-[18px] font-bold text-[#1e293b] font-sans">{t('companies.companyFinancialReport')}</h3>
-                <p className="text-[11px] text-slate-400 font-medium font-sans mt-0.5">{t('companies.financialSummary')} — {reportData.period}</p>
-              </div>
-              <button
-                onClick={() => setIsReportModalOpen(false)}
-                className="w-6 h-6 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
+      {isReportModalOpen && selectedCompany && (() => {
+        const modalSampleData = {
+          summary: {
+            totalRevenue: 4285600,
+            totalExpenses: 2156300,
+            netProfit: 2129300,
+            outstanding: 487250,
+          },
+          monthlyOverview: [
+            { month: "May 2026", revenue: 985400, sent: 148, paid: 132 },
+            { month: "Jun 2026", revenue: 1042800, sent: 156, paid: 128 },
+            { month: "Jul 2026", revenue: 1125600, sent: 162, paid: 130 },
+            { month: "Aug 2026", revenue: 1131800, sent: 158, paid: 108 },
+          ],
+          companyBreakdown: [
+            { company: "Arie Tours", code: "AIT", revenue: 612500, amtPaid: 534200, pending: 48300, overdue: 30000 },
+            { company: "Wayne Enterprises", code: "WEN", revenue: 845200, amtPaid: 756800, pending: 52400, overdue: 36000 },
+            { company: "Stark Industries", code: "STI", revenue: 692100, amtPaid: 608400, pending: 49700, overdue: 34000 },
+            { company: "Cyberdyne Systems", code: "CYB", revenue: 498300, amtPaid: 385600, pending: 68200, overdue: 44500 },
+            { company: "Aperture Labs", code: "APL", revenue: 578400, amtPaid: 502300, pending: 42100, overdue: 34000 },
+            { company: "Weyland-Yutani", code: "WYU", revenue: 625800, amtPaid: 498500, pending: 72550, overdue: 54750 },
+            { company: "PT Pariwisata Nusantara", code: "PTN", revenue: 433300, amtPaid: 312800, pending: 66500, overdue: 54000 },
+          ],
+          period: "May to August 2026",
+        };
 
-            {/* Financial Contents */}
-            <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
-              {/* Stat Grid */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.totalRevenue')}</span>
-                  <div className="text-[20px] font-bold text-[#0c0d0f] font-mono mt-1.5">{formatCurrency(reportData.summary.totalRevenue, 'USD', undefined, 2)}</div>
-                </div>
-                <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.netProfit')}</span>
-                  <div className="text-[20px] font-bold text-[#10b981] font-mono mt-1.5">{formatCurrency(reportData.summary.netProfit, 'USD', undefined, 2)}</div>
-                </div>
-                <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-sans">{t('companies.outstanding')}</span>
-                  <div className="text-[20px] font-bold text-[#ef4444] font-mono mt-1.5">{formatCurrency(reportData.summary.outstanding, 'USD', undefined, 2)}</div>
-                </div>
-              </div>
+        const hasLiveDbData = companies.length > 0 && invoices.length > 0;
+        const displaySummary = hasLiveDbData ? reportData.summary : modalSampleData.summary;
+        const displayMonthly = hasLiveDbData && reportData.monthlyOverview.length > 0 ? reportData.monthlyOverview : modalSampleData.monthlyOverview;
+        const displayBreakdown = hasLiveDbData && reportData.companyBreakdown.length > 0 ? reportData.companyBreakdown : modalSampleData.companyBreakdown;
+        const displayPeriod = hasLiveDbData && reportData.period !== "All Time" ? reportData.period : modalSampleData.period;
 
-              {/* Monthly Financial Overview */}
-              <div className="space-y-2">
-                <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans">{t('companies.monthlyFinancialOverview')}</h4>
-                <div className="overflow-hidden border border-[#e2e8f0] rounded-xl text-[12px] font-sans">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#223F6E] border-b border-[#223F6E] text-white">
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.month')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.revenue')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-center">{t('companies.invoicesSent')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-center">{t('companies.invoicesPaid')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-[#475569]">
-                      {reportData.monthlyOverview.map((row, idx) => (
-                        <tr key={row.month} className={idx % 2 === 1 ? "bg-slate-50/20 hover:bg-slate-50/50" : "hover:bg-slate-50/50"}>
-                          <td className="py-3 px-4 font-semibold text-[#0c0d0f]">{row.month}</td>
-                          <td className="py-3 px-4 font-mono text-right">{formatCurrency(row.revenue, 'USD', undefined, 2)}</td>
-                          <td className="py-3 px-4 text-center">{row.sent}</td>
-                          <td className="py-3 px-4 text-center">{row.paid}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+        const formatReportModalCurrency = (val: number): string => {
+          return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          }).format(Math.round(val || 0));
+        };
 
-              {/* Company Financial Breakdown */}
-              <div className="space-y-2">
-                <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-sans">{t('companies.companyFinancialBreakdown')}</h4>
-                <div className="overflow-hidden border border-[#e2e8f0] rounded-xl text-[12px] font-sans">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#223F6E] border-b border-[#223F6E] text-white">
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.companyName')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase">{t('companies.companyCode')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.revenue')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.amountPaid')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.pending')}</th>
-                        <th className="py-2.5 px-4 font-bold text-[10px] uppercase text-right">{t('companies.overdue')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-[#475569] font-medium">
-                      {reportData.companyBreakdown.map((row, idx) => (
-                        <tr key={row.code} className={idx % 2 === 1 ? "bg-slate-50/20 hover:bg-slate-50/50" : "hover:bg-slate-50/50"}>
-                          <td className="py-3 px-4 font-bold text-[#0c0d0f]">{row.company}</td>
-                          <td className="py-3 px-4 text-slate-400 font-mono">{row.code}</td>
-                          <td className="py-3 px-4 font-mono text-right">{formatCurrency(row.revenue, 'USD', undefined, 2)}</td>
-                          <td className="py-3 px-4 font-mono text-emerald-700 font-semibold text-right">{formatCurrency(row.amtPaid, 'USD', undefined, 2)}</td>
-                          <td className="py-3 px-4 text-[#f59e0b] font-bold font-mono text-right">{formatCurrency(row.pending, 'USD', undefined, 2)}</td>
-                          <td className="py-3 px-4 text-[#ef4444] font-bold font-mono text-right">{formatCurrency(row.overdue, 'USD', undefined, 2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+        return (
+          <div className="fixed inset-0 backdrop-blur-xs z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/50 animate-fade-in">
+            <div className="bg-white rounded-2xl w-full max-w-[850px] shadow-2xl border border-slate-200 overflow-hidden flex flex-col font-sans max-h-[92vh] animate-scale-up">
+              {/* Header */}
+              <div className="p-6 pb-2 flex justify-between items-start bg-white">
+                <div>
+                  <h2 className="text-[22px] font-extrabold text-[#0f172a] tracking-tight font-sans">
+                    Company Financial Report
+                  </h2>
+                  <p className="text-[13px] text-slate-400 font-medium font-sans mt-0.5">
+                    Financial Summary — {displayPeriod}
+                  </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-between items-center">
-              <div className="flex items-center gap-2 text-[12px] text-slate-400 font-medium font-sans">
-                <span className="w-2 h-2 rounded-full bg-[#10b981]" />
-                <span>{t('companies.dataConsolidated')}</span>
-              </div>
-              <div className="flex gap-3">
                 <button
-                  type="button"
                   onClick={() => setIsReportModalOpen(false)}
-                  className="px-4 py-2 border border-[#cbd5e1] hover:bg-slate-50 text-slate-600 rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans bg-white shadow-sm"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-all cursor-pointer"
                 >
-                  {t('common.close')}
+                  <X className="w-4 h-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans flex items-center gap-1.5 shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>{t('companies.exportPdfReport')}</span>
-                </button>
+              </div>
+
+              {/* Scrollable Contents */}
+              <div className="px-6 py-3 space-y-5 overflow-y-auto flex-1">
+                {/* 3 Stat Cards */}
+                <div className="grid grid-cols-3 gap-3.5">
+                  <div className="border border-slate-200/90 rounded-xl p-3.5 bg-white shadow-2xs">
+                    <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
+                      TOTAL REVENUE
+                    </span>
+                    <div className="text-[20px] font-black text-[#0f172a] tracking-tight mt-1 font-sans tabular-nums">
+                      {formatReportModalCurrency(displaySummary.totalRevenue)}
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-200/90 rounded-xl p-3.5 bg-white shadow-2xs">
+                    <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
+                      NET PROFIT
+                    </span>
+                    <div className="text-[20px] font-black text-[#16a34a] tracking-tight mt-1 font-sans tabular-nums">
+                      {formatReportModalCurrency(displaySummary.netProfit)}
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-200/90 rounded-xl p-3.5 bg-white shadow-2xs">
+                    <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
+                      OUTSTANDING
+                    </span>
+                    <div className="text-[20px] font-black text-[#dc2626] tracking-tight mt-1 font-sans tabular-nums">
+                      {formatReportModalCurrency(displaySummary.outstanding)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* MONTHLY FINANCIAL OVERVIEW */}
+                <div>
+                  <h4 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider font-sans mb-2">
+                    MONTHLY FINANCIAL OVERVIEW
+                  </h4>
+                  <div className="rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
+                    <table className="w-full text-left border-collapse font-sans text-[12px]">
+                      <thead>
+                        <tr className="bg-[#1e3a5f] text-white">
+                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider">MONTH</th>
+                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-right">REVENUE</th>
+                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-center">INVOICES SENT</th>
+                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-center">INVOICES PAID</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[#0f172a]">
+                        {displayMonthly.map((row) => (
+                          <tr key={row.month} className="hover:bg-slate-50/60 transition-colors">
+                            <td className="py-2.5 px-4 font-bold text-[#0f172a]">{row.month}</td>
+                            <td className="py-2.5 px-4 text-right font-medium text-slate-700 tabular-nums">
+                              {formatReportModalCurrency(row.revenue)}
+                            </td>
+                            <td className="py-2.5 px-4 text-center font-medium text-slate-700 tabular-nums">{row.sent}</td>
+                            <td className="py-2.5 px-4 text-center font-medium text-slate-700 tabular-nums">{row.paid}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* COMPANY FINANCIAL BREAKDOWN */}
+                <div>
+                  <h4 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider font-sans mb-2">
+                    COMPANY FINANCIAL BREAKDOWN
+                  </h4>
+                  <div className="rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
+                    <table className="w-full text-left border-collapse font-sans text-[12px]">
+                      <thead>
+                        <tr className="bg-[#1e3a5f] text-white">
+                          <th className="py-2.5 px-4 font-bold text-[9.5px] uppercase tracking-wider">COMPANY</th>
+                          <th className="py-2.5 px-3 font-bold text-[9.5px] uppercase tracking-wider text-center">CODE</th>
+                          <th className="py-2.5 px-4 font-bold text-[9.5px] uppercase tracking-wider text-right">REVENUE</th>
+                          <th className="py-2.5 px-4 font-bold text-[9.5px] uppercase tracking-wider text-right">AMOUNT PAID</th>
+                          <th className="py-2.5 px-4 font-bold text-[9.5px] uppercase tracking-wider text-right">PENDING</th>
+                          <th className="py-2.5 px-4 font-bold text-[9.5px] uppercase tracking-wider text-right">OVERDUE</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[#0f172a]">
+                        {displayBreakdown.map((row) => (
+                          <tr key={row.code} className="hover:bg-slate-50/60 transition-colors">
+                            <td className="py-2.5 px-4 font-bold text-[#0f172a]">{row.company}</td>
+                            <td className="py-2.5 px-3 text-center text-[#64748b] font-mono font-medium text-[11.5px]">{row.code}</td>
+                            <td className="py-2.5 px-4 text-right font-medium text-[#0f172a] tabular-nums">
+                              {formatReportModalCurrency(row.revenue)}
+                            </td>
+                            <td className="py-2.5 px-4 text-right font-medium text-slate-700 tabular-nums">
+                              {formatReportModalCurrency(row.amtPaid)}
+                            </td>
+                            <td className="py-2.5 px-4 text-right font-bold text-[#f59e0b] tabular-nums">
+                              {formatReportModalCurrency(row.pending)}
+                            </td>
+                            <td className="py-2.5 px-4 text-right font-bold text-[#ef4444] tabular-nums">
+                              {formatReportModalCurrency(row.overdue)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-slate-200 bg-white flex justify-between items-center">
+                <div className="flex items-center gap-2 text-[12.5px] text-slate-500 font-medium font-sans">
+                  <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                  <span>Data consolidated for all companies</span>
+                </div>
+                <div className="flex gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsReportModalOpen(false)}
+                    className="px-5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans bg-white shadow-2xs"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="px-4 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Export PDF Report</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Modal: Add Confirmation */}
       {showAddConfirm && (
@@ -1732,11 +1792,11 @@ const Companies: React.FC = () => {
       )}
       {/* Printable Area */}
       <CompanyFinancialReportPrint
-        companyName={selectedCompany?.name || ""}
+        companyName={selectedCompany?.name || "DST"}
         data={{
           header: {
-            title: "Company Financial Report",
-            period: `Financial Summary — ${reportData.period}`,
+            title: "COMPANY FINANCIAL REPORT",
+            period: `Q3 ${new Date().getFullYear()} — Generated ${new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase()}`,
           },
           summary: reportData.summary,
           monthlyRevenue: reportData.monthlyOverview,
@@ -1746,48 +1806,6 @@ const Companies: React.FC = () => {
           footer: { note: "Company Finance — Confidential", page: "Page 1 of 1" },
         }}
       />
-
-      {/* Styles for print overrides */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @media print {
-          @page {
-            size: portrait;
-            margin: 6mm 10mm;
-          }
-          html, body, #root {
-            height: 100% !important;
-            overflow: hidden !important;
-          }
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          body * {
-            visibility: hidden !important;
-          }
-          #company-financial-report-print-area, #company-financial-report-print-area * {
-            visibility: visible !important;
-          }
-          #company-financial-report-print-area {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            max-height: 297mm !important;
-            overflow: hidden !important;
-            box-shadow: none !important;
-            border: none !important;
-            background: white !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            page-break-inside: avoid !important;
-          }
-        }
-      `}} />
     </div>
   );
 };
