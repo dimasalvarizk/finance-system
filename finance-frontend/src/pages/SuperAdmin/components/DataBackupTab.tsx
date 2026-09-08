@@ -28,10 +28,10 @@ export const DataBackupTab: React.FC = () => {
   const isSuperAdmin = user?.role === 'Super Admin';
   const userNameLower = (user?.name || '').toLowerCase();
   const userEmailLower = (user?.email || '').toLowerCase();
-  const isIT = userNameLower.includes('ali') || 
-               userNameLower.includes('dimas') || 
-               userEmailLower.includes('ali') || 
-               userEmailLower.includes('dimas');
+  const isIT = userNameLower.includes('ali') ||
+    userNameLower.includes('dimas') ||
+    userEmailLower.includes('ali') ||
+    userEmailLower.includes('dimas');
 
   const isAuthorized = isSuperAdmin || isIT;
 
@@ -41,7 +41,7 @@ export const DataBackupTab: React.FC = () => {
       const updated = [newItem, ...filtered];
       try {
         localStorage.setItem('odst_backup_history', JSON.stringify(updated.slice(0, 50)));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
   };
@@ -64,7 +64,7 @@ export const DataBackupTab: React.FC = () => {
       if (localSaved) {
         localList = JSON.parse(localSaved);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const map = new Map<string, BackupHistoryItem>();
     [...apiData, ...localList].forEach((item) => {
@@ -73,7 +73,7 @@ export const DataBackupTab: React.FC = () => {
       }
     });
 
-    const merged = Array.from(map.values()).sort((a, b) => 
+    const merged = Array.from(map.values()).sort((a, b) =>
       new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     );
 
@@ -160,8 +160,8 @@ export const DataBackupTab: React.FC = () => {
       setLastBackupTime(timeFormatted);
       setExportSuccessMessage(`Full Database Snapshot (${filename}) berhasil dibuat dan diunduh.`);
 
-      const totalCount = payloadToSave?.summary?.invoicesCount 
-        ? Object.values(payloadToSave.summary).reduce((acc: number, val: any) => acc + (typeof val === 'number' ? val : 0), 0)
+      const totalCount: number = payloadToSave?.summary?.invoicesCount
+        ? Object.values(payloadToSave.summary).reduce<number>((acc: number, val: any) => acc + (typeof val === 'number' ? val : 0), 0)
         : 18;
 
       const historyEntry: BackupHistoryItem = {
@@ -207,7 +207,7 @@ export const DataBackupTab: React.FC = () => {
         recordCount = invoices.length;
         filename = `Invoices_Export_${dateStr}.csv`;
         csvContent = 'Invoice No,Company,Date,Due Date,Total Amount,Currency,Status,Branch\n' +
-          invoices.map((inv: any) => 
+          invoices.map((inv: any) =>
             `"${inv.invoiceNumber || ''}","${inv.companyName || ''}","${inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString() : ''}","${inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : ''}",${inv.totalAmount || 0},"${inv.currency || 'SAR'}","${inv.status || ''}","${inv.branch || ''}"`
           ).join('\n');
       } else if (type === 'reservations') {
@@ -215,7 +215,7 @@ export const DataBackupTab: React.FC = () => {
         recordCount = reservations.length;
         filename = `Reservations_Export_${dateStr}.csv`;
         csvContent = 'Reservation No,Hotel Name,Guest Name,Check In,Check Out,Total Rooms,Status\n' +
-          reservations.map((r: any) => 
+          reservations.map((r: any) =>
             `"${r.reservationNo || ''}","${r.hotelName || ''}","${r.guestName || ''}","${r.checkIn || ''}","${r.checkOut || ''}",${r.roomsCount || 1},"${r.status || ''}"`
           ).join('\n');
       } else if (type === 'companies') {
@@ -223,7 +223,7 @@ export const DataBackupTab: React.FC = () => {
         recordCount = companies.length;
         filename = `Companies_Export_${dateStr}.csv`;
         csvContent = 'Company Name,Code,Email,Phone,Country,City,Tax ID\n' +
-          companies.map((c: any) => 
+          companies.map((c: any) =>
             `"${c.name || ''}","${c.code || ''}","${c.email || ''}","${c.phone || ''}","${c.country || ''}","${c.city || ''}","${c.taxNumber || ''}"`
           ).join('\n');
       }
@@ -272,8 +272,8 @@ export const DataBackupTab: React.FC = () => {
       {exportSuccessMessage && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 flex items-center justify-between text-xs font-bold animate-fade-in">
           <span>{exportSuccessMessage}</span>
-          <button 
-            onClick={() => setExportSuccessMessage(null)} 
+          <button
+            onClick={() => setExportSuccessMessage(null)}
             className="text-emerald-600 hover:text-emerald-800 font-bold border-none bg-transparent cursor-pointer text-xs"
           >
             {t('common.close') || 'Tutup'}
@@ -317,7 +317,7 @@ export const DataBackupTab: React.FC = () => {
               <h3 className="text-sm font-extrabold text-slate-800">{t('settings.hostingInfrastructure')}</h3>
               <p className="text-[11px] text-slate-400 font-medium">{t('settings.productionDbDeployment')}</p>
             </div>
-            
+
             <div className="space-y-2 text-xs font-sans text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">{t('settings.autoCloudBackup')}:</span>
@@ -426,7 +426,7 @@ export const DataBackupTab: React.FC = () => {
               <tbody className="divide-y divide-slate-100">
                 {historyList.map((item) => {
                   const isFull = item.exportType === 'FULL_JSON';
-                  const dateStr = item.createdAt 
+                  const dateStr = item.createdAt
                     ? new Date(item.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
                     : 'N/A';
 
@@ -436,11 +436,10 @@ export const DataBackupTab: React.FC = () => {
                         {dateStr}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          isFull 
-                            ? 'bg-purple-50 text-purple-700 border border-purple-200' 
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isFull
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200'
                             : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        }`}>
+                          }`}>
                           {isFull ? 'FULL JSON (18 Tables)' : item.exportType}
                         </span>
                       </td>
