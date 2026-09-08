@@ -102,7 +102,12 @@ export const deleteInvoicePayment = async (paymentId: string) => {
 };
 
 export const addCompanyCredit = async (code: string, creditAmount: number) => {
-  const response = await companyAPI.put(`/${code}/credit`, { creditAmount });
+  const response = await companyAPI.put(`/${code}/credit`, { creditAmount, mode: 'add' });
+  return response.data;
+};
+
+export const updateCompanyCreditBalance = async (code: string, creditAmount: number, mode: 'set' | 'add' = 'set') => {
+  const response = await companyAPI.put(`/${code}/credit`, { creditAmount, mode });
   return response.data;
 };
 

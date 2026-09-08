@@ -19,7 +19,7 @@ export interface ExpenseClaim {
   submitDate: string;
   reason: string;
   category: string;
-  status: 'Pending' | 'Mr.Khalid Review' | 'Mr. Hesham Review' | 'Approved' | 'Paid' | 'Rejected';
+  status: 'Pending' | 'Mr.Khalid Review' | 'Mr. Hesham Review' | 'Approved' | 'Paid' | 'Disbursed' | 'Transferred' | 'Rejected' | 'Ready for Payment';
   amount: number;
   currency: string;
   department: string;

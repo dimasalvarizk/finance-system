@@ -7,6 +7,7 @@ import type { ReimbursementClaimSummary } from '../types';
 interface BeneficiaryBankCardProps {
   claim: ReimbursementClaimSummary;
   isProcessing: boolean;
+  isGatewayActive?: boolean;
   onInitiatePayment: () => void;
   onCancel: () => void;
 }
@@ -14,6 +15,7 @@ interface BeneficiaryBankCardProps {
 export const BeneficiaryBankCard: React.FC<BeneficiaryBankCardProps> = ({
   claim,
   isProcessing,
+  isGatewayActive = true,
   onInitiatePayment,
   onCancel
 }) => {
@@ -54,14 +56,40 @@ export const BeneficiaryBankCard: React.FC<BeneficiaryBankCardProps> = ({
       </div>
 
       {/* Attention Controller Alert Box */}
-      <div className="p-4 bg-[#fef9c3]/80 border border-[#fde047]/60 rounded-xl space-y-1.5">
-        <h4 className="text-[11.5px] font-extrabold text-[#854d0e] uppercase tracking-wider">
-          {t('initiateReimbursement.attentionController') || 'ATTENTION CONTROLLER'}
-        </h4>
-        <p className="text-[11.5px] text-[#713f12] font-medium leading-relaxed">
-          {t('initiateReimbursement.attentionDesc') || 'By clicking Initiate Payment below, you authorize the immediate dispatch of funds to the verified employee bank account details shown above.'}
-        </p>
-      </div>
+      {claim.status === 'Disbursed' || claim.status === 'Paid' ? (
+        <div className="p-4 rounded-xl space-y-1.5 border bg-emerald-50 border-emerald-200">
+          <h4 className="text-[11.5px] font-extrabold uppercase tracking-wider text-emerald-800">
+            STATUS: DANA TELAH DITRANSFER & LUNAS
+          </h4>
+          <p className="text-[11.5px] font-medium leading-relaxed text-emerald-700">
+            Transaksi pembayaran untuk klaim ini telah berhasil diproses ke rekening penerima di atas. Pembayaran ganda dinonaktifkan demi keamanan.
+          </p>
+        </div>
+      ) : (
+        <div
+          className={`p-4 rounded-xl space-y-1.5 border ${isGatewayActive
+              ? 'bg-[#fef9c3]/80 border-[#fde047]/60'
+              : 'bg-red-50/80 border-red-200'
+            }`}
+        >
+          <h4
+            className={`text-[11.5px] font-extrabold uppercase tracking-wider ${isGatewayActive ? 'text-[#854d0e]' : 'text-red-700'
+              }`}
+          >
+            {t('initiateReimbursement.attentionController') || 'ATTENTION CONTROLLER'}
+          </h4>
+          <p
+            className={`text-[11.5px] font-medium leading-relaxed ${isGatewayActive ? 'text-[#713f12]' : 'text-red-600'
+              }`}
+          >
+            {isGatewayActive
+              ? t('initiateReimbursement.attentionDesc') ||
+              'By clicking Initiate Payment below, you authorize the immediate dispatch of funds to the verified employee bank account details shown above.'
+              : t('initiateReimbursement.gatewayInactiveWarning') ||
+              'Bank automated transfer route is suspended because the gateway status is inactive.'}
+          </p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center justify-between gap-3 pt-1">
@@ -73,15 +101,32 @@ export const BeneficiaryBankCard: React.FC<BeneficiaryBankCardProps> = ({
           {t('initiateReimbursement.cancelExecution') || 'Cancel Execution'}
         </button>
 
-        <button
-          type="button"
-          onClick={onInitiatePayment}
-          disabled={isProcessing}
-          className="px-6 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl text-[12.5px] shadow-sm hover:shadow transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2 flex-1"
-        >
-          <span>{isProcessing ? (t('common.loading') || 'Processing...') : (t('initiateReimbursement.initiatePayment') || 'Initiate Payment')}</span>
-          {!isProcessing && <ArrowRight className="w-4 h-4" />}
-        </button>
+        {claim.status === 'Disbursed' || claim.status === 'Paid' ? (
+          <button
+            type="button"
+            onClick={onInitiatePayment}
+            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[12.5px] shadow-sm hover:shadow transition-all cursor-pointer flex items-center justify-center space-x-2 flex-1"
+          >
+            <span>{t('preExecutionPayment.auditTrail') || 'Lihat Bukti Transfer & Audit'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onInitiatePayment}
+            disabled={isProcessing || !isGatewayActive}
+            className="px-6 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl text-[12.5px] shadow-sm hover:shadow transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 flex-1"
+          >
+            <span>
+              {isProcessing
+                ? t('common.loading') || 'Processing...'
+                : !isGatewayActive
+                  ? t('initiateReimbursement.apiInactive')
+                  : t('initiateReimbursement.initiatePayment') || 'Initiate Payment'}
+            </span>
+            {!isProcessing && isGatewayActive && <ArrowRight className="w-4 h-4" />}
+          </button>
+        )}
       </div>
     </div>
   );

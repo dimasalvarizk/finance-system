@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Receipt, X, Paperclip } from 'lucide-react';
+import { Receipt, X, Paperclip, FileText, CheckCircle2 } from 'lucide-react';
 import type { ExpenseClaim } from '../types';
 
 interface ClaimDetailModalProps {
@@ -20,13 +20,15 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
   if (!claim) return null;
 
+  const isPaid = claim.status === 'Paid' || claim.status === 'Disbursed' || claim.status === 'Transferred';
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-scale-up font-sans"
+        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden animate-scale-up font-sans"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -59,7 +61,13 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
               <span className="text-xl font-extrabold text-slate-900">{formatAmount(claim.amount, claim.currency)}</span>
             </div>
             <div>
-              <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+              <span
+                className={`px-3 py-1 rounded-md text-[11px] font-bold border ${
+                  isPaid
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                }`}
+              >
                 {claim.status}
               </span>
             </div>
@@ -173,21 +181,52 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <div className="px-6 py-4 bg-slate-50/90 border-t border-slate-100 flex items-center justify-between gap-3">
           <button
-            onClick={() => {
-              navigate(`/approvals/action/${claim.claimId}`);
-            }}
-            className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold rounded-xl text-[12.5px] transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs"
-          >
-            <span>{t('expenses.viewDetail') || 'View Approval Action Page'}</span>
-          </button>
-          <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] transition-all cursor-pointer"
+            className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 font-semibold rounded-xl text-[12.5px] border border-slate-200 shadow-2xs transition-all cursor-pointer"
           >
-            {t('common.close') || 'Close'}
+            {t('common.close') || 'Tutup'}
           </button>
+
+          <div className="flex items-center gap-2.5">
+            {isPaid ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate(`/approvals/action/${claim.claimId}`);
+                  }}
+                  className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 font-semibold rounded-xl text-[12px] border border-slate-200/90 shadow-2xs transition-all cursor-pointer flex items-center space-x-1.5 whitespace-nowrap"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{t('expenses.viewApprovalDetail') || 'Alur Persetujuan'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate(`/pre-execution-payment/${claim.claimId}`);
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[12.5px] shadow-xs transition-all cursor-pointer flex items-center space-x-1.5 whitespace-nowrap"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{t('expenses.viewTransferProof') || 'Bukti Transfer'}</span>
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  navigate(`/approvals/action/${claim.claimId}`);
+                }}
+                className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl text-[12.5px] shadow-xs transition-all cursor-pointer flex items-center space-x-1.5 whitespace-nowrap"
+              >
+                <span>{t('expenses.viewDetail') || 'Lihat Detail'}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -34,6 +34,10 @@ export interface PaymentExecutionData {
   settlementRoute: string;
   estimatedSpeed: string;
   otpCode: string;
+  chiefAccountantName?: string;
+  chiefAccountantRole?: string;
+  controllerName?: string;
+  controllerRole?: string;
   transactionTraceId: string;
   acknowledgementCode: string;
   transferTimestamp: string;

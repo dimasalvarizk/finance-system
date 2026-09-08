@@ -408,6 +408,21 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Ensure legacy columns don't fail NOT NULL constraints
+    const legacyNullableCols = [
+      'ALTER TABLE dst_audit_logs MODIFY COLUMN user_name VARCHAR(100) NULL DEFAULT NULL',
+      'ALTER TABLE dst_audit_logs MODIFY COLUMN action_type VARCHAR(50) NULL DEFAULT NULL',
+      'ALTER TABLE dst_audit_logs MODIFY COLUMN entity_reference VARCHAR(100) NULL DEFAULT NULL',
+      'ALTER TABLE dst_audit_logs MODIFY COLUMN user_email VARCHAR(100) NULL DEFAULT NULL',
+      'ALTER TABLE dst_audit_logs MODIFY COLUMN entity_type VARCHAR(50) NULL DEFAULT "SYSTEM"'
+    ];
+
+    for (const sql of legacyNullableCols) {
+      try {
+        await pool.query(sql);
+      } catch (e) {}
+    }
+
     try {
       await pool.query('UPDATE dst_audit_logs SET createdAt = created_at WHERE createdAt IS NULL AND created_at IS NOT NULL');
     } catch (e) {}
@@ -418,6 +433,75 @@ const initializeDatabase = async () => {
     try {
       await pool.query('ALTER TABLE dst_users ADD COLUMN permissions TEXT DEFAULT NULL');
     } catch (e) {}
+
+    // 11. Create dst_banking_gateways table for IT Super Admin API configuration
+    const createBankingGatewaysQuery = `
+      CREATE TABLE IF NOT EXISTS dst_banking_gateways (
+        id VARCHAR(50) PRIMARY KEY,
+        bankName VARCHAR(150) NOT NULL,
+        bankCode VARCHAR(50) NOT NULL,
+        country VARCHAR(50) DEFAULT 'Indonesia',
+        currency VARCHAR(20) DEFAULT 'IDR',
+        environment VARCHAR(50) DEFAULT 'sandbox',
+        clientId VARCHAR(255) DEFAULT '',
+        clientSecret VARCHAR(255) DEFAULT '',
+        merchantId VARCHAR(255) DEFAULT '',
+        channelId VARCHAR(255) DEFAULT '',
+        baseUrl VARCHAR(255) DEFAULT '',
+        webhookUrl VARCHAR(255) DEFAULT '',
+        webhookSecret VARCHAR(255) DEFAULT '',
+        certificateData TEXT DEFAULT NULL,
+        ipWhitelist TEXT DEFAULT NULL,
+        isActive TINYINT(1) DEFAULT 1,
+        lastPingAt DATETIME DEFAULT NULL,
+        lastPingLatency INT DEFAULT NULL,
+        lastPingStatus VARCHAR(50) DEFAULT 'ONLINE',
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createBankingGatewaysQuery);
+
+    // Seed default Indonesia Banking Gateways if table is empty
+    const [gatewayRows] = await pool.query('SELECT COUNT(*) as count FROM dst_banking_gateways');
+    if (gatewayRows[0]?.count === 0) {
+      const seedGateways = [
+        [
+          'gw_danamon',
+          'Bank Danamon Indonesia (Host-to-Host Corporate)',
+          'DANAMON_H2H',
+          'Indonesia',
+          'IDR',
+          'sandbox',
+          'DANAMON-CORP-ID-882194',
+          'sec_live_danamon_9941a80e',
+          'MERCHANT-DST-ID',
+          '98421',
+          'https://api-gateway.danamon.co.id/v2/corporate/transfer',
+          'https://odstfin.io/api/expenses/webhook/danamon',
+          'whsec_danamon_8849120',
+          '-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAP8...DANAMON-CORP-CERT\n-----END CERTIFICATE-----',
+          '172.16.5.10, 10.200.4.88, 127.0.0.1',
+          1,
+          new Date(),
+          42,
+          'ONLINE'
+        ]
+      ];
+
+      for (const g of seedGateways) {
+        await pool.query(`
+          INSERT INTO dst_banking_gateways (
+            id, bankName, bankCode, country, currency, environment,
+            clientId, clientSecret, merchantId, channelId, baseUrl,
+            webhookUrl, webhookSecret, certificateData, ipWhitelist,
+            isActive, lastPingAt, lastPingLatency, lastPingStatus
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, g);
+      }
+      console.log("Seeded initial banking gateways in 'dst_banking_gateways'");
+    }
+    console.log("Table 'dst_banking_gateways' is ready");
 
   } catch (error) {
     console.error('Database schema/seed failed for setting-service:', error.message);

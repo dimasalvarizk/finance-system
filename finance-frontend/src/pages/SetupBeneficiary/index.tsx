@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import type { BeneficiaryAccountData, VerificationSuccessState } from './types';
-import { DEFAULT_BENEFICIARY_DATA } from './constants';
+import { DEFAULT_BENEFICIARY_DATA, BANK_CONFIGS } from './constants';
 import { BeneficiaryBankingForm } from './components/BeneficiaryBankingForm';
 import { VerificationSuccessModal } from './components/VerificationSuccessModal';
+import { getCorporateExpenseById, updateCorporateExpenseStatus } from '../../services/expenseService';
 
 const SetupBeneficiary: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -16,7 +18,15 @@ const SetupBeneficiary: React.FC = () => {
     const saved = localStorage.getItem('finance_beneficiary_account');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        const config = BANK_CONFIGS[parsed.bankName] || BANK_CONFIGS['Bank Danamon'];
+        return {
+          ...DEFAULT_BENEFICIARY_DATA,
+          ...parsed,
+          targetCurrency: config.currency,
+          swiftCode: config.swiftCode,
+          bankBranch: config.bankBranch
+        };
       } catch {
         return DEFAULT_BENEFICIARY_DATA;
       }
@@ -27,11 +37,50 @@ const SetupBeneficiary: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successModalData, setSuccessModalData] = useState<VerificationSuccessState | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchBeneficiaryData = useCallback(async () => {
+    if (!id) return;
+    try {
+      const data = await getCorporateExpenseById(id);
+      if (data) {
+        const rawBank = data.bankName || 'Bank Danamon';
+        const resolvedBank = rawBank.startsWith('Bank') ? rawBank : `Bank ${rawBank}`;
+        const config = BANK_CONFIGS[resolvedBank] || BANK_CONFIGS[rawBank] || BANK_CONFIGS['Bank Danamon'];
+        const empName = data.bankAccountHolder || data.submittedByName || data.submittedBy || 'Dimas Alva Rizki';
+
+        setFormData((prev) => ({
+          ...prev,
+          bankName: config.name,
+          targetCurrency: config.currency,
+          swiftCode: config.swiftCode,
+          bankBranch: config.bankBranch,
+          accountHolderName: empName,
+          accountNumber: data.bankAccountNumber && data.bankAccountNumber !== '0000000000000000' ? data.bankAccountNumber : prev.accountNumber,
+          iban: config.isIbanRequired ? prev.iban : '',
+          employeeId: data.submittedById || prev.employeeId
+        }));
+      }
+    } catch {
+      // ignore
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchBeneficiaryData();
+  }, [fetchBeneficiaryData]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      if (id) {
+        await updateCorporateExpenseStatus(id, {
+          bankName: formData.bankName,
+          bankAccountNumber: formData.accountNumber,
+          bankAccountHolder: formData.accountHolderName
+        }).catch((err) => console.warn('Backend beneficiary sync failed:', err));
+      }
+
       const updated: BeneficiaryAccountData = {
         ...formData,
         isVerified: true
@@ -43,7 +92,6 @@ const SetupBeneficiary: React.FC = () => {
         console.error('Error saving beneficiary account', err);
       }
 
-      setIsSubmitting(false);
       setSuccessModalData({
         isOpen: true,
         bankName: formData.bankName,
@@ -51,7 +99,9 @@ const SetupBeneficiary: React.FC = () => {
         accountNumber: formData.accountNumber,
         iban: formData.iban
       });
-    }, 600);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

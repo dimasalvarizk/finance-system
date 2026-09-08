@@ -13,6 +13,7 @@ interface ApprovalTableProps {
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
   itemsPerPage: number;
+  isAuthorized?: boolean;
   onSelectAll: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onToggleRow: (id: string, e: React.MouseEvent) => void;
   onOpenClaimDetail: (item: ApprovedExpenseItem) => void;
@@ -32,6 +33,7 @@ export const ApprovalTable: React.FC<ApprovalTableProps> = ({
   setCurrentPage,
   totalPages,
   itemsPerPage,
+  isAuthorized = true,
   onSelectAll,
   onToggleRow,
   onOpenClaimDetail,
@@ -66,7 +68,8 @@ export const ApprovalTable: React.FC<ApprovalTableProps> = ({
               <button
                 type="button"
                 onClick={onOpenPayrollModal}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 bg-white text-slate-700 font-semibold text-[12.5px] rounded-xl transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                disabled={!isAuthorized}
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-slate-700 font-semibold text-[12.5px] rounded-xl transition-all cursor-pointer shadow-xs whitespace-nowrap"
               >
                 {t('approvals.addToPayroll') || 'Add to Payroll'}
               </button>
@@ -74,7 +77,8 @@ export const ApprovalTable: React.FC<ApprovalTableProps> = ({
               <button
                 type="button"
                 onClick={onOpenBulkDeleteModal}
-                className="px-4 py-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold text-[12.5px] rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                disabled={!isAuthorized}
+                className="px-4 py-2 bg-[#dc2626] hover:bg-[#b91c1c] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-[12.5px] rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs whitespace-nowrap"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>{t('approvals.delete') || 'Delete'}</span>
@@ -83,7 +87,8 @@ export const ApprovalTable: React.FC<ApprovalTableProps> = ({
               <button
                 type="button"
                 onClick={onOpenBankTransferModal}
-                className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[12.5px] rounded-xl flex items-center space-x-2 transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                disabled={!isAuthorized}
+                className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-[12.5px] rounded-xl flex items-center space-x-2 transition-all cursor-pointer shadow-xs whitespace-nowrap"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{t('approvals.transferToBank') || 'Transfer to Bank'}</span>

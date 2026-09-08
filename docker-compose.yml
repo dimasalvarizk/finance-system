@@ -5,6 +5,8 @@ services:
     build:
       context: ./backend/api-gateway
       dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
     expose:
       - "5000"
     environment:
@@ -16,6 +18,7 @@ services:
       - COMPANY_SERVICE_URL=http://company-service:5004
       - SETTING_SERVICE_URL=http://setting-service:5005
       - HOTEL_RESERVATION_SERVICE_URL=http://hotel-reservation-service:5006
+      - EXPENSE_SERVICE_URL=http://expense-service:5007
     depends_on:
       - auth-service
       - invoice-service
@@ -23,6 +26,7 @@ services:
       - company-service
       - setting-service
       - hotel-reservation-service
+      - expense-service
     restart: always
 
   auth-service:
@@ -126,6 +130,22 @@ services:
       - JWT_SECRET=${JWT_SECRET}
     restart: always
 
+  expense-service:
+    build:
+      context: ./backend/expense-service
+      dockerfile: Dockerfile
+    environment:
+      - PORT=5007
+      - NODE_ENV=production
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - DB_HOST=${DB_HOST:-mysql-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+    restart: always
+
   finance-frontend:
     build:
       context: ./finance-frontend
@@ -136,7 +156,10 @@ services:
         - VITE_REQUEST_API_URL=${VITE_REQUEST_API_URL:-https://api.odstfin.io}
         - VITE_SETTING_API_URL=${VITE_SETTING_API_URL:-https://api.odstfin.io}
         - VITE_HOTEL_RESERVATION_API_URL=${VITE_HOTEL_RESERVATION_API_URL:-https://api.odstfin.io}
+        - VITE_EXPENSE_API_URL=${VITE_EXPENSE_API_URL:-https://api.odstfin.io}
         - VITE_ENABLE_INTERNAL=${VITE_ENABLE_INTERNAL:-false}
+    ports:
+      - "80:80"
     expose:
       - "80"
     command: [ "nginx", "-g", "daemon off;" ]

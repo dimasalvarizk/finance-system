@@ -431,6 +431,89 @@ export const uploadPaymentProof = async (req, res, next) => {
   }
 };
 
+// Currency Conversion Helper
+export const convertCurrency = (amount, fromCurr = 'SAR', toCurr = 'SAR', rates = {}) => {
+  const from = (fromCurr || 'SAR').toUpperCase().trim();
+  const to = (toCurr || 'SAR').toUpperCase().trim();
+  const num = parseFloat(amount) || 0;
+  if (from === to || num === 0) return num;
+
+  const usdToIdr = parseFloat(rates.usdToIdr) || 18025;
+  const sarToIdr = parseFloat(rates.sarToIdr) || 4800;
+
+  // 1. Convert source to IDR
+  let amountInIdr = num;
+  if (from === 'SAR') amountInIdr = num * sarToIdr;
+  else if (from === 'USD') amountInIdr = num * usdToIdr;
+
+  // 2. Convert IDR to target currency
+  if (to === 'IDR') return amountInIdr;
+  if (to === 'SAR') return amountInIdr / sarToIdr;
+  if (to === 'USD') return amountInIdr / usdToIdr;
+  return num;
+};
+
+// Automatic Payment & Credit Balance Reconciliation Helper
+export const reconcileInvoicePayments = async (invoiceNo, saveOverpaymentCredit = false, companyCode = null) => {
+  try {
+    const pool = getPool();
+    const [invRows] = await pool.query(
+      'SELECT amount, advancePayment, currency, usdToIdrRate, sarToIdrRate, companyCode, status FROM dst_invoices WHERE invoiceNo = ? OR id = ?',
+      [invoiceNo, invoiceNo]
+    );
+    if (invRows.length === 0) return;
+
+    const inv = invRows[0];
+    const baseCurrency = (inv.currency || 'SAR').toUpperCase();
+    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const advPayment = parseFloat(inv.advancePayment || 0);
+    const rates = {
+      usdToIdr: parseFloat(inv.usdToIdrRate) || 18025,
+      sarToIdr: parseFloat(inv.sarToIdrRate) || 4800
+    };
+
+    const [payRows] = await pool.query(
+      "SELECT amount, currency FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
+      [invoiceNo]
+    );
+
+    let totalInstallmentsInBase = 0;
+    for (const p of payRows) {
+      const pAmt = parseFloat(p.amount) || 0;
+      const pCurr = (p.currency || baseCurrency).toUpperCase();
+      totalInstallmentsInBase += convertCurrency(pAmt, pCurr, baseCurrency, rates);
+    }
+
+    const totalPaidSoFarInBase = advPayment + totalInstallmentsInBase;
+    const remainingBalanceInBase = Math.max(0, rawAmt - totalPaidSoFarInBase);
+
+    let newStatus = inv.status;
+    if (remainingBalanceInBase <= 0.01 && inv.status !== 'Cancelled') {
+      newStatus = 'Paid';
+    } else if (totalPaidSoFarInBase > 0 && inv.status !== 'Cancelled') {
+      newStatus = 'Approved';
+    }
+
+    await pool.query(
+      'UPDATE dst_invoices SET remainingBalance = ?, status = ? WHERE invoiceNo = ? OR id = ?',
+      [remainingBalanceInBase.toFixed(2), newStatus, invoiceNo, invoiceNo]
+    );
+
+    // Overpayment Credit Handling: Denominated strictly in baseCurrency
+    if (saveOverpaymentCredit && (companyCode || inv.companyCode) && totalPaidSoFarInBase > (rawAmt + 0.01)) {
+      const targetCompany = (companyCode || inv.companyCode).toUpperCase();
+      const overpaymentInBase = totalPaidSoFarInBase - rawAmt;
+      await pool.query(
+        'UPDATE dst_companies SET creditBalance = creditBalance + ? WHERE code = ?',
+        [overpaymentInBase.toFixed(2), targetCompany]
+      );
+      console.log(`Saved credit balance of ${overpaymentInBase.toFixed(2)} ${baseCurrency} for ${targetCompany}`);
+    }
+  } catch (err) {
+    console.error('Failed to reconcile invoice payments:', err.message);
+  }
+};
+
 // @desc    Add installment payment history
 // @route   POST /api/invoices/:invoiceNo/payments
 // @access  Protected
@@ -462,34 +545,8 @@ export const addPaymentHistory = async (req, res, next) => {
 
     await addPaymentHistoryDB(paymentData);
 
-    // If saveOverpaymentCredit is true, update company credit balance in company-service or MySQL
-    if (saveOverpaymentCredit && companyCode) {
-      try {
-        const pool = getPool();
-        // Get overpayment excess
-        const [invRows] = await pool.query('SELECT amount, advancePayment FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [invoiceNo, invoiceNo]);
-        if (invRows.length > 0) {
-          const inv = invRows[0];
-          const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
-          const advPayment = parseFloat(inv.advancePayment || 0);
-
-          const [sumRows] = await pool.query(
-            "SELECT SUM(amount) AS totalPaid FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
-            [invoiceNo]
-          );
-          const totalInstallments = parseFloat(sumRows[0].totalPaid || 0);
-          const totalPaidSoFar = advPayment + totalInstallments;
-
-          if (totalPaidSoFar > rawAmt) {
-            const overpaymentCredit = totalPaidSoFar - rawAmt;
-            await pool.query('UPDATE dst_companies SET creditBalance = creditBalance + ? WHERE code = ?', [overpaymentCredit, companyCode]);
-            console.log(`Credit of $${overpaymentCredit} saved for company ${companyCode}`);
-          }
-        }
-      } catch (creditErr) {
-        console.error('Failed to update company credit balance:', creditErr.message);
-      }
-    }
+    // Reconcile remainingBalance, status, and creditBalance with accurate multi-currency conversion
+    await reconcileInvoicePayments(invoiceNo, saveOverpaymentCredit, companyCode);
 
     // Trigger notification internally to auth-service
     try {
@@ -553,6 +610,9 @@ export const updatePayment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
     }
 
+    const pool = getPool();
+    const [existingRows] = await pool.query('SELECT referenceId FROM dst_payment_history WHERE id = ?', [paymentId]);
+
     await updatePaymentHistoryDB(paymentId, {
       amount: numericAmount,
       currency: currency || 'SAR',
@@ -560,6 +620,10 @@ export const updatePayment = async (req, res, next) => {
       note,
       proofUrl
     });
+
+    if (existingRows.length > 0) {
+      await reconcileInvoicePayments(existingRows[0].referenceId);
+    }
 
     res.status(200).json({
       success: true,
@@ -573,7 +637,15 @@ export const updatePayment = async (req, res, next) => {
 export const deletePayment = async (req, res, next) => {
   const { paymentId } = req.params;
   try {
+    const pool = getPool();
+    const [existingRows] = await pool.query('SELECT referenceId FROM dst_payment_history WHERE id = ?', [paymentId]);
+
     await deletePaymentHistoryDB(paymentId);
+
+    if (existingRows.length > 0) {
+      await reconcileInvoicePayments(existingRows[0].referenceId);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Payment deleted successfully'

@@ -274,3 +274,65 @@ export const deleteAuditLog = async (id: string) => {
   return response.data;
 };
 
+// 18. Banking Gateways & IT API Integration (Super Admin IT Team only)
+export interface BankingGateway {
+  id: string;
+  bankName: string;
+  bankCode: string;
+  country: string;
+  currency: string;
+  environment: 'sandbox' | 'production';
+  clientId: string;
+  clientSecret: string;
+  merchantId: string;
+  channelId: string;
+  baseUrl: string;
+  webhookUrl: string;
+  webhookSecret: string;
+  certificateData?: string;
+  ipWhitelist?: string;
+  isActive: boolean | number;
+  lastPingAt?: string;
+  lastPingLatency?: number;
+  lastPingStatus?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const getBankingGateways = async (): Promise<BankingGateway[]> => {
+  const response = await settingAPI.get('/banking-gateways');
+  return response.data.data;
+};
+
+export const getBankingGatewayById = async (id: string): Promise<BankingGateway> => {
+  const response = await settingAPI.get(`/banking-gateways/${id}`);
+  return response.data.data;
+};
+
+export const createBankingGateway = async (data: Partial<BankingGateway>): Promise<BankingGateway> => {
+  const response = await settingAPI.post('/banking-gateways', data);
+  return response.data.data;
+};
+
+export const updateBankingGateway = async (id: string, data: Partial<BankingGateway>): Promise<BankingGateway> => {
+  const response = await settingAPI.put(`/banking-gateways/${id}`, data);
+  return response.data.data;
+};
+
+export const testBankingGatewayPing = async (id: string): Promise<any> => {
+  const response = await settingAPI.post(`/banking-gateways/${id}/test`);
+  return response.data;
+};
+
+export const getBankingAuditHistory = async (): Promise<SystemAuditLog[]> => {
+  const response = await settingAPI.get('/banking-gateways-history');
+  return response.data.data;
+};
+
+export const getActiveBankingGatewaysSummary = async (): Promise<Partial<BankingGateway>[]> => {
+  const response = await settingAPI.get('/banking-gateways-summary');
+  return response.data.data;
+};
+
+
+

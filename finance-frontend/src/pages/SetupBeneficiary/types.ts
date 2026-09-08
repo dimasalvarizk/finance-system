@@ -1,5 +1,6 @@
 export interface BeneficiaryAccountData {
   id?: string;
+  employeeId?: string;
   bankName: string;
   targetCurrency: string;
   accountHolderName: string;

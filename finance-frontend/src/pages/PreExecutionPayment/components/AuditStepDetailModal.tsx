@@ -224,7 +224,7 @@ Audit Trace ID: ${claimReference}-${log.id}
                   <div className="min-w-0 flex-1">
                     <p className="text-[13.5px] font-bold text-slate-900 truncate">{log.actor}</p>
                     <p className="text-[12px] text-slate-600 font-medium">{log.actorRole}</p>
-                    {log.actorDepartment && (
+                    {log.actorDepartment && log.actorDepartment !== log.actorRole && (
                       <p className="text-[11px] text-slate-400 mt-0.5">{log.actorDepartment}</p>
                     )}
                   </div>

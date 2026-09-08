@@ -10,7 +10,7 @@ export interface ReimbursementClaimSummary {
   bankName: string;
   accountHolderName: string;
   accountNumber: string;
-  status: 'Approved & Ready' | 'Processing' | 'Disbursed';
+  status: 'Approved & Ready' | 'Processing' | 'Disbursed' | 'Paid';
 }
 
 export interface ReimbursementSuccessState {

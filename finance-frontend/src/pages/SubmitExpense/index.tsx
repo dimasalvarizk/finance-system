@@ -8,6 +8,7 @@ import type { ExpenseClaim, ExpenseReceipt } from '../MyExpenses/types';
 import type { UploadedReceiptItem, SubmitSuccessState } from './types';
 import { ExpenseForm } from './components/ExpenseForm';
 import { SubmitSuccessModal } from './components/SubmitSuccessModal';
+import { submitCorporateExpense } from '../../services/expenseService';
 
 const SubmitExpense: React.FC = () => {
   const navigate = useNavigate();
@@ -94,7 +95,7 @@ const SubmitExpense: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -111,7 +112,7 @@ const SubmitExpense: React.FC = () => {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
       const randomSuffix = Math.floor(100 + Math.random() * 900);
       const claimId = `EXP-2026-${randomSuffix}`;
       const dateFormatted = new Date(expenseDate).toLocaleDateString('en-US', {
@@ -136,8 +137,8 @@ const SubmitExpense: React.FC = () => {
         status: 'Pending',
         amount: numAmount,
         currency,
-        department: 'Operations',
-        submittedBy: user?.name || 'Emad Moustafa',
+        department: user?.department || 'Operations',
+        submittedBy: user?.name || 'Administrator',
         receiptsCount: processedReceipts.length,
         receiptName: processedReceipts[0]?.name || undefined,
         receipts: processedReceipts,
@@ -145,7 +146,7 @@ const SubmitExpense: React.FC = () => {
         approvalTimeline: [
           {
             step: 'Claim Submitted',
-            approver: user?.name || 'Emad Moustafa',
+            approver: user?.name || 'Administrator',
             status: 'completed',
             date: `${dateFormatted} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
           },
@@ -155,24 +156,52 @@ const SubmitExpense: React.FC = () => {
         ]
       };
 
+      // Call backend API
+      try {
+        await submitCorporateExpense({
+          claimId,
+          projectRef: projectRef || undefined,
+          category: expenseCategory,
+          currency,
+          amount: numAmount,
+          expenseDate,
+          description: description.trim(),
+          bankName,
+          bankAccountNumber,
+          bankAccountHolder: user?.name || 'Administrator',
+          receipts: processedReceipts,
+          submittedByName: user?.name || 'Administrator',
+          submittedByEmail: user?.email || undefined,
+          department: user?.department || 'Operations',
+          notes: projectRef ? `Mission Project Code: ${projectRef}` : undefined
+        });
+      } catch (backendErr) {
+        console.warn('Backend expense-service not available, cached locally:', backendErr);
+      }
+
+      // Keep offline/local storage synchronized
       try {
         const existing = localStorage.getItem('finance_my_expenses_v2') || localStorage.getItem('finance_my_expenses');
         const parsed: ExpenseClaim[] = existing ? JSON.parse(existing) : [];
         const updated = [newClaim, ...parsed];
         localStorage.setItem('finance_my_expenses_v2', JSON.stringify(updated));
         localStorage.setItem('finance_my_expenses', JSON.stringify(updated));
-      } catch (err) {
-        console.error('Error saving claim', err);
+      } catch (storageErr) {
+        console.error('Error saving claim locally:', storageErr);
       }
 
-      setIsSubmitting(false);
       setSuccessModalData({ isOpen: true, claimId });
 
       // Reset form fields
       setDescription('');
       setAmount('500000');
       setReceiptFiles([]);
-    }, 600);
+    } catch (err: any) {
+      console.error('Error submitting claim:', err);
+      setErrorMessage(err?.response?.data?.message || err?.message || 'Gagal mengirim pengajuan pengeluaran.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

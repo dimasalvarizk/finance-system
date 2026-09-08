@@ -13,13 +13,14 @@ import { PermissionMatrixTab } from './components/PermissionMatrixTab';
 import { AuditLogsTab } from './components/AuditLogsTab';
 import { DataBackupTab } from './components/DataBackupTab';
 import { SystemMaintenanceTab } from './components/SystemMaintenanceTab';
+import { BankingApiIntegrationTab } from './components/BankingApiIntegrationTab';
 import { isSuperAdminUser } from '../../utils/superAdminAuth';
 
 const SuperAdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'permissions' | 'audit_logs' | 'data_backup' | 'maintenance'>('permissions');
+  const [activeTab, setActiveTab] = useState<'permissions' | 'audit_logs' | 'data_backup' | 'maintenance' | 'banking_api'>('permissions');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -162,6 +163,16 @@ const SuperAdminDashboard: React.FC = () => {
             >
               {t('superAdmin.tabs.systemMaintenance')}
             </button>
+            <button
+              onClick={() => setActiveTab('banking_api')}
+              className={`pb-3 px-4 text-xs font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap ${
+                activeTab === 'banking_api'
+                  ? 'border-[#1d2857] text-[#1d2857]'
+                  : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              {t('superAdmin.tabs.bankingApi')}
+            </button>
           </div>
 
           {/* Tab Content */}
@@ -183,6 +194,8 @@ const SuperAdminDashboard: React.FC = () => {
           {activeTab === 'data_backup' && <DataBackupTab />}
 
           {activeTab === 'maintenance' && <SystemMaintenanceTab />}
+
+          {activeTab === 'banking_api' && <BankingApiIntegrationTab />}
         </div>
       </main>
     </div>

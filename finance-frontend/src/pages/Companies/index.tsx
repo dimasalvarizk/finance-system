@@ -70,7 +70,7 @@ import {
   Building2,
   Trash2
 } from "lucide-react";
-import { getCompanies, createCompany, updateCompany, getInvoices, deleteCompany } from "../../services/invoiceService";
+import { getCompanies, createCompany, updateCompany, getInvoices, deleteCompany, updateCompanyCreditBalance } from "../../services/invoiceService";
 import NetworkErrorState from "../../components/ui/NetworkErrorState";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -727,7 +727,9 @@ const Companies: React.FC = () => {
                           {c.taxNumber}
                         </td>
                         <td className="py-4 px-4 text-[13px] font-bold text-emerald-600 font-mono">
-                          {c.creditBalance ? `$${parseFloat(String(c.creditBalance)).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '$0.00'}
+                          {c.creditBalance && parseFloat(String(c.creditBalance)) > 0
+                            ? `SAR ${parseFloat(String(c.creditBalance)).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+                            : 'SAR 0.00'}
                         </td>
                         <td className="py-4 px-4 text-center">
                           <div className="flex items-center justify-center space-x-2.5">
@@ -1138,6 +1140,36 @@ const Companies: React.FC = () => {
               <div>
                 <span className="text-slate-400 block text-[11px] font-medium uppercase tracking-wider mb-1 font-sans">{t('companies.agent')}</span>
                 <span className="font-medium text-[#1e293b] text-[14px] font-sans">{selectedCompany.agent || "N/A"}</span>
+              </div>
+
+              <div className="bg-emerald-50/70 border border-emerald-100/90 rounded-xl p-3.5 flex items-center justify-between">
+                <div>
+                  <span className="text-emerald-800 block text-[11px] font-bold uppercase tracking-wider mb-0.5 font-sans">
+                    {t('companies.creditBalance') || 'Credit Balance (Saldo Kredit)'}
+                  </span>
+                  <span className="font-extrabold text-emerald-700 text-[15px] font-mono">
+                    SAR {parseFloat(String(selectedCompany.creditBalance || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                {parseFloat(String(selectedCompany.creditBalance || 0)) > 0 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (window.confirm(`Reset saldo kredit untuk ${selectedCompany.name} ke SAR 0.00?`)) {
+                        try {
+                          await updateCompanyCreditBalance(selectedCompany.code, 0, 'set');
+                          setSelectedCompany(prev => prev ? { ...prev, creditBalance: 0 } : null);
+                          setCompanies(prev => prev.map(c => c.code === selectedCompany.code ? { ...c, creditBalance: 0 } : c));
+                        } catch (err: any) {
+                          alert(err.message || 'Failed to reset credit');
+                        }
+                      }
+                    }}
+                    className="px-2.5 py-1 text-[11px] font-bold text-emerald-800 bg-white hover:bg-emerald-100/60 rounded-lg border border-emerald-200 transition-all cursor-pointer shadow-2xs"
+                  >
+                    Reset Saldo
+                  </button>
+                )}
               </div>
             </div>
 

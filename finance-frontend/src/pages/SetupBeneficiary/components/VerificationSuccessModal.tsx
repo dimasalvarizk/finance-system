@@ -33,10 +33,13 @@ export const VerificationSuccessModal: React.FC<VerificationSuccessModalProps> =
 
         <div className="space-y-2">
           <h3 className="text-[19px] font-bold text-slate-900">
-            {t('setupBeneficiary.accountVerified') || 'Beneficiary Account Verified!'}
+            {t('setupBeneficiary.accountVerified')}
           </h3>
           <p className="text-[13px] text-slate-500 leading-relaxed">
-            Bank account credentials for <span className="font-bold text-slate-800">{data.accountHolderName}</span> at <span className="font-bold text-slate-800">{data.bankName}</span> have been verified and saved for instant reimbursement settlement.
+            {t('setupBeneficiary.modalVerifiedDesc', {
+              name: data.accountHolderName,
+              bank: data.bankName
+            })}
           </p>
         </div>
 
@@ -48,7 +51,7 @@ export const VerificationSuccessModal: React.FC<VerificationSuccessModalProps> =
             }}
             className="w-full py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[13px] rounded-xl shadow-sm transition-all cursor-pointer"
           >
-            {t('initiateReimbursement.title') || 'Proceed to Reimbursement'}
+            {t('setupBeneficiary.proceedToReimbursement')}
           </button>
           <button
             onClick={() => {
@@ -57,7 +60,7 @@ export const VerificationSuccessModal: React.FC<VerificationSuccessModalProps> =
             }}
             className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[13px] rounded-xl transition-all cursor-pointer"
           >
-            {t('requests.backToListing') || 'Approvals Dashboard'}
+            {t('approvals.title')}
           </button>
         </div>
       </div>

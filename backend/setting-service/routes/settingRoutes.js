@@ -14,7 +14,9 @@ import {
   getRoomTypes, createRoomType, updateRoomType, deleteRoomType,
   getMealTypes, createMealType, updateMealType, deleteMealType,
   exportFullDatabaseBackup, logBackupHistory, getBackupHistory,
-  updateUserPermissions, getAuditLogs, createManualAuditLog, updateAuditLog, deleteAuditLog
+  updateUserPermissions, getAuditLogs, createManualAuditLog, updateAuditLog, deleteAuditLog,
+  getBankingGateways, getBankingGatewayById, createBankingGateway, updateBankingGateway, testBankingGatewayHandshake, getBankingAuditHistory,
+  getActiveBankingGatewaysSummary
 } from '../controllers/settingController.js';
 import { protect, restrictTo, isSuperAdmin } from '../middleware/authMiddleware.js';
 
@@ -98,5 +100,14 @@ router.get('/audit-logs', isSuperAdmin, getAuditLogs);
 router.post('/audit-logs', isSuperAdmin, createManualAuditLog);
 router.put('/audit-logs/:id', isSuperAdmin, updateAuditLog);
 router.delete('/audit-logs/:id', isSuperAdmin, deleteAuditLog);
+
+// 15. Banking Gateways & IT API Integration
+router.get('/banking-gateways-summary', getActiveBankingGatewaysSummary);
+router.get('/banking-gateways', isSuperAdmin, getBankingGateways);
+router.get('/banking-gateways-history', isSuperAdmin, getBankingAuditHistory);
+router.get('/banking-gateways/:id', isSuperAdmin, getBankingGatewayById);
+router.post('/banking-gateways', isSuperAdmin, createBankingGateway);
+router.put('/banking-gateways/:id', isSuperAdmin, updateBankingGateway);
+router.post('/banking-gateways/:id/test', isSuperAdmin, testBankingGatewayHandshake);
 
 export default router;

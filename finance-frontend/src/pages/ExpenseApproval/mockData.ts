@@ -9,15 +9,15 @@ export const DEFAULT_CLAIM_DETAIL: ApprovalClaimDetail = {
   category: 'Mission Meals',
   missionReference: 'PRJ-RYD-2024',
   amount: 500000,
-  currency: 'Rp',
+  currency: 'RP',
   dateSubmitted: 'Oct 24, 2026',
-  bankName: 'Danamon',
-  bankAccountNumber: '00000000000000',
+  bankName: 'Bank Danamon',
+  bankAccountNumber: '00360098129033',
   status: 'In Review',
   workflowSteps: [
-    { stepNumber: 1, approver: 'Mr.Hesham Mokhtar', role: 'Finance Director', isApproved: true, date: 'Oct 24, 2026 10:15' },
-    { stepNumber: 2, approver: 'Mr.Khalid Idriss', role: 'Branch General Manager', isApproved: false },
-    { stepNumber: 3, approver: 'Mr.Emad Moustafa', role: 'Internal Auditor / Treasury', isApproved: false }
+    { stepNumber: 1, approver: 'Mr. Hesham Mokhtar', role: 'Finance Director', isApproved: true, date: 'Oct 24, 2026 10:15' },
+    { stepNumber: 2, approver: 'Mr. Khalid Idriss', role: 'Branch General Manager', isApproved: true, date: 'Oct 24, 2026 11:30' },
+    { stepNumber: 3, approver: 'Mr. Emad Moustafa', role: 'Financial Controller / Treasury', isApproved: false }
   ],
   receiptVendor: {
     name: 'GRAND REEF CATERING',
@@ -30,7 +30,8 @@ export const DEFAULT_CLAIM_DETAIL: ApprovalClaimDetail = {
       { name: 'Service Charge', amount: 100000 }
     ],
     total: 500000,
-    paymentMethod: 'PAID VIA CREDIT CARD (xxxx-4231)',
+    paymentMethod: 'PAID VIA BANK DANAMON (00360098129033)',
     footerNote: 'Thank you for dining with us'
   }
 };
+

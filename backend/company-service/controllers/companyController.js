@@ -112,14 +112,14 @@ export const deleteCompany = async (req, res, next) => {
 
 export const updateCompanyCredit = async (req, res, next) => {
   const { code } = req.params;
-  const { creditAmount } = req.body;
+  const { creditAmount, mode } = req.body;
   try {
     const numericCredit = parseFloat(creditAmount);
-    if (isNaN(numericCredit) || numericCredit <= 0) {
-      return res.status(400).json({ success: false, message: 'creditAmount must be a positive number' });
+    if (isNaN(numericCredit) || (mode !== 'set' && numericCredit < 0)) {
+      return res.status(400).json({ success: false, message: 'creditAmount must be a valid number' });
     }
 
-    await updateCompanyCreditDB(code, numericCredit);
+    await updateCompanyCreditDB(code, numericCredit, mode || 'add');
 
     res.status(200).json({
       success: true,

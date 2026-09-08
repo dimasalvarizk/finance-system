@@ -38,7 +38,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-7 sm:p-9 space-y-7 w-full mx-auto">
       <h2 className="text-[17px] font-bold text-slate-900 tracking-tight">
-        {t('preExecutionPayment.reviewTitle') || 'Transaction Review'}
+        {t('preExecutionPayment.reviewTitle')}
       </h2>
 
       {/* Account Route Flow Diagram */}
@@ -50,7 +50,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
           </div>
           <div className="space-y-0.5">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              {t('initiateReimbursement.fundingSource') || 'DEBIT ACCOUNT (SENDER)'}
+              {t('preExecutionPayment.debitAccountSender')}
             </span>
             <p className="text-[14px] font-bold text-slate-900">
               {data.debitBank}
@@ -73,7 +73,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
           </div>
           <div className="space-y-0.5">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              {t('initiateReimbursement.beneficiaryDetails') || 'CREDIT ACCOUNT (RECIPIENT)'}
+              {t('preExecutionPayment.creditAccountRecipient')}
             </span>
             <p className="text-[14px] font-bold text-slate-900">
               {data.creditEmployee} ({data.creditBank})
@@ -98,7 +98,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
 
         <div>
           <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">
-            SETTLEMENT ROUTE
+            {t('preExecutionPayment.settlementRoute')}
           </span>
           <span className="text-[13.5px] font-bold text-slate-900">
             {data.settlementRoute}
@@ -107,7 +107,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
 
         <div>
           <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">
-            ESTIMATED SPEED
+            {t('preExecutionPayment.estimatedSpeed')}
           </span>
           <span className="text-[13.5px] font-bold text-emerald-600">
             {data.estimatedSpeed}
@@ -119,7 +119,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
         {/* Two-Factor Authentication OTP */}
         <div className="space-y-2">
           <label className="text-[12.5px] font-bold text-slate-800 block">
-            {t('preExecutionPayment.enterOtp') || 'Two-Factor Authentication (OTP Code)'}
+            {t('preExecutionPayment.enterOtp')}
           </label>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <input
@@ -127,17 +127,26 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
               value={otp}
               maxLength={6}
               onChange={(e) => setOtp(e.target.value)}
-              placeholder={t('preExecutionPayment.otpPlaceholder') || '6-digit OTP'}
+              placeholder={t('preExecutionPayment.otpPlaceholder')}
               className="w-48 px-4 py-2 bg-white border-2 border-blue-500 rounded-xl text-[16px] font-mono font-bold text-blue-700 tracking-widest text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <div className="text-[11.5px] text-slate-500 space-y-0.5">
-              <p>OTP sent to financial controller & Chief Accountant's mobile phone.</p>
+              <p>
+                {t('preExecutionPayment.otpSentTo', {
+                  chiefAccountant: data.chiefAccountantName || 'Mr. Hesham Mokhtar',
+                  chiefAccountantRole: data.chiefAccountantRole || 'Chief Accountant',
+                  controller: data.controllerName || 'Emad Moustafa',
+                  controllerRole: data.controllerRole || 'Super Admin'
+                })}
+              </p>
               <a
                 href="#resend"
                 onClick={handleResend}
                 className="text-blue-600 font-semibold hover:underline cursor-pointer"
               >
-                {countdown > 0 ? `Resend code (${countdown}s)` : 'Resend code now'}
+                {countdown > 0
+                  ? t('preExecutionPayment.resendCodeSec', { sec: countdown })
+                  : t('preExecutionPayment.resendCodeNow')}
               </a>
             </div>
           </div>
@@ -153,10 +162,9 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
               className="w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 mt-0.5 cursor-pointer"
             />
             <span className="text-[12px] text-slate-600 leading-relaxed font-medium">
-              I verify that the above details conform exactly to approved invoice{' '}
-              <span className="font-bold text-slate-900">{data.invoiceVendor}</span>, VAT ID{' '}
-              <span className="font-mono text-slate-800">{data.invoiceVatId}</span>, for{' '}
-              <span className="font-bold text-slate-900">{formatAmount(data.amount, data.currency)}</span>
+              {t('preExecutionPayment.verifyInvoiceCheckbox', {
+                amount: formatAmount(data.amount, data.currency)
+              })}
             </span>
           </label>
         </div>
@@ -169,7 +177,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
           onClick={onBack}
           className="text-[13px] font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
         >
-          {t('requests.backToListing') || 'Back to Claim'}
+          {t('preExecutionPayment.backToClaim')}
         </button>
 
         <button
@@ -178,7 +186,7 @@ export const PreExecutionReviewCard: React.FC<PreExecutionReviewCardProps> = ({
           disabled={!isVerifiedCheck || otp.length < 4}
           className="px-6 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl text-[13px] shadow-sm hover:shadow transition-all cursor-pointer disabled:opacity-50"
         >
-          {t('preExecutionPayment.confirmAuthorize') || 'Confirm & Execute Payment'}
+          {t('preExecutionPayment.confirmAuthorize')}
         </button>
       </div>
     </div>

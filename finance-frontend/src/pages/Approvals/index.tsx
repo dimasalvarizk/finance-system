@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 import type { ApprovedExpenseItem, ActionSuccessPayload } from './types';
-import { INITIAL_APPROVED_EXPENSES } from './mockData';
 import { ApprovalStatCards } from './components/ApprovalStatCards';
 import { ApprovalTable } from './components/ApprovalTable';
 import { ClaimAuditModal } from './components/ClaimAuditModal';
@@ -11,28 +11,29 @@ import { AddToPayrollModal } from './components/AddToPayrollModal';
 import { BulkDeleteModal } from './components/BulkDeleteModal';
 import { BankTransferModal } from './components/BankTransferModal';
 import { ActionSuccessModal } from './components/ActionSuccessModal';
+import { useAuth } from '../../context/AuthContext';
+import { checkIsAuthorizedApprover } from '../../utils/approvalPermissions';
+import {
+  getCorporateExpenses,
+  bulkActionCorporateExpenses
+} from '../../services/expenseService';
 
 const Approvals: React.FC = () => {
   const { t } = useTranslation();
-  const [items, setItems] = useState<ApprovedExpenseItem[]>(() => {
-    const saved = localStorage.getItem('finance_approved_expenses_v3') || localStorage.getItem('finance_approved_expenses');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 12) {
-          return parsed;
-        }
-      } catch {
-        return INITIAL_APPROVED_EXPENSES;
-      }
-    }
-    return INITIAL_APPROVED_EXPENSES;
-  });
+  const { user } = useAuth();
 
-  const [selectedIds, setSelectedIds] = useState<string[]>(['1', '2']);
+  const { isAuthorizedApprover } = useMemo(() => {
+    return checkIsAuthorizedApprover(user);
+  }, [user]);
+
+  const [items, setItems] = useState<ApprovedExpenseItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = 5;
 
   // Modals state
   const [selectedClaimDetail, setSelectedClaimDetail] = useState<ApprovedExpenseItem | null>(null);
@@ -44,12 +45,88 @@ const Approvals: React.FC = () => {
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [actionSuccessData, setActionSuccessData] = useState<ActionSuccessPayload | null>(null);
 
-
-  const saveItems = (updated: ApprovedExpenseItem[]) => {
-    setItems(updated);
-    localStorage.setItem('finance_approved_expenses_v3', JSON.stringify(updated));
-    localStorage.setItem('finance_approved_expenses', JSON.stringify(updated));
+  const computeApprovalChain = (d: any): string => {
+    if (d.status === 'Paid' || d.status === 'Disbursed') {
+      return 'Disbursed';
+    }
+    if (Array.isArray(d.approvalTimeline) && d.approvalTimeline.length > 0) {
+      const completedCount = d.approvalTimeline.filter((s: any) => s.status === 'completed').length;
+      const count = Math.min(Math.max(completedCount, 1), 3);
+      return `${count}/3 Approved`;
+    }
+    if (d.status === 'Approved' || d.status === 'Ready for Payment') {
+      return '2/3 Approved';
+    }
+    if (d.status === 'Mr. Hesham Review') {
+      return '2/3 Approved';
+    }
+    if (d.status === 'Mr. Khalid Review' || d.status === 'Mr.Khalid Review') {
+      return '1/3 Approved';
+    }
+    if (d.status === 'Pending') {
+      return '1/3 Approved';
+    }
+    if (d.status === 'Rejected') {
+      return 'Rejected';
+    }
+    if (typeof d.approvalChain === 'string' && d.approvalChain.includes('/3')) {
+      return d.approvalChain;
+    }
+    return '2/3 Approved';
   };
+
+  const fetchApprovalClaims = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      const data = await getCorporateExpenses().catch(() => null);
+      if (data && Array.isArray(data)) {
+        const mapped: ApprovedExpenseItem[] = data.map((d: any) => ({
+          id: String(d.id || d.claimId),
+          claimId: d.claimId || `EXP-${d.id}`,
+          employee: d.submittedByName || d.submittedBy || 'Administrator',
+          employeeId: d.submittedById || 'EMP-101',
+          department: d.department || 'Operations',
+          reason: d.description || d.reason || 'Corporate Expense',
+          category: d.category || 'General',
+          approvedDate: d.expenseDate || d.submitDate || 'N/A',
+          approvalChain: computeApprovalChain(d),
+          amount: parseFloat(d.amount) || 0,
+          currency: d.currency || 'RP',
+          bankName: d.bankName || 'Bank Danamon',
+          bankAccountNumber: d.bankAccountNumber || '0000000000000000',
+          status: d.status === 'Paid'
+            ? 'Disbursed'
+            : d.disbursementMethod === 'Payroll'
+            ? 'Queued for Payroll'
+            : 'Ready for Payment',
+          receiptsCount: d.receiptsCount || (d.receipts ? d.receipts.length : 0),
+          receiptName: d.receipts && d.receipts[0]?.name,
+          notes: d.notes
+        }));
+        setItems(mapped);
+      } else {
+        const localSaved = localStorage.getItem('finance_approved_expenses_v3') || localStorage.getItem('finance_approved_expenses');
+        if (localSaved) {
+          try {
+            const parsed = JSON.parse(localSaved);
+            if (Array.isArray(parsed)) setItems(parsed);
+          } catch {
+            setItems([]);
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Error fetching approval expenses:', err);
+      setErrorMessage(err?.message || 'Gagal memuat antrean persetujuan.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchApprovalClaims();
+  }, [fetchApprovalClaims]);
 
   // Active Ready for Payment Queue
   const readyItems = useMemo(() => {
@@ -61,11 +138,11 @@ const Approvals: React.FC = () => {
     if (!q) return readyItems;
     return readyItems.filter(
       (item) =>
-        item.claimId.toLowerCase().includes(q) ||
-        item.employee.toLowerCase().includes(q) ||
-        item.department.toLowerCase().includes(q) ||
-        item.reason.toLowerCase().includes(q) ||
-        item.bankName.toLowerCase().includes(q) ||
+        (item.claimId && item.claimId.toLowerCase().includes(q)) ||
+        (item.employee && item.employee.toLowerCase().includes(q)) ||
+        (item.department && item.department.toLowerCase().includes(q)) ||
+        (item.reason && item.reason.toLowerCase().includes(q)) ||
+        (item.bankName && item.bankName.toLowerCase().includes(q)) ||
         String(item.amount).includes(q)
     );
   }, [readyItems, searchQuery]);
@@ -84,9 +161,9 @@ const Approvals: React.FC = () => {
     return selectedItems.reduce((sum, item) => sum + item.amount, 0);
   }, [selectedItems]);
 
-  // Top Metrics
+  // Top Metrics from Real DB Data
   const awaitingPaymentCount = readyItems.length;
-  const processedYTDCount = 114 + items.filter((item) => item.status !== 'Ready for Payment').length;
+  const processedYTDCount = items.filter((item) => item.status !== 'Ready for Payment').length;
   const totalPendingPayoutAmount = readyItems.reduce((sum, item) => sum + item.amount, 0);
 
   const formatAmount = (num: number, curr: string = 'RP') => {
@@ -118,68 +195,89 @@ const Approvals: React.FC = () => {
   };
 
   // Action: Add to Payroll
-  const handleConfirmAddToPayroll = () => {
+  const handleConfirmAddToPayroll = async () => {
     setIsProcessingAction(true);
-    setTimeout(() => {
-      const updated = items.map((item) => {
-        if (selectedIds.includes(item.id)) {
-          return { ...item, status: 'Queued for Payroll' as const };
-        }
-        return item;
+    try {
+      await bulkActionCorporateExpenses({
+        action: 'payroll',
+        ids: selectedIds,
+        payrollPeriod
       });
-      saveItems(updated);
-      setIsProcessingAction(false);
+      setItems((prev) =>
+        prev.map((item) =>
+          selectedIds.includes(item.id) ? { ...item, status: 'Queued for Payroll' as const } : item
+        )
+      );
       setIsPayrollModalOpen(false);
-      setSelectedIds([]);
       setActionSuccessData({
         isOpen: true,
         title: 'Queued to Payroll Successfully!',
         message: `${selectedItems.length} claim(s) totaling ${formatAmount(selectedTotalAmount)} have been successfully scheduled into the ${payrollPeriod}.`,
         type: 'payroll'
       });
-    }, 500);
+      setSelectedIds([]);
+    } catch (err: any) {
+      console.error('Error adding to payroll:', err);
+      alert('Gagal memproses klaim ke payroll: ' + (err?.message || 'Server error'));
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
   // Action: Transfer to Bank
-  const handleConfirmBankTransfer = () => {
+  const handleConfirmBankTransfer = async () => {
     setIsProcessingAction(true);
-    setTimeout(() => {
-      const updated = items.map((item) => {
-        if (selectedIds.includes(item.id)) {
-          return { ...item, status: 'Disbursed' as const };
-        }
-        return item;
+    try {
+      await bulkActionCorporateExpenses({
+        action: 'bank_transfer',
+        ids: selectedIds,
+        transferRef
       });
-      saveItems(updated);
-      setIsProcessingAction(false);
+      setItems((prev) =>
+        prev.map((item) =>
+          selectedIds.includes(item.id) ? { ...item, status: 'Disbursed' as const } : item
+        )
+      );
       setIsBankTransferModalOpen(false);
-      setSelectedIds([]);
       setActionSuccessData({
         isOpen: true,
         title: 'Bank Disbursement Dispatched!',
         message: `Corporate transfer batch ${transferRef} of ${formatAmount(selectedTotalAmount)} for ${selectedItems.length} recipient(s) has been transmitted to the bank payment gateway.`,
         type: 'bank'
       });
-    }, 600);
+      setSelectedIds([]);
+    } catch (err: any) {
+      console.error('Error in bank transfer:', err);
+      alert('Gagal memproses transfer bank: ' + (err?.message || 'Server error'));
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
   // Action: Bulk Delete Selected Claims
-  const handleConfirmBulkDelete = () => {
+  const handleConfirmBulkDelete = async () => {
     setIsProcessingAction(true);
-    setTimeout(() => {
+    try {
+      await bulkActionCorporateExpenses({
+        action: 'delete',
+        ids: selectedIds
+      });
       const deletedCount = selectedItems.length;
-      const updated = items.filter((item) => !selectedIds.includes(item.id));
-      saveItems(updated);
-      setIsProcessingAction(false);
+      setItems((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
       setIsBulkDeleteModalOpen(false);
-      setSelectedIds([]);
       setActionSuccessData({
         isOpen: true,
         title: 'Claims Deleted Successfully!',
         message: `${deletedCount} claim(s) have been permanently removed from the payment queue.`,
         type: 'bank'
       });
-    }, 400);
+      setSelectedIds([]);
+    } catch (err: any) {
+      console.error('Error deleting claims:', err);
+      alert('Gagal menghapus klaim: ' + (err?.message || 'Server error'));
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
   return (
@@ -190,14 +288,32 @@ const Approvals: React.FC = () => {
 
         <div className="flex-1 p-8 space-y-7 max-w-[1400px] w-full mx-auto">
           {/* Top Header Banner */}
-          <div className="space-y-1">
-            <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">
-              {t('approvals.title') || 'Finance Processing Dashboard'}
-            </h1>
-            <p className="text-[13px] text-[#64748b] font-medium">
-              {t('approvals.subtitle') || 'Audit approved claims, prepare bank disbursements, export validated listings to your ERP'}
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">
+                {t('approvals.title') || 'Finance Processing Dashboard'}
+              </h1>
+              <p className="text-[13px] text-[#64748b] font-medium">
+                {t('approvals.subtitle') || 'Audit approved claims, prepare bank disbursements, export validated listings to your ERP'}
+              </p>
+            </div>
+
+            <button
+              onClick={fetchApprovalClaims}
+              disabled={loading}
+              title="Refresh Data"
+              className="p-2.5 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50 self-start sm:self-auto"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : ''}`} />
+            </button>
           </div>
+
+          {errorMessage && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           {/* 3 Stat Cards */}
           <ApprovalStatCards
@@ -217,36 +333,44 @@ const Approvals: React.FC = () => {
             setCurrentPage={setCurrentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
+            isAuthorized={isAuthorizedApprover}
             onSelectAll={handleSelectAll}
             onToggleRow={handleToggleRow}
-            onOpenClaimDetail={(item) => setSelectedClaimDetail(item)}
-            onOpenPayrollModal={() => setIsPayrollModalOpen(true)}
-            onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
+            onOpenPayrollModal={() => {
+              if (!isAuthorizedApprover) {
+                alert('Akses Ditolak: Hanya 3 pejabat persetujuan resmi (Mr. Hesham Mokhtar, Mr. Khalid Idriss, Mr. Emad Moustafa) yang dapat memproses klaim ke payroll.');
+                return;
+              }
+              setIsPayrollModalOpen(true);
+            }}
             onOpenBankTransferModal={() => {
-              setTransferRef(`TRF-DISB-${Date.now().toString().slice(-6)}`);
+              if (!isAuthorizedApprover) {
+                alert('Akses Ditolak: Hanya 3 pejabat persetujuan resmi (Mr. Hesham Mokhtar, Mr. Khalid Idriss, Mr. Emad Moustafa) yang dapat memproses transfer bank.');
+                return;
+              }
               setIsBankTransferModalOpen(true);
             }}
+            onOpenBulkDeleteModal={() => {
+              if (!isAuthorizedApprover) {
+                alert('Akses Ditolak: Hanya pejabat berwenang yang dapat menghapus klaim persetujuan.');
+                return;
+              }
+              setIsBulkDeleteModalOpen(true);
+            }}
+            onOpenClaimDetail={(item) => setSelectedClaimDetail(item)}
             formatAmount={formatAmount}
           />
         </div>
       </main>
 
-      {/* Modals */}
+      {/* Claim Audit Modal */}
       <ClaimAuditModal
         item={selectedClaimDetail}
         onClose={() => setSelectedClaimDetail(null)}
         formatAmount={formatAmount}
       />
 
-      <BulkDeleteModal
-        isOpen={isBulkDeleteModalOpen}
-        onClose={() => setIsBulkDeleteModalOpen(false)}
-        selectedItems={selectedItems}
-        isProcessing={isProcessingAction}
-        onConfirm={handleConfirmBulkDelete}
-        formatAmount={formatAmount}
-      />
-
+      {/* Action Modals */}
       <AddToPayrollModal
         isOpen={isPayrollModalOpen}
         onClose={() => setIsPayrollModalOpen(false)}
@@ -271,6 +395,16 @@ const Approvals: React.FC = () => {
         formatAmount={formatAmount}
       />
 
+      <BulkDeleteModal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        selectedItems={selectedItems}
+        isProcessing={isProcessingAction}
+        onConfirm={handleConfirmBulkDelete}
+        formatAmount={formatAmount}
+      />
+
+      {/* Success Notification Modal */}
       <ActionSuccessModal
         data={actionSuccessData}
         onClose={() => setActionSuccessData(null)}
@@ -278,6 +412,5 @@ const Approvals: React.FC = () => {
     </div>
   );
 };
-
 
 export default Approvals;

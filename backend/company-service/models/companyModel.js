@@ -53,8 +53,12 @@ export const deleteCompanyDB = async (code) => {
   return { success: true };
 };
 
-export const updateCompanyCreditDB = async (code, creditAmount) => {
+export const updateCompanyCreditDB = async (code, creditAmount, mode = 'add') => {
   const pool = getPool();
-  await pool.query('UPDATE dst_companies SET creditBalance = creditBalance + ? WHERE code = ?', [creditAmount, code.toUpperCase()]);
+  if (mode === 'set') {
+    await pool.query('UPDATE dst_companies SET creditBalance = ? WHERE code = ?', [Math.max(0, creditAmount), code.toUpperCase()]);
+  } else {
+    await pool.query('UPDATE dst_companies SET creditBalance = creditBalance + ? WHERE code = ?', [creditAmount, code.toUpperCase()]);
+  }
   return { success: true };
 };
