@@ -429,6 +429,14 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
                 <span style="color:#475569; font-weight:500; text-align:right;">${referenceNo}</span>
                 <span class="meta-lbl">Serial:</span>
                 <span style="color:#475569; font-weight:500; text-align:right;">${serialNo}</span>
+                ${(details.group_number || details.groupNumber) ? `
+                <span class="meta-lbl">Group Number:</span>
+                <span class="meta-val">${details.group_number || details.groupNumber}</span>
+                ` : ''}
+                ${details.nationality ? `
+                <span class="meta-lbl">Nationality:</span>
+                <span class="meta-val">${details.nationality}</span>
+                ` : ''}
               </div>
             </div>
           </div>
@@ -522,7 +530,7 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
             <div class="pay-card">
               <div class="pay-row">
                 <span class="pay-row-lbl">Bank Name:</span>
-                <span class="pay-row-val">${companySettings.bankName || 'PT Bank Danamon Indonesia, Tbk'}</span>
+                <span class="pay-row-val">${companySettings.bankName || 'PT Bank Negara Indonesia (Persero) Tbk'}</span>
               </div>
               <div class="pay-row">
                 <span class="pay-row-lbl">Account Name:</span>
@@ -826,6 +834,16 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
                 <p style="color: #94a3b8; font-size: 9px;">Status</p>
                 <p style="font-weight: 700; color: #1e293b; font-size: 11px; text-transform: uppercase;">CONFIRMED</p>
               </div>
+              ${(details.group_number || details.groupNumber) ? `
+              <div>
+                <p style="color: #94a3b8; font-size: 9px;">Group Number</p>
+                <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${details.group_number || details.groupNumber}</p>
+              </div>` : ''}
+              ${details.nationality ? `
+              <div>
+                <p style="color: #94a3b8; font-size: 9px;">Nationality</p>
+                <p style="font-weight: 700; color: #1e293b; font-size: 11px;">${details.nationality}</p>
+              </div>` : ''}
             </div>
           </div>
 
@@ -876,7 +894,7 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
             <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">PAYMENT INSTRUCTIONS</div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">Bank Name:</span>
-              <span style="font-weight: 700; color: #1e293b;">${companySettings.bankName || 'PT Bank Danamon Indonesia, Tbk'}</span>
+              <span style="font-weight: 700; color: #1e293b;">${companySettings.bankName || 'PT Bank Negara Indonesia (Persero) Tbk'}</span>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">Account Name:</span>

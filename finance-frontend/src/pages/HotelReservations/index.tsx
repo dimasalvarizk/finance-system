@@ -90,6 +90,9 @@ export interface Booking {
   custom_tax_number?: string | null;
   custom_city_country?: string | null;
   isCustomClient?: boolean;
+  group_number?: string | null;
+  groupNumber?: string | null;
+  nationality?: string | null;
 }
 
 // Client Company Directory untuk dropdown Bill To

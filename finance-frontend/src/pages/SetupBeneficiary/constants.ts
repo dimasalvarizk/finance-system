@@ -14,6 +14,30 @@ export interface BankConfig {
 }
 
 export const BANK_CONFIGS: Record<string, BankConfig> = {
+  'Bank Negara Indonesia (BNI)': {
+    name: 'Bank Negara Indonesia (BNI)',
+    country: 'Indonesia',
+    currency: 'Indonesian Rupiah (IDR / RP)',
+    currencyCode: 'IDR',
+    swiftCode: 'BNINIDJA',
+    bankBranch: 'Grha BNI, Jl. Jend. Sudirman Kav. 1, Jakarta Pusat',
+    accountLengthMin: 10,
+    accountLengthMax: 10,
+    isIbanRequired: false,
+    bankCode: '009'
+  },
+  'Bank BNI': {
+    name: 'Bank BNI',
+    country: 'Indonesia',
+    currency: 'Indonesian Rupiah (IDR / RP)',
+    currencyCode: 'IDR',
+    swiftCode: 'BNINIDJA',
+    bankBranch: 'Grha BNI, Jl. Jend. Sudirman Kav. 1, Jakarta Pusat',
+    accountLengthMin: 10,
+    accountLengthMax: 10,
+    isIbanRequired: false,
+    bankCode: '009'
+  },
   'Bank Danamon': {
     name: 'Bank Danamon',
     country: 'Indonesia',
@@ -49,18 +73,6 @@ export const BANK_CONFIGS: Record<string, BankConfig> = {
     accountLengthMax: 13,
     isIbanRequired: false,
     bankCode: '008'
-  },
-  'Bank Negara Indonesia (BNI)': {
-    name: 'Bank Negara Indonesia (BNI)',
-    country: 'Indonesia',
-    currency: 'Indonesian Rupiah (IDR / RP)',
-    currencyCode: 'IDR',
-    swiftCode: 'BNINIDJA',
-    bankBranch: 'Grha BNI, Jakarta',
-    accountLengthMin: 10,
-    accountLengthMax: 10,
-    isIbanRequired: false,
-    bankCode: '009'
   },
   'Bank Rakyat Indonesia (BRI)': {
     name: 'Bank Rakyat Indonesia (BRI)',
@@ -139,13 +151,13 @@ export const BANK_CONFIGS: Record<string, BankConfig> = {
 export const SUPPORTED_BANKS = Object.keys(BANK_CONFIGS);
 
 export const DEFAULT_BENEFICIARY_DATA: BeneficiaryAccountData = {
-  bankName: 'Bank Danamon',
+  bankName: 'Bank Negara Indonesia (BNI)',
   targetCurrency: 'Indonesian Rupiah (IDR / RP)',
   accountHolderName: 'Dimas Alva Rizki',
-  accountNumber: '003601928471',
+  accountNumber: '0098214821',
   iban: '',
-  swiftCode: 'BDINIDJA',
-  bankBranch: 'Cabang Graha Al Badegel / Jakarta Sudirman',
+  swiftCode: 'BNINIDJA',
+  bankBranch: 'Grha BNI, Jl. Jend. Sudirman Kav. 1, Jakarta Pusat',
   isVerified: false
 };
 

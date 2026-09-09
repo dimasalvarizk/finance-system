@@ -9,7 +9,7 @@ export const DEFAULT_REIMBURSEMENT_CLAIM: ReimbursementClaimSummary = {
   missionReference: 'PRJ-RYD-2024',
   amount: 500000,
   currency: 'RP',
-  bankName: 'Danamon',
+  bankName: 'Bank Negara Indonesia (BNI)',
   accountHolderName: 'Emad Moustafa',
   accountNumber: '0000000000000000',
   status: 'Approved & Ready'

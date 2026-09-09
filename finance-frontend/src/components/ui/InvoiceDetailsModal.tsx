@@ -396,6 +396,37 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
             </div>
           </div>
 
+          {/* Additional Information (Group Number & Nationality) if present */}
+          {(selectedInvoice.group_number || (selectedInvoice as any).groupNumber || selectedInvoice.nationality) && (
+            <div className="bg-[#f8fafc] p-4 rounded-2xl border border-[#e2e8f0]">
+              <h4 className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider font-inter mb-3">
+                {t('invoices.additionalInformation')}
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(selectedInvoice.group_number || (selectedInvoice as any).groupNumber) && (
+                  <div>
+                    <span className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
+                      {t('invoices.groupNumber')}
+                    </span>
+                    <span className="font-bold text-[13px] text-[#0c0d0f] block font-inter">
+                      {selectedInvoice.group_number || (selectedInvoice as any).groupNumber}
+                    </span>
+                  </div>
+                )}
+                {selectedInvoice.nationality && (
+                  <div>
+                    <span className="block text-[10px] font-semibold text-[#94a3b8] mb-1">
+                      {t('invoices.nationality')}
+                    </span>
+                    <span className="font-bold text-[13px] text-[#0c0d0f] block font-inter">
+                      {selectedInvoice.nationality}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Itemized Charges Section */}
           <div className="space-y-3">
             <h4 className="text-[11px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">

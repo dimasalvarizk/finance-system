@@ -27,7 +27,7 @@ const InitiateReimbursement: React.FC = () => {
     missionReference: '',
     amount: 0,
     currency: 'RP',
-    bankName: 'Bank Danamon',
+    bankName: 'Bank Negara Indonesia (BNI)',
     accountHolderName: '',
     accountNumber: '',
     status: 'Approved & Ready'
@@ -51,12 +51,12 @@ const InitiateReimbursement: React.FC = () => {
         if (gateways.length === 0) {
           setIsGatewayActive(false);
         } else {
-          const activeDanamon = gateways.find(
+          const activeBni = gateways.find(
             (g: any) =>
               g.isActive &&
-              (g.id === 'gw_danamon' || g.bankCode === 'DANAMON_ID' || (g.bankName && g.bankName.includes('Danamon')))
+              (g.id === 'gw_bni' || g.bankCode === 'BNI_H2H' || g.bankCode === 'BNI_ID' || (g.bankName && g.bankName.includes('BNI')))
           );
-          setIsGatewayActive(Boolean(activeDanamon || gateways.some((g: any) => g.isActive)));
+          setIsGatewayActive(Boolean(activeBni || gateways.some((g: any) => g.isActive)));
         }
       }
 
@@ -79,7 +79,7 @@ const InitiateReimbursement: React.FC = () => {
           missionReference: data.reason || data.description || data.projectRef || 'Mission Reference',
           amount: parseFloat(data.amount) || 0,
           currency: data.currency || 'RP',
-          bankName: data.bankName || 'Bank Danamon',
+          bankName: data.bankName || 'Bank Negara Indonesia (BNI)',
           accountHolderName: data.bankAccountHolder || matchedUser?.name || empName || 'Employee',
           accountNumber: data.bankAccountNumber || '0000000000000000',
           status: data.status === 'Paid' ? 'Disbursed' : 'Approved & Ready'
@@ -112,7 +112,7 @@ const InitiateReimbursement: React.FC = () => {
               missionReference: found.reason || found.description || found.missionReference || 'Mission Expense',
               amount: parseFloat(found.amount) || 0,
               currency: found.currency || 'RP',
-              bankName: found.bankName || 'Bank Danamon',
+              bankName: found.bankName || 'Bank Negara Indonesia (BNI)',
               accountHolderName: found.bankAccountHolder || found.employee || found.submittedByName || 'Staff Member',
               accountNumber: found.bankAccountNumber || found.accountNumber || '0000000000000000',
               status: found.status === 'Paid' ? 'Disbursed' : 'Approved & Ready'

@@ -381,7 +381,7 @@ const CompanyInfoTab: React.FC = () => {
               <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.bankBranchAddress') || 'Bank Branch Address'}</label>
               <input
                 type="text"
-                placeholder={t('settings.bankBranchAddressPlaceholder') || "e.g. Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan"}
+                placeholder={t('settings.bankBranchAddressPlaceholder') || "e.g. PT Bank Negara Indonesia (Persero) Tbk, KCU Jakarta Pusat, Jl. Jend. Sudirman Kav. 1"}
                 value={bankBranchAddress}
                 onChange={(e) => setBankBranchAddress(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"

@@ -208,6 +208,30 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
             </div>
           </div>
 
+          {/* SECTION: GROUP & NATIONALITY (IF PRESENT) */}
+          {(selectedBooking.group_number || (selectedBooking as any).groupNumber || selectedBooking.nationality) && (
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(selectedBooking.group_number || (selectedBooking as any).groupNumber) && (
+                  <div>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('invoices.groupNumber')}</label>
+                    <div className="font-bold text-slate-800 text-xs font-sans">
+                      {selectedBooking.group_number || (selectedBooking as any).groupNumber}
+                    </div>
+                  </div>
+                )}
+                {selectedBooking.nationality && (
+                  <div>
+                    <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider">{t('invoices.nationality')}</label>
+                    <div className="font-bold text-slate-800 text-xs font-sans">
+                      {selectedBooking.nationality}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* SECTION: PREVIEW / HOTEL DETAILS */}
           <div className="relative my-8 select-none">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">

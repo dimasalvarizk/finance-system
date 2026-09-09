@@ -20,7 +20,7 @@ import {
 export const BankingApiIntegrationTab: React.FC = () => {
   const { t } = useTranslation();
   const [gateways, setGateways] = useState<BankingGateway[]>([]);
-  const [selectedGatewayId, setSelectedGatewayId] = useState<string>('gw_danamon');
+  const [selectedGatewayId, setSelectedGatewayId] = useState<string>('gw_bni');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [testingPing, setTestingPing] = useState<boolean>(false);
@@ -232,7 +232,7 @@ export const BankingApiIntegrationTab: React.FC = () => {
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <div className="text-xl font-bold text-slate-800">
-            {gateways.find((g) => g.id === 'gw_danamon')?.lastPingLatency || 42} ms
+            {gateways.find((g) => g.id === 'gw_bni' || g.id === 'gw_danamon')?.lastPingLatency || 38} ms
           </div>
           <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.bankingApi.metrics.latencyDesc')}</div>
         </div>

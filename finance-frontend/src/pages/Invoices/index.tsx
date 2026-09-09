@@ -47,12 +47,18 @@ export interface Invoice {
   custom_agent?: string | null;
   custom_address?: string | null;
   custom_tax_number?: string | null;
+  group_number?: string | null;
+  groupNumber?: string | null;
+  nationality?: string | null;
 }
 
 
 
 export interface InvoiceDetail {
   dueDate: string;
+  group_number?: string | null;
+  groupNumber?: string | null;
+  nationality?: string | null;
   billFrom: {
     name: string;
     id: string;
@@ -92,13 +98,13 @@ export const getLocalCompanySettings = () => {
     taxNumber: '0000-0000-0001',
     defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
     termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.",
-    bankName: 'PT Bank Danamon Indonesia, Tbk',
+    bankName: 'PT Bank Negara Indonesia (Persero) Tbk',
     accountName: 'PT ODST AIRLINES INDO',
-    idrAccountNumber: '003711895213',
-    usdAccountNumber: '003711895643',
-    bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+    idrAccountNumber: '009821482103',
+    usdAccountNumber: '009821482561',
+    bankBranchAddress: 'Grha BNI, Jl. Jend. Sudirman Kav. 1, Tanah Abang, Jakarta Pusat',
     cifNumber: '17330896',
-    swiftCode: 'BDINIDJA'
+    swiftCode: 'BNINIDJA'
   };
   if (saved) {
     try {
@@ -290,7 +296,10 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     usdToIdrRate: safeInvoice.usdToIdrRate || 18025,
     sarToIdrRate: safeInvoice.sarToIdrRate || 4800,
     taxRate: safeInvoice.taxRate || 0,
-    currency
+    currency,
+    group_number: safeInvoice.group_number || (safeInvoice as any).groupNumber || null,
+    groupNumber: safeInvoice.group_number || (safeInvoice as any).groupNumber || null,
+    nationality: safeInvoice.nationality || null
   };
 };
 
@@ -954,6 +963,10 @@ const Invoices: React.FC = () => {
   const [customCompanyCityCountry, setCustomCompanyCityCountry] = useState('');
   const [customCompanyTaxNumber, setCustomCompanyTaxNumber] = useState('');
 
+  // Optional Group & Nationality Details
+  const [formGroupNumber, setFormGroupNumber] = useState('');
+  const [formNationality, setFormNationality] = useState('');
+
   const isCustomClient = selectedClientKey === 'Others';
 
   // Employee/Sender Fields (Bill From)
@@ -1016,6 +1029,8 @@ const Invoices: React.FC = () => {
     setCustomCompanyAddress('');
     setCustomCompanyCityCountry('');
     setCustomCompanyTaxNumber('');
+    setFormGroupNumber('');
+    setFormNationality('');
     setIsModalOpen(true);
     if (availableCompanies.length > 0) {
       handleClientChange(availableCompanies[0]);
@@ -1546,6 +1561,9 @@ const Invoices: React.FC = () => {
       custom_agent: isCustom ? (compAgent || null) : null,
       custom_address: isCustom ? (combinedCustomAddress || null) : null,
       custom_tax_number: isCustom ? (customCompanyTaxNumber.trim() || null) : null,
+      group_number: formGroupNumber.trim() || null,
+      groupNumber: formGroupNumber.trim() || null,
+      nationality: formNationality.trim() || null,
     };
 
     const saveInvoice = async () => {
@@ -1566,6 +1584,8 @@ const Invoices: React.FC = () => {
           setCustomCompanyAddress('');
           setCustomCompanyCityCountry('');
           setCustomCompanyTaxNumber('');
+          setFormGroupNumber('');
+          setFormNationality('');
           setFormError('');
         } else {
           await createInvoiceAPI(newInvoice);
@@ -1582,6 +1602,8 @@ const Invoices: React.FC = () => {
           setCustomCompanyAddress('');
           setCustomCompanyCityCountry('');
           setCustomCompanyTaxNumber('');
+          setFormGroupNumber('');
+          setFormNationality('');
           setFormError('');
           setSuccessModalStep(1);
         }
@@ -1633,6 +1655,8 @@ const Invoices: React.FC = () => {
     setFormInvoiceDate(inv.date);
     setFormAgent(inv.agent || '');
     setFormCurrency(inv.currency || 'USD');
+    setFormGroupNumber(inv.group_number || (inv as any).groupNumber || '');
+    setFormNationality(inv.nationality || '');
     if (inv.items) {
       setFormItems(inv.items.map(item => ({
         description: item.description,
@@ -2852,6 +2876,49 @@ const Invoices: React.FC = () => {
                         )}
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information (Optional) Section */}
+              <div className="bg-[#f8fafc] p-5 rounded-2xl border border-[#e2e8f0]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+                  <div>
+                    <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
+                      {t('invoices.additionalInformation')}
+                    </h4>
+                    <p className="text-[11px] text-[#64748b] font-medium font-sans">
+                      {t('invoices.additionalInformationDesc')}
+                    </p>
+                  </div>
+                  <span className="self-start sm:self-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/80 text-slate-700 tracking-wide uppercase font-sans">
+                    Optional
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-sans">
+                      {t('invoices.groupNumber')}
+                    </label>
+                    <input
+                      type="text"
+                      value={formGroupNumber}
+                      onChange={(e) => setFormGroupNumber(e.target.value)}
+                      placeholder={t('invoices.groupNumberPlaceholder')}
+                      className="w-full px-3.5 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#64748b] mb-1.5 font-sans">
+                      {t('invoices.nationality')}
+                    </label>
+                    <input
+                      type="text"
+                      value={formNationality}
+                      onChange={(e) => setFormNationality(e.target.value)}
+                      placeholder={t('invoices.nationalityPlaceholder')}
+                      className="w-full px-3.5 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-semibold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-all font-inter"
+                    />
                   </div>
                 </div>
               </div>

@@ -19,7 +19,7 @@ const SetupBeneficiary: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        const config = BANK_CONFIGS[parsed.bankName] || BANK_CONFIGS['Bank Danamon'];
+        const config = BANK_CONFIGS[parsed.bankName] || BANK_CONFIGS['Bank Negara Indonesia (BNI)'];
         return {
           ...DEFAULT_BENEFICIARY_DATA,
           ...parsed,
@@ -42,9 +42,9 @@ const SetupBeneficiary: React.FC = () => {
     try {
       const data = await getCorporateExpenseById(id);
       if (data) {
-        const rawBank = data.bankName || 'Bank Danamon';
+        const rawBank = data.bankName || 'Bank Negara Indonesia (BNI)';
         const resolvedBank = rawBank.startsWith('Bank') ? rawBank : `Bank ${rawBank}`;
-        const config = BANK_CONFIGS[resolvedBank] || BANK_CONFIGS[rawBank] || BANK_CONFIGS['Bank Danamon'];
+        const config = BANK_CONFIGS[resolvedBank] || BANK_CONFIGS[rawBank] || BANK_CONFIGS['Bank Negara Indonesia (BNI)'];
         const empName = data.bankAccountHolder || data.submittedByName || data.submittedBy || 'Dimas Alva Rizki';
 
         setFormData((prev) => ({

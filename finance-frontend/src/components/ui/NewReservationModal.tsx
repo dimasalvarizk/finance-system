@@ -96,6 +96,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
   const [customCompanyTaxNumber, setCustomCompanyTaxNumber] = useState('');
   const [showValidation, setShowValidation] = useState(false);
 
+  // Optional Group & Nationality Details
+  const [formGroupNumber, setFormGroupNumber] = useState('');
+  const [formNationality, setFormNationality] = useState('');
+
   const isCustomClient = selectedCompanyCode === 'Others';
 
   const [invoiceMeta, setInvoiceMeta] = useState({
@@ -485,7 +489,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
       custom_tax_number: isCustomClient ? customCompanyTaxNumber : null,
       custom_city_country: isCustomClient ? customCompanyCityCountry : null,
       agent: isCustomClient ? customCompanyAgent : undefined,
-      isCustomClient: isCustomClient
+      isCustomClient: isCustomClient,
+      group_number: formGroupNumber.trim() || null,
+      groupNumber: formGroupNumber.trim() || null,
+      nationality: formNationality.trim() || null
     };
 
     onSave(newBooking);
@@ -808,6 +815,49 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   onChange={e => setInvoiceMeta(prev => ({ ...prev, dueDate: e.target.value }))}
                   className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white font-sans font-bold"
                 />
+              </div>
+            </div>
+
+            {/* SECTION: ADDITIONAL INFORMATION (OPTIONAL) */}
+            <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80">
+              <div className="flex items-center justify-between gap-1 mb-2.5">
+                <div>
+                  <h4 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider font-sans">
+                    {t('invoices.additionalInformation')}
+                  </h4>
+                  <p className="text-[10px] text-slate-400 font-medium font-sans">
+                    {t('invoices.additionalInformationDesc')}
+                  </p>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-200 text-slate-700 uppercase font-sans">
+                  Optional
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider font-sans">
+                    {t('invoices.groupNumber')}
+                  </label>
+                  <input
+                    type="text"
+                    value={formGroupNumber}
+                    onChange={e => setFormGroupNumber(e.target.value)}
+                    placeholder={t('invoices.groupNumberPlaceholder')}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white font-sans text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold text-[9px] mb-1 uppercase tracking-wider font-sans">
+                    {t('invoices.nationality')}
+                  </label>
+                  <input
+                    type="text"
+                    value={formNationality}
+                    onChange={e => setFormNationality(e.target.value)}
+                    placeholder={t('invoices.nationalityPlaceholder')}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white font-sans text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
               </div>
             </div>
 

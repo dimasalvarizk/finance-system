@@ -25,7 +25,7 @@ const SubmitExpense: React.FC = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
-  const [bankName, setBankName] = useState('Bank Danamon');
+  const [bankName, setBankName] = useState('Bank Negara Indonesia (BNI)');
   const [bankAccountNumber, setBankAccountNumber] = useState('0000000000000000');
 
   // Multi-File Upload State

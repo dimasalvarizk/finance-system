@@ -182,9 +182,9 @@ export const createInvoiceDB = async (invoiceData) => {
         id, invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, 
         usdToIdrRate, sarToIdrRate, dueDate, branch, createdBy, taxRate, currency, 
         advancePayment, remainingBalance, company_id, custom_company_name, custom_company_email, 
-        custom_agent, custom_address, custom_tax_number
+        custom_agent, custom_address, custom_tax_number, group_number, nationality
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await connection.query(insertInvoiceQuery, [
@@ -211,7 +211,9 @@ export const createInvoiceDB = async (invoiceData) => {
       invoiceData.custom_company_email || null,
       invoiceData.custom_agent || null,
       invoiceData.custom_address || null,
-      invoiceData.custom_tax_number || null
+      invoiceData.custom_tax_number || null,
+      invoiceData.group_number || invoiceData.groupNumber || null,
+      invoiceData.nationality || null
     ]);
 
     if (invoiceData.items && invoiceData.items.length > 0) {
@@ -329,7 +331,7 @@ export const updateInvoiceDB = async (id, data) => {
     // 1. Update invoice in dst_invoices
     const updateQuery = `
       UPDATE dst_invoices 
-      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = '0/4 Pending', usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?, currency = ?
+      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = '0/4 Pending', usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?, currency = ?, group_number = ?, nationality = ?
       WHERE id = ? OR invoiceNo = ?
     `;
     await connection.query(updateQuery, [
@@ -344,6 +346,8 @@ export const updateInvoiceDB = async (id, data) => {
       data.dueDate,
       data.taxRate || 0.00,
       data.currency || 'USD',
+      data.group_number || data.groupNumber || null,
+      data.nationality || null,
       id,
       id
     ]);

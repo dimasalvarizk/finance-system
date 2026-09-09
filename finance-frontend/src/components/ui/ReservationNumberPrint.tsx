@@ -91,6 +91,18 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                       <span className="text-slate-600 font-medium text-right">{invoice.referenceNo}</span>
                       <span className="text-[#94a3b8] font-medium text-right">Serial:</span>
                       <span className="text-slate-600 font-medium text-right">{invoice.serialNo}</span>
+                      {((invoice as any).group_number || (invoice as any).groupNumber || (details as any)?.group_number || (details as any)?.groupNumber) && (
+                        <>
+                          <span className="text-[#94a3b8] font-medium text-right">Group Number:</span>
+                          <span className="text-[#0f172a] font-bold text-right">{(invoice as any).group_number || (invoice as any).groupNumber || (details as any)?.group_number || (details as any)?.groupNumber}</span>
+                        </>
+                      )}
+                      {((invoice as any).nationality || (details as any)?.nationality) && (
+                        <>
+                          <span className="text-[#94a3b8] font-medium text-right">Nationality:</span>
+                          <span className="text-[#0f172a] font-bold text-right">{(invoice as any).nationality || (details as any)?.nationality}</span>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>

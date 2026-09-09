@@ -425,13 +425,13 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     taxNumber: '0000-0000-0000',
     defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
     termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.",
-    bankName: 'Danamon',
+    bankName: 'PT Bank Negara Indonesia (Persero) Tbk',
     accountName: 'PT ODST Airlines Indo',
-    idrAccountNumber: '003711895213',
-    usdAccountNumber: '003711895643',
-    bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+    idrAccountNumber: '009821482103',
+    usdAccountNumber: '009821482561',
+    bankBranchAddress: 'Grha BNI, Jl. Jend. Sudirman Kav. 1, Tanah Abang, Jakarta Pusat',
     cifNumber: '17330896',
-    swiftCode: 'BDINIDJA'
+    swiftCode: 'BNINIDJA'
   };
   try {
     const pool = getPool();

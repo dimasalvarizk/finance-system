@@ -81,6 +81,8 @@ const initializeDatabase = async () => {
         usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00,
         sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00,
         dueDate VARCHAR(50),
+        group_number VARCHAR(255) DEFAULT NULL,
+        nationality VARCHAR(255) DEFAULT NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -100,6 +102,18 @@ const initializeDatabase = async () => {
     `;
     await pool.query(createInvoiceItemsTableQuery);
     console.log("Tables 'dst_invoices' and 'dst_invoice_items' are verified/ready");
+
+    // Alter table to add group_number and nationality if they do not exist
+    try {
+      await pool.query('SELECT group_number FROM dst_invoices LIMIT 1');
+    } catch (err) {
+      console.log('Adding group_number and nationality columns to dst_invoices...');
+      try {
+        await pool.query('ALTER TABLE dst_invoices ADD COLUMN group_number VARCHAR(255) DEFAULT NULL, ADD COLUMN nationality VARCHAR(255) DEFAULT NULL');
+      } catch (alterErr) {
+        console.error('Failed to add group_number/nationality columns to dst_invoices:', alterErr.message);
+      }
+    }
 
     // Alter table to add branch and createdBy if they do not exist
     try {

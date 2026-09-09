@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Clock, ShieldCheck, ArrowRight, Lock, ExternalLink } from 'lucide-react';
+import { Check, Clock, ShieldCheck, Lock, ExternalLink } from 'lucide-react';
 import type { ApprovalClaimDetail } from '../types';
 
 interface ClaimProfileCardProps {
@@ -23,7 +23,7 @@ interface ClaimProfileCardProps {
   onApprove: () => void;
   onReject: () => void;
   onClarify: () => void;
-  onTransfer: () => void;
+  onTransfer?: () => void;
   formatAmount: (num: number, curr?: string) => string;
 }
 
@@ -47,7 +47,6 @@ export const ClaimProfileCard: React.FC<ClaimProfileCardProps> = ({
   onApprove,
   onReject,
   onClarify,
-  onTransfer,
   formatAmount
 }) => {
   const { t } = useTranslation();
@@ -468,20 +467,35 @@ export const ClaimProfileCard: React.FC<ClaimProfileCardProps> = ({
             </button>
           </div>
         ) : isFullyApproved || claim.status === 'Approved' ? (
-          matchedApproverName === 'Mr. Emad Moustafa' ? (
-            <button
-              onClick={onTransfer}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[13.5px] rounded-xl transition-all shadow-sm cursor-pointer active:scale-[0.99] flex items-center justify-center space-x-2"
-            >
-              <span>{t('expenseApproval.transferAmount') || 'Initiate Bank Reimbursement'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <div className="w-full py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-[13px] rounded-xl flex items-center justify-center space-x-2 cursor-default">
-              <Check className="w-4 h-4 text-emerald-600" />
-              <span>{t('expenseApproval.fullyApprovedWaitingDisbursement')}</span>
+          <div className="space-y-3">
+            <div className="w-full p-4 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between text-[13px] text-emerald-950">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
+                  <Check className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <p className="font-bold text-emerald-950">
+                    {t('expenseApproval.fullyApprovedWaitingDisbursement')}
+                  </p>
+                  <p className="text-[11.5px] text-emerald-700 mt-0.5 leading-relaxed">
+                    {t('expenseApproval.fullyApprovedHoldNotice')}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold bg-emerald-600 text-white px-2.5 py-1 rounded-md shadow-xs whitespace-nowrap self-start">
+                {t('common.approved') || 'APPROVED'}
+              </span>
             </div>
-          )
+
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[12px] text-slate-600 flex items-center justify-between">
+              <span className="font-medium text-slate-700">
+                {t('expenseApproval.executionStatusLabel')}: <strong className="text-slate-900">{t('expenseApproval.executionStatusValue')}</strong>
+              </span>
+              <span className="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                Bank BNI Integration Draft
+              </span>
+            </div>
+          </div>
         ) : !canApproveCurrentStep ? (
           <div className="w-full py-3 bg-slate-100 border border-slate-200 text-slate-400 font-bold text-[12.5px] rounded-xl flex items-center justify-center space-x-2 cursor-not-allowed">
             <Lock className="w-4 h-4 text-slate-400" />

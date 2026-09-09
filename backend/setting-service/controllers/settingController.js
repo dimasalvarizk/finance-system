@@ -601,13 +601,13 @@ export const getCompanySetting = async (req, res, next) => {
         taxNumber: '0000-0000-0001',
         defaultNotes: '',
         termsAndConditions: '',
-        bankName: 'PT Bank Danamon Indonesia, Tbk',
+        bankName: 'PT Bank Negara Indonesia (Persero) Tbk',
         accountName: 'PT ODST AIRLINES INDO',
-        idrAccountNumber: '003711895213',
-        usdAccountNumber: '003711895643',
-        bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+        idrAccountNumber: '009821482103',
+        usdAccountNumber: '009821482561',
+        bankBranchAddress: 'Grha BNI, Jl. Jend. Sudirman Kav. 1, Tanah Abang, Jakarta Pusat',
         cifNumber: '17330896',
-        swiftCode: 'BDINIDJA'
+        swiftCode: 'BNINIDJA'
       }
     });
   } catch (error) {
@@ -1378,27 +1378,60 @@ export const ensureBankingGatewaysTable = async (pool) => {
           isActive, lastPingAt, lastPingLatency, lastPingStatus
         ) VALUES 
         (
-          'gw_danamon',
-          'Bank Danamon Indonesia (Host-to-Host Corporate)',
-          'DANAMON_H2H',
+          'gw_bni',
+          'Bank Negara Indonesia (BNI Host-to-Host Corporate SNAP BI)',
+          'BNI_H2H',
           'Indonesia',
           'IDR',
           'sandbox',
-          'DANAMON-CORP-ID-882194',
-          'sec_live_danamon_9941a80e',
-          'MERCHANT-DST-ID',
+          'BNI-CORP-ID-882194',
+          'sec_live_bni_9941a80e',
+          'MERCHANT-DST-BNI',
           '98421',
-          'https://api-gateway.danamon.co.id/v2/corporate/transfer',
-          'https://odstfin.io/api/expenses/webhook/danamon',
-          'whsec_danamon_8849120',
-          '-----BEGIN CERTIFICATE-----\\nMIIDXTCCAkWgAwIBAgIJAP8...DANAMON-CORP-CERT\\n-----END CERTIFICATE-----',
+          'https://api.bni.co.id/snap/v1.0/transfer-intrabank',
+          'https://odstfin.io/api/expenses/webhook/bni',
+          'whsec_bni_8849120',
+          '-----BEGIN CERTIFICATE-----\\nMIIDXTCCAkWgAwIBAgIJAP8...BNI-CORP-CERT\\n-----END CERTIFICATE-----',
           '172.16.5.10, 10.200.4.88, 127.0.0.1',
           1,
           NOW(),
-          42,
+          38,
           'ONLINE'
         )
       `);
+    } else {
+      const [bniCheck] = await pool.query("SELECT COUNT(*) as count FROM dst_banking_gateways WHERE id = 'gw_bni'");
+      if (bniCheck[0]?.count === 0) {
+        await pool.query(`
+          INSERT INTO dst_banking_gateways (
+            id, bankName, bankCode, country, currency, environment,
+            clientId, clientSecret, merchantId, channelId, baseUrl,
+            webhookUrl, webhookSecret, certificateData, ipWhitelist,
+            isActive, lastPingAt, lastPingLatency, lastPingStatus
+          ) VALUES 
+          (
+            'gw_bni',
+            'Bank Negara Indonesia (BNI Host-to-Host Corporate SNAP BI)',
+            'BNI_H2H',
+            'Indonesia',
+            'IDR',
+            'sandbox',
+            'BNI-CORP-ID-882194',
+            'sec_live_bni_9941a80e',
+            'MERCHANT-DST-BNI',
+            '98421',
+            'https://api.bni.co.id/snap/v1.0/transfer-intrabank',
+            'https://odstfin.io/api/expenses/webhook/bni',
+            'whsec_bni_8849120',
+            '-----BEGIN CERTIFICATE-----\\nMIIDXTCCAkWgAwIBAgIJAP8...BNI-CORP-CERT\\n-----END CERTIFICATE-----',
+            '172.16.5.10, 10.200.4.88, 127.0.0.1',
+            1,
+            NOW(),
+            38,
+            'ONLINE'
+          )
+        `);
+      }
     }
   } catch (err) {
     console.warn('ensureBankingGatewaysTable warning:', err.message);
@@ -1681,7 +1714,7 @@ export const testBankingGatewayHandshake = async (req, res, next) => {
           'CHANNEL-ID': gateway.channelId || '98421',
           'X-EXTERNAL-ID': `EXT-${Date.now()}`
         },
-        endpointTested: gateway.baseUrl || 'https://api-gateway.danamon.co.id/snap/v1.0/transfer-intrabank',
+        endpointTested: gateway.baseUrl || 'https://api.bni.co.id/snap/v1.0/transfer-intrabank',
         environment: gateway.environment,
         responseCode: 200,
         responseMessage: 'HTTP/2 200 OK - SNAP BI TLS 1.3 Handshake Established'

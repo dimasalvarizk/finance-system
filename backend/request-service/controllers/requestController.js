@@ -404,13 +404,13 @@ export const sendInvoiceEmail = async (req, res, next) => {
       companyName: 'PT.ODST AIRLINES INDO',
       phone: '+62 8111 1203 330',
       taxNumber: '0000-0000-0001',
-      bankName: 'PT Bank Danamon Indonesia, Tbk',
+      bankName: 'PT Bank Negara Indonesia (Persero) Tbk',
       accountName: 'PT ODST AIRLINES INDO',
-      idrAccountNumber: '003711895213',
-      usdAccountNumber: '003711895643',
-      bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+      idrAccountNumber: '009821482103',
+      usdAccountNumber: '009821482561',
+      bankBranchAddress: 'Grha BNI, Jl. Jend. Sudirman Kav. 1, Tanah Abang, Jakarta Pusat',
       cifNumber: '17330896',
-      swiftCode: 'BDINIDJA'
+      swiftCode: 'BNINIDJA'
     };
 
     const splitAddress = (fullAddress) => {

@@ -32,12 +32,15 @@ export const getInvoices = async (req, res, next) => {
 
 // @desc    Create a new invoice
 // @route   POST /api/invoices
+// @desc    Create a new invoice
+// @route   POST /api/invoices
 // @access  Public (or Protected)
 export const createInvoice = async (req, res, next) => {
   const { 
     invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, 
     usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency, advancePayment,
-    company_id, custom_company_name, custom_company_email, custom_agent, custom_address, custom_tax_number
+    company_id, custom_company_name, custom_company_email, custom_agent, custom_address, custom_tax_number,
+    group_number, groupNumber, nationality
   } = req.body;
 
   try {
@@ -101,7 +104,9 @@ export const createInvoice = async (req, res, next) => {
       custom_company_email: custom_company_email || null,
       custom_agent: custom_agent || null,
       custom_address: custom_address || null,
-      custom_tax_number: custom_tax_number || null
+      custom_tax_number: custom_tax_number || null,
+      group_number: group_number || groupNumber || null,
+      nationality: nationality || null
     };
 
     await createInvoiceDB(newInvoiceData);
@@ -345,7 +350,7 @@ export const cancelInvoice = async (req, res, next) => {
 // @access  Protected
 export const updateInvoice = async (req, res, next) => {
   const { id } = req.params;
-  const { company, companyCode, referenceNo, serialNo, amount, date, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency } = req.body;
+  const { company, companyCode, referenceNo, serialNo, amount, date, usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency, group_number, groupNumber, nationality } = req.body;
 
   try {
     // Creator tenancy check for Accountant
@@ -371,7 +376,9 @@ export const updateInvoice = async (req, res, next) => {
       dueDate,
       items,
       taxRate: taxRate ? parseFloat(taxRate) : 0.00,
-      currency: currency || 'USD'
+      currency: currency || 'USD',
+      group_number: group_number || groupNumber || null,
+      nationality: nationality || null
     });
 
     if (!updated) {

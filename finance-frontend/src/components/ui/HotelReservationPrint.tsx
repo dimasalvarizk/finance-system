@@ -195,6 +195,18 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
                   <p className="text-slate-400 font-medium">Status</p>
                   <p className="font-bold text-slate-800 text-[11px] uppercase">{booking.status}</p>
                 </div>
+                {((booking as any).group_number || (booking as any).groupNumber) && (
+                  <div>
+                    <p className="text-slate-400 font-medium">Group Number</p>
+                    <p className="font-bold text-slate-800 text-[11px]">{(booking as any).group_number || (booking as any).groupNumber}</p>
+                  </div>
+                )}
+                {(booking as any).nationality && (
+                  <div>
+                    <p className="text-slate-400 font-medium">Nationality</p>
+                    <p className="font-bold text-slate-800 text-[11px]">{(booking as any).nationality}</p>
+                  </div>
+                )}
               </div>
             </div>
 

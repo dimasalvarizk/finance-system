@@ -104,10 +104,10 @@ const PreExecutionPayment: React.FC = () => {
     invoiceVatId: '',
     amount: 0,
     currency: 'RP',
-    debitBank: 'Bank Danamon',
+    debitBank: 'Bank BNI',
     debitAccountMasked: '**********9942',
     creditEmployee: '',
-    creditBank: 'Bank Danamon',
+    creditBank: 'Bank BNI',
     creditAccount: '',
     settlementRoute: 'Host-to-Host Bank API',
     estimatedSpeed: 'Instant Settle',
@@ -143,7 +143,7 @@ const PreExecutionPayment: React.FC = () => {
       const submitDateStr = remote.expenseDate || remote.submitDate || (remote.createdAt ? new Date(remote.createdAt).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'Today');
       const nowStr = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       const curr = (remote.currency || 'RP').toUpperCase();
-      const isIndonesia = curr === 'RP' || curr === 'IDR' || (remote.department && remote.department.includes('ODST')) || (remote.bankName && remote.bankName.toLowerCase().includes('danamon'));
+      const isIndonesia = curr === 'RP' || curr === 'IDR' || (remote.department && remote.department.includes('ODST')) || (remote.bankName && (remote.bankName.toLowerCase().includes('bni') || remote.bankName.toLowerCase().includes('danamon')));
 
       // Real-time Network Resolution (Avoid ::1 / Localhost)
       const realIp = (!isLoopbackIp(remote.submissionIp) ? remote.submissionIp : null) ||
@@ -296,38 +296,38 @@ const PreExecutionPayment: React.FC = () => {
         {
           id: '5',
           stepNumber: 5,
-          title: `${remote.bankName || 'Bank Danamon'} SNAP BI Settle Initiated`,
+          title: `${remote.bankName || 'Bank BNI'} SNAP BI Settle Initiated`,
           timestamp: nowStr,
           detail: `Settle payload generated via SNAP BI Open API Gateway`,
           status: 'completed' as const,
           dotColor: 'blue' as const,
           actor: 'Automated Gateway Service (System)',
-          actorRole: 'Bank Danamon SNAP BI Direct Settlement Engine',
+          actorRole: 'Bank BNI SNAP BI Direct Settlement Engine',
           actorDepartment: 'Corporate Banking Gateway',
           authMethod: 'SNAP BI (PADG No. 23/15/PADG/2021) • Mandatory TLS 1.3 & RSA-2048/SHA-256',
-          location: 'Bank Danamon SNAP BI API Gateway, Jakarta, Indonesia',
+          location: 'Bank BNI SNAP BI API Gateway, Jakarta, Indonesia',
           ipAddress: '103.247.218.45 (Encrypted Banking VPN - SNAP BI Host-to-Host)',
           signatureHash: 'SHA256:9b8823fe49120394812039481209384aedc09182309182304918203948102938',
-          notes: `Settlement payload created with Settle Code: SETTLE-94821-${(remote.bankName || 'DANAMON').slice(0, 3).toUpperCase()}. Beneficiary account validated via SNAP BI.`,
+          notes: `Settlement payload created with Settle Code: SETTLE-94821-${(remote.bankName || 'BNI').slice(0, 3).toUpperCase()}. Beneficiary account validated via SNAP BI.`,
           policyCheckPassed: true,
           policyCheckDetails: 'SNAP BI security validation passed. Mandate TLS 1.3 enforced (PADG BI 23/15/2021).'
         },
         {
           id: '6',
           stepNumber: 6,
-          title: `Bank Settlement Completed (${remote.bankName || 'Bank Danamon Indonesia'})`,
+          title: `Bank Settlement Completed (${remote.bankName || 'Bank BNI Indonesia'})`,
           timestamp: nowStr,
           detail: `Instant API Settle Handshake complete to ${submitterName}`,
           status: 'completed' as const,
           dotColor: 'green' as const,
-          actor: `${remote.bankName || 'Bank Danamon'} SNAP Host-to-Host Clearing API`,
+          actor: `${remote.bankName || 'Bank BNI'} SNAP Host-to-Host Clearing API`,
           actorRole: 'SNAP BI Interbank & Intrabank Clearing Network',
           actorDepartment: 'Real-Time Gross Settlement (BI-FAST / RTGS)',
           authMethod: 'SNAP BI Open API Standard & ISO 20022 Financial Protocol',
-          location: 'Bank Danamon Host-to-Host Settlement, Jakarta, Indonesia',
-          ipAddress: '103.247.218.45 (Bank Danamon TLS 1.3 Intrabank Tunnel)',
+          location: 'Bank BNI Host-to-Host Settlement, Jakarta, Indonesia',
+          ipAddress: '103.247.218.45 (Bank BNI TLS 1.3 Intrabank Tunnel)',
           signatureHash: 'SHA256:104e76a9481029384019283401928340bcfe0192834019283401928340192834',
-          notes: `Funds successfully credited to ${remote.bankName || 'Bank Danamon'} Account ${remote.bankAccountNumber || '0000000000000000'}. Trace ID: TX-FIN-${remote.id}. Acknowledgement Code: ACK-${remote.id}-DANAMON.`,
+          notes: `Funds successfully credited to ${remote.bankName || 'Bank BNI'} Account ${remote.bankAccountNumber || '0000000000000000'}. Trace ID: TX-FIN-${remote.id}. Acknowledgement Code: ACK-${remote.id}-BNI.`,
           policyCheckPassed: true,
           policyCheckDetails: 'Instant finality status: 200 OK. Transaction irreversible and logged in immutable ledger.'
         }
@@ -336,11 +336,11 @@ const PreExecutionPayment: React.FC = () => {
       setData({
         claimReference: claimRef,
         creditEmployee: submitterName,
-        creditBank: remote.bankName || 'Bank Danamon',
+        creditBank: remote.bankName || 'Bank BNI',
         creditAccount: remote.bankAccountNumber || '0000000000000000',
         amount: parseFloat(remote.amount) || 0,
         currency: remote.currency || 'RP',
-        debitBank: isIndonesia ? 'Bank Danamon Corporate' : 'Al Rajhi Corporate',
+        debitBank: isIndonesia ? 'Bank BNI Corporate' : 'Al Rajhi Corporate',
         debitAccountMasked: isIndonesia ? '**********9942' : '**********8812',
         settlementRoute: 'Host-to-Host Bank API',
         estimatedSpeed: 'Instant Settle',
@@ -350,12 +350,12 @@ const PreExecutionPayment: React.FC = () => {
         controllerName: matchedApprover3.name,
         controllerRole: matchedApprover3.role,
         transactionTraceId: remote.disbursementRef || `TX-FIN-${remote.id || Date.now()}`,
-        acknowledgementCode: `ACK-${remote.id || Date.now()}-${(remote.bankName || 'BANK').replace(/\\s+/g, '')}`,
+        acknowledgementCode: `ACK-${remote.id || Date.now()}-${(remote.bankName || 'BNI').replace(/\s+/g, '')}`,
         transferTimestamp: remote.disbursedAt ? new Date(remote.disbursedAt).toLocaleString() : nowStr,
         invoiceVendor: (remote.receipts && remote.receipts[0]?.name) || `${remote.category?.toUpperCase() || 'CORPORATE'} VENDOR`,
         invoiceVatId: isIndonesia ? 'NPWP: 01.312.456.7-012.000' : 'VAT-SA-30049281900003',
-        settledFromAccount: `${isIndonesia ? 'Bank Danamon Corporate' : 'Al Rajhi'} (....9942)`,
-        settledToAccount: `${submitterName} (${remote.bankName || 'Bank'} ...${(remote.bankAccountNumber || '0000').slice(-4)})`,
+        settledFromAccount: `${isIndonesia ? 'Bank BNI Corporate' : 'Al Rajhi'} (....9942)`,
+        settledToAccount: `${submitterName} (${remote.bankName || 'Bank BNI'} ...${(remote.bankAccountNumber || '0000').slice(-4)})`,
         auditLogs: realAuditLogs
       });
 

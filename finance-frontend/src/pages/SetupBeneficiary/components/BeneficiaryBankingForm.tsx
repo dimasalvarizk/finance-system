@@ -22,7 +22,7 @@ export const BeneficiaryBankingForm: React.FC<BeneficiaryBankingFormProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const currentBankConfig = BANK_CONFIGS[formData.bankName] || BANK_CONFIGS['Bank Danamon'];
+  const currentBankConfig = BANK_CONFIGS[formData.bankName] || BANK_CONFIGS['Bank Negara Indonesia (BNI)'];
 
   const [isInquiring, setIsInquiring] = useState(false);
   const [inquiryResult, setInquiryResult] = useState<{
@@ -42,7 +42,7 @@ export const BeneficiaryBankingForm: React.FC<BeneficiaryBankingFormProps> = ({
     cleanAcc.length <= currentBankConfig.accountLengthMax;
 
   const handleBankChange = (newBank: string) => {
-    const config = BANK_CONFIGS[newBank] || BANK_CONFIGS['Bank Danamon'];
+    const config = BANK_CONFIGS[newBank] || BANK_CONFIGS['Bank Negara Indonesia (BNI)'];
     setFormData((prev) => ({
       ...prev,
       bankName: newBank,

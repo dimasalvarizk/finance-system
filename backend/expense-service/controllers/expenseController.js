@@ -107,7 +107,7 @@ export const submitExpense = async (req, res) => {
       amount: numAmount,
       expenseDate: expenseDate || new Date().toISOString().split('T')[0],
       description: description.trim(),
-      bankName: bankName || 'Bank Danamon',
+      bankName: bankName || 'Bank Negara Indonesia (BNI)',
       bankAccountNumber: bankAccountNumber || '0000000000000000',
       bankAccountHolder: bankAccountHolder || submittedByName,
       submittedById,
@@ -292,23 +292,27 @@ export const updateExpenseStatus = async (req, res) => {
     const actorName = req.user?.name || 'Authorized Officer';
 
     if (status === 'Mr. Khalid Review' || status === 'Mr.Khalid Review') {
-      timeline = timeline.map(step =>
-        step.step === 'Direct Manager Review' ? { ...step, status: 'in_progress', approver: actorName } : step
-      );
-    } else if (status === 'Mr. Hesham Review') {
       timeline = timeline.map(step => {
-        if (step.step === 'Direct Manager Review') return { ...step, status: 'completed', date: nowStr };
-        if (step.step === 'Finance Director Review') return { ...step, status: 'in_progress', approver: actorName };
-        return step;
-      });
-    } else if (status === 'Ready for Payment' || status === 'Approved') {
-      timeline = timeline.map(step => {
-        if (step.step === 'Direct Manager Review' || step.step === 'Finance Director Review') {
-          return { ...step, status: 'completed', date: nowStr };
+        if (step.step === 'Finance Director Review' || step.step === 'Direct Manager Review') {
+          return { ...step, status: 'completed', date: step.date || nowStr };
         }
-        if (step.step === 'Disbursement & Payment') return { ...step, status: 'in_progress' };
+        if (step.step === 'Branch General Manager Review') {
+          return { ...step, status: 'in_progress', approver: actorName };
+        }
         return step;
       });
+    } else if (status === 'Mr. Emad Review' || status === 'Mr.Emad Review') {
+      timeline = timeline.map(step => {
+        if (step.step === 'Finance Director Review' || step.step === 'Branch General Manager Review' || step.step === 'Direct Manager Review') {
+          return { ...step, status: 'completed', date: step.date || nowStr };
+        }
+        if (step.step === 'Financial Controller Review') {
+          return { ...step, status: 'in_progress', approver: actorName };
+        }
+        return step;
+      });
+    } else if (status === 'Approved' || status === 'Ready for Payment') {
+      timeline = timeline.map(step => ({ ...step, status: 'completed', date: step.date || nowStr }));
     } else if (status === 'Paid') {
       timeline = timeline.map(step => ({ ...step, status: 'completed', date: step.date || nowStr }));
     } else if (status === 'Rejected') {
@@ -471,7 +475,7 @@ export const executeSettlement = async (req, res) => {
     const sha256Signature = `SHA256:${crypto.createHash('sha256').update(signaturePayload).digest('hex')}`;
 
     const traceId = req.body.transactionTraceId || `TX-FIN-${expense.claimId || expense.id.slice(-6)}-${Date.now().toString().slice(-4)}`;
-    const bankPrefix = (expense.bankName || 'DANAMON').replace(/[^a-zA-Z0-9]/g, '').slice(0, 7).toUpperCase();
+    const bankPrefix = (expense.bankName || 'BNI').replace(/[^a-zA-Z0-9]/g, '').slice(0, 7).toUpperCase();
     const acknowledgementCode = req.body.acknowledgementCode || `ACK-${bankPrefix}-${Date.now().toString().slice(-6)}`;
     const settleCode = `SETTLE-${Math.floor(10000 + Math.random() * 90000)}-${bankPrefix.slice(0, 3)}`;
 
@@ -484,8 +488,8 @@ export const executeSettlement = async (req, res) => {
     const updatedTimeline = [
       ...baseTimeline,
       {
-        step: `Bank Settlement Completed (${expense.bankName || 'Bank Danamon'})`,
-        approver: `${expense.bankName || 'Bank Danamon'} Host-to-Host Clearing API`,
+        step: `Bank Settlement Completed (${expense.bankName || 'Bank BNI'})`,
+        approver: `${expense.bankName || 'Bank BNI'} Host-to-Host Clearing API`,
         status: 'completed',
         date: nowFormatted,
         signatureHash: sha256Signature,
@@ -517,7 +521,7 @@ export const executeSettlement = async (req, res) => {
         amount: parseFloat(expense.amount),
         currency: expense.currency || 'RP',
         recipientName: expense.submittedByName || expense.submittedBy,
-        recipientBank: expense.bankName || 'Bank Danamon',
+        recipientBank: expense.bankName || 'Bank BNI',
         recipientAccount: expense.bankAccountNumber,
         traceId: traceId,
         acknowledgementCode: acknowledgementCode,
@@ -547,7 +551,7 @@ export const executeSettlement = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Pembayaran ${expense.claimId || expense.id} berhasil dieksekusi secara instan via API Bank (${expense.bankName || 'Bank Danamon'}).`,
+      message: `Pembayaran ${expense.claimId || expense.id} berhasil dieksekusi secara instan via API Bank (${expense.bankName || 'Bank BNI'}).`,
       data: {
         id: expense.id,
         claimId: expense.claimId,
@@ -581,7 +585,7 @@ export const executeSettlement = async (req, res) => {
  */
 export const inquireBankAccount = async (req, res) => {
   try {
-    const { bankName = 'Bank Danamon', accountNumber, accountHolderName } = req.body;
+    const { bankName = 'Bank Negara Indonesia (BNI)', accountNumber, accountHolderName } = req.body;
 
     if (!accountNumber || accountNumber.trim().length < 8) {
       return res.status(400).json({

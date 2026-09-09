@@ -473,24 +473,24 @@ const initializeDatabase = async () => {
     if (gatewayRows[0]?.count === 0) {
       const seedGateways = [
         [
-          'gw_danamon',
-          'Bank Danamon Indonesia (Host-to-Host Corporate)',
-          'DANAMON_H2H',
+          'gw_bni',
+          'Bank Negara Indonesia (BNI Host-to-Host Corporate SNAP BI)',
+          'BNI_H2H',
           'Indonesia',
           'IDR',
           'sandbox',
-          'DANAMON-CORP-ID-882194',
-          'sec_live_danamon_9941a80e',
-          'MERCHANT-DST-ID',
+          'BNI-CORP-ID-882194',
+          'sec_live_bni_9941a80e',
+          'MERCHANT-DST-BNI',
           '98421',
-          'https://api-gateway.danamon.co.id/v2/corporate/transfer',
-          'https://odstfin.io/api/expenses/webhook/danamon',
-          'whsec_danamon_8849120',
-          '-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAP8...DANAMON-CORP-CERT\n-----END CERTIFICATE-----',
+          'https://api.bni.co.id/snap/v1.0/transfer-intrabank',
+          'https://odstfin.io/api/expenses/webhook/bni',
+          'whsec_bni_8849120',
+          '-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAP8...BNI-CORP-CERT\n-----END CERTIFICATE-----',
           '172.16.5.10, 10.200.4.88, 127.0.0.1',
           1,
           new Date(),
-          42,
+          38,
           'ONLINE'
         ]
       ];

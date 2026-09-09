@@ -64,20 +64,20 @@ Aplikasi antarmuka pengguna dibangun dengan:
 * **Opsi Klien One-Off ("Others")**: Pilihan fleksibel untuk membuat konfirmasi tanpa menyimpan ke master data mitra tetap `dst_companies`, menjaga kebersihan master data.
 * **Format Penomoran Otomatis**: Transaksi klien manual otomatis menggunakan format nomor konfirmasi dengan prefix `OTH` (contoh: `OTH-0903-001`).
 
-### 2. Modul Internal Expenses & Reimbursement (3-Tier Executive Approval & H2H Banking)
-Sistem dilengkapi modul komprehensif untuk pengajuan, audit, persetujuan, dan pencairan klaim pengeluaran internal:
+### 2. Modul Internal Expenses & Reimbursement (3-Tier Executive Approval & Bank BNI SNAP BI)
+Sistem dilengkapi modul komprehensif untuk pengajuan, audit, dan persetujuan klaim pengeluaran internal:
 * **My Expenses (`/my-expenses`)**: Melacak seluruh status pengajuan klaim biaya operasional staf secara real-time.
-* **Submit Expense (`/submit-expense`)**: Formulir pengajuan klaim biaya baru lengkap dengan dropzone unggah bukti nota/kuitansi digital (*support PDF, JPG, PNG, WEBP maks 15MB*).
+* **Submit Expense (`/submit-expense`)**: Formulir pengajuan klaim biaya baru lengkap dengan dropzone unggah bukti nota/kuitansi digital (*support PDF, JPG, PNG, WEBP maks 15MB*) dan rekening default Bank BNI.
 * **Approvals Dashboard (`/approvals`)**: Pusat kendali audit bagi auditor keuangan dan approver eksekutif.
 * **Rantai Otorisasi 3 Tingkat Eksekutif (3-Tier Executive Authorization Chain)**:
   1. **Tahap 1**: Mr. Hesham Mokhtar (*Finance Director*)
   2. **Tahap 2**: Mr. Khalid Idriss (*Branch General Manager*)
   3. **Tahap 3**: Mr. Emad Moustafa (*Financial Controller / Treasury*)
-  * Hak persetujuan dikunci ketat per tahap (stage gating); staf lain dan Super Admin dibatasi dari hak persetujuan demi kepatuhan audit.
-* **Pencairan Host-to-Host (SNAP BI / SARIE Payout Gateway)**:
-  * **Setup Beneficiary (`/setup-beneficiary/:id`)**: Konfigurasi dan inkuiri rekening bank karyawan secara langsung melalui protokol SNAP BI / SARIE.
-  * **Initiate Reimbursement (`/initiate-reimbursement/:id`)**: Pemilihan sumber rekening debit korporat dan pemicu pembayaran instan.
-  * **Pre-Execution Payment Review (`/pre-execution-payment/:id`)**: Verifikasi 2-Faktor (2FA OTP), inspeksi jejak audit kriptografis (*SHA-256 Verified Immutable*), dan pencetakan voucher transfer resmi.
+  * Hak persetujuan dikunci ketat per tahap (stage gating); setelah tahap 3 disetujui, klaim resmi berstatus **`Approved` / Disetujui Penuh**.
+* **Integrasi Perbankan Bank BNI (SNAP BI Host-to-Host)**:
+  * Sistem dipersiapkan terhubung ke gateway **PT Bank Negara Indonesia (Persero) Tbk (Bank BNI SNAP BI Corporate)**.
+  * **Status Proses Pembayaran**: Proses eksekusi transfer bank otomatis saat ini ditahan (*on hold*) pada tahap 3-Tier Approval selesai sementara menunggu finalisasi API dari Bank BNI; pencairan dapat diproses secara manual atau payroll.
+  * **Setup Beneficiary & Audit**: Konfigurasi inkuiri rekening bank dan pencetakan voucher transfer kriptografis SHA-256 terstandarisasi SNAP BI.
 * **Dual-Environment Feature Flag (`VITE_ENABLE_INTERNAL`)**:
   * **Production Mode**: Bagian internal aman disembunyikan dengan label **`INTERNAL (coming soon)`** (Arab: `داخلي (قريباً)`).
   * **Testing Mode**: Mengaktifkan seluruh modul internal untuk evaluasi menyeluruh.
