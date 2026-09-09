@@ -149,6 +149,18 @@ export const createReservation = async (req, res, next) => {
           existingCols.push('custom_city_country');
         } catch (e) {}
       }
+      if (!existingCols.includes('group_number')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN group_number VARCHAR(255) DEFAULT NULL');
+          existingCols.push('group_number');
+        } catch (e) {}
+      }
+      if (!existingCols.includes('nationality')) {
+        try {
+          await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN nationality VARCHAR(255) DEFAULT NULL');
+          existingCols.push('nationality');
+        } catch (e) {}
+      }
     }
 
     const {
@@ -157,7 +169,8 @@ export const createReservation = async (req, res, next) => {
       employeeName, employeeId, employeePhone, employeeEmail, employeeEntity, companyTaxNo,
       currency, taxRate, status, type, rooms, notes, usdToIdrRate, sarToIdrRate,
       company_id, custom_company_name, custom_company_email, custom_agent, custom_address, custom_tax_number, custom_city_country,
-      advancePayment, remainingBalance, isCustomClient
+      advancePayment, remainingBalance, isCustomClient,
+      group_number, groupNumber, nationality
     } = req.body;
 
     const isCustom = isCustomClient || company_id === 'Others' || !company_id;
@@ -232,7 +245,9 @@ export const createReservation = async (req, res, next) => {
       { col: 'custom_agent', val: isCustom ? custom_agent : null },
       { col: 'custom_address', val: isCustom ? custom_address : null },
       { col: 'custom_tax_number', val: isCustom ? custom_tax_number : null },
-      { col: 'custom_city_country', val: isCustom ? custom_city_country : null }
+      { col: 'custom_city_country', val: isCustom ? custom_city_country : null },
+      { col: 'group_number', val: (group_number || groupNumber || '').trim() || null },
+      { col: 'nationality', val: (nationality || '').trim() || null }
     ];
 
     // Filter hanya kolom yang benar-benar ada di database (jika existingCols berhasil di-fetch)
@@ -613,6 +628,9 @@ export const sendReservationConfirmationEmail = async (req, res, next) => {
             clientTaxNo: resv.clientTaxNo || '02.271.015.6-407.000',
             clientAddress: resv.clientAddress || 'Jl. Chairil Anwar Blok B12, Ruko Kalimas 1, Margahayu, Kec. Bekasi Timur',
             clientCityCountry: resv.clientCityCountry || 'Bekasi, 17113, Indonesia',
+            group_number: resv.group_number || resv.groupNumber || null,
+            groupNumber: resv.group_number || resv.groupNumber || null,
+            nationality: resv.nationality || null,
             documentType: 'Hotel Reservation Confirmation'
           }
         })

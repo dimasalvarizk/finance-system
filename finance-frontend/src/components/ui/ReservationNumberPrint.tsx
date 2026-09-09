@@ -117,7 +117,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     )}
                   </div>
 
-                  {!isHotel && (((invoice as any).group_number || (invoice as any).groupNumber || (details as any)?.group_number || (details as any)?.groupNumber) || ((invoice as any).nationality || (details as any)?.nationality)) && (
+                  {(((invoice as any).group_number || (invoice as any).groupNumber || (details as any)?.group_number || (details as any)?.groupNumber) || ((invoice as any).nationality || (details as any)?.nationality)) && (
                     <div className="grid grid-cols-[auto_auto] gap-x-2 gap-y-0.5 justify-end pl-3 border-l border-slate-200">
                       {((invoice as any).group_number || (invoice as any).groupNumber || (details as any)?.group_number || (details as any)?.groupNumber) && (
                         <>

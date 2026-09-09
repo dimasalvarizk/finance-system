@@ -94,6 +94,8 @@ const initializeDatabase = async () => {
         paymentInvoiceFile LONGTEXT DEFAULT NULL,
         usdToIdrRate DECIMAL(10,2) DEFAULT 18025.00,
         sarToIdrRate DECIMAL(10,2) DEFAULT 4800.00,
+        group_number VARCHAR(255) DEFAULT NULL,
+        nationality VARCHAR(255) DEFAULT NULL,
         rooms JSON NOT NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -147,6 +149,12 @@ const initializeDatabase = async () => {
       }
       if (!existingCols.includes('custom_city_country')) {
         await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN custom_city_country VARCHAR(255) DEFAULT NULL');
+      }
+      if (!existingCols.includes('group_number')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN group_number VARCHAR(255) DEFAULT NULL');
+      }
+      if (!existingCols.includes('nationality')) {
+        await pool.query('ALTER TABLE dst_hotel_reservations ADD COLUMN nationality VARCHAR(255) DEFAULT NULL');
       }
     } catch (alterRatesErr) {
       console.error('Failed checking columns for dst_hotel_reservations:', alterRatesErr.message);
