@@ -476,7 +476,7 @@ const compareDates = (dateAStr: string, dateBStr: string): boolean => {
 const Invoices: React.FC = () => {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
-  const companySettings = getLocalCompanySettings();
+  const companySettings = useMemo(() => getLocalCompanySettings(), []);
 
   const hasBypassPermission = Boolean(
     user?.role === 'Super Admin' ||
@@ -2386,8 +2386,8 @@ const Invoices: React.FC = () => {
 
       {/* Generate Invoice Premium Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col animate-scale-up font-sans max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col font-sans max-h-[90vh] transform-gpu">
 
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white flex-shrink-0">
@@ -2425,7 +2425,7 @@ const Invoices: React.FC = () => {
             )}
 
             {/* Modal Form */}
-            <form onSubmit={handleGenerateInvoice} noValidate className="flex-1 overflow-y-auto p-6 space-y-6">
+            <form onSubmit={handleGenerateInvoice} noValidate className="flex-1 modal-scroll-container p-6 space-y-6">
 
               {/* Client Selector Dropdown */}
               <div className="space-y-1.5 relative">
@@ -3259,7 +3259,7 @@ const Invoices: React.FC = () => {
 
               {/* Payment Instructions Section */}
               {(() => {
-                const settings = getLocalCompanySettings();
+                const settings = companySettings;
                 return (
                   <div className="space-y-3 mt-6">
                     <h4 className="text-[12px] font-bold text-[#0c0d0f] uppercase tracking-wider font-inter">
@@ -3383,7 +3383,7 @@ const Invoices: React.FC = () => {
       )}
       {/* Invoice Generated Success Modal Step 1 */}
       {successModalStep === 1 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4">
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full p-8 flex flex-col items-center animate-scale-up font-sans">
             {hasBypassPermission ? (
               <>
@@ -3457,7 +3457,7 @@ const Invoices: React.FC = () => {
 
       {/* Invoice Generated Success Modal Step 2 */}
       {successModalStep === 2 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4">
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full p-8 flex flex-col items-center animate-scale-up font-sans">
             <div className="w-14 h-14 bg-[#ecfdf5] text-[#10b981] rounded-full flex items-center justify-center mb-5 border border-[#d1fae5]">
               <Check className="w-6 h-6 stroke-[3px]" />
@@ -3481,7 +3481,7 @@ const Invoices: React.FC = () => {
 
       {/* Custom Confirmation / Alert Popup */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 p-4">
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full p-6 flex flex-col items-center text-center animate-scale-up font-sans">
             {confirmModal.type === 'danger' && (
               <div className="w-12 h-12 bg-red-50 border border-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
@@ -3551,7 +3551,7 @@ const Invoices: React.FC = () => {
 
       {/* Payment History & Installment Tracking Modal */}
       {paymentHistoryModal.isOpen && paymentHistoryModal.invoice && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setPaymentHistoryModal({ isOpen: false, invoice: null })}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 p-4" onClick={() => setPaymentHistoryModal({ isOpen: false, invoice: null })}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-scale-up font-sans max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             
             {/* Modal Header */}
@@ -3777,7 +3777,7 @@ const Invoices: React.FC = () => {
 
       {/* Add / Edit Payment Modal */}
       {isAddPaymentModalOpen && paymentHistoryModal.invoice && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-md p-4 animate-fade-in" onClick={() => setIsAddPaymentModalOpen(false)}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 p-4" onClick={() => setIsAddPaymentModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-scale-up font-sans" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-[16px] font-bold text-[#0c0d0f]">{editingPaymentId ? t('invoices.editPaymentRecord') : t('invoices.recordNewPayment')}</h3>
@@ -3989,7 +3989,7 @@ const Invoices: React.FC = () => {
 
       {/* Uploading Proof Spinner Overlay */}
       {isUploadingProof && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 p-4">
           <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-sm w-full p-8 flex flex-col items-center animate-scale-up font-sans">
             <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
             <h3 className="text-[16px] font-bold text-[#0c0d0f] tracking-tight mb-2">
@@ -4004,7 +4004,7 @@ const Invoices: React.FC = () => {
 
       {/* Delete Payment Confirmation Modal Popup */}
       {deletingPaymentId && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setDeletingPaymentId(null)}>
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 p-4" onClick={() => setDeletingPaymentId(null)}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 animate-scale-up text-center font-sans space-y-4" onClick={(e) => e.stopPropagation()}>
             <div>
               <h3 className="text-base font-bold text-slate-800">{t('invoices.deletePaymentConfirmTitle')}</h3>
@@ -4035,7 +4035,7 @@ const Invoices: React.FC = () => {
       {/* Payment Proof Viewer Modal - Placed at DOM root with z-index 99999 to guarantee rendering on top of all modals */}
       {viewingProofBase64 && (
         <div
-          className="fixed inset-0 bg-[#0c0d0f]/70 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-[#0c0d0f]/70 flex items-center justify-center p-4"
           style={{ zIndex: 99999 }}
           onClick={() => setViewingProofBase64(null)}
         >

@@ -1951,7 +1951,7 @@ const HotelReservations: React.FC = () => {
 
       {/* MODAL 4: CONFIRM APPROVAL (Mr. Karim) */}
       {isConfirmApprovalOpen && selectedBooking && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 p-6 space-y-4 font-sans text-[#0f172a]">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800">{t('hotelReservations.confirmApproval')}</h3>
@@ -2005,7 +2005,7 @@ const HotelReservations: React.FC = () => {
 
       {/* MODAL 5: APPROVED SUCCESSFULLY */}
       {isApprovedSuccessOpen && lastApprovedBooking && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
           <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 p-6 space-y-6 text-center font-sans text-[#0f172a]">
             
             {/* Green Check circle */}
@@ -2074,7 +2074,7 @@ const HotelReservations: React.FC = () => {
       {/* MODAL 6: VIEW PAYMENT PROOF */}
       {viewingProof && (
         <div
-          className="fixed inset-0 bg-[#0c0d0f]/50 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animate-fade-in"
+          className="fixed inset-0 bg-[#0c0d0f]/60 flex items-center justify-center z-[200] p-4"
           onClick={() => setViewingProof(null)}
         >
           <div
@@ -2136,7 +2136,7 @@ const HotelReservations: React.FC = () => {
 
       {/* Send Confirmation Email Modal */}
       {showSendConfirmationModal && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in select-none">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-[#e2e8f0]">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
               <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans flex items-center gap-2">

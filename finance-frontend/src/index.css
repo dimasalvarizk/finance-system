@@ -105,3 +105,13 @@ input::-ms-clear {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Hardware-Accelerated High Performance Modal Scrolling */
+.modal-scroll-container {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+

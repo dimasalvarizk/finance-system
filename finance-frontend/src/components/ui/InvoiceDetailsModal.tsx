@@ -129,7 +129,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
       {/* Styles for Invoice Details Print */}
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -170,10 +170,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
           }
         }
       `}} />
-      <div id="invoice-details-modal-interactive-area" className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col animate-scale-up font-sans">
+      <div id="invoice-details-modal-interactive-area" className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col font-sans transform-gpu">
 
         {/* Header */}
-        <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50">
+        <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50 flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-[#fffbeb] text-[#f59e0b] border border-[#fef3c7] flex items-center justify-center">
               <FileText className="w-5 h-5" />
@@ -197,7 +197,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
         </div>
 
         {/* Content */}
-        <div id="invoice-details-modal-scroll-body" className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
+        <div id="invoice-details-modal-scroll-body" className="p-6 space-y-6 modal-scroll-container max-h-[75vh]">
 
           {/* Details Top Bar */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

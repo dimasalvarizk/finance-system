@@ -44,11 +44,11 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
   if (!isOpen || !selectedBooking) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm select-none">
-      <div className="bg-white rounded-2xl max-w-6xl w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 flex flex-col max-h-[95vh] text-[13px] text-slate-700">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
+      <div className="bg-white rounded-2xl max-w-6xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[95vh] text-[13px] text-slate-700 transform-gpu">
         
         {/* Header Modal */}
-        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 flex-shrink-0">
           <div className="flex flex-col space-y-0.5">
             <h3 className="text-lg font-black text-slate-800 font-sans">
               {t('hotelReservations.reservationDetails')}
@@ -67,7 +67,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
         </div>
 
         {/* Scrollable Modal Body */}
-        <div className="p-8 space-y-6 overflow-y-auto flex-1 font-sans text-xs">
+        <div className="p-8 space-y-6 modal-scroll-container flex-1 font-sans text-xs">
           
           {/* SECTION: BILL FROM / BILL TO ROW */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -356,7 +356,7 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
         </div>
 
         {/* Footer Modal */}
-        <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-end bg-slate-50 text-xs">
+        <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-end bg-slate-50 text-xs flex-shrink-0">
           <div className="flex items-center space-x-2">
             <button
               type="button"
