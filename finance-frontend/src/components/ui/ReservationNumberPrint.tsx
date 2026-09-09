@@ -81,16 +81,44 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     <>RESERVATION<br/>CONFIRMATION</>
                   )}
                 </h1>
-                                <div className="grid grid-cols-[auto_auto] gap-x-2 gap-y-0.5 justify-end text-[8.5px] font-sans mt-0.5">
-                  <span className="text-[#94a3b8] font-medium text-right">Reservation No:</span>
-                  <span className="text-[#0f172a] font-bold text-right">{invoice.invoiceNo}</span>
-                  
-                  {!isHotel ? (
-                    <>
-                      <span className="text-[#94a3b8] font-medium text-right">Reference:</span>
-                      <span className="text-slate-600 font-medium text-right">{invoice.referenceNo}</span>
-                      <span className="text-[#94a3b8] font-medium text-right">Serial:</span>
-                      <span className="text-slate-600 font-medium text-right">{invoice.serialNo}</span>
+                                <div className="flex items-start justify-end gap-3.5 text-[8.5px] font-sans mt-0.5">
+                  <div className="grid grid-cols-[auto_auto] gap-x-2 gap-y-0.5 justify-end">
+                    <span className="text-[#94a3b8] font-medium text-right">Reservation No:</span>
+                    <span className="text-[#0f172a] font-bold text-right">{invoice.invoiceNo}</span>
+                    
+                    {!isHotel ? (
+                      <>
+                        <span className="text-[#94a3b8] font-medium text-right">Reference:</span>
+                        <span className="text-slate-600 font-medium text-right">{invoice.referenceNo}</span>
+                        <span className="text-[#94a3b8] font-medium text-right">Serial:</span>
+                        <span className="text-slate-600 font-medium text-right">{invoice.serialNo}</span>
+                      </>
+                    ) : (
+                      <>
+                        {isTentative ? (
+                          <div className="col-span-2 mt-1 px-3 py-0.5 text-[8.5px] font-extrabold text-orange-600 border border-solid border-orange-300 bg-orange-50/60 rounded-xl text-center">
+                            TENTATIVE RESERVATION
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-[#94a3b8] font-medium text-right">Status:</span>
+                            <span className="text-emerald-600 font-bold text-right">CONFIRMED</span>
+                            {((invoice as any).confirmationNo || (invoice as any).confirmation_number || (invoice.serialNo && invoice.serialNo.startsWith('CNF'))) && (
+                              <>
+                                <span className="text-[#94a3b8] font-medium text-right">Confirmation No:</span>
+                                <span className="text-[#0f172a] font-bold text-right">
+                                  {(invoice as any).confirmationNo || (invoice as any).confirmation_number || invoice.serialNo}
+                                </span>
+                              </>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {!isHotel && (((invoice as any).group_number || (invoice as any).groupNumber || (details as any)?.group_number || (details as any)?.groupNumber) || ((invoice as any).nationality || (details as any)?.nationality)) && (
+                    <div className="grid grid-cols-[auto_auto] gap-x-2 gap-y-0.5 justify-end pl-3 border-l border-slate-200">
                       {((invoice as any).group_number || (invoice as any).groupNumber || (details as any)?.group_number || (details as any)?.groupNumber) && (
                         <>
                           <span className="text-[#94a3b8] font-medium text-right">Group Number:</span>
@@ -103,28 +131,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                           <span className="text-[#0f172a] font-bold text-right">{(invoice as any).nationality || (details as any)?.nationality}</span>
                         </>
                       )}
-                    </>
-                  ) : (
-                    <>
-                      {isTentative ? (
-                        <div className="col-span-2 mt-1 px-3 py-0.5 text-[8.5px] font-extrabold text-orange-600 border border-solid border-orange-300 bg-orange-50/60 rounded-xl text-center">
-                          TENTATIVE RESERVATION
-                        </div>
-                      ) : (
-                        <>
-                          <span className="text-[#94a3b8] font-medium text-right">Status:</span>
-                          <span className="text-emerald-600 font-bold text-right">CONFIRMED</span>
-                          {((invoice as any).confirmationNo || (invoice as any).confirmation_number || (invoice.serialNo && invoice.serialNo.startsWith('CNF'))) && (
-                            <>
-                              <span className="text-[#94a3b8] font-medium text-right">Confirmation No:</span>
-                              <span className="text-[#0f172a] font-bold text-right">
-                                {(invoice as any).confirmationNo || (invoice as any).confirmation_number || invoice.serialNo}
-                              </span>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </>
+                    </div>
                   )}
                 </div>
               </div>

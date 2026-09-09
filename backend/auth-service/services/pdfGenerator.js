@@ -422,20 +422,26 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
               <h1 class="main-title">
                 RESERVATION<br>CONFIRMATION
               </h1>
-              <div class="meta-grid">
-                <span class="meta-lbl">Reservation No:</span>
-                <span class="meta-val">${invoiceNo}</span>
-                <span class="meta-lbl">Reference:</span>
-                <span style="color:#475569; font-weight:500; text-align:right;">${referenceNo}</span>
-                <span class="meta-lbl">Serial:</span>
-                <span style="color:#475569; font-weight:500; text-align:right;">${serialNo}</span>
-                ${(details.group_number || details.groupNumber) ? `
-                <span class="meta-lbl">Group Number:</span>
-                <span class="meta-val">${details.group_number || details.groupNumber}</span>
-                ` : ''}
-                ${details.nationality ? `
-                <span class="meta-lbl">Nationality:</span>
-                <span class="meta-val">${details.nationality}</span>
+              <div style="display: flex; align-items: flex-start; justify-content: flex-end; gap: 14px; margin-top: 2px;">
+                <div class="meta-grid">
+                  <span class="meta-lbl">Reservation No:</span>
+                  <span class="meta-val">${invoiceNo}</span>
+                  <span class="meta-lbl">Reference:</span>
+                  <span style="color:#475569; font-weight:500; text-align:right;">${referenceNo}</span>
+                  <span class="meta-lbl">Serial:</span>
+                  <span style="color:#475569; font-weight:500; text-align:right;">${serialNo}</span>
+                </div>
+                ${((details.group_number || details.groupNumber) || details.nationality) ? `
+                <div class="meta-grid" style="border-left: 1px solid #e2e8f0; padding-left: 10px;">
+                  ${(details.group_number || details.groupNumber) ? `
+                  <span class="meta-lbl">Group Number:</span>
+                  <span class="meta-val">${details.group_number || details.groupNumber}</span>
+                  ` : ''}
+                  ${details.nationality ? `
+                  <span class="meta-lbl">Nationality:</span>
+                  <span class="meta-val">${details.nationality}</span>
+                  ` : ''}
+                </div>
                 ` : ''}
               </div>
             </div>
