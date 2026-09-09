@@ -32,11 +32,11 @@ export const BankTransferModal: React.FC<BankTransferModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-scale-up font-sans"
+        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 font-sans transform-gpu"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center border-b border-slate-100 pb-3">

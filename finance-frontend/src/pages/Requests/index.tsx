@@ -2065,7 +2065,7 @@ const Requests: React.FC = () => {
       {/* Payment Proof Viewer Modal */}
       {viewingProofBase64 && (
         <div
-          className="fixed inset-0 bg-[#0c0d0f]/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 animate-fade-in"
+          className="fixed inset-0 bg-[#0c0d0f]/60 flex items-center justify-center z-[99999] p-4"
           onClick={() => setViewingProofBase64(null)}
         >
           <div
@@ -2128,8 +2128,7 @@ const Requests: React.FC = () => {
       {/* Confirmation Modal */}
       {showPaymentConfirm && (
         <div
-          className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(226, 232, 240, 0.65)" }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans"
         >
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-xl border border-[#e2e8f0]">
             <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-[#f59e0b] border border-[#fef3c7]/60">
@@ -2160,7 +2159,7 @@ const Requests: React.FC = () => {
       {/* Success Modal */}
       {showPaymentSuccess && (
         <div
-          className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans"
         >
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#e6f4ea] text-[#137333] rounded-full flex items-center justify-center mx-auto border border-[#ceead6]">
@@ -2185,7 +2184,7 @@ const Requests: React.FC = () => {
       {/* Archive Confirmation Modal */}
       {showArchiveConfirm && (
         <div
-          className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans"
         >
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border border-[#e2e8f0]">
             <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-[#f59e0b] border border-[#fef3c7]/60">
@@ -2218,7 +2217,7 @@ const Requests: React.FC = () => {
       {/* Archive Success Modal */}
       {showArchiveSuccess && (
         <div
-          className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans"
         >
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#e6f4ea] text-[#137333] rounded-full flex items-center justify-center mx-auto border border-[#ceead6]">
@@ -2246,7 +2245,7 @@ const Requests: React.FC = () => {
       {/* Rejection Reason Modal */}
       {showRejectModal && (
         <div
-          className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-slate-900/40"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans"
         >
           <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-[#e2e8f0]">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
@@ -2289,7 +2288,7 @@ const Requests: React.FC = () => {
       {/* Send Invoice Modal */}
       {showSendInvoiceModal && (
         <div
-          className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans"
         >
           <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-[#e2e8f0]">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
@@ -2361,7 +2360,7 @@ const Requests: React.FC = () => {
       {/* Send Success Modal */}
       {showSendSuccessModal && (
         <div
-          className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans"
         >
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#e6f4ea] text-[#137333] rounded-full flex items-center justify-center mx-auto border border-[#ceead6]">

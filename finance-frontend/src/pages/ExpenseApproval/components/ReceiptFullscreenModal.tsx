@@ -21,11 +21,11 @@ export const ReceiptFullscreenModal: React.FC<ReceiptFullscreenModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 bg-[#0c0d0f]/60 z-50 flex items-center justify-center p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl space-y-6 relative animate-scale-in"
+        className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl space-y-6 relative animate-scale-in transform-gpu"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">

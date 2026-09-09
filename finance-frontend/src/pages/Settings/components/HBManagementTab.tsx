@@ -371,8 +371,8 @@ const HBManagementTab: React.FC = () => {
 
       {/* MODAL 1: ADD / EDIT ROOM TYPE */}
       {isRoomModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 p-6 space-y-5 font-sans text-[#0f172a]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
+          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100 p-6 space-y-5 font-sans text-[#0f172a] transform-gpu">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
                 {editingRoom ? `${t('common.edit')} ${t('settings.roomTypes')}` : t('settings.addRoomType')}
@@ -442,8 +442,8 @@ const HBManagementTab: React.FC = () => {
 
       {/* MODAL 2: ADD / EDIT MEAL TYPE */}
       {isMealModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in border border-slate-100 p-6 space-y-5 font-sans text-[#0f172a]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
+          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100 p-6 space-y-5 font-sans text-[#0f172a] transform-gpu">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
                 {editingMeal ? `${t('common.edit')} ${t('settings.mealPlans')}` : t('settings.addMealPlan')}

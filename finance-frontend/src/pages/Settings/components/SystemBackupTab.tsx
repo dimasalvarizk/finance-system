@@ -1150,8 +1150,8 @@ const SystemBackupTab: React.FC = () => {
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-scale-in">
+        <div className="fixed inset-0 z-50 bg-[#0c0d0f]/60 flex items-center justify-center p-4 font-sans">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 font-sans transform-gpu">
             <div className="text-left space-y-1">
               <h3 className="text-base font-bold text-slate-900">
                 {t('settings.confirmBroadcastTitle')}

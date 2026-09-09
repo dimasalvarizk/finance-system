@@ -332,8 +332,8 @@ const ServicesTab: React.FC = () => {
 
       {/* Modal: Add Service */}
       {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col font-sans py-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col font-sans py-6 transform-gpu">
 
             {/* Modal Header */}
             <div className="flex justify-between items-center text-left pb-4 border-b border-[#e2e8f0] px-6">
@@ -477,8 +477,8 @@ const ServicesTab: React.FC = () => {
 
       {/* Modal: Edit Service */}
       {editingService && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col font-sans py-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col font-sans py-6 transform-gpu">
 
             {/* Modal Header */}
             <div className="flex justify-between items-center text-left pb-4 border-b border-[#e2e8f0] px-6">

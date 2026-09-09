@@ -25,15 +25,15 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 select-none animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-sans">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-[#0f172a]/30 backdrop-blur-[4px] transition-opacity" 
+        className="fixed inset-0 bg-[#0c0d0f]/60 transition-opacity" 
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-100/80 p-6 flex flex-col items-center text-center z-10 transform scale-100 transition-all duration-300 font-sans">
+      <div className="relative bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-100/80 p-6 flex flex-col items-center text-center z-10 font-sans transform-gpu">
         
         {/* Close Button Top Right */}
         <button

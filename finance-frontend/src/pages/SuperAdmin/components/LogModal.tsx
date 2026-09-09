@@ -83,8 +83,8 @@ export const LogModal: React.FC<LogModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn font-inter">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 overflow-y-auto modal-scroll-container font-inter">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 transform-gpu my-auto">
         {/* Header */}
         <div className="px-6 py-4 bg-[#1d2857] text-white flex items-center justify-between">
           <div>

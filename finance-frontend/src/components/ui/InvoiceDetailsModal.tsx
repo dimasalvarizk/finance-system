@@ -691,8 +691,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
         </div>
       </div>
       {errorMessage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-md p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl border border-red-100 shadow-2xl max-w-md w-full p-6 flex flex-col items-center text-center space-y-4 animate-scale-up">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-red-100 shadow-2xl max-w-md w-full p-6 flex flex-col items-center text-center space-y-4 font-sans transform-gpu">
             <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 ring-4 ring-red-500/10">
               <Lock className="w-6 h-6" />
             </div>
@@ -715,7 +715,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
       )}
       {viewingProof && (
         <div
-          className="fixed inset-0 bg-[#0c0d0f]/50 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animate-fade-in"
+          className="fixed inset-0 bg-[#0c0d0f]/60 flex items-center justify-center z-[200] p-4 font-sans"
           onClick={() => setViewingProof(null)}
         >
           <div

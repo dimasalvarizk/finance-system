@@ -114,11 +114,11 @@ Audit Trace ID: ${claimReference}-${log.id}
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/65 backdrop-blur-sm p-3 sm:p-5 animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 p-3 sm:p-5 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-3xl w-full overflow-hidden animate-scale-up font-sans flex flex-col max-h-[90vh]"
+        className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-3xl w-full overflow-hidden animate-scale-up font-sans flex flex-col max-h-[90vh] transform-gpu"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
@@ -207,7 +207,7 @@ Audit Trace ID: ${claimReference}-${log.id}
         </div>
 
         {/* Modal Body - 2 Column Clean Grid */}
-        <div className="p-6 overflow-y-auto space-y-4">
+        <div className="p-6 overflow-y-auto space-y-4 modal-scroll-container flex-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Left Column: Signer & Network */}
             <div className="space-y-4">

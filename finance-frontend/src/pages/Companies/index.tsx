@@ -917,8 +917,8 @@ const Companies: React.FC = () => {
 
       {/* Modal: Add New Company */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-[540px] shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans animate-scale-up">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
+          <div className="bg-white rounded-2xl w-full max-w-[540px] shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans transform-gpu">
             {/* Header */}
             <div className="px-6 py-4 flex justify-between items-center bg-white border-b border-[#e2e8f0]">
               <h3 className="text-[16px] font-bold text-[#1e293b]">{t('companies.addNewCompany')}</h3>
@@ -1174,8 +1174,8 @@ const Companies: React.FC = () => {
       )}
       {/* Modal: View Details */}
       {isDetailsModalOpen && selectedCompany && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-inter">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans transform-gpu">
             {/* Header */}
             <div className="pl-6 pr-4 py-5 flex justify-between items-center bg-white">
               <h3 className="text-[18px] font-bold text-[#1e293b] font-sans">{t('companies.companyDetails')}</h3>
@@ -1291,8 +1291,8 @@ const Companies: React.FC = () => {
 
       {/* Modal: Edit Details */}
       {isEditModalOpen && selectedCompany && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-[540px] shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans animate-scale-up">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
+          <div className="bg-white rounded-2xl w-full max-w-[540px] shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col font-sans transform-gpu">
             {/* Header */}
             <div className="px-6 py-4 flex justify-between items-center bg-white border-b border-[#e2e8f0]">
               <h3 className="text-[16px] font-bold text-[#1e293b]">{t('companies.editCompanyDetails')}</h3>
@@ -1521,10 +1521,10 @@ const Companies: React.FC = () => {
         };
 
         return (
-          <div className="fixed inset-0 backdrop-blur-xs z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/50 animate-fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-[850px] shadow-2xl border border-slate-200 overflow-hidden flex flex-col font-sans max-h-[92vh] animate-scale-up">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
+            <div className="bg-white rounded-2xl w-full max-w-[850px] shadow-2xl border border-slate-200 overflow-hidden flex flex-col font-sans max-h-[92vh] transform-gpu">
               {/* Header */}
-              <div className="p-6 pb-2 flex justify-between items-start bg-white">
+              <div className="p-6 pb-2 flex justify-between items-start bg-white flex-shrink-0">
                 <div>
                   <h2 className="text-[22px] font-extrabold text-[#0f172a] tracking-tight font-sans">
                     Company Financial Report
@@ -1542,7 +1542,7 @@ const Companies: React.FC = () => {
               </div>
 
               {/* Scrollable Contents */}
-              <div className="px-6 py-3 space-y-5 overflow-y-auto flex-1">
+              <div className="px-6 py-3 space-y-5 modal-scroll-container flex-1">
                 {/* 3 Stat Cards */}
                 <div className="grid grid-cols-3 gap-3.5">
                   <div className="border border-slate-200/90 rounded-xl p-3.5 bg-white shadow-2xs">
@@ -1677,7 +1677,7 @@ const Companies: React.FC = () => {
 
       {/* Modal: Add Confirmation */}
       {showAddConfirm && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#fffbeb] text-[#f59e0b] rounded-full flex items-center justify-center mx-auto border border-[#fef3c7]">
               <HelpCircle className="w-8 h-8" />
@@ -1710,7 +1710,7 @@ const Companies: React.FC = () => {
 
       {/* Modal: Delete Confirmation */}
       {showDeleteConfirm && companyToDelete && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-100">
               <AlertCircle className="w-8 h-8" />
@@ -1743,7 +1743,7 @@ const Companies: React.FC = () => {
 
       {/* Modal: Delete Success */}
       {showDeleteSuccess && companyToDelete && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#e6f4ea] text-[#137333] rounded-full flex items-center justify-center mx-auto border border-[#ceead6]">
               <Check className="w-8 h-8 stroke-[3px]" />
@@ -1769,7 +1769,7 @@ const Companies: React.FC = () => {
         </div>
       )}
       {showAddSuccess && (
-        <div className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/40 animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0c0d0f]/60 font-sans">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl border border-[#e2e8f0] animate-scale-up font-sans">
             <div className="w-16 h-16 bg-[#e6f4ea] text-[#137333] rounded-full flex items-center justify-center mx-auto border border-[#ceead6]">
               <Check className="w-8 h-8 stroke-[3px]" />

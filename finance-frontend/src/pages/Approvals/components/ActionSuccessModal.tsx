@@ -15,11 +15,11 @@ export const ActionSuccessModal: React.FC<ActionSuccessModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-scale-up font-sans"
+        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 font-sans transform-gpu"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">

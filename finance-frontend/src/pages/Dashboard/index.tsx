@@ -799,10 +799,10 @@ const Dashboard: React.FC = () => {
 
       {/* Financial Report Modal */}
       {selectedBranch && selectedBranchReport && (isAuthorizedForConsolidated || selectedBranch === user?.branch) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 animate-fade-in font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-scale-up transform-gpu">
             {/* Header */}
-            <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50">
+            <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50 flex-shrink-0">
               <div className="flex flex-col">
                 <h3 className="text-[18px] font-bold text-[#0c0d0f] font-sans">
                   {formatBranchName(selectedBranch)} — {t('companies.financialReport')}
@@ -820,7 +820,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
+            <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh] modal-scroll-container">
               {/* Stat Cards Row */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total Revenue */}
@@ -967,7 +967,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-[#e2e8f0] bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="px-6 py-4 border-t border-[#e2e8f0] bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 flex-shrink-0">
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
                 <span className="text-[12px] text-[#64748b] font-semibold">

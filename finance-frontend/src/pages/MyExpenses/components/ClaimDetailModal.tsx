@@ -24,15 +24,15 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0c0d0f]/60 p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden animate-scale-up font-sans"
+        className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden animate-scale-up font-sans transform-gpu flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
           <div className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <Receipt className="w-4 h-4" />
@@ -51,7 +51,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+        <div className="p-6 space-y-5 overflow-y-auto modal-scroll-container flex-1">
           {/* Amount and Status Banner */}
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center justify-between">
             <div>
@@ -181,7 +181,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 bg-slate-50/90 border-t border-slate-100 flex items-center justify-between gap-3">
+        <div className="px-6 py-4 bg-slate-50/90 border-t border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={onClose}

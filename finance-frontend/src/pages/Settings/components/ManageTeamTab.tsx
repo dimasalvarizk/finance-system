@@ -455,11 +455,11 @@ const ManageTeamTab: React.FC = () => {
 
       {/* Modal: Add Team Member */}
       {isAddMemberOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
           
           {/* STEP 1: MEMBER INFO FORM */}
           {addMemberStep === 1 && (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col font-sans">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col font-sans transform-gpu">
               <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
                 <h3 className="text-[17px] font-bold text-[#0c0d0f]">{t('settings.addNewMember')}</h3>
                 <button
@@ -723,8 +723,8 @@ const ManageTeamTab: React.FC = () => {
 
       {/* Modal: Edit Team Member */}
       {isEditMemberOpen && editingMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col font-sans text-left">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col font-sans text-left transform-gpu">
             <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
               <h3 className="text-[17px] font-bold text-[#0c0d0f]">{t('settings.editMember')}</h3>
               <button
@@ -893,8 +893,8 @@ const ManageTeamTab: React.FC = () => {
 
       {/* Modal: Confirm Delete Team Member */}
       {memberToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-md w-full overflow-hidden flex flex-col font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-md w-full overflow-hidden flex flex-col font-sans transform-gpu">
             <div className="px-6 py-5 border-b border-[#e2e8f0] flex justify-between items-center bg-white">
               <h3 className="text-[17px] font-bold text-[#991b1b] flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-[#ef4444]" />

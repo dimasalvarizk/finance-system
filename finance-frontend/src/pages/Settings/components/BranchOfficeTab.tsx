@@ -266,8 +266,8 @@ const BranchOfficeTab: React.FC = () => {
 
       {/* Modal: Add Branch */}
       {isAddBranchOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-md w-full overflow-hidden flex flex-col font-sans p-6 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-md w-full overflow-hidden flex flex-col font-sans p-6 space-y-6 transform-gpu">
 
             {/* Modal Header */}
             <div className="space-y-1.5 text-left">
@@ -389,8 +389,8 @@ const BranchOfficeTab: React.FC = () => {
 
       {/* Modal: Edit Branch */}
       {editingBranch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-scale-up font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-md w-full overflow-hidden flex flex-col font-sans py-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-md w-full overflow-hidden flex flex-col font-sans py-6 transform-gpu">
 
             {/* Modal Header */}
             <div className="flex justify-between items-center text-left pb-4 border-b border-[#e2e8f0] px-6">
@@ -532,8 +532,8 @@ const BranchOfficeTab: React.FC = () => {
 
       {/* Modal: Remove Branch Confirmation */}
       {branchToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full overflow-hidden flex flex-col font-sans p-6 text-center animate-scale-up space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full overflow-hidden flex flex-col font-sans p-6 text-center space-y-4 transform-gpu">
 
             {/* Warning Icon */}
             <div className="mx-auto w-12 h-12 rounded-full bg-[#fffbeb] text-[#9a3412] border border-[#fef3c7] flex items-center justify-center">
@@ -576,8 +576,8 @@ const BranchOfficeTab: React.FC = () => {
 
       {/* Modal: Remove Success */}
       {showSuccessRemoved && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-sm p-4 animate-fade-in font-sans">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full overflow-hidden flex flex-col font-sans p-6 text-center animate-scale-up space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 font-sans">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl max-w-sm w-full overflow-hidden flex flex-col font-sans p-6 text-center space-y-4 transform-gpu">
 
             {/* Checkmark Icon */}
             <div className="mx-auto w-12 h-12 rounded-full bg-[#ecfdf5] text-[#10b981] border border-[#d1fae5] flex items-center justify-center">
