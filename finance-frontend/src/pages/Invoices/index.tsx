@@ -87,15 +87,18 @@ export interface InvoiceDetail {
 export const getLocalCompanySettings = () => {
   const saved = localStorage.getItem('finance_company_settings');
   const defaults = {
-    companyName: 'ODST Group',
-    phone: '+62 856 9332 3122',
-    taxNumber: '0000-0000-0000',
+    companyName: 'PT.ODST AIRLINES INDO',
+    phone: '+62 8111 1203 330',
+    taxNumber: '0000-0000-0001',
     defaultNotes: "Please ensure the Invoice Number (e.g. AIT-2608-011) is listed as the payment description reference.\nAttach hotel booking confirmation numbers where applicable for ground handling operations.",
     termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.",
-    bankName: 'Danamon',
-    accountName: 'PT ODST Airlines Indo',
-    idrAccountNumber: '102-8829-011',
-    usdAccountNumber: '102-8829-022'
+    bankName: 'PT Bank Danamon Indonesia, Tbk',
+    accountName: 'PT ODST AIRLINES INDO',
+    idrAccountNumber: '003711895213',
+    usdAccountNumber: '003711895643',
+    bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+    cifNumber: '17330896',
+    swiftCode: 'BDINIDJA'
   };
   if (saved) {
     try {
@@ -111,6 +114,9 @@ export const getLocalCompanySettings = () => {
           accountName: parsed.accountName || defaults.accountName,
           idrAccountNumber: parsed.idrAccountNumber || defaults.idrAccountNumber,
           usdAccountNumber: parsed.usdAccountNumber || defaults.usdAccountNumber,
+          bankBranchAddress: parsed.bankBranchAddress || parsed.bank_branch_address || defaults.bankBranchAddress,
+          cifNumber: parsed.cifNumber || parsed.cif_number || defaults.cifNumber,
+          swiftCode: parsed.swiftCode || parsed.swift_code || defaults.swiftCode,
         };
       }
     } catch (e) {}
@@ -3277,6 +3283,24 @@ const Invoices: React.FC = () => {
                           <span className="text-[#64748b] font-semibold">{t('invoices.usdAccountNumber')}:</span>
                           <span className="font-bold text-[#2563eb] font-inter">{settings.usdAccountNumber}</span>
                         </div>
+                        {settings.cifNumber && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#64748b] font-semibold">{t('invoices.cifNumber') || 'CIF Number'}:</span>
+                            <span className="font-bold text-[#0c0d0f] font-mono">{settings.cifNumber}</span>
+                          </div>
+                        )}
+                        {settings.swiftCode && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#64748b] font-semibold">{t('invoices.swiftCode') || 'SWIFT Code'}:</span>
+                            <span className="font-bold text-[#0c0d0f] font-mono">{settings.swiftCode}</span>
+                          </div>
+                        )}
+                        {settings.bankBranchAddress && (
+                          <div className="flex flex-col gap-1 pt-1 border-t border-slate-100">
+                            <span className="text-[#64748b] font-semibold text-[11.5px]">{t('invoices.bankBranchAddress') || 'Bank Branch Address'}:</span>
+                            <span className="text-[#334155] text-[12px] leading-relaxed">{settings.bankBranchAddress}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

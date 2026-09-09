@@ -234,15 +234,18 @@ const initializeDatabase = async () => {
     const createCompanySettingsQuery = `
       CREATE TABLE IF NOT EXISTS dst_company_settings (
         id VARCHAR(50) PRIMARY KEY,
-        companyName VARCHAR(255) DEFAULT 'ODST Group',
+        companyName VARCHAR(255) DEFAULT 'PT.ODST AIRLINES INDO',
         phone VARCHAR(100) NOT NULL,
         taxNumber VARCHAR(100) NOT NULL,
         defaultNotes TEXT,
         termsAndConditions TEXT,
-        bankName VARCHAR(255) DEFAULT 'Danamon',
-        accountName VARCHAR(255) DEFAULT 'PT ODST Airlines Indo',
-        idrAccountNumber VARCHAR(100) DEFAULT '102-8829-011',
-        usdAccountNumber VARCHAR(100) DEFAULT '102-8829-022',
+        bankName VARCHAR(255) DEFAULT 'PT Bank Danamon Indonesia, Tbk',
+        accountName VARCHAR(255) DEFAULT 'PT ODST AIRLINES INDO',
+        idrAccountNumber VARCHAR(100) DEFAULT '003711895213',
+        usdAccountNumber VARCHAR(100) DEFAULT '003711895643',
+        bankBranchAddress TEXT DEFAULT NULL,
+        cifNumber VARCHAR(100) DEFAULT '17330896',
+        swiftCode VARCHAR(50) DEFAULT 'BDINIDJA',
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
@@ -255,7 +258,7 @@ const initializeDatabase = async () => {
     } catch (err) {
       console.log('Adding companyName column to dst_company_settings table...');
       try {
-        await pool.query("ALTER TABLE dst_company_settings ADD COLUMN companyName VARCHAR(255) DEFAULT 'ODST Group'");
+        await pool.query("ALTER TABLE dst_company_settings ADD COLUMN companyName VARCHAR(255) DEFAULT 'PT.ODST AIRLINES INDO'");
       } catch (alterErr) {
         console.error('Failed to alter dst_company_settings table:', alterErr);
       }
@@ -263,10 +266,13 @@ const initializeDatabase = async () => {
 
     // Add bank fields if they don't exist
     const bankFields = [
-      { name: 'bankName', type: "VARCHAR(255) DEFAULT 'Danamon'" },
-      { name: 'accountName', type: "VARCHAR(255) DEFAULT 'PT ODST Airlines Indo'" },
-      { name: 'idrAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-011'" },
-      { name: 'usdAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-022'" }
+      { name: 'bankName', type: "VARCHAR(255) DEFAULT 'PT Bank Danamon Indonesia, Tbk'" },
+      { name: 'accountName', type: "VARCHAR(255) DEFAULT 'PT ODST AIRLINES INDO'" },
+      { name: 'idrAccountNumber', type: "VARCHAR(100) DEFAULT '003711895213'" },
+      { name: 'usdAccountNumber', type: "VARCHAR(100) DEFAULT '003711895643'" },
+      { name: 'bankBranchAddress', type: "TEXT DEFAULT NULL" },
+      { name: 'cifNumber', type: "VARCHAR(100) DEFAULT '17330896'" },
+      { name: 'swiftCode', type: "VARCHAR(50) DEFAULT 'BDINIDJA'" }
     ];
 
     for (const f of bankFields) {

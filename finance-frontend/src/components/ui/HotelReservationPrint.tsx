@@ -2,6 +2,7 @@ import React from 'react';
 import type { Booking } from '../../pages/HotelReservations';
 import { calculateNights } from '../../pages/HotelReservations';
 import odstLogo from '../../assets/odstlogo.png';
+import { getLocalCompanySettings } from '../../pages/Invoices';
 
 interface Props {
   booking: Booking;
@@ -45,6 +46,7 @@ const formatMealPlan = (plan: string): string => {
 };
 
 const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => {
+  const companySettings = getLocalCompanySettings();
   const isTentative = booking.status === 'Tentative';
   
   // Calculate Subtotal & Totals
@@ -288,20 +290,38 @@ const HotelReservationPrint: React.FC<Props> = ({ booking, rates, taxRate }) => 
               <div className="space-y-1.5 text-[10px] font-sans">
                 <div className="flex justify-between border-b border-dashed border-slate-100 pb-1">
                   <span className="text-slate-500">Bank Name:</span>
-                  <span className="font-bold text-slate-800">Danamon</span>
+                  <span className="font-bold text-slate-800">{companySettings.bankName}</span>
                 </div>
                 <div className="flex justify-between border-b border-dashed border-slate-100 pb-1">
                   <span className="text-slate-500">Account Name:</span>
-                  <span className="font-bold text-slate-800">PT ODST Airlines Indo</span>
+                  <span className="font-bold text-slate-800">{companySettings.accountName}</span>
                 </div>
                 <div className="flex justify-between border-b border-dashed border-slate-100 pb-1">
                   <span className="text-slate-500">IDR Account Number:</span>
-                  <span className="font-bold text-blue-600 font-mono">102-8829-011</span>
+                  <span className="font-bold text-blue-600 font-mono">{companySettings.idrAccountNumber}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className={`flex justify-between ${companySettings.cifNumber || companySettings.swiftCode || companySettings.bankBranchAddress ? 'border-b border-dashed border-slate-100 pb-1' : ''}`}>
                   <span className="text-slate-500">USD Account Number:</span>
-                  <span className="font-bold text-blue-600 font-mono">102-8829-022</span>
+                  <span className="font-bold text-blue-600 font-mono">{companySettings.usdAccountNumber}</span>
                 </div>
+                {companySettings.cifNumber && (
+                  <div className={`flex justify-between ${companySettings.swiftCode || companySettings.bankBranchAddress ? 'border-b border-dashed border-slate-100 pb-1' : ''}`}>
+                    <span className="text-slate-500">CIF Number:</span>
+                    <span className="font-bold text-slate-800 font-mono">{companySettings.cifNumber}</span>
+                  </div>
+                )}
+                {companySettings.swiftCode && (
+                  <div className={`flex justify-between ${companySettings.bankBranchAddress ? 'border-b border-dashed border-slate-100 pb-1' : ''}`}>
+                    <span className="text-slate-500">SWIFT Code:</span>
+                    <span className="font-bold text-slate-800 font-mono">{companySettings.swiftCode}</span>
+                  </div>
+                )}
+                {companySettings.bankBranchAddress && (
+                  <div className="flex flex-col gap-0.5 pt-0.5 text-[9px]">
+                    <span className="text-slate-500">Branch Address:</span>
+                    <span className="text-slate-700 font-medium leading-tight">{companySettings.bankBranchAddress}</span>
+                  </div>
+                )}
               </div>
             </div>
 

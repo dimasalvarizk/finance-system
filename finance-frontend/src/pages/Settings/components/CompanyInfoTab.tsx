@@ -16,6 +16,9 @@ const CompanyInfoTab: React.FC = () => {
   const [accountName, setAccountName] = useState('');
   const [idrAccountNumber, setIdrAccountNumber] = useState('');
   const [usdAccountNumber, setUsdAccountNumber] = useState('');
+  const [bankBranchAddress, setBankBranchAddress] = useState('');
+  const [cifNumber, setCifNumber] = useState('');
+  const [swiftCode, setSwiftCode] = useState('');
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,9 @@ const CompanyInfoTab: React.FC = () => {
           setAccountName(data.accountName || '');
           setIdrAccountNumber(data.idrAccountNumber || '');
           setUsdAccountNumber(data.usdAccountNumber || '');
+          setBankBranchAddress(data.bankBranchAddress || data.bank_branch_address || '');
+          setCifNumber(data.cifNumber || data.cif_number || '');
+          setSwiftCode(data.swiftCode || data.swift_code || '');
         }
       } catch (err) {
         console.error('Failed to load company settings:', err);
@@ -128,14 +134,17 @@ const CompanyInfoTab: React.FC = () => {
         bankName, 
         accountName, 
         idrAccountNumber, 
-        usdAccountNumber 
+        usdAccountNumber,
+        bankBranchAddress,
+        cifNumber,
+        swiftCode: swiftCode.trim().toUpperCase()
       });
       await syncLocalStorage();
       setBankFeedback('Bank information saved successfully!');
       setTimeout(() => setBankFeedback(null), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save bank settings:', err);
-      alert('Failed to save bank settings');
+      alert(err.response?.data?.message || 'Failed to save bank settings');
     } finally {
       setSavingBank(false);
     }
@@ -312,7 +321,7 @@ const CompanyInfoTab: React.FC = () => {
               <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.bankName')}</label>
               <input
                 type="text"
-                placeholder="Enter your bank name"
+                placeholder={t('settings.bankName') || "Enter your bank name"}
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
@@ -322,7 +331,7 @@ const CompanyInfoTab: React.FC = () => {
               <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.accountHolderName')}</label>
               <input
                 type="text"
-                placeholder="Enter account holder name"
+                placeholder={t('settings.accountHolderName') || "Enter account holder name"}
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
@@ -332,19 +341,49 @@ const CompanyInfoTab: React.FC = () => {
               <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.idrAccountNumber')}</label>
               <input
                 type="text"
-                placeholder="Enter IDR account number"
+                placeholder="003711895213"
                 value={idrAccountNumber}
                 onChange={(e) => setIdrAccountNumber(e.target.value)}
-                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc] font-mono"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.usdAccountNumber')}</label>
               <input
                 type="text"
-                placeholder="Enter USD account number"
+                placeholder="003711895643"
                 value={usdAccountNumber}
                 onChange={(e) => setUsdAccountNumber(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc] font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.cifNumber') || 'CIF / Company Number'}</label>
+              <input
+                type="text"
+                placeholder={t('settings.cifNumberPlaceholder') || "e.g. 17330896"}
+                value={cifNumber}
+                onChange={(e) => setCifNumber(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc] font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.swiftCode') || 'SWIFT Code'}</label>
+              <input
+                type="text"
+                placeholder={t('settings.swiftCodePlaceholder') || "e.g. BDINIDJA"}
+                value={swiftCode}
+                onChange={(e) => setSwiftCode(e.target.value.toUpperCase())}
+                className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc] font-mono uppercase tracking-wider"
+              />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="block text-[13px] font-bold text-[#334155] font-sans">{t('settings.bankBranchAddress') || 'Bank Branch Address'}</label>
+              <input
+                type="text"
+                placeholder={t('settings.bankBranchAddressPlaceholder') || "e.g. Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan"}
+                value={bankBranchAddress}
+                onChange={(e) => setBankBranchAddress(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-[#e2e8f0] rounded-xl text-[13.5px] text-[#0c0d0f] font-medium focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]/20 transition-all font-sans bg-[#f8fafc]"
               />
             </div>

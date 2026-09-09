@@ -496,6 +496,24 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   <span className="text-[#64748b] font-semibold">{t('invoices.usdAccountNumber')}:</span>
                   <span className="font-bold text-[#2563eb] font-inter">{companySettings.usdAccountNumber}</span>
                 </div>
+                {companySettings.cifNumber && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748b] font-semibold">{t('invoices.cifNumber') || 'CIF Number'}:</span>
+                    <span className="font-bold text-[#0c0d0f] font-mono">{companySettings.cifNumber}</span>
+                  </div>
+                )}
+                {companySettings.swiftCode && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748b] font-semibold">{t('invoices.swiftCode') || 'SWIFT Code'}:</span>
+                    <span className="font-bold text-[#0c0d0f] font-mono">{companySettings.swiftCode}</span>
+                  </div>
+                )}
+                {companySettings.bankBranchAddress && (
+                  <div className="flex flex-col gap-1 pt-1 border-t border-slate-100">
+                    <span className="text-[#64748b] font-semibold text-[11.5px]">{t('invoices.bankBranchAddress') || 'Bank Branch Address'}:</span>
+                    <span className="text-[#334155] text-[12px] leading-relaxed">{companySettings.bankBranchAddress}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -27,6 +27,9 @@ interface NewReservationModalProps {
     accountName: string;
     idrAccountNumber: string;
     usdAccountNumber: string;
+    bankBranchAddress?: string;
+    cifNumber?: string;
+    swiftCode?: string;
   };
   configuredRates: {
     usdToIdr: number;
@@ -1244,6 +1247,24 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
                   <span className="text-slate-500 font-medium">{t('hotelReservations.usdAccount')}:</span>
                   <span className="font-bold text-blue-600 font-sans">{companySettings.usdAccountNumber}</span>
                 </div>
+                {companySettings.cifNumber && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-medium">{t('hotelReservations.cifNumber') || 'CIF Number'}:</span>
+                    <span className="font-bold text-slate-800 font-mono">{companySettings.cifNumber}</span>
+                  </div>
+                )}
+                {companySettings.swiftCode && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-medium">{t('hotelReservations.swiftCode') || 'SWIFT Code'}:</span>
+                    <span className="font-bold text-slate-800 font-mono">{companySettings.swiftCode}</span>
+                  </div>
+                )}
+                {companySettings.bankBranchAddress && (
+                  <div className="flex flex-col gap-1 pt-1 border-t border-slate-100">
+                    <span className="text-slate-500 font-medium text-[11.5px]">{t('hotelReservations.bankBranchAddress') || 'Bank Branch Address'}:</span>
+                    <span className="text-slate-700 text-[12px] leading-relaxed">{companySettings.bankBranchAddress}</span>
+                  </div>
+                )}
               </div>
             </div>
 

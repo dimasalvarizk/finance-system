@@ -522,11 +522,11 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
             <div class="pay-card">
               <div class="pay-row">
                 <span class="pay-row-lbl">Bank Name:</span>
-                <span class="pay-row-val">${companySettings.bankName || 'Danamon'}</span>
+                <span class="pay-row-val">${companySettings.bankName || 'PT Bank Danamon Indonesia, Tbk'}</span>
               </div>
               <div class="pay-row">
                 <span class="pay-row-lbl">Account Name:</span>
-                <span class="pay-row-val">${companySettings.accountName || 'PT ODST Airlines Indo'}</span>
+                <span class="pay-row-val">${companySettings.accountName || 'PT ODST AIRLINES INDO'}</span>
               </div>
               <div class="pay-row">
                 <span class="pay-row-lbl">IDR Account Number:</span>
@@ -536,6 +536,21 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
                 <span class="pay-row-lbl">USD Account Number:</span>
                 <span style="font-weight:700; color:#2563eb; font-size:9px;">${companySettings.usdAccountNumber || '003711895643'}</span>
               </div>
+              ${companySettings.cifNumber ? `
+              <div class="pay-row">
+                <span class="pay-row-lbl">CIF Number:</span>
+                <span class="pay-row-val" style="font-family:monospace; font-size:9px;">${companySettings.cifNumber}</span>
+              </div>` : ''}
+              ${companySettings.swiftCode ? `
+              <div class="pay-row">
+                <span class="pay-row-lbl">SWIFT Code:</span>
+                <span class="pay-row-val" style="font-weight:700; font-family:monospace; font-size:9px;">${companySettings.swiftCode}</span>
+              </div>` : ''}
+              ${companySettings.bankBranchAddress ? `
+              <div class="pay-row" style="flex-direction:column; align-items:flex-start; gap:2px; margin-top:2px;">
+                <span class="pay-row-lbl" style="font-size:8px;">Branch Address:</span>
+                <span style="color:#475569; font-size:8px; line-height:1.2;">${companySettings.bankBranchAddress}</span>
+              </div>` : ''}
             </div>
           </div>
 
@@ -861,20 +876,35 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
             <div style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">PAYMENT INSTRUCTIONS</div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">Bank Name:</span>
-              <span style="font-weight: 700; color: #1e293b;">${companySettings.bankName || 'Danamon'}</span>
+              <span style="font-weight: 700; color: #1e293b;">${companySettings.bankName || 'PT Bank Danamon Indonesia, Tbk'}</span>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">Account Name:</span>
-              <span style="font-weight: 700; color: #1e293b;">${companySettings.accountName || 'PT ODST Airlines Indo'}</span>
+              <span style="font-weight: 700; color: #1e293b;">${companySettings.accountName || 'PT ODST AIRLINES INDO'}</span>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">IDR Account Number:</span>
               <span style="font-weight: 700; color: #2563eb;">${companySettings.idrAccountNumber || '003711895213'}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
               <span style="color: #64748b;">USD Account Number:</span>
               <span style="font-weight: 700; color: #2563eb;">${companySettings.usdAccountNumber || '003711895643'}</span>
             </div>
+            ${companySettings.cifNumber ? `
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
+              <span style="color: #64748b;">CIF Number:</span>
+              <span style="font-weight: 700; font-family: monospace; color: #1e293b;">${companySettings.cifNumber}</span>
+            </div>` : ''}
+            ${companySettings.swiftCode ? `
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 3px 0;">
+              <span style="color: #64748b;">SWIFT Code:</span>
+              <span style="font-weight: 700; font-family: monospace; color: #1e293b;">${companySettings.swiftCode}</span>
+            </div>` : ''}
+            ${companySettings.bankBranchAddress ? `
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 3px 0;">
+              <span style="color: #64748b; font-size: 8.5px;">Branch Address:</span>
+              <span style="color: #475569; font-size: 8.5px; line-height: 1.2;">${companySettings.bankBranchAddress}</span>
+            </div>` : ''}
           </div>
 
           <div style="background-color: rgba(248, 250, 252, 0.7); border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-size: 11px;">

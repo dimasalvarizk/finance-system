@@ -401,13 +401,16 @@ export const sendInvoiceEmail = async (req, res, next) => {
 
     const [settingRows] = await pool.query('SELECT * FROM dst_company_settings LIMIT 1');
     const compSettings = settingRows[0] || {
-      companyName: 'ODST Group',
+      companyName: 'PT.ODST AIRLINES INDO',
       phone: '+62 8111 1203 330',
       taxNumber: '0000-0000-0001',
-      bankName: 'Danamon',
-      accountName: 'PT ODST Airlines Indo',
+      bankName: 'PT Bank Danamon Indonesia, Tbk',
+      accountName: 'PT ODST AIRLINES INDO',
       idrAccountNumber: '003711895213',
-      usdAccountNumber: '003711895643'
+      usdAccountNumber: '003711895643',
+      bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+      cifNumber: '17330896',
+      swiftCode: 'BDINIDJA'
     };
 
     const splitAddress = (fullAddress) => {

@@ -567,8 +567,11 @@ const ensureCompanyNameColumn = async (pool) => {
   const bankFields = [
     { name: 'bankName', type: "VARCHAR(255) DEFAULT 'Danamon'" },
     { name: 'accountName', type: "VARCHAR(255) DEFAULT 'PT ODST Airlines Indo'" },
-    { name: 'idrAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-011'" },
-    { name: 'usdAccountNumber', type: "VARCHAR(100) DEFAULT '102-8829-022'" }
+    { name: 'idrAccountNumber', type: "VARCHAR(100) DEFAULT '003711895213'" },
+    { name: 'usdAccountNumber', type: "VARCHAR(100) DEFAULT '003711895643'" },
+    { name: 'bankBranchAddress', type: "TEXT DEFAULT NULL" },
+    { name: 'cifNumber', type: "VARCHAR(100) DEFAULT '17330896'" },
+    { name: 'swiftCode', type: "VARCHAR(50) DEFAULT 'BDINIDJA'" }
   ];
 
   for (const f of bankFields) {
@@ -589,19 +592,22 @@ export const getCompanySetting = async (req, res, next) => {
   try {
     const pool = getPool();
     await ensureCompanyNameColumn(pool);
-    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber FROM dst_company_settings WHERE id = ?', ['current']);
+    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber, bankBranchAddress, cifNumber, swiftCode FROM dst_company_settings WHERE id = ?', ['current']);
     res.status(200).json({
       success: true,
       data: rows[0] || {
-        companyName: 'ODST Group',
-        phone: '+62 856 9332 3122',
-        taxNumber: '0000-0000-0000',
+        companyName: 'PT.ODST AIRLINES INDO',
+        phone: '+62 8111 1203 330',
+        taxNumber: '0000-0000-0001',
         defaultNotes: '',
         termsAndConditions: '',
-        bankName: 'Danamon',
-        accountName: 'PT ODST Airlines Indo',
-        idrAccountNumber: '102-8829-011',
-        usdAccountNumber: '102-8829-022'
+        bankName: 'PT Bank Danamon Indonesia, Tbk',
+        accountName: 'PT ODST AIRLINES INDO',
+        idrAccountNumber: '003711895213',
+        usdAccountNumber: '003711895643',
+        bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+        cifNumber: '17330896',
+        swiftCode: 'BDINIDJA'
       }
     });
   } catch (error) {
@@ -610,7 +616,24 @@ export const getCompanySetting = async (req, res, next) => {
 };
 
 export const updateCompanySetting = async (req, res, next) => {
-  const { companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber } = req.body;
+  const {
+    companyName,
+    phone,
+    taxNumber,
+    defaultNotes,
+    termsAndConditions,
+    bankName,
+    accountName,
+    idrAccountNumber,
+    usdAccountNumber,
+    bankBranchAddress,
+    bank_branch_address,
+    cifNumber,
+    cif_number,
+    swiftCode,
+    swift_code
+  } = req.body;
+
   try {
     const pool = getPool();
     await ensureCompanyNameColumn(pool);
@@ -653,13 +676,41 @@ export const updateCompanySetting = async (req, res, next) => {
       updates.push('usdAccountNumber = ?');
       params.push(usdAccountNumber);
     }
+
+    const resolvedBankBranch = bankBranchAddress !== undefined ? bankBranchAddress : bank_branch_address;
+    if (resolvedBankBranch !== undefined) {
+      updates.push('bankBranchAddress = ?');
+      params.push(resolvedBankBranch);
+    }
+
+    const resolvedCif = cifNumber !== undefined ? cifNumber : cif_number;
+    if (resolvedCif !== undefined) {
+      updates.push('cifNumber = ?');
+      params.push(resolvedCif);
+    }
+
+    const resolvedSwift = swiftCode !== undefined ? swiftCode : swift_code;
+    if (resolvedSwift !== undefined && resolvedSwift !== null && resolvedSwift !== '') {
+      const cleanSwift = String(resolvedSwift).trim().toUpperCase();
+      if (!/^[A-Z0-9]{4,11}$/.test(cleanSwift)) {
+        return res.status(400).json({
+          success: false,
+          message: 'SWIFT Code must be 4 to 11 alphanumeric characters (e.g. BDINIDJA)'
+        });
+      }
+      updates.push('swiftCode = ?');
+      params.push(cleanSwift);
+    } else if (resolvedSwift === '') {
+      updates.push('swiftCode = ?');
+      params.push('');
+    }
     
     if (updates.length > 0) {
       params.push('current');
       await pool.query(`UPDATE dst_company_settings SET ${updates.join(', ')} WHERE id = ?`, params);
     }
     
-    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber FROM dst_company_settings WHERE id = ?', ['current']);
+    const [rows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber, bankBranchAddress, cifNumber, swiftCode FROM dst_company_settings WHERE id = ?', ['current']);
     res.status(200).json({
       success: true,
       data: rows[0]

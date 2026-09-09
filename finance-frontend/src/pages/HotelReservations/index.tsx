@@ -423,13 +423,16 @@ const HotelReservations: React.FC = () => {
 
   // State Company Settings dari backend
   const [companySettings, setCompanySettings] = useState({
-    companyName: 'PT.ODST AIRLINES IND',
+    companyName: 'PT.ODST AIRLINES INDO',
     phone: '',
     taxNumber: '',
     bankName: '',
     accountName: '',
     idrAccountNumber: '',
-    usdAccountNumber: ''
+    usdAccountNumber: '',
+    bankBranchAddress: '',
+    cifNumber: '',
+    swiftCode: ''
   });
 
   // State Exchange Rates dari backend
@@ -449,13 +452,16 @@ const HotelReservations: React.FC = () => {
         const data = await getCompanySetting();
         if (data) {
           setCompanySettings({
-            companyName: data.companyName || 'PT.ODST AIRLINES IND',
+            companyName: data.companyName || 'PT.ODST AIRLINES INDO',
             phone: data.phone || '',
             taxNumber: data.taxNumber || '',
             bankName: data.bankName || '',
             accountName: data.accountName || '',
             idrAccountNumber: data.idrAccountNumber || '',
-            usdAccountNumber: data.usdAccountNumber || ''
+            usdAccountNumber: data.usdAccountNumber || '',
+            bankBranchAddress: data.bankBranchAddress || data.bank_branch_address || '',
+            cifNumber: data.cifNumber || data.cif_number || '',
+            swiftCode: data.swiftCode || data.swift_code || ''
           });
         }
       } catch (error) {
@@ -1028,6 +1034,24 @@ const HotelReservations: React.FC = () => {
                           <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.idrAccount')}:</span>
                           <span className="text-slate-800 font-bold">{companySettings.idrAccountNumber}</span>
                         </div>
+                        {companySettings.cifNumber && (
+                          <div className="flex items-center">
+                            <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.cifNumber') || 'CIF Number'}:</span>
+                            <span className="text-slate-800 font-bold font-mono">{companySettings.cifNumber}</span>
+                          </div>
+                        )}
+                        {companySettings.swiftCode && (
+                          <div className="flex items-center">
+                            <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.swiftCode') || 'SWIFT Code'}:</span>
+                            <span className="text-slate-800 font-bold font-mono">{companySettings.swiftCode}</span>
+                          </div>
+                        )}
+                        {companySettings.bankBranchAddress && (
+                          <div className="flex flex-col gap-0.5 pt-1 border-t border-slate-100">
+                            <span className="text-slate-500 font-bold text-[11px]">{t('hotelReservations.bankBranchAddress') || 'Bank Branch Address'}:</span>
+                            <span className="text-slate-700 text-[11.5px] leading-relaxed">{companySettings.bankBranchAddress}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 

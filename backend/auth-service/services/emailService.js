@@ -427,12 +427,15 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
     termsAndConditions: "Payment is due strictly by the specified date on the ledger. For billing inquiries, contact ODST Admin Team. Thank you for your continued partnership.",
     bankName: 'Danamon',
     accountName: 'PT ODST Airlines Indo',
-    idrAccountNumber: '102-8829-011',
-    usdAccountNumber: '102-8829-022'
+    idrAccountNumber: '003711895213',
+    usdAccountNumber: '003711895643',
+    bankBranchAddress: 'Bank Danamon Supomo, Jl. Prof. DR. Soepomo No. 55, Tebet, Jakarta Selatan',
+    cifNumber: '17330896',
+    swiftCode: 'BDINIDJA'
   };
   try {
     const pool = getPool();
-    const [settingsRows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber FROM dst_company_settings WHERE id = ?', ['current']);
+    const [settingsRows] = await pool.query('SELECT companyName, phone, taxNumber, defaultNotes, termsAndConditions, bankName, accountName, idrAccountNumber, usdAccountNumber, bankBranchAddress, cifNumber, swiftCode FROM dst_company_settings WHERE id = ?', ['current']);
     if (settingsRows.length > 0) {
       companySettings = {
         companyName: settingsRows[0].companyName || companySettings.companyName,
@@ -443,7 +446,10 @@ export const sendClientInvoiceEmail = async (toEmail, invoiceDetails) => {
         bankName: settingsRows[0].bankName || companySettings.bankName,
         accountName: settingsRows[0].accountName || companySettings.accountName,
         idrAccountNumber: settingsRows[0].idrAccountNumber || companySettings.idrAccountNumber,
-        usdAccountNumber: settingsRows[0].usdAccountNumber || companySettings.usdAccountNumber
+        usdAccountNumber: settingsRows[0].usdAccountNumber || companySettings.usdAccountNumber,
+        bankBranchAddress: settingsRows[0].bankBranchAddress || companySettings.bankBranchAddress,
+        cifNumber: settingsRows[0].cifNumber || companySettings.cifNumber,
+        swiftCode: settingsRows[0].swiftCode || companySettings.swiftCode
       };
     }
   } catch (err) {

@@ -298,6 +298,24 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                   <span className="text-slate-400 font-sans">USD Account Number:</span>
                   <span className="font-bold text-[#2563eb] font-sans">{companySettings.usdAccountNumber}</span>
                 </div>
+                {companySettings.cifNumber && (
+                  <div className="flex items-center justify-between text-[9px]">
+                    <span className="text-slate-400 font-sans">CIF Number:</span>
+                    <span className="font-bold text-slate-900 font-mono font-sans">{companySettings.cifNumber}</span>
+                  </div>
+                )}
+                {companySettings.swiftCode && (
+                  <div className="flex items-center justify-between text-[9px]">
+                    <span className="text-slate-400 font-sans">SWIFT Code:</span>
+                    <span className="font-bold text-slate-900 font-mono font-sans">{companySettings.swiftCode}</span>
+                  </div>
+                )}
+                {companySettings.bankBranchAddress && (
+                  <div className="flex flex-col gap-0.5 pt-1 border-t border-slate-200/60 text-[8px]">
+                    <span className="text-slate-400 font-sans">Branch Address:</span>
+                    <span className="text-slate-700 font-sans leading-tight">{companySettings.bankBranchAddress}</span>
+                  </div>
+                )}
               </div>
             </div>
 

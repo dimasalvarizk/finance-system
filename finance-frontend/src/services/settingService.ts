@@ -132,6 +132,9 @@ export const updateCompanySetting = async (data: {
   accountName?: string;
   idrAccountNumber?: string;
   usdAccountNumber?: string;
+  bankBranchAddress?: string;
+  cifNumber?: string;
+  swiftCode?: string;
 }) => {
   const response = await settingAPI.put('/company', data);
   return response.data.data;

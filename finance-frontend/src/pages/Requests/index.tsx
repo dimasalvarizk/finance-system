@@ -963,6 +963,24 @@ const Requests: React.FC = () => {
                               <span>{t('invoices.usdAccountNumber')}:</span>
                               <span className="font-bold text-[#2563eb] font-mono">{settings.usdAccountNumber}</span>
                             </div>
+                            {settings.cifNumber && (
+                              <div className="flex justify-between text-[#475569]">
+                                <span>{t('invoices.cifNumber') || 'CIF Number'}:</span>
+                                <span className="font-bold text-[#1e293b] font-mono">{settings.cifNumber}</span>
+                              </div>
+                            )}
+                            {settings.swiftCode && (
+                              <div className="flex justify-between text-[#475569]">
+                                <span>{t('invoices.swiftCode') || 'SWIFT Code'}:</span>
+                                <span className="font-bold text-[#1e293b] font-mono">{settings.swiftCode}</span>
+                              </div>
+                            )}
+                            {settings.bankBranchAddress && (
+                              <div className="flex flex-col gap-0.5 pt-1 border-t border-slate-100 text-[#475569]">
+                                <span className="text-[11px] font-semibold">{t('invoices.bankBranchAddress') || 'Bank Branch Address'}:</span>
+                                <span className="text-[#334155] text-[11.5px] leading-relaxed">{settings.bankBranchAddress}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
