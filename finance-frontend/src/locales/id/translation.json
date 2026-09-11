@@ -59,7 +59,14 @@
     "deleteSelected": "Hapus Terpilih",
     "noFile": "Tidak ada file",
     "done": "Selesai",
-    "refresh": "Segarkan"
+    "refresh": "Segarkan",
+    "copied": "Tersalin!",
+    "copiedConfirmation": "Nomor konfirmasi berhasil disalin",
+    "generateReceipt": "Buat Kuitansi",
+    "downloadReceipt": "Unduh Kuitansi",
+    "officialReceipt": "Kuitansi Resmi",
+    "depositReceipt": "Kuitansi Uang Muka",
+    "receiptNo": "No. Kuitansi"
   },
   "nav": {
     "overview": "Ikhtisar",

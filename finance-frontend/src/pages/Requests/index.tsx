@@ -5,7 +5,7 @@ import Header from "../../components/layout/Header";
 import InvoiceDetailsModal from "../../components/ui/InvoiceDetailsModal";
 import { type Invoice, getInvoiceDetails, getLocalCompanySettings } from "../Invoices";
 import ReservationConfirmationPrint from "../../components/ui/ReservationNumberPrint";
-import { Search, AlertCircle, Check, Clock, Lock, FileText, Printer, Download, CreditCard, Edit3, Archive } from "lucide-react";
+import { Search, AlertCircle, Check, Clock, Lock, FileText, Printer, Download, CreditCard, Edit3, Archive, Copy } from "lucide-react";
 import { getRequests, approveRequest as approveRequestAPI, rejectRequest as rejectRequestAPI, sendInvoiceEmail, saveRequestNote } from "../../services/requestService";
 import { updateInvoiceStatus as updateInvoiceStatusAPI, getCompanies, uploadPaymentProof } from "../../services/invoiceService";
 import { useAuth } from "../../context/AuthContext";
@@ -238,6 +238,30 @@ const Requests: React.FC = () => {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [showSendSuccessModal, setShowSendSuccessModal] = useState(false);
   const [sendEmailError, setSendEmailError] = useState('');
+  const [copiedInvoiceNo, setCopiedInvoiceNo] = useState<string | null>(null);
+
+  const handleCopyInvoiceNo = (e: React.MouseEvent, invoiceNo: string) => {
+    e.stopPropagation();
+    if (!invoiceNo) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(invoiceNo);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = invoiceNo;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedInvoiceNo(invoiceNo);
+      setTimeout(() => {
+        setCopiedInvoiceNo((prev) => (prev === invoiceNo ? null : prev));
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
 
   const location = useLocation();
 
@@ -1901,7 +1925,7 @@ const Requests: React.FC = () => {
                                   : displayedRequests.map((req, idx) => (
                                     <tr
                                       key={idx}
-                                      className="border-b border-[#e2e8f0] last:border-b-0 hover:bg-slate-50/30 transition-all"
+                                      className="group border-b border-[#e2e8f0] last:border-b-0 hover:bg-slate-50/30 transition-all"
                                     >
                                       <td
                                         className="py-3 px-3 text-[13px] font-bold text-[#0c0d0f] font-inter text-left whitespace-nowrap"
@@ -1913,7 +1937,25 @@ const Requests: React.FC = () => {
                                         className="py-3 px-3 text-[13px] font-bold text-[#475569] font-inter text-left whitespace-nowrap"
                                         style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all' }}
                                       >
-                                        {req.invoiceNo}
+                                        <div className="flex items-center space-x-1.5">
+                                          <span>{req.invoiceNo}</span>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => handleCopyInvoiceNo(e, req.invoiceNo)}
+                                            title="Copy Confirmation #"
+                                            className={`p-1 rounded-md transition-all cursor-pointer ${
+                                              copiedInvoiceNo === req.invoiceNo
+                                                ? 'opacity-100 text-emerald-600 bg-emerald-50 ring-1 ring-emerald-200'
+                                                : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                                            }`}
+                                          >
+                                            {copiedInvoiceNo === req.invoiceNo ? (
+                                              <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                                            ) : (
+                                              <Copy className="w-3.5 h-3.5" />
+                                            )}
+                                          </button>
+                                        </div>
                                       </td>
                                       <td
                                         className="py-3 px-3 text-[13px] font-medium text-[#1e293b] font-inter text-left whitespace-nowrap"

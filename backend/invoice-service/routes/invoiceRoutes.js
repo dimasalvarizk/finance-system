@@ -1,5 +1,5 @@
 import express from 'express';
-import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof, addPaymentHistory, getPaymentHistory, updatePayment, deletePayment, getAuditLogs, getInvoiceStatus } from '../controllers/invoiceController.js';
+import { getInvoices, createInvoice, updateInvoiceStatus, deleteInvoices, cancelInvoice, updateInvoice, uploadPaymentProof, addPaymentHistory, getPaymentHistory, getPaymentReceipt, updatePayment, deletePayment, getAuditLogs, getInvoiceStatus } from '../controllers/invoiceController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -19,6 +19,7 @@ router.post('/', restrictTo('Super Admin', 'Chief Accountant', 'Division Directo
 
 // Payment History routes
 router.get('/:invoiceNo/payments', getPaymentHistory);
+router.get('/:invoiceNo/payments/:paymentId/receipt', getPaymentReceipt);
 router.post('/:invoiceNo/payments', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), addPaymentHistory);
 router.put('/payments/:paymentId', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), updatePayment);
 router.delete('/payments/:paymentId', restrictTo('Super Admin', 'Chief Accountant', 'Division Director', 'Accountant', 'Madinah Branch Accountant'), deletePayment);

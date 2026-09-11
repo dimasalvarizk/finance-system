@@ -59,7 +59,14 @@
     "deleteSelected": "حذف المحدد",
     "noFile": "لا يوجد ملف",
     "done": "تم",
-    "refresh": "تحديث"
+    "refresh": "تحديث",
+    "copied": "تم النسخ!",
+    "copiedConfirmation": "تم نسخ رقم التأكيد بنجاح",
+    "generateReceipt": "إنشاء إيصال",
+    "downloadReceipt": "تحميل الإيصال",
+    "officialReceipt": "إيصال رسمي",
+    "depositReceipt": "إيصال عربون",
+    "receiptNo": "رقم الإيصال"
   },
   "nav": {
     "overview": "نظرة عامة",

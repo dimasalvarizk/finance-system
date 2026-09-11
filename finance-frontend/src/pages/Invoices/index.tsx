@@ -3,16 +3,18 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import StatCard from '../../components/ui/StatCard';
-import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt, Download } from 'lucide-react';
+import { Search, Plus, X, AlertCircle, FileText, ChevronDown, Check, Edit3, XCircle, Trash2, Upload, Receipt, Download, Copy } from 'lucide-react';
 import InvoiceDetailsModal from '../../components/ui/InvoiceDetailsModal';
 import ReservationConfirmationPrint from '../../components/ui/ReservationNumberPrint';
-import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments, updateInvoicePayment, deleteInvoicePayment } from '../../services/invoiceService';
+import OfficialDepositReceiptModal, { type ReceiptData } from '../../components/ui/OfficialDepositReceiptModal';
+import { getInvoices, createInvoice as createInvoiceAPI, getCompanies, updateInvoice as updateInvoiceAPI, cancelInvoice as cancelInvoiceAPI, updateInvoiceStatus, deleteInvoices as deleteInvoicesAPI, uploadPaymentProof, addInvoicePayment, getInvoicePayments, getPaymentReceipt, updateInvoicePayment, deleteInvoicePayment } from '../../services/invoiceService';
 import { createRequest } from '../../services/requestService';
 import { getExchangeRates, getServices, getTeamMembers, getTaxSetting, getCompanySetting } from '../../services/settingService';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency, formatLocalizedDate } from '../../i18n';
 import NetworkErrorState from '../../components/ui/NetworkErrorState';
+import { amountToEnglishWords } from '../../utils/numberToWordsEnglish';
 
 export interface Invoice {
   invoiceNo: string;
@@ -538,6 +540,137 @@ const Invoices: React.FC = () => {
     } finally {
       setLoadingHistory(false);
     }
+  };
+
+  const [copiedInvoiceNo, setCopiedInvoiceNo] = useState<string | null>(null);
+  const [copyToast, setCopyToast] = useState<{ show: boolean; text: string } | null>(null);
+
+  const handleCopyInvoiceNo = (invoiceNo: string) => {
+    if (!invoiceNo) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(invoiceNo);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = invoiceNo;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedInvoiceNo(invoiceNo);
+      setCopyToast({ show: true, text: invoiceNo });
+      setTimeout(() => {
+        setCopiedInvoiceNo((prev) => (prev === invoiceNo ? null : prev));
+      }, 2000);
+      setTimeout(() => {
+        setCopyToast((prev) => (prev?.text === invoiceNo ? null : prev));
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
+
+  // Official Deposit Receipt State
+  const [receiptModal, setReceiptModal] = useState<{
+    isOpen: boolean;
+    data: ReceiptData | null;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    data: null,
+    loading: false
+  });
+
+  const handleOpenReceipt = async (pay: any, inv: Invoice, pIndex?: number) => {
+    setReceiptModal({ isOpen: true, data: null, loading: true });
+    try {
+      const res = await getPaymentReceipt(inv.invoiceNo, pay.id);
+      if (res && res.data) {
+        setReceiptModal({ isOpen: true, data: res.data, loading: false });
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend receipt endpoint fallback to client-side build:', err);
+    }
+
+    // Client-side construct fallback
+    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const baseCurrency = (inv.currency || 'SAR').toUpperCase();
+    const advPayment = parseFloat(String(inv.advancePayment || 0));
+    const payAmt = parseFloat(pay.amount) || 0;
+    const payCurr = (pay.currency || baseCurrency).toUpperCase();
+
+    const seqNumber = (pIndex !== undefined ? pIndex + 1 : 1);
+    const seqStr = String(seqNumber).padStart(2, '0');
+    const receiptNo = `REC-${inv.invoiceNo}-${seqStr}`;
+
+    const rates = {
+      usdToIdr: inv.usdToIdrRate || configuredRates.usdToIdr || 18025,
+      sarToIdr: inv.sarToIdrRate || configuredRates.sarToIdr || 4800,
+      usdToSar: (inv.usdToIdrRate && inv.sarToIdrRate) ? (inv.usdToIdrRate / inv.sarToIdrRate) : (configuredRates.usdToSar || 3.75)
+    };
+
+    let totalPaidToDate = advPayment;
+    if (paymentHistoryList && paymentHistoryList.length > 0) {
+      const idx = paymentHistoryList.findIndex(p => p.id === pay.id);
+      const slice = idx >= 0 ? paymentHistoryList.slice(0, idx + 1) : paymentHistoryList;
+      slice.forEach(item => {
+        const itemCurr = (item.currency || baseCurrency).toUpperCase();
+        const itemAmt = parseFloat(item.amount) || 0;
+        totalPaidToDate += convertPrice(itemAmt, itemCurr, baseCurrency, rates);
+      });
+    } else {
+      totalPaidToDate += convertPrice(payAmt, payCurr, baseCurrency, rates);
+    }
+
+    const remaining = Math.max(0, rawAmt - totalPaidToDate);
+
+    const clientReceiptData: ReceiptData = {
+      receiptNo,
+      sequence: seqNumber,
+      paymentId: pay.id,
+      invoiceNo: inv.invoiceNo,
+      referenceNo: inv.referenceNo || '-',
+      serialNo: inv.serialNo || '-',
+      confirmationDate: inv.date,
+      dateOfPayment: pay.paymentDate,
+      receivedFrom: {
+        company: inv.company || inv.custom_company_name || 'Client',
+        companyCode: inv.companyCode || '-',
+        address: inv.custom_address || 'Graha Al Badgel, Jakarta / Saudi Arabia',
+        taxNumber: inv.custom_tax_number || '-',
+        email: inv.custom_company_email || '-',
+        agent: inv.agent || '-'
+      },
+      amountReceived: {
+        numeric: payAmt,
+        currency: payCurr,
+        amountInWords: amountToEnglishWords(payAmt, payCurr),
+        exchangeRate: pay.exchange_rate || 1.0,
+        baseCurrency: baseCurrency
+      },
+      forPaymentOf: `Deposit for Confirmation Ref # ${inv.invoiceNo}`,
+      ledgerSummary: {
+        totalConfirmationAmount: rawAmt,
+        advancePayment: advPayment,
+        paymentAmountInThisReceipt: payAmt,
+        totalPaidToDate: parseFloat(totalPaidToDate.toFixed(2)),
+        remainingBalance: parseFloat(remaining.toFixed(2)),
+        currency: baseCurrency
+      },
+      paymentDetails: {
+        paymentDate: pay.paymentDate,
+        note: pay.note || '',
+        proofUrl: pay.proofUrl || null,
+        createdBy: pay.createdBy || 'Finance System',
+        createdAt: pay.createdAt
+      },
+      issuedBy: 'Manazil AL.Mukhtara Group / PT. ODST AIRLINES INDO',
+      issuedAt: new Date().toISOString()
+    };
+
+    setReceiptModal({ isOpen: true, data: clientReceiptData, loading: false });
   };
 
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
@@ -2195,7 +2328,7 @@ const Invoices: React.FC = () => {
                           <tr
                             key={idx}
                             onClick={() => setSelectedInvoice(inv)}
-                            className={`transition-colors font-medium text-[13px] text-[#0c0d0f] cursor-pointer ${selectedInvoiceIds.includes(inv.invoiceNo)
+                            className={`group transition-colors font-medium text-[13px] text-[#0c0d0f] cursor-pointer ${selectedInvoiceIds.includes(inv.invoiceNo)
                                 ? "bg-[#f0f9ff] hover:bg-[#e0f2fe]"
                                 : "hover:bg-slate-50/50"
                               }`}
@@ -2217,7 +2350,28 @@ const Invoices: React.FC = () => {
                               </td>
                             )}
                             <td className="px-6 py-3.5 font-bold font-inter text-[#0c0d0f]">
-                              {inv.invoiceNo}
+                              <div className="flex items-center space-x-1.5">
+                                <span>{inv.invoiceNo}</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopyInvoiceNo(inv.invoiceNo);
+                                  }}
+                                  title={t('common.copiedConfirmation') || 'Copy Confirmation #'}
+                                  className={`p-1 rounded-md transition-all cursor-pointer ${
+                                    copiedInvoiceNo === inv.invoiceNo
+                                      ? 'opacity-100 text-emerald-600 bg-emerald-50 ring-1 ring-emerald-200'
+                                      : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  {copiedInvoiceNo === inv.invoiceNo ? (
+                                    <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                                  ) : (
+                                    <Copy className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                              </div>
                             </td>
                             <td className="px-6 py-3.5 text-[#1e293b]">
                               {inv.company}
@@ -3792,24 +3946,34 @@ const Invoices: React.FC = () => {
                                     )}
                                   </td>
                                   <td className="px-4 py-3 text-right">
-                                    {user?.role !== 'Viewer' && (
-                                      <div className="flex items-center justify-end space-x-1.5">
-                                        <button
-                                          onClick={() => handleOpenEditPayment(pay)}
-                                          className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
-                                          title={t('common.edit')}
-                                        >
-                                          <Edit3 className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button
-                                          onClick={() => setDeletingPaymentId(pay.id)}
-                                          className="p-1.5 hover:bg-rose-50 rounded-lg text-rose-500 hover:text-rose-700 transition-all cursor-pointer"
-                                          title={t('common.delete')}
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      </div>
-                                    )}
+                                    <div className="flex items-center justify-end space-x-1.5">
+                                      <button
+                                        onClick={() => handleOpenReceipt(pay, inv, pIdx)}
+                                        className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg text-amber-700 font-bold text-[11px] transition-all cursor-pointer flex items-center space-x-1 shadow-xs"
+                                        title={t('common.generateReceipt') || 'Generate Receipt'}
+                                      >
+                                        <Receipt className="w-3.5 h-3.5 text-amber-600" />
+                                        <span className="hidden sm:inline">{t('common.generateReceipt') || 'Receipt'}</span>
+                                      </button>
+                                      {user?.role !== 'Viewer' && (
+                                        <>
+                                          <button
+                                            onClick={() => handleOpenEditPayment(pay)}
+                                            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+                                            title={t('common.edit')}
+                                          >
+                                            <Edit3 className="w-3.5 h-3.5" />
+                                          </button>
+                                          <button
+                                            onClick={() => setDeletingPaymentId(pay.id)}
+                                            className="p-1.5 hover:bg-rose-50 rounded-lg text-rose-500 hover:text-rose-700 transition-all cursor-pointer"
+                                            title={t('common.delete')}
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
                                   </td>
                                 </tr>
                               );
@@ -4155,6 +4319,31 @@ const Invoices: React.FC = () => {
               >
                 {t('common.close') || 'Tutup'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Official Deposit Receipt Modal & Print Area */}
+      <OfficialDepositReceiptModal
+        isOpen={receiptModal.isOpen}
+        onClose={() => setReceiptModal({ isOpen: false, data: null, loading: false })}
+        receiptData={receiptModal.data}
+        loading={receiptModal.loading}
+      />
+
+      {/* Floating Copy Toast Feedback */}
+      {copyToast && (
+        <div className="fixed bottom-6 right-6 z-[160] flex items-center space-x-3 bg-slate-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/60 backdrop-blur-md animate-fade-in font-sans">
+          <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+            <Check className="w-4 h-4 stroke-[3]" />
+          </div>
+          <div>
+            <div className="text-[13px] font-bold text-white flex items-center space-x-1.5">
+              <span>{t('common.copied') || 'Copied!'}</span>
+            </div>
+            <div className="text-[11px] text-slate-300 font-mono">
+              {copyToast.text}
             </div>
           </div>
         </div>

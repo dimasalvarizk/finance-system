@@ -57,11 +57,17 @@ input::-ms-clear {
   #reservation-confirmation-print-area,
   #reservation-confirmation-print-area *,
   #company-financial-report-print-area,
-  #company-financial-report-print-area * {
+  #company-financial-report-print-area *,
+  #hotel-reservation-print-area,
+  #hotel-reservation-print-area *,
+  #official-deposit-receipt-print-area,
+  #official-deposit-receipt-print-area * {
     visibility: visible !important;
   }
   #reservation-confirmation-print-area,
-  #company-financial-report-print-area {
+  #company-financial-report-print-area,
+  #hotel-reservation-print-area,
+  #official-deposit-receipt-print-area {
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;

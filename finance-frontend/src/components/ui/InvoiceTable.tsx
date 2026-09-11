@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Copy, Check } from 'lucide-react';
 
 interface Invoice {
   ref: string;
@@ -53,6 +54,22 @@ const getStatusStyles = (status: string) => {
 
 const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = false }) => {
   const { t, i18n } = useTranslation();
+  const [copiedRef, setCopiedRef] = useState<string | null>(null);
+
+  const handleCopy = (e: React.MouseEvent, ref: string) => {
+    e.stopPropagation();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ref);
+      }
+      setCopiedRef(ref);
+      setTimeout(() => {
+        setCopiedRef((prev) => (prev === ref ? null : prev));
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy ref:', err);
+    }
+  };
 
   return (
     <div className={`${isFullWidth ? 'lg:col-span-3' : 'lg:col-span-2'} bg-white rounded-xl border border-[#e2e8f0] py-6 shadow-sm flex flex-col justify-between`}>
@@ -97,9 +114,27 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
             </thead>
             <tbody className="divide-y divide-[#f1f5f9]">
               {invoices.map((invoice, idx) => (
-                <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
                   <td className="pl-6 pr-4 py-3.5 text-[13px] font-bold text-[#0c0d0f] font-inter">
-                    {invoice.ref}
+                    <div className="flex items-center space-x-1.5">
+                      <span>{invoice.ref}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleCopy(e, invoice.ref)}
+                        title={t('common.copiedConfirmation') || 'Copy Reference #'}
+                        className={`p-1 rounded-md transition-all cursor-pointer ${
+                          copiedRef === invoice.ref
+                            ? 'opacity-100 text-emerald-600 bg-emerald-50 ring-1 ring-emerald-200'
+                            : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        {copiedRef === invoice.ref ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </td>
                   <td className="px-4 py-3.5 text-[13px] font-medium text-[#1e293b] font-inter">
                     {invoice.client}

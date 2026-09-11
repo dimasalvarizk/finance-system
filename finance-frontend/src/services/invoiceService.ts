@@ -91,6 +91,11 @@ export const getInvoicePayments = async (invoiceNo: string) => {
   return response.data.data;
 };
 
+export const getPaymentReceipt = async (invoiceNo: string, paymentId: string) => {
+  const response = await invoiceAPI.get(`/${invoiceNo}/payments/${paymentId}/receipt`);
+  return response.data;
+};
+
 export const updateInvoicePayment = async (paymentId: string, paymentData: { amount: number; currency?: string; paymentDate: string; note?: string; proofUrl?: string }) => {
   const response = await invoiceAPI.put(`/payments/${paymentId}`, paymentData);
   return response.data;

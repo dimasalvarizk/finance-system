@@ -59,7 +59,14 @@
     "deleteSelected": "Delete Selected",
     "noFile": "No file",
     "done": "Done",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "copied": "Copied!",
+    "copiedConfirmation": "Confirmation # copied to clipboard",
+    "generateReceipt": "Generate Receipt",
+    "downloadReceipt": "Download Receipt",
+    "officialReceipt": "Official Receipt",
+    "depositReceipt": "Deposit Receipt",
+    "receiptNo": "Receipt #"
   },
   "nav": {
     "overview": "Overview",

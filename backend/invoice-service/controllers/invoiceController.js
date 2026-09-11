@@ -1,6 +1,7 @@
 
 import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB, updatePaymentHistoryDB, deletePaymentHistoryDB, insertAuditLogDB, getAuditLogsDB } from '../models/invoiceModel.js';
 import { getPool } from '../config/db.js';
+import { amountToEnglishWords } from '../utils/numberToWordsEnglish.js';
 
 const getAuthBaseUrl = (req) => {
   const isVercel = process.env.VERCEL === '1';
@@ -36,8 +37,8 @@ export const getInvoices = async (req, res, next) => {
 // @route   POST /api/invoices
 // @access  Public (or Protected)
 export const createInvoice = async (req, res, next) => {
-  const { 
-    invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status, 
+  const {
+    invoiceNo, company, companyCode, referenceNo, serialNo, amount, date, status,
     usdToIdrRate, sarToIdrRate, dueDate, items, taxRate, currency, advancePayment,
     company_id, custom_company_name, custom_company_email, custom_agent, custom_address, custom_tax_number,
     group_number, groupNumber, nationality
@@ -586,7 +587,7 @@ export const addPaymentHistory = async (req, res, next) => {
             targetUserId = userRows[0].id;
           }
         }
-      } catch (dbErr) {}
+      } catch (dbErr) { }
 
       fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
         method: 'POST',
@@ -598,7 +599,7 @@ export const addPaymentHistory = async (req, res, next) => {
           message: `A payment of ${numericAmount.toLocaleString('en-US')} ${currency || 'SAR'} was recorded for invoice ${invoiceNo}.`
         })
       }).catch(err => console.error('Failed to trigger payment notification:', err.message));
-    } catch (notifErr) {}
+    } catch (notifErr) { }
 
     res.status(201).json({
       success: true,
@@ -755,4 +756,120 @@ export const getInvoiceStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get official receipt data for specific installment payment
+// @route   GET /api/invoices/:invoiceNo/payments/:paymentId/receipt
+// @access  Protected
+export const getPaymentReceipt = async (req, res, next) => {
+  const { invoiceNo, paymentId } = req.params;
+
+  try {
+    const invoice = await getInvoiceByIdDB(invoiceNo);
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: `Invoice '${invoiceNo}' not found.`
+      });
+    }
+
+    const pool = getPool();
+    const [allPayments] = await pool.query(
+      "SELECT * FROM dst_payment_history WHERE (referenceId = ? OR referenceId = ?) AND moduleType = 'CONFIRMATION' ORDER BY paymentDate ASC, createdAt ASC",
+      [invoice.invoiceNo, invoice.id]
+    );
+
+    const targetPayment = allPayments.find(p => String(p.id) === String(paymentId));
+    if (!targetPayment) {
+      return res.status(404).json({
+        success: false,
+        message: `Payment record '${paymentId}' not found for invoice '${invoiceNo}'.`
+      });
+    }
+
+    const seqIndex = allPayments.findIndex(p => String(p.id) === String(paymentId));
+    const seqStr = String(seqIndex >= 0 ? seqIndex + 1 : 1).padStart(2, '0');
+    const receiptNo = `REC-${invoice.invoiceNo}-${seqStr}`;
+
+    const rawAmt = parseFloat(String(invoice.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const baseCurrency = (invoice.currency || 'SAR').toUpperCase();
+    const advPayment = parseFloat(invoice.advancePayment || 0);
+
+    const paymentAmount = parseFloat(targetPayment.amount) || 0;
+    const paymentCurrency = (targetPayment.currency || baseCurrency).toUpperCase();
+
+    // Calculate total paid up to this payment
+    const rates = {
+      usdToIdr: invoice.usdToIdrRate || 18025,
+      sarToIdr: invoice.sarToIdrRate || 4800,
+      usdToSar: (invoice.usdToIdrRate && invoice.sarToIdrRate) ? (invoice.usdToIdrRate / invoice.sarToIdrRate) : 3.75
+    };
+
+    let totalPaidUpToThisInBase = advPayment;
+    for (let i = 0; i <= seqIndex; i++) {
+      const p = allPayments[i];
+      const pAmt = parseFloat(p.amount) || 0;
+      const pCurr = (p.currency || baseCurrency).toUpperCase();
+      const pRate = parseFloat(p.exchange_rate) || undefined;
+      totalPaidUpToThisInBase += convertCurrency(pAmt, pCurr, baseCurrency, { ...rates, exchangeRate: pRate });
+    }
+
+    const remainingAfterThis = Math.max(0, rawAmt - totalPaidUpToThisInBase);
+    const amountInWords = amountToEnglishWords(paymentAmount, paymentCurrency);
+
+    const receiptData = {
+      receiptNo,
+      sequence: seqIndex + 1,
+      paymentId: targetPayment.id,
+      invoiceNo: invoice.invoiceNo,
+      referenceNo: invoice.referenceNo || '-',
+      serialNo: invoice.serialNo || '-',
+      confirmationDate: invoice.date,
+      dateOfPayment: targetPayment.paymentDate,
+      receivedFrom: {
+        company: invoice.company || invoice.custom_company_name || 'Client',
+        companyCode: invoice.companyCode || '-',
+        address: invoice.custom_address || 'Graha Al Badgel, Jakarta / Saudi Arabia',
+        taxNumber: invoice.custom_tax_number || '-',
+        email: invoice.custom_company_email || '-',
+        agent: invoice.agent || '-'
+      },
+      amountReceived: {
+        numeric: paymentAmount,
+        currency: paymentCurrency,
+        amountInWords: amountInWords,
+        exchangeRate: targetPayment.exchange_rate || 1.0,
+        baseCurrency: baseCurrency
+      },
+      forPaymentOf: `Deposit for Confirmation Ref # ${invoice.invoiceNo}`,
+      ledgerSummary: {
+        totalConfirmationAmount: rawAmt,
+        advancePayment: advPayment,
+        paymentAmountInThisReceipt: paymentAmount,
+        totalPaidToDate: parseFloat(totalPaidUpToThisInBase.toFixed(2)),
+        remainingBalance: parseFloat(remainingAfterThis.toFixed(2)),
+        currency: baseCurrency
+      },
+      paymentDetails: {
+        paymentDate: targetPayment.paymentDate,
+        note: targetPayment.note || '',
+        proofUrl: targetPayment.proofUrl || null,
+        createdBy: targetPayment.createdBy || 'Finance System',
+        createdAt: targetPayment.createdAt
+      },
+      issuedBy: 'Manazil AL.Mukhtara Group / PT. ODST AIRLINES INDO',
+      issuedAt: new Date().toISOString(),
+      language: 'en-US'
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Receipt generated successfully',
+      data: receiptData
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
