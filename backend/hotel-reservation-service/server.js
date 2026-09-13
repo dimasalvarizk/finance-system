@@ -20,15 +20,16 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://odstfin.io',
   'https://www.odstfin.io',
+  'https://testing.odstfin.io',
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [])
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.odstfin.io') || origin.includes('odstfin.io') || origin.startsWith('http://localhost:')) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(null, true);
     }
   },
   credentials: true,
