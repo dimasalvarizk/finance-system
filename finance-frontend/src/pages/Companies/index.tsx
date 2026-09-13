@@ -307,7 +307,8 @@ const Companies: React.FC = () => {
     return convertCurrencyToUsd(remaining, inv);
   };
 
-  const reportData = useMemo(() => {
+  // 1. Consolidated Statistics across all companies
+  const consolidatedStats = useMemo(() => {
     let totalRevenue = 0;
     let totalPaid = 0;
     let totalPending = 0;
@@ -317,10 +318,10 @@ const Companies: React.FC = () => {
     let pendingCount = 0;
     let overdueCount = 0;
 
-    const companyStats: Record<string, { revenue: number; amtPaid: number; pending: number; overdue: number }> = {};
+    const companyStats: Record<string, { revenue: number; amtPaid: number; pending: number; overdue: number; sent: number; paidCount: number; pendingCount: number; overdueCount: number }> = {};
 
     companies.forEach((comp) => {
-      companyStats[comp.code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
+      companyStats[comp.code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0, sent: 0, paidCount: 0, pendingCount: 0, overdueCount: 0 };
     });
 
     invoices.forEach((inv) => {
@@ -337,62 +338,31 @@ const Companies: React.FC = () => {
       totalPaid += paidAmt;
 
       if (!companyStats[code]) {
-        companyStats[code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
+        companyStats[code] = { revenue: 0, amtPaid: 0, pending: 0, overdue: 0, sent: 0, paidCount: 0, pendingCount: 0, overdueCount: 0 };
       }
 
       companyStats[code].revenue += grossAmt;
       companyStats[code].amtPaid += paidAmt;
+      companyStats[code].sent += 1;
 
       if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || (paidAmt >= grossAmt && grossAmt > 0)) {
         paidCount++;
+        companyStats[code].paidCount += 1;
       } else if (isOverdue) {
         totalOverdue += outstandingAmt;
         overdueCount++;
         companyStats[code].overdue += outstandingAmt;
+        companyStats[code].overdueCount += 1;
       } else {
         totalPending += outstandingAmt;
         pendingCount++;
         companyStats[code].pending += outstandingAmt;
+        companyStats[code].pendingCount += 1;
       }
     });
-
-    const totalExpenses = totalRevenue * 0.5;
-    const netProfit = totalRevenue - totalExpenses;
-    const outstanding = totalPending + totalOverdue;
-
-    const monthlyGroups: Record<string, { revenue: number; sent: number; paid: number; orderDate: Date }> = {};
-    invoices.forEach((inv) => {
-      const amt = convertCurrencyToUsd(parseAmount(inv.amount), inv);
-      const dateObj = new Date(inv.date);
-      if (isNaN(dateObj.getTime())) return;
-      const monthLabel = dateObj.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      const status = (inv.status || "").toLowerCase();
-      const paidAmt = getInvoicePaidAmountInUsd(inv);
-
-      if (!monthlyGroups[monthLabel]) {
-        const orderDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
-        monthlyGroups[monthLabel] = { revenue: 0, sent: 0, paid: 0, orderDate };
-      }
-
-      monthlyGroups[monthLabel].revenue += amt;
-      monthlyGroups[monthLabel].sent += 1;
-      if (status.includes("paid") || paidAmt >= amt) {
-        monthlyGroups[monthLabel].paid += 1;
-      }
-    });
-
-    const sortedMonths = Object.entries(monthlyGroups)
-      .sort((a, b) => a[1].orderDate.getTime() - b[1].orderDate.getTime())
-      .map(([month, data]) => ({
-        month,
-        revenue: data.revenue,
-        sent: data.sent,
-        paid: data.paid,
-        expenses: data.revenue * 0.5,
-      }));
 
     const companyBreakdown = companies.map((comp) => {
-      const stats = companyStats[comp.code] || { revenue: 0, amtPaid: 0, pending: 0, overdue: 0 };
+      const stats = companyStats[comp.code] || { revenue: 0, amtPaid: 0, pending: 0, overdue: 0, sent: 0, paidCount: 0, pendingCount: 0, overdueCount: 0 };
       return {
         company: comp.name,
         code: comp.code,
@@ -400,6 +370,8 @@ const Companies: React.FC = () => {
         amtPaid: stats.amtPaid,
         pending: stats.pending,
         overdue: stats.overdue,
+        sent: stats.sent,
+        paidCount: stats.paidCount,
       };
     });
 
@@ -414,44 +386,132 @@ const Companies: React.FC = () => {
       };
     });
 
+    return {
+      totalRevenue,
+      totalPaid,
+      totalPending,
+      totalOverdue,
+      totalSentCount,
+      paidCount,
+      pendingCount,
+      overdueCount,
+      companyStats,
+      companyBreakdown: sortedCompanyBreakdown,
+      revenueShare
+    };
+  }, [invoices, companies, configuredRates]);
+
+  // 2. Specific Report tailored to the chosen company
+  const selectedCompanyReport = useMemo(() => {
+    if (!selectedCompany) return null;
+
+    // Filter invoices for selected company
+    const companyInvoices = invoices.filter(inv => {
+      if (inv.companyCode && selectedCompany.code) {
+        return inv.companyCode.toUpperCase() === selectedCompany.code.toUpperCase();
+      }
+      return (inv.company || '').toLowerCase().trim() === (selectedCompany.name || '').toLowerCase().trim();
+    });
+
+    let compRevenue = 0;
+    let compPaid = 0;
+    let compPending = 0;
+    let compOverdue = 0;
+    let compSent = companyInvoices.length;
+    let compPaidCount = 0;
+    let compPendingCount = 0;
+    let compOverdueCount = 0;
+
+    const monthlyGroups: Record<string, { revenue: number; sent: number; paid: number; orderDate: Date }> = {};
+
+    companyInvoices.forEach((inv) => {
+      const amt = convertCurrencyToUsd(parseAmount(inv.amount), inv);
+      const paidAmt = getInvoicePaidAmountInUsd(inv);
+      const outstandingAmt = getInvoiceOutstandingInUsd(inv);
+      const isOverdue = isInvoiceOverdue(inv);
+      const status = (inv.status || "").toLowerCase();
+
+      compRevenue += amt;
+      compPaid += paidAmt;
+
+      if (status === 'fully_paid' || status === 'paid' || status === 'paid and closed' || (paidAmt >= amt && amt > 0)) {
+        compPaidCount++;
+      } else if (isOverdue) {
+        compOverdue += outstandingAmt;
+        compOverdueCount++;
+      } else {
+        compPending += outstandingAmt;
+        compPendingCount++;
+      }
+
+      const dateObj = new Date(inv.date);
+      if (!isNaN(dateObj.getTime())) {
+        const monthLabel = dateObj.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        if (!monthlyGroups[monthLabel]) {
+          const orderDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+          monthlyGroups[monthLabel] = { revenue: 0, sent: 0, paid: 0, orderDate };
+        }
+        monthlyGroups[monthLabel].revenue += amt;
+        monthlyGroups[monthLabel].sent += 1;
+        if (status.includes("paid") || paidAmt >= amt) {
+          monthlyGroups[monthLabel].paid += 1;
+        }
+      }
+    });
+
+    const sortedMonths = Object.entries(monthlyGroups)
+      .sort((a, b) => a[1].orderDate.getTime() - b[1].orderDate.getTime())
+      .map(([month, data]) => ({
+        month,
+        revenue: data.revenue,
+        sent: data.sent,
+        paid: data.paid,
+        expenses: data.revenue * 0.5,
+      }));
+
+    const totalEntityRev = consolidatedStats.totalRevenue || 1;
+    const sharePercent = ((compRevenue / totalEntityRev) * 100).toFixed(1);
+    const outstanding = compPending + compOverdue;
+
     let period = "All Time";
     if (sortedMonths.length > 0) {
       const firstMonth = sortedMonths[0].month;
       const lastMonth = sortedMonths[sortedMonths.length - 1].month;
-      period = `${firstMonth} to ${lastMonth}`;
+      period = firstMonth === lastMonth ? firstMonth : `${firstMonth} to ${lastMonth}`;
     }
 
     return {
       period,
       summary: {
-        totalRevenue,
-        totalExpenses,
-        netProfit,
-        outstanding,
+        totalRevenue: compRevenue,
+        amtPaid: compPaid,
+        netProfit: compRevenue * 0.5,
+        outstanding: outstanding,
+        sharePercent: Number(sharePercent),
       },
       monthlyOverview: sortedMonths,
-      companyBreakdown: sortedCompanyBreakdown,
-      revenueShare,
       invoiceSummary: {
-        totalSent: totalSentCount,
+        totalSent: compSent,
         paid: {
           label: "Paid",
-          count: paidCount,
+          count: compPaidCount,
           badge: { label: "Completed", bg: "#e6f4ea", text: "#137333", border: "#ceead6" },
         },
         pending: {
           label: "Pending",
-          count: pendingCount,
-          badge: { label: `${pendingCount} In Process`, bg: "#fff9db", text: "#b25e00", border: "#ffe066" },
+          count: compPendingCount,
+          badge: { label: `${compPendingCount} In Process`, bg: "#fff9db", text: "#b25e00", border: "#ffe066" },
         },
         overdue: {
           label: "Overdue",
-          count: overdueCount,
+          count: compOverdueCount,
           badge: { label: "Action Req.", bg: "#fce8e6", text: "#c5221f", border: "#fad2cf" },
         },
       },
+      companyBreakdown: consolidatedStats.companyBreakdown,
+      revenueShare: consolidatedStats.revenueShare
     };
-  }, [invoices, companies, configuredRates]);
+  }, [selectedCompany, invoices, consolidatedStats, configuredRates]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -962,8 +1022,8 @@ const Companies: React.FC = () => {
                       value={newCompName}
                       onChange={(e) => setNewCompName(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompName.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                         }`}
                     />
                     {showValidation && !newCompName.trim() && (
@@ -985,8 +1045,8 @@ const Companies: React.FC = () => {
                       value={newCompCode}
                       onChange={(e) => setNewCompCode(e.target.value.replace(/[^a-zA-Z]/g, ""))}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${showValidation && !newCompCode.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                         }`}
                     />
                     {showValidation && !newCompCode.trim() ? (
@@ -1011,8 +1071,8 @@ const Companies: React.FC = () => {
                       value={newCompPhone}
                       onChange={(e) => setNewCompPhone(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompPhone.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                         }`}
                     />
                     {showValidation && !newCompPhone.trim() && (
@@ -1033,8 +1093,8 @@ const Companies: React.FC = () => {
                       value={newCompTax}
                       onChange={(e) => setNewCompTax(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${showValidation && !newCompTax.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                         }`}
                     />
                     {showValidation && !newCompTax.trim() && (
@@ -1055,8 +1115,8 @@ const Companies: React.FC = () => {
                       value={newCompStreet}
                       onChange={(e) => setNewCompStreet(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompStreet.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                         }`}
                     />
                     {showValidation && !newCompStreet.trim() && (
@@ -1077,8 +1137,8 @@ const Companies: React.FC = () => {
                       value={newCompCity}
                       onChange={(e) => setNewCompCity(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompCity.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                         }`}
                     />
                     {showValidation && !newCompCity.trim() && (
@@ -1099,8 +1159,8 @@ const Companies: React.FC = () => {
                       value={newCompPostal}
                       onChange={(e) => setNewCompPostal(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !newCompPostal.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] placeholder-slate-400 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b]'
                         }`}
                     />
                     {showValidation && !newCompPostal.trim() && (
@@ -1161,8 +1221,8 @@ const Companies: React.FC = () => {
                   type="submit"
                   disabled={showValidation && getAddCompanyErrorsCount() > 0}
                   className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer ${showValidation && getAddCompanyErrorsCount() > 0
-                      ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
-                      : 'bg-[#f59e0b] hover:bg-[#d97706] shadow-sm'
+                    ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
+                    : 'bg-[#f59e0b] hover:bg-[#d97706] shadow-sm'
                     }`}
                 >
                   {t('companies.addCompany')}
@@ -1335,8 +1395,8 @@ const Companies: React.FC = () => {
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !editName.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
                         }`}
                     />
                     {showValidation && !editName.trim() && (
@@ -1357,8 +1417,8 @@ const Companies: React.FC = () => {
                       value={editCode}
                       onChange={(e) => setEditCode(e.target.value.replace(/[^a-zA-Z]/g, ""))}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono uppercase transition-all focus:outline-none ${showValidation && !editCode.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
                         }`}
                     />
                     {showValidation && !editCode.trim() && (
@@ -1378,8 +1438,8 @@ const Companies: React.FC = () => {
                       value={editPhone}
                       onChange={(e) => setEditPhone(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !editPhone.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
                         }`}
                     />
                     {showValidation && !editPhone.trim() && (
@@ -1399,8 +1459,8 @@ const Companies: React.FC = () => {
                       value={editTaxId}
                       onChange={(e) => setEditTaxId(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium font-mono transition-all focus:outline-none ${showValidation && !editTaxId.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
                         }`}
                     />
                     {showValidation && !editTaxId.trim() && (
@@ -1420,8 +1480,8 @@ const Companies: React.FC = () => {
                       value={editAddress}
                       onChange={(e) => setEditAddress(e.target.value)}
                       className={`w-full h-[38px] px-3 py-1.5 border rounded-lg text-[12.5px] font-medium transition-all focus:outline-none ${showValidation && !editAddress.trim()
-                          ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
-                          : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
+                        ? 'border-[#ef4444] text-[#ef4444] bg-[#fef2f2] ring-1 ring-[#ef4444] focus:border-[#ef4444]'
+                        : 'border-[#cbd5e1] text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]'
                         }`}
                     />
                     {showValidation && !editAddress.trim() && (
@@ -1466,8 +1526,8 @@ const Companies: React.FC = () => {
                   type="submit"
                   disabled={showValidation && getEditCompanyErrorsCount() > 0}
                   className={`px-5 py-2 text-white rounded-lg text-[12.5px] font-bold transition-all cursor-pointer font-sans shadow-sm ${showValidation && getEditCompanyErrorsCount() > 0
-                      ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
-                      : 'bg-[#2563eb] hover:bg-[#1d4ed8]'
+                    ? 'bg-[#cbd5e1] text-[#94a3b8] cursor-not-allowed shadow-none'
+                    : 'bg-[#2563eb] hover:bg-[#1d4ed8]'
                     }`}
                 >
                   {t('companies.saveChanges')}
@@ -1479,37 +1539,11 @@ const Companies: React.FC = () => {
       )}
 
       {/* Modal: Financial Report */}
-      {isReportModalOpen && selectedCompany && (() => {
-        const modalSampleData = {
-          summary: {
-            totalRevenue: 4285600,
-            totalExpenses: 2156300,
-            netProfit: 2129300,
-            outstanding: 487250,
-          },
-          monthlyOverview: [
-            { month: "May 2026", revenue: 985400, sent: 148, paid: 132 },
-            { month: "Jun 2026", revenue: 1042800, sent: 156, paid: 128 },
-            { month: "Jul 2026", revenue: 1125600, sent: 162, paid: 130 },
-            { month: "Aug 2026", revenue: 1131800, sent: 158, paid: 108 },
-          ],
-          companyBreakdown: [
-            { company: "Arie Tours", code: "AIT", revenue: 612500, amtPaid: 534200, pending: 48300, overdue: 30000 },
-            { company: "Wayne Enterprises", code: "WEN", revenue: 845200, amtPaid: 756800, pending: 52400, overdue: 36000 },
-            { company: "Stark Industries", code: "STI", revenue: 692100, amtPaid: 608400, pending: 49700, overdue: 34000 },
-            { company: "Cyberdyne Systems", code: "CYB", revenue: 498300, amtPaid: 385600, pending: 68200, overdue: 44500 },
-            { company: "Aperture Labs", code: "APL", revenue: 578400, amtPaid: 502300, pending: 42100, overdue: 34000 },
-            { company: "Weyland-Yutani", code: "WYU", revenue: 625800, amtPaid: 498500, pending: 72550, overdue: 54750 },
-            { company: "PT Pariwisata Nusantara", code: "PTN", revenue: 433300, amtPaid: 312800, pending: 66500, overdue: 54000 },
-          ],
-          period: "May to August 2026",
-        };
-
-        const hasLiveDbData = companies.length > 0 && invoices.length > 0;
-        const displaySummary = hasLiveDbData ? reportData.summary : modalSampleData.summary;
-        const displayMonthly = hasLiveDbData && reportData.monthlyOverview.length > 0 ? reportData.monthlyOverview : modalSampleData.monthlyOverview;
-        const displayBreakdown = hasLiveDbData && reportData.companyBreakdown.length > 0 ? reportData.companyBreakdown : modalSampleData.companyBreakdown;
-        const displayPeriod = hasLiveDbData && reportData.period !== "All Time" ? reportData.period : modalSampleData.period;
+      {isReportModalOpen && selectedCompany && selectedCompanyReport && (() => {
+        const displaySummary = selectedCompanyReport.summary;
+        const displayMonthly = selectedCompanyReport.monthlyOverview;
+        const displayBreakdown = selectedCompanyReport.companyBreakdown;
+        const displayPeriod = selectedCompanyReport.period;
 
         const formatReportModalCurrency = (val: number): string => {
           return new Intl.NumberFormat("en-US", {
@@ -1526,11 +1560,19 @@ const Companies: React.FC = () => {
               {/* Header */}
               <div className="p-6 pb-2 flex justify-between items-start bg-white flex-shrink-0">
                 <div>
-                  <h2 className="text-[22px] font-extrabold text-[#0f172a] tracking-tight font-sans">
-                    Company Financial Report
-                  </h2>
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-[22px] font-extrabold text-[#0f172a] tracking-tight font-sans">
+                      {selectedCompany.name}
+                    </h2>
+                    <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-mono font-bold text-[11px]">
+                      {selectedCompany.code}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] border border-emerald-200">
+                      KORPORAT
+                    </span>
+                  </div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans mt-0.5">
-                    Financial Summary — {displayPeriod}
+                    {t('companies.financialReport')} — {displayPeriod}
                   </p>
                 </div>
                 <button
@@ -1545,6 +1587,7 @@ const Companies: React.FC = () => {
               <div className="px-6 py-3 space-y-5 modal-scroll-container flex-1">
                 {/* 3 Stat Cards */}
                 <div className="grid grid-cols-3 gap-3.5">
+                  {/* Total Revenue */}
                   <div className="border border-slate-200/90 rounded-xl p-3.5 bg-white shadow-2xs">
                     <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
                       TOTAL REVENUE
@@ -1554,6 +1597,7 @@ const Companies: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Net Profit */}
                   <div className="border border-slate-200/90 rounded-xl p-3.5 bg-white shadow-2xs">
                     <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
                       NET PROFIT
@@ -1563,6 +1607,7 @@ const Companies: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Outstanding */}
                   <div className="border border-slate-200/90 rounded-xl p-3.5 bg-white shadow-2xs">
                     <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block font-sans">
                       OUTSTANDING
@@ -1576,38 +1621,44 @@ const Companies: React.FC = () => {
                 {/* MONTHLY FINANCIAL OVERVIEW */}
                 <div>
                   <h4 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider font-sans mb-2">
-                    MONTHLY FINANCIAL OVERVIEW
+                    MONTHLY FINANCIAL OVERVIEW ({selectedCompany.name})
                   </h4>
-                  <div className="rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
-                    <table className="w-full text-left border-collapse font-sans text-[12px]">
-                      <thead>
-                        <tr className="bg-[#1e3a5f] text-white">
-                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider">MONTH</th>
-                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-right">REVENUE</th>
-                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-center">INVOICES SENT</th>
-                          <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-center">INVOICES PAID</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[#0f172a]">
-                        {displayMonthly.map((row) => (
-                          <tr key={row.month} className="hover:bg-slate-50/60 transition-colors">
-                            <td className="py-2.5 px-4 font-bold text-[#0f172a]">{row.month}</td>
-                            <td className="py-2.5 px-4 text-right font-medium text-slate-700 tabular-nums">
-                              {formatReportModalCurrency(row.revenue)}
-                            </td>
-                            <td className="py-2.5 px-4 text-center font-medium text-slate-700 tabular-nums">{row.sent}</td>
-                            <td className="py-2.5 px-4 text-center font-medium text-slate-700 tabular-nums">{row.paid}</td>
+                  {displayMonthly.length > 0 ? (
+                    <div className="rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
+                      <table className="w-full text-left border-collapse font-sans text-[12px]">
+                        <thead>
+                          <tr className="bg-[#1e3a5f] text-white">
+                            <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider">MONTH</th>
+                            <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-right">REVENUE</th>
+                            <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-center">INVOICES SENT</th>
+                            <th className="py-2.5 px-4 font-bold text-[10px] uppercase tracking-wider text-center">INVOICES PAID</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[#0f172a]">
+                          {displayMonthly.map((row) => (
+                            <tr key={row.month} className="hover:bg-slate-50/60 transition-colors">
+                              <td className="py-2.5 px-4 font-bold text-[#0f172a]">{row.month}</td>
+                              <td className="py-2.5 px-4 text-right font-medium text-slate-700 tabular-nums">
+                                {formatReportModalCurrency(row.revenue)}
+                              </td>
+                              <td className="py-2.5 px-4 text-center font-medium text-slate-700 tabular-nums">{row.sent}</td>
+                              <td className="py-2.5 px-4 text-center font-medium text-slate-700 tabular-nums">{row.paid}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-slate-400 font-medium text-[12px] bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                      Belum ada riwayat transaksi pada periode ini untuk {selectedCompany.name}.
+                    </div>
+                  )}
                 </div>
 
                 {/* COMPANY FINANCIAL BREAKDOWN */}
                 <div>
                   <h4 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider font-sans mb-2">
-                    COMPANY FINANCIAL BREAKDOWN
+                    COMPANY FINANCIAL BREAKDOWN (RANKING & PERBANDINGAN)
                   </h4>
                   <div className="rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
                     <table className="w-full text-left border-collapse font-sans text-[12px]">
@@ -1622,24 +1673,33 @@ const Companies: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-[#0f172a]">
-                        {displayBreakdown.map((row) => (
-                          <tr key={row.code} className="hover:bg-slate-50/60 transition-colors">
-                            <td className="py-2.5 px-4 font-bold text-[#0f172a]">{row.company}</td>
-                            <td className="py-2.5 px-3 text-center text-[#64748b] font-mono font-medium text-[11.5px]">{row.code}</td>
-                            <td className="py-2.5 px-4 text-right font-medium text-[#0f172a] tabular-nums">
-                              {formatReportModalCurrency(row.revenue)}
-                            </td>
-                            <td className="py-2.5 px-4 text-right font-medium text-slate-700 tabular-nums">
-                              {formatReportModalCurrency(row.amtPaid)}
-                            </td>
-                            <td className="py-2.5 px-4 text-right font-bold text-[#f59e0b] tabular-nums">
-                              {formatReportModalCurrency(row.pending)}
-                            </td>
-                            <td className="py-2.5 px-4 text-right font-bold text-[#ef4444] tabular-nums">
-                              {formatReportModalCurrency(row.overdue)}
-                            </td>
-                          </tr>
-                        ))}
+                        {displayBreakdown.map((row) => {
+                          const isCurrent = row.code === selectedCompany.code || row.company.toLowerCase() === selectedCompany.name.toLowerCase();
+                          return (
+                            <tr
+                              key={row.code}
+                              className={`transition-colors ${isCurrent ? "bg-blue-50/80 font-semibold border-l-4 border-l-blue-600" : "hover:bg-slate-50/60"
+                                }`}
+                            >
+                              <td className={`py-2.5 px-4 font-bold ${isCurrent ? "text-blue-900" : "text-[#0f172a]"}`}>
+                                {row.company} {isCurrent ? <span className="ml-1.5 px-1.5 py-0.5 text-[9.5px] bg-blue-600 text-white rounded font-sans font-bold">Aktif</span> : null}
+                              </td>
+                              <td className="py-2.5 px-3 text-center text-[#64748b] font-mono font-medium text-[11.5px]">{row.code}</td>
+                              <td className={`py-2.5 px-4 text-right font-bold tabular-nums ${isCurrent ? "text-blue-900" : "text-[#0f172a]"}`}>
+                                {formatReportModalCurrency(row.revenue)}
+                              </td>
+                              <td className="py-2.5 px-4 text-right font-medium text-slate-700 tabular-nums">
+                                {formatReportModalCurrency(row.amtPaid)}
+                              </td>
+                              <td className="py-2.5 px-4 text-right font-bold text-[#f59e0b] tabular-nums">
+                                {formatReportModalCurrency(row.pending)}
+                              </td>
+                              <td className="py-2.5 px-4 text-right font-bold text-[#ef4444] tabular-nums">
+                                {formatReportModalCurrency(row.overdue)}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -1650,7 +1710,7 @@ const Companies: React.FC = () => {
               <div className="px-6 py-4 border-t border-slate-200 bg-white flex justify-between items-center">
                 <div className="flex items-center gap-2 text-[12.5px] text-slate-500 font-medium font-sans">
                   <span className="w-2 h-2 rounded-full bg-[#10b981]" />
-                  <span>Data consolidated for all companies</span>
+                  <span>Data terverifikasi untuk {selectedCompany.name} ({selectedCompany.code})</span>
                 </div>
                 <div className="flex gap-2.5">
                   <button
@@ -1658,15 +1718,15 @@ const Companies: React.FC = () => {
                     onClick={() => setIsReportModalOpen(false)}
                     className="px-5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans bg-white shadow-2xs"
                   >
-                    Close
+                    {t('common.close')}
                   </button>
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="px-4 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans flex items-center gap-1.5 shadow-sm"
+                    className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg text-[13px] font-bold transition-all cursor-pointer font-sans flex items-center gap-1.5 shadow-sm"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Export PDF Report</span>
+                    <span>{t('dashboard.exportPdfReport')}</span>
                   </button>
                 </div>
               </div>
@@ -1791,21 +1851,31 @@ const Companies: React.FC = () => {
         </div>
       )}
       {/* Printable Area */}
-      <CompanyFinancialReportPrint
-        companyName={selectedCompany?.name || "DST"}
-        data={{
-          header: {
-            title: "COMPANY FINANCIAL REPORT",
-            period: `Q3 ${new Date().getFullYear()} — Generated ${new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase()}`,
-          },
-          summary: reportData.summary,
-          monthlyRevenue: reportData.monthlyOverview,
-          invoiceSummary: reportData.invoiceSummary,
-          companyBreakdown: reportData.companyBreakdown,
-          revenueShare: reportData.revenueShare,
-          footer: { note: "Company Finance — Confidential", page: "Page 1 of 1" },
-        }}
-      />
+      {selectedCompany && selectedCompanyReport && (
+        <CompanyFinancialReportPrint
+          companyName={selectedCompany.name}
+          data={{
+            header: {
+              title: `${selectedCompany.name.toUpperCase()} (${selectedCompany.code}) — FINANCIAL REPORT`,
+              period: `${selectedCompanyReport.period} — Generated ${new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase()}`,
+            },
+            summary: {
+              totalRevenue: selectedCompanyReport.summary.totalRevenue,
+              netProfit: selectedCompanyReport.summary.amtPaid,
+              outstanding: selectedCompanyReport.summary.outstanding,
+            },
+            monthlyRevenue: selectedCompanyReport.monthlyOverview.map(m => ({
+              month: m.month,
+              revenue: m.revenue,
+              expenses: m.expenses
+            })),
+            invoiceSummary: selectedCompanyReport.invoiceSummary,
+            companyBreakdown: selectedCompanyReport.companyBreakdown,
+            revenueShare: selectedCompanyReport.revenueShare,
+            footer: { note: `ODST Finance · Confidential — Consolidated for ${selectedCompany.name}`, page: "Page 1 of 1" },
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -4334,7 +4334,7 @@ const Invoices: React.FC = () => {
 
       {/* Floating Copy Toast Feedback */}
       {copyToast && (
-        <div className="fixed bottom-6 right-6 z-[160] flex items-center space-x-3 bg-slate-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/60 backdrop-blur-md animate-fade-in font-sans">
+        <div className="fixed bottom-6 right-6 z-[160] flex items-center space-x-3 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/60 animate-fade-in font-sans">
           <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
             <Check className="w-4 h-4 stroke-[3]" />
           </div>

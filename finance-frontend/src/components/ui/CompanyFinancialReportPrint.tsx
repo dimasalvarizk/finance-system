@@ -374,24 +374,29 @@ const CompanyFinancialReportPrint: React.FC<CompanyFinancialReportPrintProps> = 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {displayBreakdown.map((row) => (
-                    <tr key={row.code}>
-                      <td className="py-0.5 px-2 font-bold text-[#0f172a]">{row.company}</td>
-                      <td className="py-0.5 px-1.5 text-center text-slate-500 font-medium">{row.code}</td>
-                      <td className="py-0.5 px-2 text-right font-black text-[#0f172a] tabular-nums">
-                        {formatCurrency(row.revenue)}
-                      </td>
-                      <td className="py-0.5 px-2 text-right text-slate-600 font-medium tabular-nums">
-                        {formatCurrency(row.amtPaid)}
-                      </td>
-                      <td className="py-0.5 px-2 text-right font-bold text-[#f59e0b] tabular-nums">
-                        {formatCurrency(row.pending)}
-                      </td>
-                      <td className="py-0.5 px-2 text-right font-bold text-[#ef4444] tabular-nums">
-                        {formatCurrency(row.overdue)}
-                      </td>
-                    </tr>
-                  ))}
+                  {displayBreakdown.map((row) => {
+                    const isCurrent = row.company.toLowerCase() === (companyName || '').toLowerCase() || row.code.toLowerCase() === (companyName || '').toLowerCase();
+                    return (
+                      <tr key={row.code} className={isCurrent ? "bg-blue-50/70 font-semibold" : ""}>
+                        <td className={`py-0.5 px-2 font-bold ${isCurrent ? "text-blue-800" : "text-[#0f172a]"}`}>
+                          {row.company} {isCurrent ? '(Active)' : ''}
+                        </td>
+                        <td className="py-0.5 px-1.5 text-center text-slate-500 font-medium">{row.code}</td>
+                        <td className={`py-0.5 px-2 text-right font-black tabular-nums ${isCurrent ? "text-blue-800" : "text-[#0f172a]"}`}>
+                          {formatCurrency(row.revenue)}
+                        </td>
+                        <td className="py-0.5 px-2 text-right text-slate-600 font-medium tabular-nums">
+                          {formatCurrency(row.amtPaid)}
+                        </td>
+                        <td className="py-0.5 px-2 text-right font-bold text-[#f59e0b] tabular-nums">
+                          {formatCurrency(row.pending)}
+                        </td>
+                        <td className="py-0.5 px-2 text-right font-bold text-[#ef4444] tabular-nums">
+                          {formatCurrency(row.overdue)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -412,28 +417,33 @@ const CompanyFinancialReportPrint: React.FC<CompanyFinancialReportPrintProps> = 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {displayRevenueShare.map((row) => (
-                    <tr key={row.company}>
-                      <td className="py-0.5 px-2 font-bold text-[#0f172a]">{row.company}</td>
-                      <td className="py-0.5 px-2 text-right font-black text-[#0f172a] tabular-nums">
-                        {formatCurrency(row.revenue)}
-                      </td>
-                      <td className="py-0.5 px-2 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {/* Dark Navy Progress Bar */}
-                          <div className="w-20 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className="bg-[#1e3a5f] h-1.5 rounded-full"
-                              style={{ width: `${Math.min(100, Math.max((row.sharePercent / maxShare) * 90, row.revenue > 0 ? 5 : 0))}%` }}
-                            />
+                  {displayRevenueShare.map((row) => {
+                    const isCurrent = row.company.toLowerCase() === (companyName || '').toLowerCase();
+                    return (
+                      <tr key={row.company} className={isCurrent ? "bg-blue-50/70" : ""}>
+                        <td className={`py-0.5 px-2 font-bold ${isCurrent ? "text-blue-800" : "text-[#0f172a]"}`}>
+                          {row.company} {isCurrent ? '(Active)' : ''}
+                        </td>
+                        <td className={`py-0.5 px-2 text-right font-black tabular-nums ${isCurrent ? "text-blue-800" : "text-[#0f172a]"}`}>
+                          {formatCurrency(row.revenue)}
+                        </td>
+                        <td className="py-0.5 px-2 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Dark Navy / Blue Progress Bar */}
+                            <div className="w-20 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-1.5 rounded-full ${isCurrent ? "bg-blue-600" : "bg-[#1e3a5f]"}`}
+                                style={{ width: `${Math.min(100, Math.max((row.sharePercent / maxShare) * 90, row.revenue > 0 ? 5 : 0))}%` }}
+                              />
+                            </div>
+                            <span className={`font-bold text-[9px] tabular-nums w-7 text-right ${isCurrent ? "text-blue-800" : "text-[#0f172a]"}`}>
+                              {Math.round(row.sharePercent)}%
+                            </span>
                           </div>
-                          <span className="font-bold text-[#0f172a] text-[9px] tabular-nums w-7 text-right">
-                            {Math.round(row.sharePercent)}%
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

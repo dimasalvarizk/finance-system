@@ -52,49 +52,18 @@ interface Props {
 
 // ============ Small UI Sub-components ============
 
-const SummaryCard: React.FC<{
-  label: string;
-  value: string;
-  valueClassName?: string;
-  subLabel?: string;
-  trendIcon?: boolean;
-}> = ({ label, value, valueClassName = "text-[#1e293b]", subLabel, trendIcon }) => (
-  <div className="rounded-xl bg-slate-50 border border-slate-100 p-4 font-sans">
-    <p className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase font-inter">
-      {label}
-    </p>
-    <p className={`mt-2 text-2xl font-bold flex items-center gap-1 font-roboto ${valueClassName}`}>
-      {value}
-      {trendIcon && (
-        <svg
-          className="w-4 h-4 text-emerald-600"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
-            clipRule="evenodd"
-          />
-        </svg>
-      )}
-    </p>
-    {subLabel && <p className="mt-1 text-xs text-slate-400 font-inter">{subLabel}</p>}
-  </div>
-);
-
 const InvoiceBadge: React.FC<{ value: number; variant: "approved" | "pending" | "overdue" }> = ({
   value,
   variant,
 }) => {
   const styles: Record<string, string> = {
-    approved: "bg-[#ecfdf5] text-[#10b981]",
-    pending: "bg-[#fff7ed] text-[#f97316]",
-    overdue: "bg-[#fef2f2] text-[#ef4444]",
+    approved: "bg-[#ecfdf5] text-[#10b981] border border-[#a7f3d0]",
+    pending: "bg-[#fff7ed] text-[#f97316] border border-[#fed7aa]",
+    overdue: "bg-[#fef2f2] text-[#ef4444] border border-[#fecaca]",
   };
   return (
     <span
-      className={`inline-flex items-center justify-center min-w-[32px] px-2.5 py-1 rounded-full text-xs font-bold font-inter ${styles[variant]}`}
+      className={`inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded text-[9px] font-bold font-inter ${styles[variant]}`}
     >
       {value}
     </span>
@@ -110,218 +79,294 @@ const BranchFinancialReportPrint: React.FC<Props> = ({
   consolidatedBranches,
 }) => {
   return (
-    <div id="pdf-report-print-area" className="hidden print:block w-full bg-white p-6 font-sans text-slate-800">
-      <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl p-6 print:p-5 shadow-none">
-        {/* Header */}
-        <div className="flex items-start justify-between pb-6 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <img
-              src={logoBranchInvoice}
-              alt="Logo"
-              className="h-12 w-auto object-contain"
-            />
-          </div>
-          <div className="text-right">
-            <h1 className="text-lg font-extrabold text-slate-800 tracking-wide font-inter">
-              BRANCH FINANCIAL REPORT
-            </h1>
-            <p className="text-sm font-semibold text-blue-600 mt-1">
-              {selectedBranch} Branch
-            </p>
-            <p className="text-xs text-slate-400 mt-0.5 font-inter">
-              {reportMeta.period} — Generated {reportMeta.generatedDate}
-            </p>
-          </div>
-        </div>
+    <>
+      <style>{`
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+        @media print {
+          html, body {
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          #branch-financial-report-print-area,
+          #pdf-report-print-area {
+            display: flex !important;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            max-width: 210mm !important;
+            max-height: 297mm !important;
+            box-sizing: border-box !important;
+            padding: 12mm 14mm !important;
+            margin: 0 !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+            visibility: visible !important;
+            z-index: 9999999 !important;
+          }
+          #branch-financial-report-print-area *,
+          #pdf-report-print-area * {
+            visibility: visible !important;
+          }
+        }
+      `}</style>
 
-        {/* Executive Summary */}
-        <section className="mt-8">
-          <h2 className="text-xs font-bold tracking-wider text-slate-700 uppercase mb-3 font-inter">
-            Executive Summary
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <SummaryCard
-              label="Total Revenue"
-              value={branchReport.revenue}
-              subLabel={`${selectedBranch.split(' ')[0]} branch contribution`}
-            />
-            <SummaryCard
-              label="Revenue Share"
-              value={branchReport.share}
-              subLabel="Of consolidated entity revenue"
-            />
-            <SummaryCard
-              label="Quarterly Growth"
-              value={branchReport.growth}
-              valueClassName={branchReport.growth.startsWith('-') ? "text-rose-500" : "text-green-600"}
-              subLabel="Quarter-over-quarter change"
-              trendIcon={!branchReport.growth.startsWith('-')}
-            />
-            <SummaryCard
-              label="Outstanding Balance"
-              value={branchReport.outstanding}
-              valueClassName="text-orange-500"
-              subLabel="Awaiting collection"
-            />
-          </div>
-        </section>
-
-        {/* Monthly Revenue & Invoice Summary */}
-        <section className="mt-8 grid grid-cols-2 gap-6">
-          {/* Monthly Revenue */}
-          <div>
-            <h2 className="text-xs font-bold tracking-wider text-slate-700 uppercase mb-3 font-inter">
-              Monthly Revenue ({reportMeta.period})
-            </h2>
-            <div className="rounded-xl border border-slate-100 p-3 space-y-3">
-              {branchReport.monthlyRevenue && branchReport.monthlyRevenue.map((item, idx) => (
-                <div key={idx}>
-                  <div className="flex items-center justify-between text-sm mb-1.5 font-inter">
-                    <span className="text-slate-500 font-medium font-sans">{item.month}</span>
-                    <span className="font-semibold text-slate-700 font-sans">
-                      {item.amount}
-                    </span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-blue-600"
-                      style={{ width: item.width }}
-                    />
-                  </div>
-                </div>
-              ))}
+      <div
+        id="branch-financial-report-print-area"
+        className="hidden print:flex flex-col justify-between bg-white text-[#0f172a] font-sans box-border"
+        style={{ width: "210mm", height: "297mm", padding: "12mm 14mm", backgroundColor: "#ffffff" }}
+      >
+        <div className="flex-1 flex flex-col">
+          {/* HEADER */}
+          <div className="flex justify-between items-center pb-2.5 border-b-[2.5px] border-[#1e3a5f]">
+            <div className="flex items-center gap-2">
+              <img
+                src={logoBranchInvoice}
+                alt="Logo"
+                className="h-9 w-auto object-contain"
+              />
+            </div>
+            <div className="text-right">
+              <h1 className="text-[17px] font-extrabold text-[#1e3a5f] tracking-tight uppercase leading-tight font-sans">
+                BRANCH FINANCIAL REPORT
+              </h1>
+              <p className="text-[11px] font-bold text-blue-600 mt-0.5 font-sans">
+                {selectedBranch} Branch
+              </p>
+              <p className="text-[9.5px] text-slate-500 font-semibold tracking-normal mt-0.5 font-sans">
+                {reportMeta.period} — Generated {reportMeta.generatedDate}
+              </p>
             </div>
           </div>
 
-          {/* Invoice Summary */}
-          <div>
-            <h2 className="text-xs font-bold tracking-wider text-slate-700 uppercase mb-3 font-inter">
-              Invoice Summary
+          {/* SECTION 1: EXECUTIVE SUMMARY */}
+          <div className="mt-3">
+            <h2 className="text-[11px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1.5 font-sans">
+              EXECUTIVE SUMMARY
             </h2>
-            <div className="rounded-xl border border-slate-100 divide-y divide-slate-100">
-              <div className="flex items-center justify-between px-4 py-2">
-                <span className="text-sm text-slate-500 font-medium font-sans">Total Sent</span>
-                <span className="text-sm font-semibold text-slate-700 font-inter">
-                  {branchReport.distribution.sent}
+            <div className="grid grid-cols-4 gap-2.5">
+              {/* Total Revenue */}
+              <div className="border border-slate-200 rounded-lg p-2.5 bg-white">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block font-sans">
+                  TOTAL REVENUE
+                </span>
+                <div className="text-[17px] font-black text-[#0f172a] tracking-tight mt-0.5 font-sans tabular-nums">
+                  {branchReport.revenue}
+                </div>
+                <span className="text-[8.5px] text-slate-400 block mt-0.5">
+                  {selectedBranch.split(' ')[0]} contribution
                 </span>
               </div>
-              <div className="flex items-center justify-between px-4 py-2">
-                <span className="text-sm text-slate-500 font-medium font-sans">Approved</span>
-                <InvoiceBadge value={branchReport.distribution.approved} variant="approved" />
+
+              {/* Revenue Share */}
+              <div className="border border-slate-200 rounded-lg p-2.5 bg-white">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block font-sans">
+                  REVENUE SHARE
+                </span>
+                <div className="text-[17px] font-black text-blue-600 tracking-tight mt-0.5 font-sans tabular-nums">
+                  {branchReport.share}
+                </div>
+                <span className="text-[8.5px] text-slate-400 block mt-0.5">
+                  Of entity revenue
+                </span>
               </div>
-              <div className="flex items-center justify-between px-4 py-2">
-                <span className="text-sm text-slate-500 font-medium font-sans">Pending</span>
-                <InvoiceBadge value={branchReport.distribution.pending} variant="pending" />
+
+              {/* Quarterly Growth */}
+              <div className="border border-slate-200 rounded-lg p-2.5 bg-white">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block font-sans">
+                  QOQ GROWTH
+                </span>
+                <div className={`text-[17px] font-black tracking-tight mt-0.5 font-sans tabular-nums ${
+                  branchReport.growth.startsWith('-') ? 'text-rose-600' : 'text-emerald-600'
+                }`}>
+                  {branchReport.growth}
+                </div>
+                <span className="text-[8.5px] text-slate-400 block mt-0.5">
+                  Quarter over quarter
+                </span>
               </div>
-              <div className="flex items-center justify-between px-4 py-2">
-                <span className="text-sm text-slate-500 font-medium font-sans">Overdue</span>
-                <InvoiceBadge value={branchReport.distribution.overdue} variant="overdue" />
+
+              {/* Outstanding */}
+              <div className="border border-slate-200 rounded-lg p-2.5 bg-white">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block font-sans">
+                  OUTSTANDING
+                </span>
+                <div className="text-[17px] font-black text-[#f97316] tracking-tight mt-0.5 font-sans tabular-nums">
+                  {branchReport.outstanding}
+                </div>
+                <span className="text-[8.5px] text-slate-400 block mt-0.5">
+                  Awaiting collection
+                </span>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Quarterly Financial Comparison */}
-        <section className="mt-8 font-sans">
-          <h2 className="text-xs font-bold tracking-wider text-slate-700 uppercase mb-4 font-inter">
-            Quarterly Financial Comparison
-          </h2>
-          <div className="rounded-xl border border-slate-100 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left font-bold text-slate-700 text-xs uppercase tracking-wide px-4 py-3 font-inter">
-                    Metric
-                  </th>
-                  <th className="text-right font-bold text-slate-700 text-xs uppercase tracking-wide px-4 py-3 font-inter">
-                    Q3 2024 (Curr)
-                  </th>
-                  <th className="text-right font-bold text-slate-700 text-xs uppercase tracking-wide px-4 py-3 font-inter">
-                    Q2 2024 (Prev)
-                  </th>
-                  <th className="text-right font-bold text-slate-700 text-xs uppercase tracking-wide px-4 py-3 font-inter">
-                    Change
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {branchReport.comparison.map((row, idx) => {
-                  const isPositive = !row.change.startsWith('-');
-                  return (
-                    <tr key={idx} className="border-b border-slate-100 last:border-b-0">
-                      <td className="px-4 py-2 font-medium text-slate-700">{row.metric}</td>
-                      <td className="px-4 py-2 text-right font-semibold text-slate-800 font-roboto">
-                        {row.curr}
-                      </td>
-                      <td className="px-4 py-2 text-right text-slate-400 font-roboto">{row.prev}</td>
-                      <td
-                        className={`px-4 py-2 text-right font-semibold font-inter ${isPositive ? "text-green-600" : "text-rose-500"
+          {/* SECTION 2: MONTHLY REVENUE & INVOICE SUMMARY */}
+          <div className="grid grid-cols-2 gap-2.5 mt-2.5">
+            {/* Monthly Revenue */}
+            <div className="border border-slate-200 rounded-lg p-2.5 bg-white flex flex-col justify-between">
+              <div>
+                <h3 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1.5 font-sans">
+                  MONTHLY REVENUE ({reportMeta.period})
+                </h3>
+                <div className="space-y-1.5 pt-0.5">
+                  {branchReport.monthlyRevenue && branchReport.monthlyRevenue.map((item, idx) => (
+                    <div key={idx} className="text-[9.5px]">
+                      <div className="flex items-center justify-between font-medium mb-0.5">
+                        <span className="text-slate-600 font-sans">{item.month}</span>
+                        <span className="font-bold text-[#0f172a] font-sans">{item.amount}</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#1e3a5f]"
+                          style={{ width: item.width }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Invoice Summary */}
+            <div className="border border-slate-200 rounded-lg p-2.5 bg-white flex flex-col justify-between font-sans">
+              <div>
+                <h3 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1.5 font-sans">
+                  INVOICE SUMMARY
+                </h3>
+                <div className="space-y-1 pt-0.5 text-[9.5px]">
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold">Total Sent</span>
+                    <span className="font-extrabold text-[#0f172a] text-[11px] tabular-nums">
+                      {branchReport.distribution.sent}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold">Approved / Paid</span>
+                    <InvoiceBadge value={branchReport.distribution.approved} variant="approved" />
+                  </div>
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold">Pending Review</span>
+                    <InvoiceBadge value={branchReport.distribution.pending} variant="pending" />
+                  </div>
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-700 font-semibold">Overdue</span>
+                    <InvoiceBadge value={branchReport.distribution.overdue} variant="overdue" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 3: QUARTERLY FINANCIAL COMPARISON */}
+          <div className="mt-2.5">
+            <h2 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1 font-sans">
+              QUARTERLY FINANCIAL COMPARISON
+            </h2>
+            <div className="rounded-md overflow-hidden border border-slate-200">
+              <table className="w-full text-left border-collapse text-[9px] font-sans">
+                <thead>
+                  <tr className="bg-[#f1f5f9] text-slate-700 font-bold text-[8.5px]">
+                    <th className="py-1 px-2.5 font-bold">Metric</th>
+                    <th className="py-1 px-2.5 font-bold text-right">Current Quarter</th>
+                    <th className="py-1 px-2.5 font-bold text-right">Previous Quarter</th>
+                    <th className="py-1 px-2.5 font-bold text-right">Change</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {branchReport.comparison.map((row, idx) => {
+                    const isPositive = !row.change.startsWith('-');
+                    return (
+                      <tr key={idx}>
+                        <td className="py-1 px-2.5 font-bold text-[#0f172a]">{row.metric}</td>
+                        <td className="py-1 px-2.5 text-right font-black text-[#0f172a] tabular-nums">
+                          {row.curr}
+                        </td>
+                        <td className="py-1 px-2.5 text-right text-slate-500 font-medium tabular-nums">
+                          {row.prev}
+                        </td>
+                        <td
+                          className={`py-1 px-2.5 text-right font-bold tabular-nums ${
+                            isPositive ? "text-emerald-600" : "text-rose-600"
                           }`}
-                      >
-                        {row.change}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        >
+                          {row.change}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </section>
 
-        {/* Branch Contribution Share */}
-        <section className="mt-8 font-sans">
-          <h2 className="text-xs font-bold tracking-wider text-slate-700 uppercase mb-4 font-inter">
-            Branch Contribution Share
-          </h2>
-          <div className="rounded-xl border border-slate-100 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left font-bold text-slate-700 text-xs uppercase tracking-wide px-4 py-3 font-inter">
-                    Office Branch
-                  </th>
-                  <th className="text-right font-bold text-slate-700 text-xs uppercase tracking-wide px-4 py-3 font-inter">
-                    Revenue
-                  </th>
-                  <th className="text-right font-bold text-slate-700 text-xs uppercase tracking-wide px-4 py-3 font-inter">
-                    Share (%)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {consolidatedBranches.map((b, idx) => {
-                  const isCurrent = b.office === selectedBranch;
-                  return (
-                    <tr key={idx} className="border-b border-slate-100 last:border-b-0">
-                      <td className="px-4 py-2">
-                        <span className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${b.dotColor}`} />
-                          <span className={isCurrent ? "font-semibold text-slate-800" : "text-slate-600"}>
-                            {b.office} {isCurrent ? '(This)' : ''}
+          {/* SECTION 4: BRANCH CONTRIBUTION SHARE */}
+          <div className="mt-2.5">
+            <h2 className="text-[10.5px] font-extrabold text-[#1e3a5f] uppercase tracking-wider mb-1 font-sans">
+              BRANCH CONTRIBUTION SHARE
+            </h2>
+            <div className="rounded-md overflow-hidden border border-slate-200">
+              <table className="w-full text-left border-collapse text-[9px] font-sans">
+                <thead>
+                  <tr className="bg-[#f1f5f9] text-slate-700 font-bold text-[8.5px]">
+                    <th className="py-1 px-2.5 font-bold w-1/3">Office Branch</th>
+                    <th className="py-1 px-2.5 font-bold text-right w-1/3">Revenue</th>
+                    <th className="py-1 px-2.5 font-bold text-right w-1/3">Share (%)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {consolidatedBranches.map((b, idx) => {
+                    const isCurrent = b.office === selectedBranch;
+                    const cleanShare = b.share.replace(/[^0-9.]/g, '') || '0';
+                    return (
+                      <tr key={idx} className={isCurrent ? "bg-blue-50/40" : ""}>
+                        <td className="py-1 px-2.5">
+                          <span className="flex items-center gap-1.5">
+                            <span className={`w-2 h-2 rounded-full ${b.dotColor}`} />
+                            <span className={`font-bold ${isCurrent ? "text-blue-700" : "text-[#0f172a]"}`}>
+                              {b.office} {isCurrent ? '(Active)' : ''}
+                            </span>
                           </span>
-                        </span>
-                      </td>
-                      <td className={`px-4 py-2 text-right font-roboto ${isCurrent ? "font-semibold text-slate-800" : "text-slate-600"}`}>
-                        {b.amount}
-                      </td>
-                      <td className={`px-4 py-2 text-right font-inter ${isCurrent ? "font-semibold text-blue-600" : "text-slate-600"}`}>
-                        {b.share.replace('Revenue Share: ', '')}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className={`py-1 px-2.5 text-right tabular-nums ${isCurrent ? "font-black text-blue-700" : "font-bold text-[#0f172a]"}`}>
+                          {b.amount}
+                        </td>
+                        <td className="py-1 px-2.5 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="w-20 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-1.5 rounded-full ${isCurrent ? "bg-blue-600" : "bg-[#1e3a5f]"}`}
+                                style={{ width: `${Math.min(100, Math.max(Number(cleanShare), 5))}%` }}
+                              />
+                            </div>
+                            <span className={`font-bold text-[9px] tabular-nums w-8 text-right ${isCurrent ? "text-blue-700" : "text-[#0f172a]"}`}>
+                              {cleanShare}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </section>
+        </div>
 
-        {/* Footer */}
-        <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-inter font-bold uppercase tracking-wider">
-          <span>{reportMeta.footerNote}</span>
-          <span>{reportMeta.pageInfo}</span>
+        {/* FOOTER */}
+        <div className="flex justify-between items-center text-[8.5px] text-slate-400 pt-2 font-sans border-t border-slate-100">
+          <span>{reportMeta.footerNote || "DST Finance · Confidential"}</span>
+          <span>{reportMeta.pageInfo || "Page 1 of 1"}</span>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
