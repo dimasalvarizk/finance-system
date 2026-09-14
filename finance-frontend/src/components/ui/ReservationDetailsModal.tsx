@@ -339,38 +339,38 @@ const ReservationDetailsModal: React.FC<ReservationDetailsModalProps> = ({
           <div className="border-t border-slate-100 pt-6 space-y-4">
             <h4 className="text-[13px] font-extrabold text-[#0f172a] uppercase tracking-wider">{t('hotelReservations.paymentInstructions').toUpperCase()}</h4>
             
-            <div className="bg-[#f8fafc] p-6 border border-slate-200/80 rounded-xl space-y-3.5 text-[13px]">
-              <div className="flex justify-between items-center">
+            <div className="bg-[#f8fafc] p-6 border border-slate-200/80 rounded-xl space-y-3 text-[13px]">
+              <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">{t('hotelReservations.bankName')}:</span>
                 <span className="font-bold text-slate-800">{companySettings.bankName}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">{t('hotelReservations.accountName')}:</span>
                 <span className="font-bold text-slate-800">{companySettings.accountName}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">{t('hotelReservations.idrAccount')}:</span>
-                <span className="font-bold text-blue-600 font-sans">{companySettings.idrAccountNumber}</span>
+                <span className="font-bold text-blue-600 font-mono">{companySettings.idrAccountNumber}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">{t('hotelReservations.usdAccount')}:</span>
-                <span className="font-bold text-blue-600 font-sans">{companySettings.usdAccountNumber}</span>
+                <span className="font-bold text-blue-600 font-mono">{companySettings.usdAccountNumber}</span>
               </div>
               {companySettings.cifNumber && (
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">{t('hotelReservations.cifNumber') || 'CIF Number'}:</span>
+                <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">{t('hotelReservations.cifNumber')}:</span>
                   <span className="font-bold text-slate-800 font-mono">{companySettings.cifNumber}</span>
                 </div>
               )}
               {companySettings.swiftCode && (
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">{t('hotelReservations.swiftCode') || 'SWIFT Code'}:</span>
+                <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">{t('hotelReservations.swiftCode')}:</span>
                   <span className="font-bold text-slate-800 font-mono">{companySettings.swiftCode}</span>
                 </div>
               )}
               {companySettings.bankBranchAddress && (
-                <div className="flex flex-col gap-1 pt-1 border-t border-slate-100">
-                  <span className="text-slate-500 font-medium text-[11.5px]">{t('hotelReservations.bankBranchAddress') || 'Bank Branch Address'}:</span>
+                <div className="flex flex-col gap-1 pt-2">
+                  <span className="text-slate-500 font-medium text-[11.5px]">{t('hotelReservations.bankBranchAddress')}:</span>
                   <span className="text-slate-700 text-[12px] leading-relaxed">{companySettings.bankBranchAddress}</span>
                 </div>
               )}

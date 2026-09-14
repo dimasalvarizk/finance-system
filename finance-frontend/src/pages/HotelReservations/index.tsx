@@ -1018,41 +1018,41 @@ const HotelReservations: React.FC = () => {
                     {/* Payment Instructions Block */}
                     <div className="space-y-2.5">
                       <h3 className="text-sm font-bold text-slate-800">{t('hotelReservations.paymentInstructions')}</h3>
-                      <div className="border border-slate-100 rounded-xl p-4 bg-slate-50/30 space-y-3 text-xs font-sans">
-                        <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.bankName')}:</span>
+                      <div className="border border-slate-200/70 rounded-xl p-4 bg-slate-50/50 space-y-2.5 text-xs font-sans">
+                        <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100/80">
+                          <span className="text-slate-500 font-semibold">{t('hotelReservations.bankName')}:</span>
                           <span className="text-slate-800 font-bold">
                             {companySettings.bankName.includes('Bank') ? companySettings.bankName : `${companySettings.bankName} Bank`}
                           </span>
                         </div>
-                        <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.accountName')}:</span>
+                        <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100/80">
+                          <span className="text-slate-500 font-semibold">{t('hotelReservations.accountName')}:</span>
                           <span className="text-slate-800 font-bold">{companySettings.accountName}</span>
                         </div>
-                        <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.usdAccount')}:</span>
-                          <span className="text-slate-800 font-bold">{companySettings.usdAccountNumber}</span>
+                        <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100/80">
+                          <span className="text-slate-500 font-semibold">{t('hotelReservations.usdAccount')}:</span>
+                          <span className="text-slate-800 font-bold font-mono">{companySettings.usdAccountNumber}</span>
                         </div>
-                        <div className="flex items-center">
-                          <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.idrAccount')}:</span>
-                          <span className="text-slate-800 font-bold">{companySettings.idrAccountNumber}</span>
+                        <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100/80">
+                          <span className="text-slate-500 font-semibold">{t('hotelReservations.idrAccount')}:</span>
+                          <span className="text-slate-800 font-bold font-mono">{companySettings.idrAccountNumber}</span>
                         </div>
                         {companySettings.cifNumber && (
-                          <div className="flex items-center">
-                            <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.cifNumber') || 'CIF Number'}:</span>
+                          <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100/80">
+                            <span className="text-slate-500 font-semibold">{t('hotelReservations.cifNumber')}:</span>
                             <span className="text-slate-800 font-bold font-mono">{companySettings.cifNumber}</span>
                           </div>
                         )}
                         {companySettings.swiftCode && (
-                          <div className="flex items-center">
-                            <span className="w-28 text-slate-500 font-bold">{t('hotelReservations.swiftCode') || 'SWIFT Code'}:</span>
+                          <div className="flex flex-wrap items-baseline justify-between gap-1 py-1 border-b border-slate-100/80">
+                            <span className="text-slate-500 font-semibold">{t('hotelReservations.swiftCode')}:</span>
                             <span className="text-slate-800 font-bold font-mono">{companySettings.swiftCode}</span>
                           </div>
                         )}
                         {companySettings.bankBranchAddress && (
-                          <div className="flex flex-col gap-0.5 pt-1 border-t border-slate-100">
-                            <span className="text-slate-500 font-bold text-[11px]">{t('hotelReservations.bankBranchAddress') || 'Bank Branch Address'}:</span>
-                            <span className="text-slate-700 text-[11.5px] leading-relaxed">{companySettings.bankBranchAddress}</span>
+                          <div className="flex flex-col gap-1 pt-1.5">
+                            <span className="text-slate-500 font-semibold text-[11px]">{t('hotelReservations.bankBranchAddress')}:</span>
+                            <span className="text-slate-700 text-[11.5px] leading-relaxed font-normal">{companySettings.bankBranchAddress}</span>
                           </div>
                         )}
                       </div>
