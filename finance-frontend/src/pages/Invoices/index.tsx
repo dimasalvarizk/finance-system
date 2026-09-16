@@ -495,8 +495,8 @@ const Invoices: React.FC = () => {
         totalConfirmationAmount: rawAmt,
         advancePayment: advPayment,
         paymentAmountInThisReceipt: payAmt,
-        totalPaidToDate: parseFloat((advPayment + payAmt).toFixed(2)),
-        remainingBalance: parseFloat(Math.max(0, rawAmt - (advPayment + payAmt)).toFixed(2)),
+        totalPaidToDate: parseFloat((advPayment + (payCurr !== baseCurrency && (parseFloat(String(pay.exchange_rate)) || 1) > 0 ? payAmt / (parseFloat(String(pay.exchange_rate)) || 1) : payAmt)).toFixed(2)),
+        remainingBalance: parseFloat(Math.max(0, rawAmt - (advPayment + (payCurr !== baseCurrency && (parseFloat(String(pay.exchange_rate)) || 1) > 0 ? payAmt / (parseFloat(String(pay.exchange_rate)) || 1) : payAmt))).toFixed(2)),
         currency: baseCurrency,
       },
       paymentDetails: {

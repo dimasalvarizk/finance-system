@@ -641,6 +641,11 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
                     <span className="font-bold text-emerald-600 font-mono block mt-1">
                       {formatDisplayPrice(thisPayment ?? numericAmount ?? 0, paymentCurrency || 'SAR')}
                     </span>
+                    {isDifferentCurrency && (
+                      <span className="text-[10px] font-bold text-slate-500 font-mono block mt-0.5">
+                        (≈ {formatDisplayPrice(baseEquivalentAmount, baseCurrency)})
+                      </span>
+                    )}
                   </div>
                   <div className="p-3">
                     <span className="text-[10px] font-semibold text-slate-400 uppercase block">
@@ -921,6 +926,11 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
                 <span className="font-bold text-slate-900 block mt-0.5">
                   {formatDisplayPrice(thisPayment ?? numericAmount ?? 0, paymentCurrency || 'SAR')}
                 </span>
+                {isDifferentCurrency && (
+                  <span className="text-[7.5px] font-bold text-slate-600 block">
+                    (≈ {formatDisplayPrice(baseEquivalentAmount, baseCurrency)})
+                  </span>
+                )}
               </div>
               <div className="p-2">
                 <span className="text-[8px] text-slate-500 uppercase block">
