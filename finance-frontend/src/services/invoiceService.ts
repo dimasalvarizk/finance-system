@@ -120,3 +120,52 @@ export const getAuditLogs = async () => {
   const response = await invoiceAPI.get('/audit-logs');
   return response.data.data;
 };
+
+// Standalone Deposit Receipts API (Direct receipts without requiring invoice / 4-tier approval)
+export interface StandaloneReceiptPayload {
+  companyName: string;
+  companyCode?: string;
+  payerAddress?: string;
+  payerTaxNumber?: string;
+  payerEmail?: string;
+  payerAgent?: string;
+  payerBankName?: string;
+  payerAccountName?: string;
+  payerAccountNumber?: string;
+  ourBankName?: string;
+  ourAccountName?: string;
+  ourAccountNumber?: string;
+  ourBankBranch?: string;
+  ourSwiftCode?: string;
+  amount: number;
+  currency?: string;
+  exchangeRate?: number;
+  paymentDate?: string;
+  paymentMethod?: string;
+  forPaymentOf?: string;
+  referenceNo?: string;
+  groupNumber?: string;
+  proofUrl?: string;
+  note?: string;
+}
+
+export const createStandaloneReceipt = async (payload: StandaloneReceiptPayload) => {
+  const response = await invoiceAPI.post('/standalone-receipts', payload);
+  return response.data;
+};
+
+export const getStandaloneReceipts = async () => {
+  const response = await invoiceAPI.get('/standalone-receipts');
+  return response.data.data;
+};
+
+export const getStandaloneReceiptById = async (id: string) => {
+  const response = await invoiceAPI.get(`/standalone-receipts/${id}`);
+  return response.data.data;
+};
+
+export const deleteStandaloneReceipt = async (id: string) => {
+  const response = await invoiceAPI.delete(`/standalone-receipts/${id}`);
+  return response.data;
+};
+

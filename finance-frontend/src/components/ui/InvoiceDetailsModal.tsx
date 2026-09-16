@@ -451,7 +451,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e2e8f0] font-medium text-[#1e293b]">
-                  {details.items.map((item, idx) => (
+                  {details.items.map((item: any, idx: number) => (
                     <tr key={idx} className="hover:bg-gray-50/50">
                       <td className="px-4 py-3 text-[#1e293b] font-medium">
                         {item.description}
@@ -564,7 +564,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   details?.usdToIdrRate || 18025,
                   details?.sarToIdrRate || 4800,
                   (details?.usdToIdrRate && details?.sarToIdrRate) ? (details?.usdToIdrRate / details?.sarToIdrRate) : 3.75
-                ).map((rate, idx) => (
+                ).map((rate: any, idx: number) => (
                   <div key={idx} className="flex justify-between items-center">
                     <span>{rate.text}</span>
                     <span className="font-bold text-[#475569]">{rate.label}</span>

@@ -1,15 +1,18 @@
-import React from 'react';
-import { X, Printer, ShieldCheck, FileCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Printer, ShieldCheck, FileCheck, Paperclip } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import odstLogo from '../../assets/odstlogo.png';
-import { amountToEnglishWords } from '../../utils/numberToWordsEnglish';
+import { amountToLocalizedWords } from '../../utils/numberToWords';
 
 export interface ReceiptData {
+  isStandalone?: boolean;
   receiptNo: string;
-  sequence: number;
+  sequence?: number;
   paymentId: string;
-  invoiceNo: string;
+  invoiceNo?: string;
   referenceNo?: string;
   serialNo?: string;
+  groupNumber?: string | null;
   confirmationDate?: string;
   dateOfPayment: string;
   receivedFrom: {
@@ -28,7 +31,21 @@ export interface ReceiptData {
     baseCurrency?: string;
   };
   forPaymentOf: string;
-  ledgerSummary: {
+  bankDetails?: {
+    ourBank?: {
+      bankName: string;
+      accountName: string;
+      accountNumber?: string;
+      branchAddress?: string;
+      swiftCode?: string;
+    };
+    payerBank?: {
+      bankName?: string;
+      accountName?: string;
+      accountNumber?: string;
+    };
+  };
+  ledgerSummary?: {
     totalConfirmationAmount: number;
     advancePayment?: number;
     paymentAmountInThisReceipt: number;
@@ -38,6 +55,7 @@ export interface ReceiptData {
   };
   paymentDetails: {
     paymentDate: string;
+    paymentMethod?: string;
     note?: string;
     proofUrl?: string;
     createdBy?: string;
@@ -53,6 +71,8 @@ interface Props {
   receiptData: ReceiptData | null;
   loading?: boolean;
 }
+
+type ReceiptLang = 'en' | 'id' | 'ar';
 
 const formatDisplayPrice = (amount: number, currency: string = 'SAR'): string => {
   const code = (currency || 'SAR').toUpperCase().trim();
@@ -70,7 +90,7 @@ const formatDisplayPrice = (amount: number, currency: string = 'SAR'): string =>
   return `${code} ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-const formatDateEnglish = (dateStr?: string): string => {
+const formatDateByLang = (dateStr?: string, lang: ReceiptLang = 'en'): string => {
   if (!dateStr) return 'N/A';
   try {
     const clean = dateStr.split('T')[0];
@@ -80,14 +100,162 @@ const formatDateEnglish = (dateStr?: string): string => {
       const month = parseInt(parts[1]) - 1;
       const day = parseInt(parts[2]);
       const d = new Date(year, month, day);
-      return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) {
-      return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+      const locale = lang === 'ar' ? 'ar-SA' : lang === 'id' ? 'id-ID' : 'en-US';
+      return d.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
     }
   } catch (e) {}
   return dateStr;
+};
+
+// Dictionary for Receipt Document
+const DOC_TEXTS: Record<ReceiptLang, {
+  previewTitle: string;
+  previewSubtitle: string;
+  docTitle: string;
+  badge: string;
+  receiptNo: string;
+  date: string;
+  confRef: string;
+  refNo: string;
+  serialNo: string;
+  sequence: string;
+  receivedFrom: string;
+  companyCode: string;
+  amountReceived: string;
+  amountInWords: string;
+  baseEquivalent: string;
+  rate: string;
+  forPaymentOf: string;
+  paymentChannel: string;
+  note: string;
+  ledgerTitle: string;
+  totalBilled: string;
+  thisPayment: string;
+  totalPaid: string;
+  outstandingBalance: string;
+  verifiedTitle: string;
+  verifiedSub: string;
+  verifiedBadge: string;
+  noSignReq: string;
+  receiptId: string;
+  close: string;
+  printPdf: string;
+  viewProof: string;
+  dualBankTitle: string;
+  beneficiaryBank: string;
+  remitterBank: string;
+}> = {
+  en: {
+    previewTitle: 'Official Deposit Receipt Preview',
+    previewSubtitle: 'Standard International Document · English (US)',
+    docTitle: 'OFFICIAL RECEIPT',
+    badge: 'DEPOSIT / PARTIAL PAYMENT',
+    receiptNo: 'Receipt No.',
+    date: 'Date',
+    confRef: 'CONFIRMATION REF #',
+    refNo: 'REFERENCE #',
+    serialNo: 'SERIAL #',
+    sequence: 'PAYMENT SEQUENCE',
+    receivedFrom: 'RECEIVED WITH THANKS FROM:',
+    companyCode: 'Company Code',
+    amountReceived: 'AMOUNT RECEIVED (PAYMENT IN FULL / DEPOSIT PORTION)',
+    amountInWords: 'AMOUNT IN WORDS (STANDARD ENGLISH):',
+    baseEquivalent: 'Base Currency Equivalent',
+    rate: 'Rate',
+    forPaymentOf: 'PAYMENT PURPOSE / FOR PAYMENT OF:',
+    paymentChannel: 'PAYMENT CHANNEL',
+    note: 'Note',
+    ledgerTitle: 'CONFIRMATION FINANCIAL BALANCE SUMMARY',
+    totalBilled: 'TOTAL BILLED',
+    thisPayment: 'THIS PAYMENT',
+    totalPaid: 'TOTAL PAID TO DATE',
+    outstandingBalance: 'OUTSTANDING BALANCE',
+    verifiedTitle: 'Digitally Verified Official Document',
+    verifiedSub: 'Generated by ODST & Manazil AL.Mukhtara Group Finance System',
+    verifiedBadge: 'OFFICIALLY RECORDED & VALIDATED',
+    noSignReq: 'Computer generated receipt. No signature required.',
+    receiptId: 'Receipt ID',
+    close: 'Close Preview',
+    printPdf: 'Print Official Receipt',
+    viewProof: 'View Attached Proof',
+    dualBankTitle: 'DUAL COMPANY BANK SETTLEMENT VERIFICATION',
+    beneficiaryBank: 'Beneficiary Bank (Receiving / Ours)',
+    remitterBank: 'Remitter Bank (Paid From / Client)',
+  },
+  id: {
+    previewTitle: 'Pratinjau Kuitansi Deposit Resmi',
+    previewSubtitle: 'Dokumen Standar Resmi Keuangan · Bahasa Indonesia',
+    docTitle: 'KUITANSI RESMI',
+    badge: 'PEMBAYARAN DEPOSIT / UANG MUKA',
+    receiptNo: 'No. Kuitansi',
+    date: 'Tanggal',
+    confRef: 'NO. KONFIRMASI',
+    refNo: 'NO. REFERENSI',
+    serialNo: 'NO. SERI',
+    sequence: 'URUTAN PEMBAYARAN',
+    receivedFrom: 'TELAH DITERIMA DARI:',
+    companyCode: 'Kode Perusahaan',
+    amountReceived: 'JUMLAH UANG DITERIMA (PEMBAYARAN / DEPOSIT)',
+    amountInWords: 'TERBILANG (BAHASA INDONESIA):',
+    baseEquivalent: 'Nilai Setara Mata Uang Utama',
+    rate: 'Kurs',
+    forPaymentOf: 'UNTUK PEMBAYARAN / TUJUAN TRANSAKSI:',
+    paymentChannel: 'SALURAN PEMBAYARAN',
+    note: 'Catatan',
+    ledgerTitle: 'RINGKASAN STATUS KEUANGAN & SALDO KONFIRMASI',
+    totalBilled: 'TOTAL TAGIHAN',
+    thisPayment: 'PEMBAYARAN INI',
+    totalPaid: 'TOTAL TELAH DIBAYAR',
+    outstandingBalance: 'SISA TAGIHAN',
+    verifiedTitle: 'Dokumen Resmi Terverifikasi Digital',
+    verifiedSub: 'Diterbitkan otomatis oleh Sistem Keuangan ODST & Manazil AL.Mukhtara Group',
+    verifiedBadge: 'TERCATAT & TERSAHKAN RESMI',
+    noSignReq: 'Kuitansi komputer resmi. Tidak memerlukan tanda tangan fisik.',
+    receiptId: 'ID Kuitansi',
+    close: 'Tutup Pratinjau',
+    printPdf: 'Cetak Kuitansi Resmi',
+    viewProof: 'Lihat Bukti Transfer',
+    dualBankTitle: 'VERIFIKASI REKENING BANK KEDUA PIHAK',
+    beneficiaryBank: 'Rekening Bank Penerima (Perusahaan Kami)',
+    remitterBank: 'Rekening Bank Pengirim (Klien / Pembayar)',
+  },
+  ar: {
+    previewTitle: 'معاينة سند القبض الرسمي',
+    previewSubtitle: 'وثيقة مالية معتمدة دولياً · اللغة العربية',
+    docTitle: 'سند قبض رسمي',
+    badge: 'دفعة مقدمة / سداد جزئي',
+    receiptNo: 'رقم السند',
+    date: 'التاريخ',
+    confRef: 'رقم التأكيد',
+    refNo: 'الرقم المرجعي',
+    serialNo: 'الرقم التسلسلي',
+    sequence: 'تسلسل الدفعة',
+    receivedFrom: 'استلمنا من السادة:',
+    companyCode: 'رمز الشركة',
+    amountReceived: 'المبلغ المقبوض (الدفعة المقدمة / السداد الجزئي)',
+    amountInWords: 'المبلغ كتابة (باللغة العربية):',
+    baseEquivalent: 'المعادل بالعملة الأساسية',
+    rate: 'سعر الصرف',
+    forPaymentOf: 'وذلك عن / الغرض من الدفع:',
+    paymentChannel: 'طريقة الدفع',
+    note: 'ملاحظة',
+    ledgerTitle: 'ملخص الحساب المالي والرصيد',
+    totalBilled: 'إجمالي المبلغ',
+    thisPayment: 'هذه الدفعة',
+    totalPaid: 'إجمالي المسدد',
+    outstandingBalance: 'المبلغ المتبقي',
+    verifiedTitle: 'وثيقة رسمية معتمدة وموثقة إلكترونياً',
+    verifiedSub: 'صادرة آلياً عبر النظام المالي لمجموعة منازل المختارة وشركة أودست',
+    verifiedBadge: 'معتمد ومسجل رسمياً بالنظام',
+    noSignReq: 'سند إلكتروني صادر آلياً من النظام المالي. لا يتطلب توقيعاً خطياً.',
+    receiptId: 'معرف السند',
+    close: 'إغلاق المعاينة',
+    printPdf: 'طباعة السند الرسمي',
+    viewProof: 'عرض إشعار التحويل',
+    dualBankTitle: 'بيانات التسوية البنكية لكلا الطرفين',
+    beneficiaryBank: 'البنك المستفيد (حساب شركتنا)',
+    remitterBank: 'البنك المحوّل (حساب العميل)',
+  },
 };
 
 export const OfficialDepositReceiptModal: React.FC<Props> = ({
@@ -96,6 +264,15 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
   receiptData,
   loading = false,
 }) => {
+  const { i18n } = useTranslation();
+  const [docLang, setDocLang] = useState<ReceiptLang>(() => {
+    const current = (i18n.language || 'en').toLowerCase();
+    if (current.startsWith('ar')) return 'ar';
+    if (current.startsWith('id')) return 'id';
+    return 'en';
+  });
+  const [viewingProof, setViewingProof] = useState(false);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
@@ -104,10 +281,10 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
 
   if (loading || !receiptData) {
     return (
-      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 p-4 animate-fade-in">
+      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in font-sans">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
           <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-[13px] font-bold text-slate-700">Generating Official Receipt...</p>
+          <p className="text-[13px] font-bold text-slate-700 font-sans">Generating Official Receipt...</p>
         </div>
       </div>
     );
@@ -118,56 +295,104 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
     invoiceNo,
     referenceNo,
     serialNo,
+    groupNumber,
     dateOfPayment,
     receivedFrom,
-    amountReceived,
     forPaymentOf,
-    ledgerSummary,
-    paymentDetails
+    paymentDetails,
+    bankDetails
   } = receiptData;
 
-  const paymentCurrency = (amountReceived.currency || ledgerSummary.currency || 'SAR').toUpperCase();
-  const baseCurrency = (ledgerSummary.currency || 'SAR').toUpperCase();
-  const numericAmount = amountReceived.numeric;
-  const englishWords = amountReceived.amountInWords || amountToEnglishWords(numericAmount, paymentCurrency);
+  const rawRec = receiptData as any;
+  const numAmt = receiptData.amountReceived?.numeric ?? rawRec?.amount ?? rawRec?.numericAmount ?? 0;
+  const numericAmount = typeof numAmt === 'number' ? numAmt : parseFloat(String(numAmt)) || 0;
+
+  const paymentCurrency = (receiptData.amountReceived?.currency || rawRec?.currency || receiptData.ledgerSummary?.currency || 'SAR').toUpperCase();
+  const baseCurrency = (receiptData.amountReceived?.baseCurrency || rawRec?.baseCurrency || receiptData.ledgerSummary?.currency || 'SAR').toUpperCase();
+  const localizedWords = amountToLocalizedWords(numericAmount, paymentCurrency, docLang);
+  const text = DOC_TEXTS[docLang];
+  const isRtl = docLang === 'ar';
+
+  const exchangeRate = receiptData.amountReceived?.exchangeRate || rawRec?.exchangeRate || 1.0;
+  const isDifferentCurrency = paymentCurrency !== baseCurrency && exchangeRate > 0;
+  const baseEquivalentAmount = isDifferentCurrency ? numericAmount / exchangeRate : numericAmount;
+
+  // Safe fallback financial numbers for Ledger Summary
+  const totalBilled = receiptData.ledgerSummary?.totalConfirmationAmount ?? rawRec?.totalConfirmationAmount ?? rawRec?.totalBilled ?? numericAmount;
+  const thisPayment = receiptData.ledgerSummary?.paymentAmountInThisReceipt ?? numericAmount;
+  const totalPaid = receiptData.ledgerSummary?.totalPaidToDate ?? rawRec?.totalPaidToDate ?? rawRec?.totalPaid ?? numericAmount;
+  const remainingBalance = receiptData.ledgerSummary?.remainingBalance ?? rawRec?.remainingBalance ?? 0;
 
   return (
     <>
       {/* Modal Dialog for On-Screen Review */}
       <div
-        className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 p-2 sm:p-4 overflow-y-auto animate-fade-in print:hidden"
+        className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto animate-fade-in print:hidden"
         onClick={onClose}
       >
         <div
-          className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-3xl w-full my-6 overflow-hidden flex flex-col animate-scale-up text-slate-800 font-sans"
+          className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full my-6 overflow-hidden flex flex-col animate-scale-up text-slate-800 font-sans"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top Modal Bar */}
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 font-bold">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/90">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 font-bold">
                 <FileCheck className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-[15px] font-extrabold text-[#0c0d0f] font-sans">
-                  Official Deposit Receipt Preview
+                <h3 className="text-[16px] font-bold text-[#0c0d0f] font-sans">
+                  {text.previewTitle}
                 </h3>
                 <p className="text-[11.5px] text-slate-500 font-medium">
-                  Standard International Document · English (US)
+                  {text.previewSubtitle}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
+              {/* Language Switcher */}
+              <div className="inline-flex rounded-lg p-1 bg-slate-200/80 text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setDocLang('en')}
+                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                    docLang === 'en' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDocLang('id')}
+                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                    docLang === 'id' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  ID
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDocLang('ar')}
+                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                    docLang === 'ar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  العربية
+                </button>
+              </div>
+
               <button
+                type="button"
                 onClick={handlePrint}
-                className="px-3.5 py-1.5 bg-[#1d2857] hover:bg-[#151d3f] text-white font-bold text-[12px] rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
+                className="px-4 py-2 bg-[#1d2857] hover:bg-[#151d3f] text-white font-bold text-[12px] rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
                 title="Print or Save PDF"
               >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print / Save PDF</span>
+                <Printer className="w-4 h-4" />
+                <span>{text.printPdf}</span>
               </button>
               <button
+                type="button"
                 onClick={onClose}
                 className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer"
                 title="Close"
@@ -178,10 +403,12 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           </div>
 
           {/* Modal Receipt Preview Body */}
-          <div className="p-6 sm:p-8 bg-slate-50/40 overflow-y-auto max-h-[75vh]">
+          <div className="p-6 sm:p-8 bg-slate-50/50 overflow-y-auto max-h-[75vh]">
             {/* The Document Sheet */}
-            <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
-              
+            <div
+              className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6"
+              dir={isRtl ? 'rtl' : 'ltr'}
+            >
               {/* Document Header */}
               <div className="pb-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="space-y-2 max-w-sm">
@@ -190,189 +417,255 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
                     alt="Manazil AL.Mukhtara / ODST"
                     className="h-12 w-auto object-contain"
                   />
-                  <div className="text-[10px] text-slate-500 leading-relaxed font-sans">
-                    <p className="font-bold text-slate-700">MANAZIL AL.MUKHTARA GROUP · ODST AIRLINES INDO</p>
+                  <div className="text-[10.5px] text-slate-500 leading-relaxed font-sans">
+                    <p className="font-bold text-slate-800 uppercase tracking-wide">
+                      MANAZIL AL.MUKHTARA GROUP · ODST AIRLINES INDO
+                    </p>
                     <p>Graha Al Badgel, Jl. Hajjah Tutty Alawiyah No.7, Kalibata, Jakarta Selatan 12740</p>
                     <p>Saudi Arabia Branches: Makkah Al Mukarramah · Madinah Al Munawwarah · Jeddah</p>
                   </div>
                 </div>
 
-                <div className="text-left sm:text-right space-y-1">
-                  <div className="inline-block px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-lg text-amber-700 text-[10px] font-black uppercase tracking-wider mb-1">
-                    DEPOSIT / PARTIAL PAYMENT
+                <div className="text-left sm:text-right space-y-1 rtl:text-right sm:rtl:text-left">
+                  <div className="inline-block px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-full text-amber-700 text-[10.5px] font-bold uppercase tracking-wider mb-1">
+                    {text.badge}
                   </div>
-                  <h1 className="text-[22px] font-black text-[#1d2857] uppercase tracking-tight">
-                    OFFICIAL RECEIPT
+                  <h1 className="text-[22px] font-black text-[#1d2857] uppercase tracking-tight font-sans">
+                    {text.docTitle}
                   </h1>
-                  <div className="text-[11px] font-bold text-slate-700 font-mono">
-                    <span className="text-slate-400">Receipt No: </span>
-                    <span className="text-amber-600 bg-amber-50/50 px-1.5 py-0.5 rounded border border-amber-200">{receiptNo}</span>
+                  <div className="text-[11.5px] font-bold text-slate-700 font-mono">
+                    <span className="text-slate-400 font-sans">{text.receiptNo}: </span>
+                    <span className="text-amber-800 bg-[#fef9c3] px-2 py-0.5 rounded border border-amber-200 font-mono">
+                      {receiptNo}
+                    </span>
                   </div>
                   <div className="text-[11px] text-slate-500 font-medium">
-                    <span className="text-slate-400">Date: </span>
-                    <span className="font-semibold text-slate-700">{formatDateEnglish(dateOfPayment)}</span>
+                    <span className="text-slate-400">{text.date}: </span>
+                    <span className="font-bold text-slate-800">
+                      {formatDateByLang(dateOfPayment, docLang)}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Reference Metadata Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 text-[11px]">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#f8fafc] p-4 rounded-xl border border-slate-100 text-[11px]">
                 <div>
-                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">Confirmation Ref #</span>
-                  <span className="font-extrabold text-slate-800 font-mono">{invoiceNo}</span>
+                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">{text.confRef}</span>
+                  <span className="font-extrabold text-slate-800 font-mono">{invoiceNo || referenceNo || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">Reference #</span>
-                  <span className="font-bold text-slate-700">{referenceNo || '-'}</span>
+                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">{text.refNo}</span>
+                  <span className="font-bold text-slate-700 font-mono">{referenceNo || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">Serial #</span>
-                  <span className="font-bold text-slate-700">{serialNo || '-'}</span>
+                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">{text.serialNo}</span>
+                  <span className="font-bold text-slate-700 font-mono">{serialNo || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">Payment Sequence</span>
-                  <span className="font-bold text-amber-700">Installment #{receiptData.sequence}</span>
+                  <span className="text-slate-400 text-[9.5px] font-bold uppercase block">{text.sequence}</span>
+                  <span className="font-bold text-amber-600">
+                    {receiptData.sequence
+                      ? `Installment #${receiptData.sequence}`
+                      : (groupNumber ? `Group: ${groupNumber}` : 'Deposit Portion')}
+                  </span>
                 </div>
               </div>
 
-              {/* Received From Section */}
-              <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-1.5">
+              {/* Received With Thanks From Section */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-[#f8fafc] space-y-1.5">
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                  Received With Thanks From:
+                  {text.receivedFrom}
                 </span>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h2 className="text-[15px] font-black text-slate-900">
-                      {receivedFrom.company}
-                    </h2>
-                    {receivedFrom.companyCode && (
-                      <span className="text-[11px] font-bold text-slate-500 font-mono">
-                        Company Code: {receivedFrom.companyCode}
-                      </span>
-                    )}
-                  </div>
-                  {receivedFrom.agent && receivedFrom.agent !== '-' && (
-                    <div className="text-left sm:text-right">
-                      <span className="text-[10px] text-slate-400 uppercase block font-semibold">Handling Agent</span>
-                      <span className="text-[12px] font-bold text-slate-700">{receivedFrom.agent}</span>
-                    </div>
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                  <h2 className="text-[16px] font-black text-slate-900">
+                    {receivedFrom.company}
+                  </h2>
+                  {receivedFrom.companyCode && (
+                    <span className="text-[11px] font-bold text-slate-500 font-mono">
+                      {text.companyCode}: {receivedFrom.companyCode}
+                    </span>
                   )}
                 </div>
                 {receivedFrom.address && (
-                  <p className="text-[11px] text-slate-500 pt-1 border-t border-slate-100 mt-2">
-                    {receivedFrom.address}
-                  </p>
+                  <p className="text-[11.5px] text-slate-600">{receivedFrom.address}</p>
                 )}
               </div>
 
-              {/* Amount Highlight Box */}
-              <div className="bg-gradient-to-r from-emerald-50/80 via-emerald-50/50 to-blue-50/60 border-2 border-emerald-200/80 rounded-2xl p-5 space-y-3">
+              {/* Amount Received Box (Mint Green Accent Card) */}
+              <div className="bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-5 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-[11px] font-black text-emerald-800 uppercase tracking-wider">
-                    Amount Received (Payment In Full / Deposit Portion)
+                  <span className="text-[11px] font-black uppercase text-emerald-800 tracking-wider">
+                    {text.amountReceived}
                   </span>
-                  <span className="text-[24px] font-black text-emerald-700 font-mono tracking-tight">
+                  <span className="text-[22px] font-black text-emerald-700 font-mono">
                     {formatDisplayPrice(numericAmount, paymentCurrency)}
                   </span>
                 </div>
 
-                {/* Amount in English Words */}
-                <div className="bg-white p-3.5 rounded-xl border border-emerald-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Amount in Words (Standard English):
+                {/* Amount in Words Inner Box */}
+                <div className="p-3.5 bg-white rounded-lg border border-emerald-100/80 shadow-2xs">
+                  <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">
+                    {text.amountInWords}
                   </span>
-                  <p className="text-[12.5px] font-extrabold text-slate-800 italic mt-0.5 leading-snug">
-                    "{englishWords}"
+                  <p className="text-[12.5px] font-bold text-slate-800 italic mt-0.5 font-serif leading-relaxed">
+                    "{localizedWords}"
                   </p>
                 </div>
 
-                {/* Cross currency note if different */}
-                {paymentCurrency !== baseCurrency && (
-                  <div className="text-[11px] text-blue-700 font-medium flex items-center space-x-1.5 pt-1">
-                    <span className="font-bold">Base Currency Equivalent:</span>
-                    <span>
-                      {formatDisplayPrice(
-                        amountReceived.numeric * (amountReceived.exchangeRate || 1),
-                        baseCurrency
-                      )}{' '}
-                      (Rate: {amountReceived.exchangeRate || 1})
+                {/* Base Currency Equivalent (if applicable) */}
+                {isDifferentCurrency && (
+                  <div className="text-[11px] text-emerald-800 font-semibold pt-0.5 flex flex-wrap items-center gap-1.5">
+                    <span>{text.baseEquivalent}:</span>
+                    <strong className="font-mono text-emerald-950">
+                      {formatDisplayPrice(baseEquivalentAmount, baseCurrency)}
+                    </strong>
+                    <span className="text-emerald-700 text-[10.5px]">
+                      ({text.rate}: {exchangeRate.toFixed(4)})
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* For Payment Of & Description */}
-              <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-2">
-                <div className="flex justify-between items-start">
+              {/* Payment Purpose / For Payment Of */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-[#f8fafc] space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                      Payment Purpose / For Payment Of:
+                      {text.forPaymentOf}
                     </span>
-                    <p className="text-[13px] font-bold text-slate-800 mt-0.5">
+                    <p className="text-[13px] font-bold text-slate-900 mt-0.5">
                       {forPaymentOf}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Payment Channel</span>
-                    <span className="text-[11.5px] font-bold text-slate-700">Bank Transfer / Cash</span>
+                  <div className="sm:text-right">
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                      {text.paymentChannel}
+                    </span>
+                    <p className="text-[13px] font-bold text-slate-800 mt-0.5">
+                      {paymentDetails.paymentMethod || 'Bank Transfer / Cash'}
+                    </p>
                   </div>
                 </div>
+
+                {paymentDetails.proofUrl && (
+                  <div className="pt-2 border-t border-slate-200 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setViewingProof(true)}
+                      className="px-3 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold text-[11px] rounded-lg transition-all flex items-center space-x-1 rtl:space-x-reverse cursor-pointer"
+                    >
+                      <Paperclip className="w-3.5 h-3.5" />
+                      <span>{text.viewProof}</span>
+                    </button>
+                  </div>
+                )}
+
                 {paymentDetails.note && (
-                  <div className="pt-2 border-t border-slate-100 text-[11.5px] text-slate-600">
-                    <span className="font-bold text-slate-700">Payment Note / Memo: </span>
+                  <div className="pt-2 border-t border-slate-200 text-[11px] text-slate-600">
+                    <span className="font-bold text-slate-700">{text.note}: </span>
                     <span>{paymentDetails.note}</span>
                   </div>
                 )}
               </div>
 
-              {/* Financial Ledger Status Breakdown */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-                <div className="bg-slate-100/70 px-4 py-2 text-[10px] font-black text-slate-600 uppercase tracking-wider">
-                  Confirmation Financial Balance Summary
+              {/* Dual Bank Accounts Settlement Verification (if available) */}
+              {bankDetails && bankDetails.ourBank && (
+                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                  <div className="bg-slate-100/90 px-4 py-2 text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
+                    {text.dualBankTitle}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x rtl:md:divide-x-reverse divide-slate-100 text-[11.5px]">
+                    {/* Beneficiary */}
+                    <div className="p-3.5 space-y-1 bg-slate-50/40">
+                      <span className="text-emerald-700 font-bold text-[10.5px] uppercase block">
+                        {text.beneficiaryBank}
+                      </span>
+                      <div className="font-bold text-slate-900">{bankDetails.ourBank.bankName}</div>
+                      <div className="text-slate-600">
+                        <span className="text-slate-400">A/C Name: </span>
+                        <span className="font-semibold text-slate-800">{bankDetails.ourBank.accountName}</span>
+                      </div>
+                      <div className="text-slate-700 font-mono">
+                        <span className="text-slate-400">A/C No: </span>
+                        <span className="font-bold text-blue-700">{bankDetails.ourBank.accountNumber}</span>
+                      </div>
+                      {bankDetails.ourBank.swiftCode && (
+                        <div className="text-[10.5px] text-slate-500 font-mono">
+                          SWIFT: {bankDetails.ourBank.swiftCode}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Remitter */}
+                    <div className="p-3.5 space-y-1 bg-slate-50/40">
+                      <span className="text-blue-700 font-bold text-[10.5px] uppercase block">
+                        {text.remitterBank}
+                      </span>
+                      <div className="font-bold text-slate-900">{bankDetails.payerBank?.bankName || 'Client Bank Account'}</div>
+                      <div className="text-slate-600">
+                        <span className="text-slate-400">A/C Name: </span>
+                        <span className="font-semibold text-slate-800">{bankDetails.payerBank?.accountName || receivedFrom.company}</span>
+                      </div>
+                      <div className="text-slate-700 font-mono">
+                        <span className="text-slate-400">A/C No: </span>
+                        <span className="font-bold text-slate-800">{bankDetails.payerBank?.accountNumber || 'Confirmed via Wire'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 text-[11.5px]">
+              )}
+
+              {/* Confirmation Financial Balance Summary / Ledger Card */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-[#f8fafc]">
+                <div className="px-4 py-2 border-b border-slate-200/80 bg-slate-100/60">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                    {text.ledgerTitle}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x rtl:sm:divide-x-reverse divide-slate-200 text-[11.5px] text-center">
                   <div className="p-3">
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">Total Billed</span>
-                    <span className="font-bold text-slate-800">
-                      {formatDisplayPrice(ledgerSummary.totalConfirmationAmount, baseCurrency)}
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">{text.totalBilled}</span>
+                    <span className="font-bold text-slate-800 font-mono block mt-1">
+                      {formatDisplayPrice(totalBilled, baseCurrency)}
                     </span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">This Payment</span>
-                    <span className="font-bold text-emerald-600">
-                      {formatDisplayPrice(numericAmount, paymentCurrency)}
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">{text.thisPayment}</span>
+                    <span className="font-bold text-emerald-600 font-mono block mt-1">
+                      {formatDisplayPrice(thisPayment, paymentCurrency)}
                     </span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">Total Paid To Date</span>
-                    <span className="font-bold text-blue-700">
-                      {formatDisplayPrice(ledgerSummary.totalPaidToDate, baseCurrency)}
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">{text.totalPaid}</span>
+                    <span className="font-bold text-blue-700 font-mono block mt-1">
+                      {formatDisplayPrice(totalPaid, baseCurrency)}
                     </span>
                   </div>
                   <div className="p-3 bg-amber-50/40">
-                    <span className="text-[10px] font-bold text-amber-700 uppercase block">Outstanding Balance</span>
-                    <span className="font-black text-amber-800">
-                      {formatDisplayPrice(ledgerSummary.remainingBalance, baseCurrency)}
+                    <span className="text-[10px] font-bold text-amber-700 uppercase block">{text.outstandingBalance}</span>
+                    <span className="font-black text-amber-800 font-mono block mt-1">
+                      {formatDisplayPrice(remainingBalance, baseCurrency)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Signature & System Verification Footer */}
+              {/* System Verification Footer (No Manual Signature Box) */}
               <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-slate-400">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
                   <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
-                    <p className="font-bold text-slate-700">Digitally Verified Official Document</p>
-                    <p>Generated by ODST & Manazil AL.Mukhtara Group Finance System</p>
+                    <p className="font-bold text-slate-700">{text.verifiedTitle}</p>
+                    <p>{text.verifiedSub}</p>
                   </div>
                 </div>
 
-                <div className="text-center sm:text-right">
-                  <div className="border border-slate-300 rounded px-3 py-1 bg-slate-50 font-mono text-[9.5px] text-slate-600 inline-block mb-1">
-                    OFFICIALLY RECORDED & VALIDATED
+                <div className="text-center sm:text-right rtl:sm:text-left">
+                  <div className="border border-slate-300 rounded-md px-3 py-1 bg-slate-50 font-mono text-[9.5px] font-bold text-slate-700 inline-block mb-1">
+                    {text.verifiedBadge}
                   </div>
-                  <p className="text-[9px] text-slate-400">Computer generated receipt. No signature required.</p>
+                  <p className="text-[9px] text-slate-400">{text.noSignReq}</p>
                 </div>
               </div>
 
@@ -380,23 +673,25 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           </div>
 
           {/* Modal Footer Actions */}
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between font-sans">
             <span className="text-[11px] text-slate-500 font-medium">
-              Receipt ID: <span className="font-mono text-slate-700 font-bold">{receiptData.paymentId}</span>
+              {text.receiptId}: <strong className="font-mono text-slate-700">{receiptData.paymentId || receiptNo}</strong>
             </span>
             <div className="flex items-center space-x-2">
               <button
+                type="button"
                 onClick={onClose}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-[12px] transition-all cursor-pointer"
               >
-                Close Preview
+                {text.close}
               </button>
               <button
+                type="button"
                 onClick={handlePrint}
                 className="px-5 py-2 bg-[#1d2857] hover:bg-[#151d3f] text-white font-bold rounded-xl text-[12px] flex items-center space-x-2 transition-all cursor-pointer shadow-md"
               >
                 <Printer className="w-4 h-4" />
-                <span>Print Official Receipt</span>
+                <span>{text.printPdf}</span>
               </button>
             </div>
           </div>
@@ -445,21 +740,21 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
         }
       `}</style>
 
-      {/* Hidden Dedicated Print Sheet (Visible ONLY during window.print()) */}
+      {/* Dedicated Print Sheet (Visible ONLY during window.print()) */}
       <div
         id="official-deposit-receipt-print-area"
         className="hidden print:block bg-white font-sans text-slate-800 box-border p-[12mm]"
         style={{ width: '210mm', minHeight: '297mm', margin: '0 auto' }}
+        dir={isRtl ? 'rtl' : 'ltr'}
       >
-        <div className="w-full bg-white p-0 flex flex-col justify-between h-full space-y-6">
-          
+        <div className="w-full bg-white p-0 flex flex-col justify-between h-full space-y-5">
           {/* Print Header */}
           <div className="pb-4 border-b-2 border-slate-800 flex items-start justify-between">
-            <div className="space-y-1.5 w-1/2">
+            <div className="space-y-1 w-1/2">
               <img
                 src={odstLogo}
                 alt="Logo"
-                className="h-14 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
               <div className="text-[8.5px] text-slate-600 leading-snug font-sans">
                 <p className="font-bold text-slate-800">MANAZIL AL.MUKHTARA GROUP · PT. ODST AIRLINES INDO</p>
@@ -468,20 +763,20 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="text-right flex flex-col items-end w-1/2 space-y-1">
+            <div className="text-right flex flex-col items-end w-1/2 space-y-1 rtl:text-left rtl:items-start">
               <div className="px-2.5 py-0.5 bg-slate-100 border border-slate-400 text-slate-800 text-[8.5px] font-bold uppercase tracking-wider rounded">
-                DEPOSIT / PARTIAL PAYMENT
+                {text.badge}
               </div>
-              <h1 className="text-[24px] font-black text-slate-900 tracking-tight leading-none uppercase">
-                OFFICIAL RECEIPT
+              <h1 className="text-[22px] font-black text-slate-900 tracking-tight leading-none uppercase">
+                {text.docTitle}
               </h1>
               <div className="text-[10.5px] font-bold text-slate-800 font-mono">
-                <span>Receipt No: </span>
+                <span>{text.receiptNo}: </span>
                 <span className="font-extrabold">{receiptNo}</span>
               </div>
               <div className="text-[10px] text-slate-600">
-                <span>Date of Payment: </span>
-                <span className="font-bold text-slate-800">{formatDateEnglish(dateOfPayment)}</span>
+                <span>{text.date}: </span>
+                <span className="font-bold text-slate-800">{formatDateByLang(dateOfPayment, docLang)}</span>
               </div>
             </div>
           </div>
@@ -489,32 +784,38 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           {/* Reference Row */}
           <div className="grid grid-cols-4 gap-2 bg-slate-100/80 p-2.5 rounded border border-slate-300 text-[9.5px]">
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">Confirmation #</span>
-              <span className="font-bold text-slate-900 font-mono">{invoiceNo}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.confRef}</span>
+              <span className="font-bold text-slate-900 font-mono">{invoiceNo || referenceNo || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">Reference #</span>
-              <span className="font-semibold text-slate-800">{referenceNo || '-'}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.refNo}</span>
+              <span className="font-semibold text-slate-800 font-mono">{referenceNo || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">Serial #</span>
-              <span className="font-semibold text-slate-800">{serialNo || '-'}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.serialNo}</span>
+              <span className="font-semibold text-slate-800 font-mono">{serialNo || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">Installment</span>
-              <span className="font-bold text-slate-800">Sequence #{receiptData.sequence}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.sequence}</span>
+              <span className="font-bold text-slate-800">
+                {receiptData.sequence
+                  ? `Installment #${receiptData.sequence}`
+                  : (groupNumber ? `Group: ${groupNumber}` : 'Deposit Portion')}
+              </span>
             </div>
           </div>
 
           {/* Received From */}
           <div className="border border-slate-300 rounded p-3 bg-white space-y-1 text-[10px]">
             <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">
-              Received With Thanks From:
+              {text.receivedFrom}
             </span>
             <div className="flex justify-between items-baseline">
               <span className="text-[14px] font-black text-slate-900">{receivedFrom.company}</span>
               {receivedFrom.companyCode && (
-                <span className="font-mono font-bold text-slate-600 text-[10px]">Code: {receivedFrom.companyCode}</span>
+                <span className="font-mono font-bold text-slate-600 text-[10px]">
+                  {text.companyCode}: {receivedFrom.companyCode}
+                </span>
               )}
             </div>
             {receivedFrom.address && (
@@ -523,48 +824,67 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           </div>
 
           {/* Amount Box */}
-          <div className="border-2 border-slate-800 rounded p-4 bg-slate-50/50 space-y-2">
+          <div className="border-2 border-slate-800 rounded p-3.5 bg-slate-50/50 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider">
-                Amount Received:
+                {text.amountReceived}
               </span>
-              <span className="text-[20px] font-black text-slate-900 font-mono">
+              <span className="text-[18px] font-black text-slate-900 font-mono">
                 {formatDisplayPrice(numericAmount, paymentCurrency)}
               </span>
             </div>
 
             <div className="p-2.5 bg-white rounded border border-slate-300">
               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">
-                Amount in Words (English Standard):
+                {text.amountInWords}
               </span>
-              <p className="text-[11px] font-bold text-slate-900 italic mt-0.5">
-                "{englishWords}"
+              <p className="text-[11px] font-bold text-slate-900 italic mt-0.5 font-serif">
+                "{localizedWords}"
               </p>
             </div>
 
-            {paymentCurrency !== baseCurrency && (
+            {isDifferentCurrency && (
               <div className="text-[9.5px] text-slate-700 font-medium">
-                <span className="font-bold">Base Equivalent: </span>
+                <span className="font-bold">{text.baseEquivalent}: </span>
                 <span>
-                  {formatDisplayPrice(
-                    amountReceived.numeric * (amountReceived.exchangeRate || 1),
-                    baseCurrency
-                  )}{' '}
-                  (Exchange Rate: {amountReceived.exchangeRate || 1})
+                  {formatDisplayPrice(baseEquivalentAmount, baseCurrency)} ({text.rate}: {exchangeRate.toFixed(4)})
                 </span>
               </div>
             )}
           </div>
 
+          {/* Dual Bank (if present) */}
+          {bankDetails && bankDetails.ourBank && (
+            <div className="border border-slate-300 rounded overflow-hidden">
+              <div className="bg-slate-200 px-3 py-1 text-[8.5px] font-bold text-slate-700 uppercase tracking-wider">
+                {text.dualBankTitle}
+              </div>
+              <div className="grid grid-cols-2 divide-x rtl:divide-x-reverse divide-slate-200 text-[9.5px]">
+                <div className="p-2 space-y-0.5">
+                  <span className="font-bold text-emerald-800 uppercase block text-[8px]">{text.beneficiaryBank}</span>
+                  <div className="font-bold text-slate-900">{bankDetails.ourBank.bankName}</div>
+                  <div>A/C: <strong>{bankDetails.ourBank.accountName}</strong></div>
+                  <div className="font-mono">No: <strong>{bankDetails.ourBank.accountNumber}</strong></div>
+                </div>
+                <div className="p-2 space-y-0.5">
+                  <span className="font-bold text-blue-800 uppercase block text-[8px]">{text.remitterBank}</span>
+                  <div className="font-bold text-slate-900">{bankDetails.payerBank?.bankName || 'Client Bank'}</div>
+                  <div>A/C: <strong>{bankDetails.payerBank?.accountName || receivedFrom.company}</strong></div>
+                  <div className="font-mono">No: <strong>{bankDetails.payerBank?.accountNumber || 'Confirmed via Wire'}</strong></div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* For Payment Of */}
           <div className="border border-slate-300 rounded p-3 space-y-1 text-[10px]">
             <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">
-              For Payment Of:
+              {text.forPaymentOf}
             </span>
             <p className="text-[11.5px] font-bold text-slate-800">{forPaymentOf}</p>
             {paymentDetails.note && (
               <p className="text-[9.5px] text-slate-600 pt-1 border-t border-slate-200">
-                <span className="font-bold">Note: </span>
+                <span className="font-bold">{text.note}: </span>
                 {paymentDetails.note}
               </p>
             )}
@@ -573,59 +893,78 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           {/* Balance Breakdown Table */}
           <div className="border border-slate-300 rounded overflow-hidden">
             <div className="bg-slate-200 px-3 py-1 text-[8.5px] font-bold text-slate-700 uppercase tracking-wider">
-              Account Ledger Status
+              {text.ledgerTitle}
             </div>
-            <div className="grid grid-cols-4 divide-x divide-slate-200 text-[10px] text-center">
+            <div className="grid grid-cols-4 divide-x rtl:divide-x-reverse divide-slate-200 text-[9.5px] text-center">
               <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">Total Confirmation</span>
-                <span className="font-bold text-slate-900">
-                  {formatDisplayPrice(ledgerSummary.totalConfirmationAmount, baseCurrency)}
+                <span className="text-[8px] text-slate-500 uppercase block">{text.totalBilled}</span>
+                <span className="font-bold text-slate-900 block mt-0.5">
+                  {formatDisplayPrice(totalBilled, baseCurrency)}
                 </span>
               </div>
               <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">This Payment</span>
-                <span className="font-bold text-slate-900">
-                  {formatDisplayPrice(numericAmount, paymentCurrency)}
+                <span className="text-[8px] text-slate-500 uppercase block">{text.thisPayment}</span>
+                <span className="font-bold text-slate-900 block mt-0.5">
+                  {formatDisplayPrice(thisPayment, paymentCurrency)}
                 </span>
               </div>
               <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">Total Paid To Date</span>
-                <span className="font-bold text-slate-900">
-                  {formatDisplayPrice(ledgerSummary.totalPaidToDate, baseCurrency)}
+                <span className="text-[8px] text-slate-500 uppercase block">{text.totalPaid}</span>
+                <span className="font-bold text-slate-900 block mt-0.5">
+                  {formatDisplayPrice(totalPaid, baseCurrency)}
                 </span>
               </div>
               <div className="p-2 bg-slate-50">
-                <span className="text-[8px] font-bold text-slate-700 uppercase block">Remaining Balance</span>
-                <span className="font-black text-slate-900">
-                  {formatDisplayPrice(ledgerSummary.remainingBalance, baseCurrency)}
+                <span className="text-[8px] font-bold text-slate-700 uppercase block">{text.outstandingBalance}</span>
+                <span className="font-black text-slate-900 block mt-0.5">
+                  {formatDisplayPrice(remainingBalance, baseCurrency)}
                 </span>
               </div>
-            </div>
-          </div>
-
-          {/* Signatures and Stamp */}
-          <div className="pt-8 flex justify-between items-end text-[10px]">
-            <div className="space-y-1">
-              <p className="font-bold text-slate-800">Manazil AL.Mukhtara Group / PT. ODST</p>
-              <p className="text-[8.5px] text-slate-500">Finance & Treasury Operations</p>
-              <p className="text-[8px] text-slate-400 font-mono">Receipt Hash: {paymentDetails.createdAt || new Date().toISOString()}</p>
-            </div>
-
-            <div className="text-center space-y-1">
-              <div className="w-36 border-b border-slate-400 pb-8 text-[9px] text-slate-400 italic">
-                Authorized Cashier / Finance
-              </div>
-              <span className="text-[8px] text-slate-400 uppercase font-bold">Official Stamp / Signature</span>
             </div>
           </div>
 
           {/* Print Footer */}
-          <div className="pt-4 border-t border-slate-200 text-center text-[8px] text-slate-400">
-            This is an official computer-generated receipt issued by Manazil AL.Mukhtara Group & ODST Finance System. 100% International Standard Document.
+          <div className="pt-4 border-t border-slate-200 flex justify-between items-center text-[8.5px] text-slate-500">
+            <div>
+              <span className="font-bold text-slate-700">{text.verifiedTitle}</span> · {text.verifiedSub}
+            </div>
+            <div className="font-mono font-bold">
+              {text.verifiedBadge} · {text.noSignReq}
+            </div>
           </div>
-
         </div>
       </div>
+
+      {/* Lightbox for Payment Proof */}
+      {viewingProof && paymentDetails.proofUrl && (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm print:hidden"
+          onClick={() => setViewingProof(false)}
+        >
+          <div
+            className="relative max-w-3xl max-h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-3 bg-slate-900 text-white flex justify-between items-center">
+              <span className="text-[13px] font-bold">Transfer Proof Document</span>
+              <button
+                type="button"
+                onClick={() => setViewingProof(false)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 overflow-auto max-h-[calc(85vh-60px)] flex items-center justify-center bg-slate-100">
+              {paymentDetails.proofUrl.startsWith('data:application/pdf') ? (
+                <iframe src={paymentDetails.proofUrl} title="Proof PDF" className="w-full h-[65vh] rounded-lg border border-slate-200" />
+              ) : (
+                <img src={paymentDetails.proofUrl} alt="Proof" className="max-w-full max-h-[70vh] object-contain rounded-lg" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

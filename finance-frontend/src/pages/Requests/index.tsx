@@ -843,7 +843,7 @@ const Requests: React.FC = () => {
                                 minHeight: "48px"
                               }}
                             >
-                              {selectedDetails?.billFrom.name ? selectedDetails.billFrom.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'EM'}
+                              {selectedDetails?.billFrom.name ? selectedDetails.billFrom.name.split(' ').filter(Boolean).map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : 'EM'}
                             </div>
                             <div className="space-y-0.5">
                               <span className="text-[#94a3b8] block text-[12px] font-medium font-sans">{t('requests.employeeName')}</span>
@@ -928,7 +928,7 @@ const Requests: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#e2e8f0]/60">
-                            {selectedDetails?.items.map((item, idx) => (
+                            {selectedDetails?.items.map((item: any, idx: number) => (
                               <tr key={idx}>
                                 <td className="py-3 px-4 text-[#1e293b] font-medium leading-relaxed max-w-[280px]">
                                   {item.description}

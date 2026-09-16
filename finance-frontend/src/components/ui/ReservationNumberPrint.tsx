@@ -28,7 +28,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
   const footerNote = `${formatDateToDMY(invoice.date)} · ${details.billFrom.entity}`;
 
   const companySettings = getLocalCompanySettings();
-  const isHotel = invoice.invoiceNo?.startsWith('HR-') || invoice.invoiceNo?.startsWith('HM-') || invoice.invoiceNo?.startsWith('CNF-') || details.items.some(item => item.description.toLowerCase().includes('hotel'));
+  const isHotel = invoice.invoiceNo?.startsWith('HR-') || invoice.invoiceNo?.startsWith('HM-') || invoice.invoiceNo?.startsWith('CNF-') || details.items.some((item: any) => item.description.toLowerCase().includes('hotel'));
   const isTentative = invoice.status?.toLowerCase() === 'tentative' || invoice.status?.toLowerCase() === 'draft';
 
   const notes = isHotel 
@@ -273,7 +273,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                   </tr>
                 </thead>
                 <tbody>
-                  {details.items.map((item, index) => (
+                  {details.items.map((item: any, index: number) => (
                     <tr key={index} className="border-b border-slate-100 last:border-b-0 bg-white">
                       <td className="py-3 px-3.5 font-bold text-slate-800 text-[9.5px]">
                         {item.description}
@@ -381,7 +381,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                   details.usdToIdrRate || 18025,
                   details.sarToIdrRate || 4800,
                   (details.usdToIdrRate && details.sarToIdrRate) ? (details.usdToIdrRate / details.sarToIdrRate) : 3.75
-                ).map((rate, idx) => (
+                ).map((rate: any, idx: number) => (
                   <div key={idx} className="flex justify-between items-center">
                     <span>{rate.text}</span>
                     <span className="font-bold text-slate-800">{rate.label}</span>

@@ -274,6 +274,42 @@ const initializeDatabase = async () => {
     await pool.query(createAuditLogsTableQuery);
     console.log("Table 'dst_audit_logs' is verified/ready");
 
+    // Create dst_standalone_receipts table if not exists (Direct Deposit Receipts)
+    const createStandaloneReceiptsTableQuery = `
+      CREATE TABLE IF NOT EXISTS dst_standalone_receipts (
+          id VARCHAR(50) PRIMARY KEY,
+          receiptNo VARCHAR(100) UNIQUE NOT NULL,
+          paymentDate DATETIME NOT NULL,
+          companyName VARCHAR(255) NOT NULL,
+          companyCode VARCHAR(50) DEFAULT NULL,
+          payerAddress TEXT DEFAULT NULL,
+          payerTaxNumber VARCHAR(100) DEFAULT NULL,
+          payerEmail VARCHAR(255) DEFAULT NULL,
+          payerAgent VARCHAR(255) DEFAULT NULL,
+          payerBankName VARCHAR(255) DEFAULT NULL,
+          payerAccountName VARCHAR(255) DEFAULT NULL,
+          payerAccountNumber VARCHAR(100) DEFAULT NULL,
+          ourBankName VARCHAR(255) DEFAULT NULL,
+          ourAccountName VARCHAR(255) DEFAULT NULL,
+          ourAccountNumber VARCHAR(100) DEFAULT NULL,
+          ourBankBranch VARCHAR(255) DEFAULT NULL,
+          ourSwiftCode VARCHAR(50) DEFAULT NULL,
+          amount DECIMAL(15,2) NOT NULL,
+          currency VARCHAR(10) DEFAULT 'SAR',
+          exchangeRate DECIMAL(15,4) DEFAULT 1.0000,
+          paymentMethod VARCHAR(50) DEFAULT 'Bank Transfer',
+          forPaymentOf TEXT DEFAULT NULL,
+          referenceNo VARCHAR(100) DEFAULT NULL,
+          groupNumber VARCHAR(100) DEFAULT NULL,
+          proofUrl LONGTEXT DEFAULT NULL,
+          note TEXT DEFAULT NULL,
+          createdBy VARCHAR(255) DEFAULT NULL,
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    await pool.query(createStandaloneReceiptsTableQuery);
+    console.log("Table 'dst_standalone_receipts' is verified/ready");
+
   } catch (error) {
     console.error('Database schema failed for invoice-service:', error.message);
   }
