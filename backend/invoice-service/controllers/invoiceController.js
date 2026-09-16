@@ -503,10 +503,25 @@ export const reconcileInvoicePayments = async (invoiceNo, saveOverpaymentCredit 
     const baseCurrency = (inv.currency || 'SAR').toUpperCase();
     const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
     const advPayment = parseFloat(inv.advancePayment || 0);
-    const rates = {
-      usdToIdr: parseFloat(inv.usdToIdrRate) || 18025,
-      sarToIdr: parseFloat(inv.sarToIdrRate) || 4800
+    
+    // Query live daily exchange rates from Settings (dst_exchange_rates)
+    let rates = {
+      usdToIdr: parseFloat(inv.usdToIdrRate) || 18000,
+      sarToIdr: parseFloat(inv.sarToIdrRate) || 4800,
+      usdToSar: 3.75
     };
+    try {
+      const [rateRows] = await pool.query('SELECT usdToIdr, sarToIdr, usdToSar FROM dst_exchange_rates WHERE id = ?', ['current']);
+      if (rateRows.length > 0) {
+        const dbUsd = parseFloat(rateRows[0].usdToIdr);
+        const dbSar = parseFloat(rateRows[0].sarToIdr);
+        const dbUsdSar = parseFloat(rateRows[0].usdToSar);
+        if (!isNaN(dbUsd) && dbUsd > 100) rates.usdToIdr = dbUsd;
+        if (!isNaN(dbSar) && dbSar > 100) rates.sarToIdr = dbSar;
+        if (!isNaN(dbUsdSar) && dbUsdSar > 0) rates.usdToSar = dbUsdSar;
+        else if (rates.usdToIdr && rates.sarToIdr) rates.usdToSar = rates.usdToIdr / rates.sarToIdr;
+      }
+    } catch (e) { }
 
     const [payRows] = await pool.query(
       "SELECT amount, currency, exchange_rate FROM dst_payment_history WHERE referenceId = ? AND moduleType = 'CONFIRMATION'",
@@ -569,6 +584,28 @@ export const addPaymentHistory = async (req, res, next) => {
     }
 
     const parsedRate = parseFloat(exchangeRate || exchange_rate);
+    let effectiveRate = (!isNaN(parsedRate) && parsedRate > 0) ? parsedRate : undefined;
+
+    // If rate is not specified or 1.0 for cross-currency, query live dst_exchange_rates (System Settings)
+    if (!effectiveRate || effectiveRate <= 1) {
+      try {
+        const pool = getPool();
+        const [rateRows] = await pool.query('SELECT usdToIdr, sarToIdr, usdToSar FROM dst_exchange_rates WHERE id = ?', ['current']);
+        const [invRows] = await pool.query('SELECT currency FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [invoiceNo, invoiceNo]);
+        const invCurr = (invRows[0]?.currency || 'SAR').toUpperCase();
+        const payCurr = (currency || 'SAR').toUpperCase();
+
+        const usdRate = rateRows.length > 0 && parseFloat(rateRows[0].usdToIdr) > 100 ? parseFloat(rateRows[0].usdToIdr) : 18000;
+        const sarRate = rateRows.length > 0 && parseFloat(rateRows[0].sarToIdr) > 100 ? parseFloat(rateRows[0].sarToIdr) : 4800;
+        const usdSarRate = rateRows.length > 0 && parseFloat(rateRows[0].usdToSar) > 0 ? parseFloat(rateRows[0].usdToSar) : (usdRate / sarRate);
+
+        if ((payCurr === 'IDR' || payCurr === 'RP') && invCurr === 'USD') effectiveRate = usdRate;
+        else if ((payCurr === 'IDR' || payCurr === 'RP') && invCurr === 'SAR') effectiveRate = sarRate;
+        else if (payCurr === 'USD' && invCurr === 'SAR') effectiveRate = usdSarRate;
+        else if (payCurr === 'SAR' && invCurr === 'USD') effectiveRate = usdSarRate;
+        else effectiveRate = 1.0;
+      } catch (e) { }
+    }
 
     const paymentData = {
       id: `pay_${Date.now()}`,
@@ -576,7 +613,7 @@ export const addPaymentHistory = async (req, res, next) => {
       moduleType: 'CONFIRMATION',
       amount: numericAmount,
       currency: currency || 'SAR',
-      exchangeRate: (!isNaN(parsedRate) && parsedRate > 0) ? parsedRate : undefined,
+      exchangeRate: effectiveRate,
       paymentDate,
       note: note || '',
       proofUrl: proofUrl || null,
@@ -813,14 +850,26 @@ export const getPaymentReceipt = async (req, res, next) => {
     const paymentAmount = parseFloat(targetPayment.amount) || 0;
     const paymentCurrency = (targetPayment.currency || baseCurrency).toUpperCase();
 
-    // Calculate total paid up to this payment
+    // Calculate total paid up to this payment with live settings rates
     const rawUsdRate = parseFloat(invoice.usdToIdrRate);
     const rawSarRate = parseFloat(invoice.sarToIdrRate);
-    const rates = {
-      usdToIdr: (!isNaN(rawUsdRate) && rawUsdRate > 100) ? rawUsdRate : 18025,
+    let rates = {
+      usdToIdr: (!isNaN(rawUsdRate) && rawUsdRate > 100) ? rawUsdRate : 18000,
       sarToIdr: (!isNaN(rawSarRate) && rawSarRate > 100) ? rawSarRate : 4800,
+      usdToSar: 3.75
     };
-    rates.usdToSar = (rates.usdToIdr && rates.sarToIdr) ? (rates.usdToIdr / rates.sarToIdr) : 3.75;
+    try {
+      const [rateRows] = await pool.query('SELECT usdToIdr, sarToIdr, usdToSar FROM dst_exchange_rates WHERE id = ?', ['current']);
+      if (rateRows.length > 0) {
+        const dbUsd = parseFloat(rateRows[0].usdToIdr);
+        const dbSar = parseFloat(rateRows[0].sarToIdr);
+        const dbUsdSar = parseFloat(rateRows[0].usdToSar);
+        if (!isNaN(dbUsd) && dbUsd > 100) rates.usdToIdr = dbUsd;
+        if (!isNaN(dbSar) && dbSar > 100) rates.sarToIdr = dbSar;
+        if (!isNaN(dbUsdSar) && dbUsdSar > 0) rates.usdToSar = dbUsdSar;
+        else if (rates.usdToIdr && rates.sarToIdr) rates.usdToSar = rates.usdToIdr / rates.sarToIdr;
+      }
+    } catch (e) { }
 
     let totalPaidUpToThisInBase = advPayment;
     for (let i = 0; i <= seqIndex; i++) {
