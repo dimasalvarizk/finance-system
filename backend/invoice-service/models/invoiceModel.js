@@ -22,9 +22,14 @@ export const convertPaymentToBase = (amount, payCurrency, baseCurrency, rates = 
     return { amountInBase: numAmt, exchangeRateUsed: 1 };
   }
 
-  const usdToIdr = parseFloat(rates.usdToIdr || rates.usdToIdrRate || 18025);
-  const sarToIdr = parseFloat(rates.sarToIdr || rates.sarToIdrRate || 4800);
-  const usdToSar = parseFloat(rates.usdToSar || (usdToIdr / sarToIdr) || 3.75);
+  const rawUsdToIdr = parseFloat(rates.usdToIdr || rates.usdToIdrRate);
+  const usdToIdr = (!isNaN(rawUsdToIdr) && rawUsdToIdr > 100) ? rawUsdToIdr : 18025;
+
+  const rawSarToIdr = parseFloat(rates.sarToIdr || rates.sarToIdrRate);
+  const sarToIdr = (!isNaN(rawSarToIdr) && rawSarToIdr > 100) ? rawSarToIdr : 4800;
+
+  const rawUsdToSar = parseFloat(rates.usdToSar || (usdToIdr / sarToIdr));
+  const usdToSar = (!isNaN(rawUsdToSar) && rawUsdToSar > 0) ? rawUsdToSar : 3.75;
 
   let amountInBase = numAmt;
   let exchangeRateUsed = 1;

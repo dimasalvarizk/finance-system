@@ -313,17 +313,49 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
   const text = DOC_TEXTS[docLang];
   const isRtl = docLang === 'ar';
 
-  const rawRate = receiptData.amountReceived?.exchangeRate ?? rawRec?.exchangeRate ?? rawRec?.exchange_rate ?? 1.0;
-  const numRate = typeof rawRate === 'number' ? rawRate : parseFloat(String(rawRate));
-  const exchangeRate = (!isNaN(numRate) && numRate > 0) ? numRate : 1.0;
+  let rawRate = receiptData.amountReceived?.exchangeRate ?? rawRec?.exchangeRate ?? rawRec?.exchange_rate;
+  let numRate = typeof rawRate === 'number' ? rawRate : parseFloat(String(rawRate));
+
+  // Auto-resolve realistic cross-currency rate if 1.0 or missing was stored
+  if ((isNaN(numRate) || numRate <= 1) && paymentCurrency !== baseCurrency) {
+    if ((paymentCurrency === 'IDR' || paymentCurrency === 'RP') && baseCurrency === 'USD') {
+      numRate = 18000;
+    } else if ((paymentCurrency === 'IDR' || paymentCurrency === 'RP') && baseCurrency === 'SAR') {
+      numRate = 4800;
+    } else if (paymentCurrency === 'USD' && baseCurrency === 'SAR') {
+      numRate = 3.75;
+    } else if (paymentCurrency === 'SAR' && baseCurrency === 'USD') {
+      numRate = 3.75;
+    } else {
+      numRate = 1.0;
+    }
+  } else if (isNaN(numRate) || numRate <= 0) {
+    numRate = 1.0;
+  }
+  const exchangeRate = numRate;
+
   const isDifferentCurrency = paymentCurrency !== baseCurrency && exchangeRate > 0;
-  const baseEquivalentAmount = isDifferentCurrency ? numericAmount / exchangeRate : numericAmount;
+  const baseEquivalentAmount = isDifferentCurrency ? (
+    (paymentCurrency === 'USD' && baseCurrency === 'SAR') ? numericAmount * exchangeRate :
+    numericAmount / exchangeRate
+  ) : numericAmount;
 
   // Safe fallback financial numbers for Ledger Summary
   const totalBilled = receiptData.ledgerSummary?.totalConfirmationAmount ?? rawRec?.totalConfirmationAmount ?? rawRec?.totalBilled ?? numericAmount;
   const thisPayment = receiptData.ledgerSummary?.paymentAmountInThisReceipt ?? numericAmount;
-  const totalPaid = receiptData.ledgerSummary?.totalPaidToDate ?? rawRec?.totalPaidToDate ?? rawRec?.totalPaid ?? numericAmount;
-  const remainingBalance = receiptData.ledgerSummary?.remainingBalance ?? rawRec?.remainingBalance ?? 0;
+
+  // Guard against unnormalized totalPaidToDate where raw IDR was passed instead of base currency
+  let rawTotalPaid = receiptData.ledgerSummary?.totalPaidToDate ?? rawRec?.totalPaidToDate ?? rawRec?.totalPaid ?? numericAmount;
+  if (isDifferentCurrency && rawTotalPaid > (totalBilled * 50) && (paymentCurrency === 'IDR' || paymentCurrency === 'RP')) {
+    rawTotalPaid = rawTotalPaid / exchangeRate;
+  }
+  const totalPaid = rawTotalPaid;
+
+  let rawRemaining = receiptData.ledgerSummary?.remainingBalance ?? rawRec?.remainingBalance ?? 0;
+  if (rawRemaining < 0 || (totalPaid >= (totalBilled - 0.01) && totalBilled > 0)) {
+    rawRemaining = 0;
+  }
+  const remainingBalance = rawRemaining;
 
   return (
     <>

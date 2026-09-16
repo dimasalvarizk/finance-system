@@ -134,12 +134,28 @@ export const PaymentHistoryModal: React.FC<Props> = ({
     const numAmount = parseFloat(formAmount);
     if (isNaN(numAmount) || numAmount <= 0) return;
 
+    const rawUsdRate = parseFloat(String(invoice.usdToIdrRate || ''));
+    const rawSarRate = parseFloat(String(invoice.sarToIdrRate || ''));
+    const usdToIdr = (!isNaN(rawUsdRate) && rawUsdRate > 100) ? rawUsdRate : 18025;
+    const sarToIdr = (!isNaN(rawSarRate) && rawSarRate > 100) ? rawSarRate : 4800;
+    const usdToSar = usdToIdr / sarToIdr;
+
+    let computedExchangeRate = 1.0;
+    const payCurr = formCurrency === 'Rp' ? 'IDR' : formCurrency;
+    if (payCurr !== baseCurrency) {
+      if ((payCurr === 'IDR' || payCurr === 'RP') && baseCurrency === 'USD') computedExchangeRate = usdToIdr;
+      else if ((payCurr === 'IDR' || payCurr === 'RP') && baseCurrency === 'SAR') computedExchangeRate = sarToIdr;
+      else if (payCurr === 'USD' && baseCurrency === 'SAR') computedExchangeRate = usdToSar;
+      else if (payCurr === 'SAR' && baseCurrency === 'USD') computedExchangeRate = usdToSar;
+    }
+
     setSubmitting(true);
     try {
       if (editingPaymentId) {
         await updateInvoicePayment(editingPaymentId, {
           amount: numAmount,
-          currency: formCurrency,
+          currency: payCurr,
+          exchangeRate: computedExchangeRate,
           paymentDate: formDate,
           note: formNote,
           proofUrl: formProof || undefined
@@ -148,7 +164,8 @@ export const PaymentHistoryModal: React.FC<Props> = ({
       } else {
         await addInvoicePayment(invoice.invoiceNo, {
           amount: numAmount,
-          currency: formCurrency,
+          currency: payCurr,
+          exchangeRate: computedExchangeRate,
           paymentDate: formDate,
           note: formNote,
           proofUrl: formProof || undefined,

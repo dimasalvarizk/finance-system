@@ -446,23 +446,36 @@ export const convertCurrency = (amount, fromCurr = 'SAR', toCurr = 'SAR', rates 
   const num = parseFloat(amount) || 0;
   if (from === to || num === 0) return num;
 
-  // Support explicit exchange rate passed in rates
+  const rawUsdToIdr = parseFloat(rates.usdToIdr || rates.usdToIdrRate);
+  const usdToIdr = (!isNaN(rawUsdToIdr) && rawUsdToIdr > 100) ? rawUsdToIdr : 18025;
+
+  const rawSarToIdr = parseFloat(rates.sarToIdr || rates.sarToIdrRate);
+  const sarToIdr = (!isNaN(rawSarToIdr) && rawSarToIdr > 100) ? rawSarToIdr : 4800;
+
+  const rawUsdToSar = parseFloat(rates.usdToSar || (usdToIdr / sarToIdr));
+  const usdToSar = (!isNaN(rawUsdToSar) && rawUsdToSar > 0) ? rawUsdToSar : (usdToIdr / sarToIdr);
+
+  // Support explicit exchange rate passed in rates (only if plausible for the pair)
   if (rates.exchangeRate && parseFloat(rates.exchangeRate) > 0) {
     const rate = parseFloat(rates.exchangeRate);
     if ((from === 'IDR' || from === 'RP') && (to === 'SAR' || to === 'USD')) {
-      return rate > 1 ? (num / rate) : (num * rate);
+      if (rate > 100) {
+        return num / rate;
+      }
+      if (to === 'SAR') return num / sarToIdr;
+      if (to === 'USD') return num / usdToIdr;
     } else if ((to === 'IDR' || to === 'RP') && (from === 'SAR' || from === 'USD')) {
-      return rate > 1 ? (num * rate) : (num / rate);
+      if (rate > 100) {
+        return num * rate;
+      }
+      if (from === 'SAR') return num * sarToIdr;
+      if (from === 'USD') return num * usdToIdr;
     } else if (from === 'USD' && to === 'SAR') {
-      return rate > 1 ? (num * rate) : (num / rate);
+      return rate > 0.1 ? (num * rate) : (num * usdToSar);
     } else if (from === 'SAR' && to === 'USD') {
-      return rate > 1 ? (num / rate) : (num * rate);
+      return rate > 0.1 ? (num / rate) : (num / usdToSar);
     }
   }
-
-  const usdToIdr = parseFloat(rates.usdToIdr) || 18025;
-  const sarToIdr = parseFloat(rates.sarToIdr) || 4800;
-  const usdToSar = parseFloat(rates.usdToSar || (usdToIdr / sarToIdr)) || 3.75;
 
   // 1. Convert source to IDR
   let amountInIdr = num;
@@ -630,12 +643,14 @@ export const getPaymentHistory = async (req, res, next) => {
 
 export const updatePayment = async (req, res, next) => {
   const { paymentId } = req.params;
-  const { amount, currency, paymentDate, note, proofUrl } = req.body;
+  const { amount, currency, exchangeRate, exchange_rate, paymentDate, note, proofUrl } = req.body;
   try {
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
       return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
     }
+
+    const parsedRate = parseFloat(exchangeRate || exchange_rate);
 
     const pool = getPool();
     const [existingRows] = await pool.query('SELECT referenceId FROM dst_payment_history WHERE id = ?', [paymentId]);
@@ -643,6 +658,7 @@ export const updatePayment = async (req, res, next) => {
     await updatePaymentHistoryDB(paymentId, {
       amount: numericAmount,
       currency: currency || 'SAR',
+      exchangeRate: (!isNaN(parsedRate) && parsedRate > 0) ? parsedRate : undefined,
       paymentDate,
       note,
       proofUrl
@@ -798,11 +814,13 @@ export const getPaymentReceipt = async (req, res, next) => {
     const paymentCurrency = (targetPayment.currency || baseCurrency).toUpperCase();
 
     // Calculate total paid up to this payment
+    const rawUsdRate = parseFloat(invoice.usdToIdrRate);
+    const rawSarRate = parseFloat(invoice.sarToIdrRate);
     const rates = {
-      usdToIdr: invoice.usdToIdrRate || 18025,
-      sarToIdr: invoice.sarToIdrRate || 4800,
-      usdToSar: (invoice.usdToIdrRate && invoice.sarToIdrRate) ? (invoice.usdToIdrRate / invoice.sarToIdrRate) : 3.75
+      usdToIdr: (!isNaN(rawUsdRate) && rawUsdRate > 100) ? rawUsdRate : 18025,
+      sarToIdr: (!isNaN(rawSarRate) && rawSarRate > 100) ? rawSarRate : 4800,
     };
+    rates.usdToSar = (rates.usdToIdr && rates.sarToIdr) ? (rates.usdToIdr / rates.sarToIdr) : 3.75;
 
     let totalPaidUpToThisInBase = advPayment;
     for (let i = 0; i <= seqIndex; i++) {
@@ -815,6 +833,22 @@ export const getPaymentReceipt = async (req, res, next) => {
 
     const remainingAfterThis = Math.max(0, rawAmt - totalPaidUpToThisInBase);
     const amountInWords = amountToEnglishWords(paymentAmount, paymentCurrency);
+
+    // Resolve targetExchangeRate for this specific payment
+    let targetExchangeRate = parseFloat(targetPayment.exchange_rate);
+    if (isNaN(targetExchangeRate) || targetExchangeRate <= 1) {
+      if ((paymentCurrency === 'IDR' || paymentCurrency === 'RP') && baseCurrency === 'SAR') {
+        targetExchangeRate = rates.sarToIdr;
+      } else if ((paymentCurrency === 'IDR' || paymentCurrency === 'RP') && baseCurrency === 'USD') {
+        targetExchangeRate = rates.usdToIdr;
+      } else if (paymentCurrency === 'USD' && baseCurrency === 'SAR') {
+        targetExchangeRate = rates.usdToSar;
+      } else if (paymentCurrency === 'SAR' && baseCurrency === 'USD') {
+        targetExchangeRate = rates.usdToSar;
+      } else {
+        targetExchangeRate = 1.0;
+      }
+    }
 
     const receiptData = {
       receiptNo,
@@ -836,7 +870,7 @@ export const getPaymentReceipt = async (req, res, next) => {
       amountReceived: {
         numeric: paymentAmount,
         currency: paymentCurrency,
-        exchangeRate: parseFloat(targetPayment.exchange_rate) || 1.0,
+        exchangeRate: targetExchangeRate,
         baseCurrency: baseCurrency
       },
       forPaymentOf: `Deposit for Confirmation Ref # ${invoice.invoiceNo}`,

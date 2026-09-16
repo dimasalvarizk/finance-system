@@ -466,6 +466,26 @@ const Invoices: React.FC = () => {
     const seqStr = String(seqNumber).padStart(2, '0');
     const receiptNo = `REC-${inv.invoiceNo}-${seqStr}`;
 
+    const rawUsdRate = parseFloat(String(inv.usdToIdrRate || ''));
+    const rawSarRate = parseFloat(String(inv.sarToIdrRate || ''));
+    const effectiveUsdToIdr = (!isNaN(rawUsdRate) && rawUsdRate > 100) ? rawUsdRate : 18025;
+    const effectiveSarToIdr = (!isNaN(rawSarRate) && rawSarRate > 100) ? rawSarRate : 4800;
+    const effectiveUsdToSar = effectiveUsdToIdr / effectiveSarToIdr;
+
+    let effPayRate = parseFloat(String(pay.exchange_rate || ''));
+    if (isNaN(effPayRate) || effPayRate <= 1) {
+      if ((payCurr === 'IDR' || payCurr === 'RP') && baseCurrency === 'USD') effPayRate = effectiveUsdToIdr;
+      else if ((payCurr === 'IDR' || payCurr === 'RP') && baseCurrency === 'SAR') effPayRate = effectiveSarToIdr;
+      else if (payCurr === 'USD' && baseCurrency === 'SAR') effPayRate = effectiveUsdToSar;
+      else if (payCurr === 'SAR' && baseCurrency === 'USD') effPayRate = effectiveUsdToSar;
+      else effPayRate = 1.0;
+    }
+
+    const payAmtInBase = payCurr !== baseCurrency && effPayRate > 0 ? (
+      (payCurr === 'USD' && baseCurrency === 'SAR') ? payAmt * effPayRate :
+      payAmt / effPayRate
+    ) : payAmt;
+
     const clientReceiptData: ReceiptData = {
       receiptNo,
       sequence: seqNumber,
@@ -487,7 +507,7 @@ const Invoices: React.FC = () => {
         numeric: payAmt,
         currency: payCurr,
         amountInWords: amountToEnglishWords(payAmt, payCurr),
-        exchangeRate: parseFloat(String(pay.exchange_rate || '1.0')) || 1.0,
+        exchangeRate: effPayRate,
         baseCurrency: baseCurrency,
       },
       forPaymentOf: `Deposit for Confirmation Ref # ${inv.invoiceNo}`,
@@ -495,8 +515,8 @@ const Invoices: React.FC = () => {
         totalConfirmationAmount: rawAmt,
         advancePayment: advPayment,
         paymentAmountInThisReceipt: payAmt,
-        totalPaidToDate: parseFloat((advPayment + (payCurr !== baseCurrency && (parseFloat(String(pay.exchange_rate)) || 1) > 0 ? payAmt / (parseFloat(String(pay.exchange_rate)) || 1) : payAmt)).toFixed(2)),
-        remainingBalance: parseFloat(Math.max(0, rawAmt - (advPayment + (payCurr !== baseCurrency && (parseFloat(String(pay.exchange_rate)) || 1) > 0 ? payAmt / (parseFloat(String(pay.exchange_rate)) || 1) : payAmt))).toFixed(2)),
+        totalPaidToDate: parseFloat((advPayment + payAmtInBase).toFixed(2)),
+        remainingBalance: parseFloat(Math.max(0, rawAmt - (advPayment + payAmtInBase)).toFixed(2)),
         currency: baseCurrency,
       },
       paymentDetails: {
