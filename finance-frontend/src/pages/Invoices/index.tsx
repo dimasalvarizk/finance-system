@@ -1025,7 +1025,7 @@ const Invoices: React.FC = () => {
       {/* Payment Proof Lightbox Modal */}
       {viewingProofBase64 && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 animate-fade-in"
           onClick={() => setViewingProofBase64(null)}
         >
           <div

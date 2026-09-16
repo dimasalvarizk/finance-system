@@ -256,7 +256,7 @@ export const CreateStandaloneReceiptModal: React.FC<Props> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/50 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in font-sans"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0d0f]/60 p-4 overflow-y-auto animate-fade-in font-sans"
       onClick={onClose}
     >
       <div

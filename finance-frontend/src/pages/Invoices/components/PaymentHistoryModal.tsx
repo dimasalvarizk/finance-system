@@ -601,7 +601,7 @@ export const PaymentHistoryModal: React.FC<Props> = ({
       {/* Viewing Proof Lightbox */}
       {viewingProof && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4"
           onClick={() => setViewingProof(null)}
         >
           <div

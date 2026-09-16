@@ -281,7 +281,7 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
 
   if (loading || !receiptData) {
     return (
-      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-4 animate-fade-in font-sans">
+      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 p-4 animate-fade-in font-sans">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
           <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-[13px] font-bold text-slate-700 font-sans">Generating Official Receipt...</p>
@@ -329,7 +329,7 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
     <>
       {/* Modal Dialog for On-Screen Review */}
       <div
-        className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto animate-fade-in print:hidden"
+        className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0c0d0f]/60 p-2 sm:p-4 overflow-y-auto animate-fade-in print:hidden"
         onClick={onClose}
       >
         <div
@@ -956,7 +956,7 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
       {/* Lightbox for Payment Proof */}
       {viewingProof && paymentDetails.proofUrl && (
         <div
-          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm print:hidden"
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/80 p-4 print:hidden"
           onClick={() => setViewingProof(false)}
         >
           <div
