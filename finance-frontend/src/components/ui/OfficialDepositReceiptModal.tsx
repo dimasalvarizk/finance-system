@@ -622,32 +622,40 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
               <div className="border border-slate-200 rounded-xl overflow-hidden bg-[#f8fafc]">
                 <div className="px-4 py-2 border-b border-slate-200/80 bg-slate-100/60">
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
-                    {text.ledgerTitle}
+                    {text?.ledgerTitle || 'RINGKASAN STATUS KEUANGAN & SALDO KONFIRMASI'}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x rtl:sm:divide-x-reverse divide-slate-200 text-[11.5px] text-center">
                   <div className="p-3">
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">{text.totalBilled}</span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">
+                      {text?.totalBilled || 'TOTAL TAGIHAN'}
+                    </span>
                     <span className="font-bold text-slate-800 font-mono block mt-1">
-                      {formatDisplayPrice(totalBilled, baseCurrency)}
+                      {formatDisplayPrice(totalBilled ?? numericAmount ?? 0, baseCurrency || 'SAR')}
                     </span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">{text.thisPayment}</span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">
+                      {text?.thisPayment || 'PEMBAYARAN INI'}
+                    </span>
                     <span className="font-bold text-emerald-600 font-mono block mt-1">
-                      {formatDisplayPrice(thisPayment, paymentCurrency)}
+                      {formatDisplayPrice(thisPayment ?? numericAmount ?? 0, paymentCurrency || 'SAR')}
                     </span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">{text.totalPaid}</span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase block">
+                      {text?.totalPaid || 'TOTAL TELAH DIBAYAR'}
+                    </span>
                     <span className="font-bold text-blue-700 font-mono block mt-1">
-                      {formatDisplayPrice(totalPaid, baseCurrency)}
+                      {formatDisplayPrice(totalPaid ?? numericAmount ?? 0, baseCurrency || 'SAR')}
                     </span>
                   </div>
                   <div className="p-3 bg-amber-50/40">
-                    <span className="text-[10px] font-bold text-amber-700 uppercase block">{text.outstandingBalance}</span>
+                    <span className="text-[10px] font-bold text-amber-700 uppercase block">
+                      {text?.outstandingBalance || 'SISA TAGIHAN'}
+                    </span>
                     <span className="font-black text-amber-800 font-mono block mt-1">
-                      {formatDisplayPrice(remainingBalance, baseCurrency)}
+                      {formatDisplayPrice(remainingBalance ?? 0, baseCurrency || 'SAR')}
                     </span>
                   </div>
                 </div>
@@ -895,31 +903,39 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           {/* Balance Breakdown Table */}
           <div className="border border-slate-300 rounded overflow-hidden">
             <div className="bg-slate-200 px-3 py-1 text-[8.5px] font-bold text-slate-700 uppercase tracking-wider">
-              {text.ledgerTitle}
+              {text?.ledgerTitle || 'RINGKASAN STATUS KEUANGAN & SALDO KONFIRMASI'}
             </div>
             <div className="grid grid-cols-4 divide-x rtl:divide-x-reverse divide-slate-200 text-[9.5px] text-center">
               <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">{text.totalBilled}</span>
+                <span className="text-[8px] text-slate-500 uppercase block">
+                  {text?.totalBilled || 'TOTAL TAGIHAN'}
+                </span>
                 <span className="font-bold text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(totalBilled, baseCurrency)}
+                  {formatDisplayPrice(totalBilled ?? numericAmount ?? 0, baseCurrency || 'SAR')}
                 </span>
               </div>
               <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">{text.thisPayment}</span>
+                <span className="text-[8px] text-slate-500 uppercase block">
+                  {text?.thisPayment || 'PEMBAYARAN INI'}
+                </span>
                 <span className="font-bold text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(thisPayment, paymentCurrency)}
+                  {formatDisplayPrice(thisPayment ?? numericAmount ?? 0, paymentCurrency || 'SAR')}
                 </span>
               </div>
               <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">{text.totalPaid}</span>
+                <span className="text-[8px] text-slate-500 uppercase block">
+                  {text?.totalPaid || 'TOTAL TELAH DIBAYAR'}
+                </span>
                 <span className="font-bold text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(totalPaid, baseCurrency)}
+                  {formatDisplayPrice(totalPaid ?? numericAmount ?? 0, baseCurrency || 'SAR')}
                 </span>
               </div>
               <div className="p-2 bg-slate-50">
-                <span className="text-[8px] font-bold text-slate-700 uppercase block">{text.outstandingBalance}</span>
+                <span className="text-[8px] font-bold text-slate-700 uppercase block">
+                  {text?.outstandingBalance || 'SISA TAGIHAN'}
+                </span>
                 <span className="font-black text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(remainingBalance, baseCurrency)}
+                  {formatDisplayPrice(remainingBalance ?? 0, baseCurrency || 'SAR')}
                 </span>
               </div>
             </div>
