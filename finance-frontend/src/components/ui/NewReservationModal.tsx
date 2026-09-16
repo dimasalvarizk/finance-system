@@ -315,7 +315,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
 
       setFormAddedRooms([]);
       setCurrentRoom({
-        hotelName: 'SAFWAT AL MADINAH',
+        hotelName: '',
         roomType: 'TRIPLE',
         checkIn: todayStr,
         checkOut: tomorrowStr,
@@ -394,7 +394,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({
     // Reset upper info form inputs so user can add another room cleanly
     setCurrentRoom(prev => ({
       ...prev,
-      hotelName: prev.hotelName || 'SAFWAT AL MADINAH',
+      hotelName: prev.hotelName || '',
       roomType: 'TRIPLE',
       roomCount: 1,
       adults: 1,
