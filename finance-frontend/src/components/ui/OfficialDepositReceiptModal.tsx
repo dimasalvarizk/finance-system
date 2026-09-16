@@ -74,9 +74,15 @@ interface Props {
 
 type ReceiptLang = 'en' | 'id' | 'ar';
 
-const formatDisplayPrice = (amount: number | string | undefined | null, currency: string = 'SAR'): string => {
+const formatDisplayPrice = (amount: any, currency: string = 'SAR'): string => {
   const code = (currency || 'SAR').toUpperCase().trim();
-  const num = typeof amount === 'number' ? (isNaN(amount) ? 0 : amount) : (parseFloat(String(amount ?? 0)) || 0);
+  let num = 0;
+  if (typeof amount === 'number') {
+    num = isNaN(amount) ? 0 : amount;
+  } else if (amount !== null && amount !== undefined) {
+    const parsed = parseFloat(String(amount).replace(/[^0-9.-]/g, ''));
+    num = isNaN(parsed) ? 0 : parsed;
+  }
 
   if (code === 'IDR' || code === 'RP') {
     return `Rp ${num.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -938,49 +944,53 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           </div>
 
           {/* Balance Breakdown Table */}
-          <div className="border border-slate-300 rounded overflow-hidden">
-            <div className="bg-slate-200 px-3 py-1 text-[8.5px] font-bold text-slate-700 uppercase tracking-wider">
+          <div className="border border-slate-300 rounded overflow-hidden" style={{ border: '1px solid #cbd5e1', borderRadius: '6px' }}>
+            <div className="bg-slate-200 px-3 py-1.5 text-[8.5px] font-bold text-slate-800 uppercase tracking-wider" style={{ backgroundColor: '#e2e8f0', color: '#1e293b' }}>
               {text?.ledgerTitle || 'RINGKASAN STATUS KEUANGAN & SALDO KONFIRMASI'}
             </div>
-            <div className="grid grid-cols-4 divide-x rtl:divide-x-reverse divide-slate-200 text-[9.5px] text-center">
-              <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">
-                  {text?.totalBilled || 'TOTAL TAGIHAN'}
-                </span>
-                <span className="font-bold text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(totalBilled ?? numericAmount ?? 0, baseCurrency || 'SAR')}
-                </span>
-              </div>
-              <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">
-                  {text?.thisPayment || 'PEMBAYARAN INI'}
-                </span>
-                <span className="font-bold text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(thisPayment ?? numericAmount ?? 0, paymentCurrency || 'SAR')}
-                </span>
-                {isDifferentCurrency && (
-                  <span className="text-[7.5px] font-bold text-slate-600 block">
-                    (≈ {formatDisplayPrice(baseEquivalentAmount, baseCurrency)})
-                  </span>
-                )}
-              </div>
-              <div className="p-2">
-                <span className="text-[8px] text-slate-500 uppercase block">
-                  {text?.totalPaid || 'TOTAL TELAH DIBAYAR'}
-                </span>
-                <span className="font-bold text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(totalPaid ?? numericAmount ?? 0, baseCurrency || 'SAR')}
-                </span>
-              </div>
-              <div className="p-2 bg-slate-50">
-                <span className="text-[8px] font-bold text-slate-700 uppercase block">
-                  {text?.outstandingBalance || 'SISA TAGIHAN'}
-                </span>
-                <span className="font-black text-slate-900 block mt-0.5">
-                  {formatDisplayPrice(remainingBalance ?? 0, baseCurrency || 'SAR')}
-                </span>
-              </div>
-            </div>
+            <table className="w-full text-center border-collapse" style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <tbody>
+                <tr>
+                  <td className="p-2 border-r border-slate-200" style={{ padding: '6px 4px', borderRight: '1px solid #e2e8f0', width: '25%' }}>
+                    <div className="text-[7.5px] font-semibold text-slate-500 uppercase" style={{ fontSize: '7.5px', color: '#64748b' }}>
+                      {text?.totalBilled || 'TOTAL TAGIHAN'}
+                    </div>
+                    <div className="font-bold text-slate-900 mt-0.5" style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a' }}>
+                      {formatDisplayPrice(totalBilled ?? numericAmount ?? 0, baseCurrency || 'SAR')}
+                    </div>
+                  </td>
+                  <td className="p-2 border-r border-slate-200" style={{ padding: '6px 4px', borderRight: '1px solid #e2e8f0', width: '25%' }}>
+                    <div className="text-[7.5px] font-semibold text-slate-500 uppercase" style={{ fontSize: '7.5px', color: '#64748b' }}>
+                      {text?.thisPayment || 'PEMBAYARAN INI'}
+                    </div>
+                    <div className="font-bold text-slate-900 mt-0.5" style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a' }}>
+                      {formatDisplayPrice(thisPayment ?? numericAmount ?? 0, paymentCurrency || 'SAR')}
+                    </div>
+                    {isDifferentCurrency && (
+                      <div className="text-[7px] font-semibold text-slate-600 mt-0.5" style={{ fontSize: '7px', color: '#475569' }}>
+                        (≈ {formatDisplayPrice(baseEquivalentAmount, baseCurrency)})
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-2 border-r border-slate-200" style={{ padding: '6px 4px', borderRight: '1px solid #e2e8f0', width: '25%' }}>
+                    <div className="text-[7.5px] font-semibold text-slate-500 uppercase" style={{ fontSize: '7.5px', color: '#64748b' }}>
+                      {text?.totalPaid || 'TOTAL TELAH DIBAYAR'}
+                    </div>
+                    <div className="font-bold text-slate-900 mt-0.5" style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a' }}>
+                      {formatDisplayPrice(totalPaid ?? numericAmount ?? 0, baseCurrency || 'SAR')}
+                    </div>
+                  </td>
+                  <td className="p-2 bg-slate-50" style={{ padding: '6px 4px', backgroundColor: '#f8fafc', width: '25%' }}>
+                    <div className="text-[7.5px] font-bold text-slate-700 uppercase" style={{ fontSize: '7.5px', color: '#334155' }}>
+                      {text?.outstandingBalance || 'SISA TAGIHAN'}
+                    </div>
+                    <div className="font-black text-slate-900 mt-0.5" style={{ fontSize: '10px', fontWeight: '900', color: '#0f172a' }}>
+                      {formatDisplayPrice(remainingBalance ?? 0, baseCurrency || 'SAR')}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           {/* Print Footer */}
