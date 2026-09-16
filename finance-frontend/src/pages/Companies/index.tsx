@@ -685,14 +685,14 @@ const Companies: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
 
-        <div className="flex-1 p-8 space-y-6 max-w-[1400px] w-full mx-auto">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-[1400px] w-full mx-auto">
           {/* Welcome Title and Add New Button */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex flex-col space-y-1">
-              <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
+              <h1 className="text-[22px] sm:text-[28px] font-bold text-[#0c0d0f] tracking-tight">
                 {t('companies.title')}
               </h1>
-              <p className="text-[13px] text-[#64748b] font-medium font-sans">
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium font-sans">
                 {t('companies.subtitle')}
               </p>
             </div>
@@ -702,7 +702,7 @@ const Companies: React.FC = () => {
                 setShowValidation(false);
                 setIsAddModalOpen(true);
               }}
-              className="px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg text-[13px] font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer font-sans"
+              className="px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white rounded-lg text-[13px] font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer font-sans self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
               <span>{t('companies.addCompany')}</span>
@@ -710,13 +710,13 @@ const Companies: React.FC = () => {
           </div>
 
           {/* Stat Card */}
-          <div className={`bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-6 w-full h-[120px] flex flex-col justify-between ${loading ? 'animate-pulse' : ''}`}>
+          <div className={`bg-white rounded-2xl border border-[#e2e8f0] shadow-sm p-4 sm:p-6 w-full min-h-[110px] sm:h-[120px] flex flex-col justify-between ${loading ? 'animate-pulse' : ''}`}>
             <div className="flex justify-between items-start w-full">
               <div>
                 <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block font-sans">
                   {t('companies.title')}
                 </span>
-                <div className="text-[26px] font-extrabold text-[#0F172A] tracking-tight mt-0.5 font-sans">
+                <div className="text-[22px] sm:text-[26px] font-extrabold text-[#0F172A] tracking-tight mt-0.5 font-sans">
                   {loading ? <div className="h-7 w-32 bg-slate-200 rounded mt-1"></div> : `${companies.length} ${t('companies.title')}`}
                 </div>
               </div>
@@ -742,11 +742,11 @@ const Companies: React.FC = () => {
             ) : (
               <>
                 {/* Header & Search */}
-                <div className="p-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-[#e2e8f0]">
-                  <h2 className="text-[16px] font-bold text-[#0c0d0f] font-sans whitespace-nowrap">
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 border-b border-[#e2e8f0]">
+                  <h2 className="text-[15px] sm:text-[16px] font-bold text-[#0c0d0f] font-sans whitespace-nowrap">
                     {t('companies.title')}
                   </h2>
-                  <div className="relative w-72">
+                  <div className="relative w-full sm:w-72">
                     <input
                       type="text"
                       placeholder={t('companies.searchPlaceholder')}
@@ -804,7 +804,7 @@ const Companies: React.FC = () => {
                   <>
                     {/* Table */}
                     <div className="overflow-x-auto w-full">
-                      <table className="w-full text-left border-collapse">
+                      <table className="w-full min-w-[800px] text-left border-collapse">
                         <thead>
                           <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
                             <th className="text-[10px] font-bold text-[#64748b] py-3.5 px-4 font-sans tracking-wider text-left whitespace-nowrap">

@@ -814,26 +814,26 @@ const Invoices: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
 
-        <div className="flex-1 p-8 space-y-8 max-w-[1400px] w-full mx-auto">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-[1400px] w-full mx-auto">
           {/* Welcome Banner / Action Bar */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex flex-col space-y-1">
-              <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
+              <h1 className="text-[22px] sm:text-[28px] font-bold text-[#0c0d0f] tracking-tight">
                 {t('invoices.title')}
               </h1>
-              <p className="text-[13px] text-[#64748b] font-medium font-sans">
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium font-sans">
                 {t('invoices.subtitle')}
               </p>
             </div>
 
             {user?.role !== 'Viewer' && (
-              <div className="relative inline-flex rounded-lg shadow-sm">
+              <div className="relative inline-flex rounded-lg shadow-sm self-start sm:self-auto">
                 <button
                   onClick={() => {
                     setEditInvoice(null);
                     setIsModalOpen(true);
                   }}
-                  className="flex items-center space-x-2 px-4 py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[13px] rounded-l-lg transition-all cursor-pointer"
+                  className="flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#f59e0b] hover:bg-[#d97706] text-white font-semibold text-[12px] sm:text-[13px] rounded-l-lg transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>{t('invoices.createConfirmation')}</span>
@@ -841,7 +841,7 @@ const Invoices: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsGenerateDropdownOpen(!isGenerateDropdownOpen)}
-                  className="px-2.5 py-2.5 bg-[#d97706] hover:bg-[#b45309] text-white rounded-r-lg border-l border-amber-600/50 transition-all cursor-pointer flex items-center justify-center"
+                  className="px-2.5 py-2 sm:py-2.5 bg-[#d97706] hover:bg-[#b45309] text-white rounded-r-lg border-l border-amber-600/50 transition-all cursor-pointer flex items-center justify-center"
                   title="More Options"
                 >
                   <ChevronDown className="w-4 h-4" />

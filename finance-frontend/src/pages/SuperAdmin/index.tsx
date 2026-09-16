@@ -87,22 +87,22 @@ const SuperAdminDashboard: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
 
-        <div className="flex-1 p-8 space-y-8 max-w-[1440px] w-full mx-auto">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-[1440px] w-full mx-auto">
           {/* Header Banner */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
             <div className="flex flex-col space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-[10.5px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                <span className="text-[10px] sm:text-[10.5px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800">
                   {t('superAdmin.badge')}
                 </span>
-                <span className="text-[12px] font-medium text-slate-500">
+                <span className="text-[11px] sm:text-[12px] font-medium text-slate-500">
                   • Dimas & Ali
                 </span>
               </div>
-              <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight font-sans">
+              <h1 className="text-[22px] sm:text-[28px] font-bold text-[#0c0d0f] tracking-tight font-sans">
                 {t('superAdmin.title')}
               </h1>
-              <p className="text-[13px] text-[#64748b] font-medium font-sans">
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium font-sans">
                 {t('superAdmin.subtitle')}
               </p>
             </div>

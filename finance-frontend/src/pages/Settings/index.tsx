@@ -36,14 +36,14 @@ const Settings: React.FC = () => {
         <Header />
 
         {/* Content Body */}
-        <div className="flex-1 p-8 space-y-6 w-full">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-[1400px] w-full mx-auto">
           
           {/* Header Title */}
           <div className="flex flex-col space-y-1">
-            <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight font-sans">
+            <h1 className="text-[22px] sm:text-[28px] font-bold text-[#0c0d0f] tracking-tight font-sans">
               {t('settings.title')}
             </h1>
-            <p className="text-[13px] text-[#64748b] font-medium font-sans">
+            <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium font-sans">
               {t('settings.subtitle')}
             </p>
           </div>

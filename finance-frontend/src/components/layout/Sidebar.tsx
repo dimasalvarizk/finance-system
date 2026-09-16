@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,10 +12,12 @@ import {
   CheckSquare,
   Settings as SettingsIcon,
   ShieldCheck,
+  X,
 } from 'lucide-react';
 import odstDashboardLogo from '../../assets/odstdahboard.png';
 import { useAuth } from '../../context/AuthContext';
 import { useMaintenance } from '../../context/MaintenanceContext';
+import { useSidebar } from '../../context/SidebarContext';
 import { isSuperAdminUser } from '../../utils/superAdminAuth';
 
 interface NavItem {
@@ -39,9 +41,14 @@ const Sidebar: React.FC = () => {
   const { user } = useAuth();
   const { locks } = useMaintenance();
   const { t } = useTranslation();
+  const { isMobileOpen, closeSidebar } = useSidebar();
 
   const isDimasOrAli = isSuperAdminUser(user);
 
+  // Automatically close mobile drawer when route changes
+  useEffect(() => {
+    closeSidebar();
+  }, [location.pathname]);
 
   const getInitials = (name?: string) => {
     if (!name) return 'EM';
@@ -161,21 +168,31 @@ const Sidebar: React.FC = () => {
     },
   ];
 
-  return (
-    <aside className="w-[260px] bg-[#242e69] text-white flex flex-col justify-between flex-shrink-0 h-screen sticky top-0 select-none">
+  const renderNavContent = (isMobile: boolean = false) => (
+    <>
       {/* Top Logo Section */}
       <div className="flex-shrink-0">
-        <div className="px-6 pt-7 pb-5 flex items-center justify-start">
+        <div className="px-6 pt-6 pb-4 flex items-center justify-between">
           <img
             src={odstDashboardLogo}
             alt="DST Logo"
-            className="h-10 w-auto object-contain"
+            className="h-9 sm:h-10 w-auto object-contain"
           />
+          {isMobile && (
+            <button
+              type="button"
+              onClick={closeSidebar}
+              className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              aria-label="Close navigation menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
         <div className="mx-6 border-b border-[#303c7c]" />
       </div>
 
-      {/* Middle Navigation Section (Scrollable on small viewports) */}
+      {/* Middle Navigation Section */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 custom-sidebar-scroll font-inter">
         {navSections.map((section) => {
           const visibleItems = section.items.filter((item) => item.visible !== false);
@@ -183,7 +200,7 @@ const Sidebar: React.FC = () => {
 
           return (
             <div key={section.title} className="space-y-1">
-              <div className="px-3 pt-2 pb-1 text-[10.5px] font-bold tracking-wider text-[#7e8dbd] uppercase">
+              <div className="px-3 pt-2 pb-1 text-[10px] sm:text-[10.5px] font-bold tracking-wider text-[#7e8dbd] uppercase">
                 {section.title}
               </div>
 
@@ -197,7 +214,10 @@ const Sidebar: React.FC = () => {
                   <Link
                     key={item.id}
                     to={item.path}
-                    className={`group relative flex items-center px-3 py-2.5 rounded-xl text-[13.5px] transition-all ${
+                    onClick={() => {
+                      if (isMobile) closeSidebar();
+                    }}
+                    className={`group relative flex items-center px-3 py-2.5 rounded-xl text-[13px] sm:text-[13.5px] transition-all ${
                       isActive
                         ? 'bg-[#f59e0b] text-white font-semibold shadow-sm'
                         : 'text-[#a6b0cf] hover:text-white hover:bg-[#303c7c]/50 font-medium'
@@ -264,7 +284,40 @@ const Sidebar: React.FC = () => {
           </div>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* 1. Desktop Persistent Sidebar (Visible only on lg and above) */}
+      <aside className="hidden lg:flex w-[260px] bg-[#242e69] text-white flex-col justify-between flex-shrink-0 h-screen sticky top-0 select-none z-30">
+        {renderNavContent(false)}
+      </aside>
+
+      {/* 2. Mobile / Tablet Off-Canvas Drawer (Visible when isMobileOpen is true on < lg) */}
+      <div
+        className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
+          isMobileOpen
+            ? 'opacity-100 pointer-events-auto visible'
+            : 'opacity-0 pointer-events-none invisible'
+        }`}
+      >
+        {/* Backdrop Overlay */}
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity"
+          onClick={closeSidebar}
+        />
+
+        {/* Slide-in Drawer Container */}
+        <aside
+          className={`fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-[#242e69] text-white flex flex-col justify-between select-none shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+            isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          {renderNavContent(true)}
+        </aside>
+      </div>
+    </>
   );
 };
 

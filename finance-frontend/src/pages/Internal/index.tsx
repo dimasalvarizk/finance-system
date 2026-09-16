@@ -96,7 +96,7 @@ const InternalPlaceholderPage: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
         
-        <div className="flex-1 p-8 space-y-8 max-w-[1400px] w-full mx-auto">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-[1400px] w-full mx-auto">
           {/* Header Banner */}
           <div className="flex justify-between items-center">
             <div className="flex flex-col space-y-1">
@@ -107,17 +107,17 @@ const InternalPlaceholderPage: React.FC = () => {
                 <span className="text-[11px] font-semibold text-slate-400">/</span>
                 <span className="text-[11px] font-semibold text-slate-500">{t('common.inProgress') || 'In Progress'}</span>
               </div>
-              <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
+              <h1 className="text-[22px] sm:text-[28px] font-bold text-[#0c0d0f] tracking-tight">
                 {title}
               </h1>
-              <p className="text-[13px] text-[#64748b] font-medium">
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium">
                 {subtitle}
               </p>
             </div>
           </div>
 
           {/* Placeholder Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center flex flex-col items-center justify-center space-y-5 my-8">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-12 text-center flex flex-col items-center justify-center space-y-5 my-4 sm:my-8">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
               <Icon className="w-8 h-8" />
             </div>
@@ -127,10 +127,10 @@ const InternalPlaceholderPage: React.FC = () => {
                 <Clock className="w-3.5 h-3.5" />
                 <span>{title}</span>
               </div>
-              <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">
                 {title}
               </h2>
-              <p className="text-[13px] text-slate-500 leading-relaxed font-normal">
+              <p className="text-[12px] sm:text-[13px] text-slate-500 leading-relaxed font-normal">
                 {subtitle}
               </p>
             </div>

@@ -775,7 +775,7 @@ const HotelReservations: React.FC = () => {
         <Header />
 
         {/* Content Body */}
-        <div className="flex-1 p-8 space-y-6 max-w-[1400px] w-full mx-auto print:p-0 print:max-w-none">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-[1400px] w-full mx-auto print:p-0 print:max-w-none">
           {selectedBooking && activeTab === 'Requests' ? (
             /* DETAILED VIEW INTERFACE */
             <div className="space-y-6 animate-fade-in print:space-y-4">
@@ -1452,64 +1452,64 @@ const HotelReservations: React.FC = () => {
             <>
               {/* Metrics summary OR Inline Requests Filters */}
               {activeTab === 'Reservations' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 print:hidden">
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 print:hidden">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between min-h-[105px] sm:h-[115px]">
                 <div className="flex justify-between items-start">
                   <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('hotelReservations.title')}</span>
                   <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.all')}</span>
                 </div>
                 <div className="mt-1">
-                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.totalReservations.toLocaleString()}</h3>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-[#0f172a]">{stats.totalReservations.toLocaleString()}</h3>
                   <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('hotelReservations.totalBooked')}</p>
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between min-h-[105px] sm:h-[115px]">
                 <div className="flex justify-between items-start">
                   <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.statusConfirmed')}</span>
                   <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.active')}</span>
                 </div>
                 <div className="mt-1">
-                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.confirmed.toLocaleString()}</h3>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-[#0f172a]">{stats.confirmed.toLocaleString()}</h3>
                   <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('common.finalized')}</p>
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between min-h-[105px] sm:h-[115px]">
                 <div className="flex justify-between items-start">
                   <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.statusTentative')}</span>
                   <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.statusPending')}</span>
                 </div>
                 <div className="mt-1">
-                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.tentative.toLocaleString()}</h3>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-[#0f172a]">{stats.tentative.toLocaleString()}</h3>
                   <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('common.inProgress')}</p>
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between min-h-[105px] sm:h-[115px]">
                 <div className="flex justify-between items-start">
                   <span className="text-[11px] font-bold text-[#c2410c] uppercase tracking-wider">{t('common.statusOverdue')}</span>
                   <span className="bg-orange-50 text-[#c2410c] text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.pastDue')}</span>
                 </div>
                 <div className="mt-1">
-                  <h3 className="text-2xl font-extrabold text-[#c2410c]">{stats.overdue.toLocaleString()}</h3>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-[#c2410c]">{stats.overdue.toLocaleString()}</h3>
                   <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('hotelReservations.expiredPayment')}</p>
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-[115px]">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between min-h-[105px] sm:h-[115px]">
                 <div className="flex justify-between items-start">
                   <span className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider">{t('common.statusCancelled')}</span>
                   <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{t('common.voided')}</span>
                 </div>
                 <div className="mt-1">
-                  <h3 className="text-2xl font-extrabold text-[#0f172a]">{stats.cancelled.toLocaleString()}</h3>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-[#0f172a]">{stats.cancelled.toLocaleString()}</h3>
                   <p className="text-[11px] text-[#64748b] font-medium mt-0.5">{t('hotelReservations.manuallyCancelled')}</p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-x-6 text-[13px] font-bold tracking-wide border-b border-slate-200 pb-2 print:hidden select-none">
+            <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 text-[12px] sm:text-[13px] font-bold tracking-wide border-b border-slate-200 pb-2 print:hidden select-none">
               <button
                 onClick={() => setRequestStatusFilter('All')}
                 className={`pb-2 transition-all relative border-none bg-transparent cursor-pointer font-bold ${
@@ -1548,7 +1548,7 @@ const HotelReservations: React.FC = () => {
           {/* Table Listing Card */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
             
-            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
               <div className="flex flex-col space-y-1 self-start sm:self-center">
                 <h3 className="text-[15px] font-bold text-slate-800">
                   {activeTab === 'Reservations' ? t('hotelReservations.allReservations') : t('requests.allRequestsListing')}
@@ -1625,7 +1625,7 @@ const HotelReservations: React.FC = () => {
             )}
 
             <div className="overflow-x-auto w-full text-slate-800">
-              <table className="w-full text-left text-xs font-sans">
+              <table className="w-full min-w-[900px] text-left text-xs font-sans">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px] select-none">
                     {activeTab === 'Reservations' ? (

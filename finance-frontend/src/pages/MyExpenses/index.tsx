@@ -115,19 +115,19 @@ const MyExpenses: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
 
-        <div className="flex-1 p-8 space-y-7 max-w-[1400px] w-full mx-auto">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-5 sm:space-y-7 max-w-[1400px] w-full mx-auto">
           {/* Top Header Banner */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">
+              <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0c0d0f] tracking-tight">
                 {t('expenses.title') || 'Pengeluaran Saya'}
               </h1>
-              <p className="text-[13px] text-[#64748b] font-medium">
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium">
                 {t('expenses.subtitle') || 'Pantau, ajukan, dan kelola semua status klaim pengeluaran & reimbursement perusahaan Anda.'}
               </p>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-2.5 sm:space-x-3 self-start sm:self-auto flex-wrap">
               <button
                 onClick={fetchExpenses}
                 disabled={loading}
@@ -139,7 +139,7 @@ const MyExpenses: React.FC = () => {
 
               <button
                 onClick={() => navigate('/submit-expense')}
-                className="inline-flex items-center space-x-2 px-4 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[13px] rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+                className="inline-flex items-center space-x-2 px-3.5 sm:px-4 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-[12.5px] sm:text-[13px] rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>{t('expenses.submitNewClaim') || 'Ajukan Klaim Baru'}</span>

@@ -184,12 +184,12 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
   return (
     <div className="bg-white rounded-xl border border-[#e2e8f0] shadow-sm overflow-hidden">
       {/* Table Header Section */}
-      <div className="px-6 py-5 flex items-center justify-between border-b border-[#e2e8f0]">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#e2e8f0]">
         <h3 className="text-[15px] font-bold text-[#0c0d0f] font-sans">
           {t('invoices.recentApprovedConfirmations')}
         </h3>
         {invoices.length > 0 && !loading && (
-          <div className="relative w-64">
+          <div className="relative w-full sm:w-64">
             <input
               type="text"
               placeholder={t('invoices.searchPlaceholder')}
@@ -266,8 +266,8 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
       ) : (
         <>
           {/* Filters Bar */}
-          <div className="px-6 py-3.5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-wrap items-center gap-3">
-            <div className="relative w-60">
+          <div className="px-4 sm:px-6 py-3 sm:py-3.5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
+            <div className="relative w-full sm:w-60">
               <input
                 type="text"
                 placeholder={t('invoices.searchPlaceholder')}
@@ -287,7 +287,7 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
                 setFilterCompany(e.target.value);
                 setCurrentPage(1);
               }}
-              className="border border-[#cbd5e1] rounded-lg text-[12px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+              className="w-full sm:w-auto flex-1 sm:flex-initial border border-[#cbd5e1] rounded-lg text-[12px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
             >
               <option value="">{t('invoices.allCompanies')}</option>
               {availableCompanies.map((c) => (
@@ -303,7 +303,7 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
                 setFilterStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="border border-[#cbd5e1] rounded-lg text-[12px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+              className="w-full sm:w-auto flex-1 sm:flex-initial border border-[#cbd5e1] rounded-lg text-[12px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
             >
               <option value="">{t('invoices.allStatuses')}</option>
               <option value="Pending">{t('common.statusPending')}</option>
@@ -322,7 +322,7 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
                 setFilterDate(e.target.value);
                 setCurrentPage(1);
               }}
-              className="border border-[#cbd5e1] rounded-lg text-[12px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+              className="w-full sm:w-auto flex-1 sm:flex-initial border border-[#cbd5e1] rounded-lg text-[12px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
             />
 
             {(searchQuery || filterCompany || filterStatus || filterDate) && (
@@ -334,7 +334,7 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
                   setFilterDate('');
                   setCurrentPage(1);
                 }}
-                className="text-[12px] font-semibold text-[#f59e0b] hover:text-[#d97706] transition-colors cursor-pointer ml-auto"
+                className="text-[12px] font-semibold text-[#f59e0b] hover:text-[#d97706] transition-colors cursor-pointer sm:ml-auto"
               >
                 Reset Filters
               </button>

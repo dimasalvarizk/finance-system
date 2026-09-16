@@ -286,14 +286,14 @@ const Approvals: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
 
-        <div className="flex-1 p-8 space-y-7 max-w-[1400px] w-full mx-auto">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-5 sm:space-y-7 max-w-[1400px] w-full mx-auto">
           {/* Top Header Banner */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight">
+              <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0c0d0f] tracking-tight">
                 {t('approvals.title') || 'Finance Processing Dashboard'}
               </h1>
-              <p className="text-[13px] text-[#64748b] font-medium">
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium">
                 {t('approvals.subtitle') || 'Audit approved claims, prepare bank disbursements, export validated listings to your ERP'}
               </p>
             </div>

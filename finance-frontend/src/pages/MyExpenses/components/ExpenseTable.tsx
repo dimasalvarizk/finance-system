@@ -89,14 +89,14 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
       {/* Card Header & Search / Filter Controls */}
-      <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
-        <h2 className="text-[16px] font-bold text-slate-900 tracking-tight">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-100">
+        <h2 className="text-[15px] sm:text-[16px] font-bold text-slate-900 tracking-tight">
           {t('expenses.allClaims') || 'My Expense Requests'}
         </h2>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
           {/* Search Bar */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -106,7 +106,7 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-64 pl-10 pr-4 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-xl text-[12.5px] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all font-medium"
+              className="w-full sm:w-64 pl-10 pr-4 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-xl text-[12.5px] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all font-medium"
             />
             {searchQuery && (
               <button
@@ -122,7 +122,7 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
           <div className="relative">
             <button
               onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-              className={`px-3.5 py-2 border rounded-xl text-[12.5px] font-semibold flex items-center space-x-2 transition-all cursor-pointer ${
+              className={`w-full sm:w-auto px-3.5 py-2 border rounded-xl text-[12.5px] font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                 statusFilter !== 'ALL'
                   ? 'bg-blue-50 border-blue-200 text-blue-700'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -165,7 +165,7 @@ export const ExpenseTable: React.FC<ExpenseTableProps> = ({
 
       {/* Data Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-[13px]">
+        <table className="w-full min-w-[700px] text-left text-[13px]">
           <thead className="bg-slate-50/70 border-b border-slate-100 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">
             <tr>
               <th className="px-6 py-3.5">{t('expenses.claimId') || 'CLAIM ID'}</th>

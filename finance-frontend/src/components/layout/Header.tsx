@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut, ChevronDown, Check, ShieldCheck } from 'lucide-react';
+import { Bell, FileText, AlertTriangle, CheckCircle2, Settings, Users, LogOut, ChevronDown, Check, ShieldCheck, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useMaintenance } from '../../context/MaintenanceContext';
+import { useSidebar } from '../../context/SidebarContext';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../services/authService';
 import notificationSound from '../../assets/notification.mp3';
 import saudiFlagImg from '../../assets/saudi-flag.png';
@@ -80,6 +81,7 @@ interface NotificationItem {
 const Header: React.FC = () => {
   const { user, logoutUser } = useAuth();
   const { locks, isITAdmin } = useMaintenance();
+  const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -89,7 +91,6 @@ const Header: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const isDimasOrAli = isSuperAdminUser(user);
-
 
   const currentLang = (i18n.language?.substring(0, 2) as 'en' | 'id' | 'ar') || 'en';
   const selectedLang = LANGUAGES.find((l) => l.code === currentLang) || LANGUAGES[0];
@@ -275,30 +276,41 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="h-[70px] bg-white border-b border-[#e2e8f0] px-8 flex items-center justify-between flex-shrink-0 relative">
-      {/* Left Dropdown */}
-      <div className="flex items-center space-x-2">
-        <span className="text-[13px] text-[#94a3b8] font-normal font-sans">
-          {t('header.operatingBranch')}
-        </span>
-        <button className="flex items-center space-x-2 px-3 py-1.5 border border-[#e2e8f0] rounded-full hover:bg-gray-50 transition-all">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
-          <span className="text-[13px] font-semibold text-[#1e293b] font-sans">
-            {user?.branch || 'CBC Office'}
-          </span>
+    <header className="h-[70px] bg-white border-b border-[#e2e8f0] px-3 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 relative z-20">
+      {/* Left Section: Mobile Hamburger + Operating Branch */}
+      <div className="flex items-center space-x-2 sm:space-x-3">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="lg:hidden p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-5 h-5" />
         </button>
+
+        <div className="flex items-center space-x-1.5 sm:space-x-2">
+          <span className="hidden sm:inline text-[13px] text-[#94a3b8] font-normal font-sans">
+            {t('header.operatingBranch')}
+          </span>
+          <button className="flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1 sm:py-1.5 border border-[#e2e8f0] rounded-full hover:bg-gray-50 transition-all">
+            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#10b981]"></span>
+            <span className="text-[12px] sm:text-[13px] font-semibold text-[#1e293b] font-sans truncate max-w-[120px] sm:max-w-none">
+              {user?.branch || 'CBC Office'}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Center IT Bypass Indicator */}
       {isITAdmin && (locks.fullSystem || locks.dashboard || locks.invoices || locks.requests || locks.companies || locks.hotelReservations || locks.settings || locks.myExpenses || locks.submitExpense || locks.approvals) && (
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-[11px] font-bold text-amber-800 animate-pulse">
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-[11px] font-bold text-amber-800 animate-pulse">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
           <span>{t('settings.itBypassHeader')}</span>
         </div>
       )}
 
       {/* Right Info */}
-      <div className="flex items-center space-x-4 relative">
+      <div className="flex items-center space-x-2.5 sm:space-x-4 relative">
         {/* Bell Notification Button */}
         <button
           ref={bellRef}
@@ -333,7 +345,7 @@ const Header: React.FC = () => {
         {isOpen && (
           <div
             ref={popoverRef}
-            className="absolute right-0 top-[50px] w-[350px] bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl z-50 flex flex-col overflow-hidden animate-scale-up font-sans"
+            className="absolute right-0 top-[50px] w-[calc(100vw-24px)] max-w-[360px] bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl z-50 flex flex-col overflow-hidden animate-scale-up font-sans"
           >
             {/* Popover Header */}
             <div className="px-4 py-3.5 border-b border-[#e2e8f0] flex justify-between items-center bg-gray-50">
@@ -432,7 +444,7 @@ const Header: React.FC = () => {
         {isProfileOpen && (
           <div
             ref={profileRef}
-            className="absolute right-0 top-[50px] w-[260px] bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl z-50 flex flex-col overflow-hidden animate-scale-up font-sans p-4 space-y-4"
+            className="absolute right-0 top-[50px] w-[calc(100vw-24px)] max-w-[280px] bg-white rounded-2xl border border-[#e2e8f0] shadow-2xl z-50 flex flex-col overflow-hidden animate-scale-up font-sans p-4 space-y-4"
           >
             {/* Profile Info Header */}
             <div className="flex items-center space-x-3">

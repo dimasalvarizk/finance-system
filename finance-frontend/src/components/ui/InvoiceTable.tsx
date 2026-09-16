@@ -89,7 +89,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices, isFullWidth = fal
 
         {/* Table Section */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[650px] text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-y border-[#e2e8f0]">
                 <th className="pl-6 pr-4 py-2.5 text-[10px] font-bold text-[#64748b] uppercase tracking-wider font-inter">

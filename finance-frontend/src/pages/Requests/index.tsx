@@ -707,19 +707,19 @@ const Requests: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
 
-        <div className="flex-1 p-8 space-y-6 max-w-[1400px] w-full mx-auto">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-[1400px] w-full mx-auto">
           {selectedRequest ? (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Top Alerts */}
               {(selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") && (
-                <div className="bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-4 flex items-center gap-3 text-[#065f46] text-[13px] font-medium font-sans">
-                  <div className="w-5 h-5 bg-[#10b981] rounded-full flex items-center justify-center text-white text-[10px] font-bold">✓</div>
+                <div className="bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-3.5 sm:p-4 flex items-center gap-3 text-[#065f46] text-[12.5px] sm:text-[13px] font-medium font-sans">
+                  <div className="w-5 h-5 bg-[#10b981] rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0">✓</div>
                   <span>{t('requests.fullyApprovedBanner')}</span>
                 </div>
               )}
               {selectedRequest.status === "Rejected" && (
-                <div className="bg-[#fef2f2] border border-[#fecaca] rounded-xl p-4 flex items-center gap-3 text-[#ef4444] text-[13px] font-medium font-sans shadow-sm">
-                  <div className="w-5 h-5 bg-[#ef4444] rounded-full flex items-center justify-center text-white text-[10px] font-bold">✕</div>
+                <div className="bg-[#fef2f2] border border-[#fecaca] rounded-xl p-3.5 sm:p-4 flex items-center gap-3 text-[#ef4444] text-[12.5px] sm:text-[13px] font-medium font-sans shadow-sm">
+                  <div className="w-5 h-5 bg-[#ef4444] rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0">✕</div>
                   <span>
                     {i18n.language === 'id'
                       ? `Faktur ini telah ditolak oleh ${selectedRequest.rejectedBy || 'Mr. Hesham Mokhtar'} pada ${selectedRequest.rejectedAt ? selectedRequest.rejectedAt.split(' at ')[0] : 'Oct 12, 2026'}.`
@@ -731,20 +731,20 @@ const Requests: React.FC = () => {
               )}
 
               {/* Breadcrumbs and Action Header */}
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-1.5 text-[12px] text-slate-400 font-medium">
                     <span className="text-[#f59e0b] hover:underline cursor-pointer" onClick={() => setSelectedRequest(null)}>{t('requests.confirmationRequests')}</span>
                     <span>/</span>
                     <span>{t('requests.requestNumber')} {selectedRequest.reqNo}</span>
                   </div>
-                  <h1 className="text-[26px] font-bold text-[#0c0d0f] tracking-tight font-sans text-left">
+                  <h1 className="text-[20px] sm:text-[26px] font-bold text-[#0c0d0f] tracking-tight font-sans text-left">
                     {selectedRequest.status === "Rejected" ? t('requests.rejectedConfirmationDetails') : (selectedRequest.status === "4/4 Approved" || selectedRequest.status === "Approved" || selectedRequest.status === "3/3 Approved" || selectedRequest.status === "Paid" || selectedRequest.status === "Paid and closed") ? t('requests.fullyApprovedConfirmationDetails') : `${t('requests.reviewRequest')} - ${selectedRequest.company}`}
                   </h1>
                 </div>
                 <button
                   onClick={() => setSelectedRequest(null)}
-                  className="px-4 py-2 bg-white border border-[#cbd5e1] rounded-lg text-[13px] font-bold text-[#334155] hover:bg-slate-50 transition-all cursor-pointer font-inter shadow-sm"
+                  className="px-4 py-2 bg-white border border-[#cbd5e1] rounded-lg text-[13px] font-bold text-[#334155] hover:bg-slate-50 transition-all cursor-pointer font-inter shadow-sm self-start sm:self-auto"
                 >
                   {t('requests.backToListing')}
                 </button>
@@ -1649,19 +1649,19 @@ const Requests: React.FC = () => {
             <>
               {/* Welcome Title */}
               <div className="flex flex-col space-y-1">
-                <h1 className="text-[28px] font-bold text-[#0c0d0f] tracking-tight">
+                <h1 className="text-[22px] sm:text-[28px] font-bold text-[#0c0d0f] tracking-tight">
                   {t('requests.title')}
                 </h1>
-                <p className="text-[13px] text-[#64748b] font-medium font-sans">
+                <p className="text-[12px] sm:text-[13px] text-[#64748b] font-medium font-sans">
                   {t('requests.subtitle')}
                 </p>
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex items-center space-x-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
                   onClick={() => handleTabChange("all")}
-                  className={`px-4 py-2 border rounded-xl text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "all"
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 border rounded-xl text-[12px] sm:text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "all"
                     ? "text-[#0c0d0f] font-bold"
                     : "border-transparent bg-[#f1f5f9] text-[#64748b] hover:bg-slate-200/60 font-semibold"
                     }`}
@@ -1678,7 +1678,7 @@ const Requests: React.FC = () => {
 
                 <button
                   onClick={() => handleTabChange("pending")}
-                  className={`px-4 py-2 border rounded-xl text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "pending"
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 border rounded-xl text-[12px] sm:text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "pending"
                     ? "text-[#0c0d0f] font-bold"
                     : "border-transparent bg-[#f1f5f9] text-[#64748b] hover:bg-slate-200/60 font-semibold"
                     }`}
@@ -1695,7 +1695,7 @@ const Requests: React.FC = () => {
 
                 <button
                   onClick={() => handleTabChange("approved")}
-                  className={`px-4 py-2 border rounded-xl text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "approved"
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 border rounded-xl text-[12px] sm:text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "approved"
                     ? "text-[#0c0d0f] font-bold"
                     : "border-transparent bg-[#f1f5f9] text-[#64748b] hover:bg-slate-200/60 font-semibold"
                     }`}
@@ -1712,7 +1712,7 @@ const Requests: React.FC = () => {
 
                 <button
                   onClick={() => handleTabChange("rejected")}
-                  className={`px-4 py-2 border rounded-xl text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "rejected"
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 border rounded-xl text-[12px] sm:text-[13px] flex items-center gap-2 transition-all font-inter cursor-pointer ${activeTab === "rejected"
                     ? "text-[#0c0d0f] font-bold"
                     : "border-transparent bg-[#f1f5f9] text-[#64748b] hover:bg-slate-200/60 font-semibold"
                     }`}
@@ -1727,6 +1727,7 @@ const Requests: React.FC = () => {
                   </span>
                 </button>
               </div>
+
               {/* Table Container Card */}
               <div className="bg-white rounded-2xl border-y border-[#e2e8f0] shadow-sm overflow-hidden">
                 {error ? (
@@ -1737,13 +1738,13 @@ const Requests: React.FC = () => {
                 ) : (
                   <>
                     {/* Card Header & Search & Filters */}
-                    <div className="p-5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-wrap items-center gap-4">
-                      <h2 className="text-[16px] font-bold text-[#0c0d0f] font-inter whitespace-nowrap">
+                    <div className="p-4 sm:p-5 border-b border-[#e2e8f0] bg-slate-50/50 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-4">
+                      <h2 className="text-[15px] sm:text-[16px] font-bold text-[#0c0d0f] font-inter whitespace-nowrap">
                         {t('requests.allRequestsListing')}
                       </h2>
 
                       {/* Search Bar Input */}
-                      <div className="relative w-64">
+                      <div className="relative w-full sm:w-64">
                         <input
                           type="text"
                           placeholder={t('requests.searchPlaceholder')}
@@ -1764,7 +1765,7 @@ const Requests: React.FC = () => {
                           setFilterCompany(e.target.value);
                           setCurrentPage(1);
                         }}
-                        className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+                        className="w-full sm:w-auto flex-1 sm:flex-initial border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
                       >
                         <option value="">{t('invoices.allCompanies')}</option>
                         {companiesList.map((c) => (
@@ -1781,7 +1782,7 @@ const Requests: React.FC = () => {
                           setFilterStatus(e.target.value);
                           setCurrentPage(1);
                         }}
-                        className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+                        className="w-full sm:w-auto flex-1 sm:flex-initial border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
                       >
                         <option value="">{t('invoices.allStatuses')}</option>
                         <option value="Pending">{t('common.statusPending')}</option>
@@ -1800,28 +1801,20 @@ const Requests: React.FC = () => {
                           setFilterDate(e.target.value);
                           setCurrentPage(1);
                         }}
-                        onClick={(e) => {
-                          if (typeof e.currentTarget.showPicker === 'function') {
-                            try {
-                              e.currentTarget.showPicker();
-                            } catch (err) {
-                              console.warn('showPicker failed:', err);
-                            }
-                          }
-                        }}
-                        className="border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
+                        className="w-full sm:w-auto flex-1 sm:flex-initial border border-[#cbd5e1] rounded-lg text-[13px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
                       />
 
                       {/* Reset Filters Button */}
-                      {(searchQuery || filterCompany || filterDate) && (
+                      {(searchQuery || filterCompany || filterStatus || filterDate) && (
                         <button
                           onClick={() => {
                             setSearchQuery('');
                             setFilterCompany('');
+                            setFilterStatus('');
                             setFilterDate('');
                             setCurrentPage(1);
                           }}
-                          className="text-[12px] font-semibold text-[#f59e0b] hover:text-[#d97706] transition-colors cursor-pointer"
+                          className="text-[12px] font-semibold text-[#f59e0b] hover:text-[#d97706] transition-colors cursor-pointer sm:ml-auto"
                         >
                           Reset Filters
                         </button>
