@@ -487,7 +487,7 @@ const Invoices: React.FC = () => {
         numeric: payAmt,
         currency: payCurr,
         amountInWords: amountToEnglishWords(payAmt, payCurr),
-        exchangeRate: pay.exchange_rate || 1.0,
+        exchangeRate: parseFloat(String(pay.exchange_rate || '1.0')) || 1.0,
         baseCurrency: baseCurrency,
       },
       forPaymentOf: `Deposit for Confirmation Ref # ${inv.invoiceNo}`,

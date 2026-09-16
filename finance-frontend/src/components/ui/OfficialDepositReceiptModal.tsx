@@ -313,7 +313,9 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
   const text = DOC_TEXTS[docLang];
   const isRtl = docLang === 'ar';
 
-  const exchangeRate = receiptData.amountReceived?.exchangeRate || rawRec?.exchangeRate || 1.0;
+  const rawRate = receiptData.amountReceived?.exchangeRate ?? rawRec?.exchangeRate ?? rawRec?.exchange_rate ?? 1.0;
+  const numRate = typeof rawRate === 'number' ? rawRate : parseFloat(String(rawRate));
+  const exchangeRate = (!isNaN(numRate) && numRate > 0) ? numRate : 1.0;
   const isDifferentCurrency = paymentCurrency !== baseCurrency && exchangeRate > 0;
   const baseEquivalentAmount = isDifferentCurrency ? numericAmount / exchangeRate : numericAmount;
 

@@ -836,8 +836,7 @@ export const getPaymentReceipt = async (req, res, next) => {
       amountReceived: {
         numeric: paymentAmount,
         currency: paymentCurrency,
-        amountInWords: amountInWords,
-        exchangeRate: targetPayment.exchange_rate || 1.0,
+        exchangeRate: parseFloat(targetPayment.exchange_rate) || 1.0,
         baseCurrency: baseCurrency
       },
       forPaymentOf: `Deposit for Confirmation Ref # ${invoice.invoiceNo}`,
