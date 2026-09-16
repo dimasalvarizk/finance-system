@@ -777,12 +777,12 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
             max-width: 210mm !important;
             max-height: 297mm !important;
             box-sizing: border-box !important;
-            padding: 12mm 14mm !important;
+            padding: 8mm 12mm !important;
             margin: 0 !important;
             background: white !important;
             display: flex !important;
             flex-direction: column !important;
-            justify-content: space-between !important;
+            justify-content: flex-start !important;
             overflow: hidden !important;
             z-index: 9999999 !important;
           }
@@ -796,38 +796,38 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
       {/* Dedicated Print Sheet (Visible ONLY during window.print()) */}
       <div
         id="official-deposit-receipt-print-area"
-        className="hidden print:block bg-white font-sans text-slate-800 box-border p-[12mm]"
-        style={{ width: '210mm', minHeight: '297mm', margin: '0 auto' }}
+        className="hidden print:block bg-white font-sans text-slate-800 box-border p-[8mm]"
+        style={{ width: '210mm', height: '297mm', margin: '0 auto', boxSizing: 'border-box' }}
         dir={isRtl ? 'rtl' : 'ltr'}
       >
-        <div className="w-full bg-white p-0 flex flex-col justify-between h-full space-y-5">
+        <div className="w-full bg-white p-0 flex flex-col justify-start h-full space-y-2 text-slate-800">
           {/* Print Header */}
-          <div className="pb-4 border-b-2 border-slate-800 flex items-start justify-between">
-            <div className="space-y-1 w-1/2">
+          <div className="pb-2.5 border-b-2 border-slate-800 flex items-start justify-between">
+            <div className="space-y-0.5 w-1/2">
               <img
                 src={odstLogo}
                 alt="Logo"
-                className="h-12 w-auto object-contain"
+                className="h-9 w-auto object-contain"
               />
-              <div className="text-[8.5px] text-slate-600 leading-snug font-sans">
+              <div className="text-[8px] text-slate-600 leading-tight font-sans">
                 <p className="font-bold text-slate-800">MANAZIL AL.MUKHTARA GROUP · PT. ODST AIRLINES INDO</p>
                 <p>Graha Al Badgel, Jl. Hajjah Tutty Alawiyah No.7, Kalibata, Jakarta Selatan, Indonesia 12740</p>
                 <p>Saudi Operations: Makkah · Madinah · Jeddah</p>
               </div>
             </div>
 
-            <div className="text-right flex flex-col items-end w-1/2 space-y-1 rtl:text-left rtl:items-start">
-              <div className="px-2.5 py-0.5 bg-slate-100 border border-slate-400 text-slate-800 text-[8.5px] font-bold uppercase tracking-wider rounded">
+            <div className="text-right flex flex-col items-end w-1/2 space-y-0.5 rtl:text-left rtl:items-start">
+              <div className="px-2 py-0.5 bg-slate-100 border border-slate-400 text-slate-800 text-[8px] font-bold uppercase tracking-wider rounded">
                 {text.badge}
               </div>
-              <h1 className="text-[22px] font-black text-slate-900 tracking-tight leading-none uppercase">
+              <h1 className="text-[18px] font-black text-slate-900 tracking-tight leading-none uppercase">
                 {text.docTitle}
               </h1>
-              <div className="text-[10.5px] font-bold text-slate-800 font-mono">
+              <div className="text-[10px] font-bold text-slate-800 font-mono">
                 <span>{text.receiptNo}: </span>
                 <span className="font-extrabold">{receiptNo}</span>
               </div>
-              <div className="text-[10px] text-slate-600">
+              <div className="text-[9.5px] text-slate-600">
                 <span>{text.date}: </span>
                 <span className="font-bold text-slate-800">{formatDateByLang(dateOfPayment, docLang)}</span>
               </div>
@@ -835,21 +835,21 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           </div>
 
           {/* Reference Row */}
-          <div className="grid grid-cols-4 gap-2 bg-slate-100/80 p-2.5 rounded border border-slate-300 text-[9.5px]">
+          <div className="grid grid-cols-4 gap-2 bg-slate-100/80 p-2 rounded border border-slate-300 text-[9px]">
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.confRef}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[7.5px]">{text.confRef}</span>
               <span className="font-bold text-slate-900 font-mono">{invoiceNo || referenceNo || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.refNo}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[7.5px]">{text.refNo}</span>
               <span className="font-semibold text-slate-800 font-mono">{referenceNo || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.serialNo}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[7.5px]">{text.serialNo}</span>
               <span className="font-semibold text-slate-800 font-mono">{serialNo || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-bold uppercase block text-[8px]">{text.sequence}</span>
+              <span className="text-slate-500 font-bold uppercase block text-[7.5px]">{text.sequence}</span>
               <span className="font-bold text-slate-800">
                 {receiptData.sequence
                   ? `Installment #${receiptData.sequence}`
@@ -859,45 +859,45 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           </div>
 
           {/* Received From */}
-          <div className="border border-slate-300 rounded p-3 bg-white space-y-1 text-[10px]">
-            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">
+          <div className="border border-slate-300 rounded p-2.5 bg-white space-y-0.5 text-[9.5px]">
+            <span className="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider block">
               {text.receivedFrom}
             </span>
             <div className="flex justify-between items-baseline">
-              <span className="text-[14px] font-black text-slate-900">{receivedFrom.company}</span>
+              <span className="text-[13px] font-black text-slate-900">{receivedFrom.company}</span>
               {receivedFrom.companyCode && (
-                <span className="font-mono font-bold text-slate-600 text-[10px]">
+                <span className="font-mono font-bold text-slate-600 text-[9.5px]">
                   {text.companyCode}: {receivedFrom.companyCode}
                 </span>
               )}
             </div>
             {receivedFrom.address && (
-              <p className="text-[9px] text-slate-600">{receivedFrom.address}</p>
+              <p className="text-[8.5px] text-slate-600">{receivedFrom.address}</p>
             )}
           </div>
 
           {/* Amount Box */}
-          <div className="border-2 border-slate-800 rounded p-3.5 bg-slate-50/50 space-y-2">
+          <div className="border-2 border-slate-800 rounded p-2.5 bg-slate-50/50 space-y-1.5">
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider">
+              <span className="text-[9.5px] font-bold text-slate-800 uppercase tracking-wider">
                 {text.amountReceived}
               </span>
-              <span className="text-[18px] font-black text-slate-900 font-mono">
+              <span className="text-[17px] font-black text-slate-900 font-mono">
                 {formatDisplayPrice(numericAmount, paymentCurrency)}
               </span>
             </div>
 
-            <div className="p-2.5 bg-white rounded border border-slate-300">
-              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">
+            <div className="p-2 bg-white rounded border border-slate-300">
+              <span className="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider block">
                 {text.amountInWords}
               </span>
-              <p className="text-[11px] font-bold text-slate-900 italic mt-0.5 font-serif">
+              <p className="text-[10.5px] font-bold text-slate-900 italic mt-0.5 font-serif">
                 "{localizedWords}"
               </p>
             </div>
 
             {isDifferentCurrency && (
-              <div className="text-[9.5px] text-slate-700 font-medium">
+              <div className="text-[9px] text-slate-700 font-medium">
                 <span className="font-bold">{text.baseEquivalent}: </span>
                 <span>
                   {formatDisplayPrice(baseEquivalentAmount, baseCurrency)} ({text.rate}: {exchangeRate.toFixed(4)})
@@ -909,18 +909,18 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           {/* Dual Bank (if present) */}
           {bankDetails && bankDetails.ourBank && (
             <div className="border border-slate-300 rounded overflow-hidden">
-              <div className="bg-slate-200 px-3 py-1 text-[8.5px] font-bold text-slate-700 uppercase tracking-wider">
+              <div className="bg-slate-200 px-3 py-1 text-[8px] font-bold text-slate-700 uppercase tracking-wider">
                 {text.dualBankTitle}
               </div>
-              <div className="grid grid-cols-2 divide-x rtl:divide-x-reverse divide-slate-200 text-[9.5px]">
-                <div className="p-2 space-y-0.5">
-                  <span className="font-bold text-emerald-800 uppercase block text-[8px]">{text.beneficiaryBank}</span>
+              <div className="grid grid-cols-2 divide-x rtl:divide-x-reverse divide-slate-200 text-[9px]">
+                <div className="p-1.5 space-y-0.5">
+                  <span className="font-bold text-emerald-800 uppercase block text-[7.5px]">{text.beneficiaryBank}</span>
                   <div className="font-bold text-slate-900">{bankDetails.ourBank.bankName}</div>
                   <div>A/C: <strong>{bankDetails.ourBank.accountName}</strong></div>
                   <div className="font-mono">No: <strong>{bankDetails.ourBank.accountNumber}</strong></div>
                 </div>
-                <div className="p-2 space-y-0.5">
-                  <span className="font-bold text-blue-800 uppercase block text-[8px]">{text.remitterBank}</span>
+                <div className="p-1.5 space-y-0.5">
+                  <span className="font-bold text-blue-800 uppercase block text-[7.5px]">{text.remitterBank}</span>
                   <div className="font-bold text-slate-900">{bankDetails.payerBank?.bankName || 'Client Bank'}</div>
                   <div>A/C: <strong>{bankDetails.payerBank?.accountName || receivedFrom.company}</strong></div>
                   <div className="font-mono">No: <strong>{bankDetails.payerBank?.accountNumber || 'Confirmed via Wire'}</strong></div>
@@ -930,13 +930,13 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           )}
 
           {/* For Payment Of */}
-          <div className="border border-slate-300 rounded p-3 space-y-1 text-[10px]">
-            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">
+          <div className="border border-slate-300 rounded p-2.5 space-y-0.5 text-[9.5px]">
+            <span className="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider block">
               {text.forPaymentOf}
             </span>
-            <p className="text-[11.5px] font-bold text-slate-800">{forPaymentOf}</p>
+            <p className="text-[11px] font-bold text-slate-800">{forPaymentOf}</p>
             {paymentDetails.note && (
-              <p className="text-[9.5px] text-slate-600 pt-1 border-t border-slate-200">
+              <p className="text-[9px] text-slate-600 pt-0.5 border-t border-slate-200">
                 <span className="font-bold">{text.note}: </span>
                 {paymentDetails.note}
               </p>
@@ -945,7 +945,7 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
 
           {/* Balance Breakdown Table */}
           <div className="border border-slate-300 rounded overflow-hidden" style={{ border: '1px solid #cbd5e1', borderRadius: '6px' }}>
-            <div className="bg-slate-200 px-3 py-1.5 text-[8.5px] font-bold text-slate-800 uppercase tracking-wider" style={{ backgroundColor: '#e2e8f0', color: '#1e293b' }}>
+            <div className="bg-slate-200 px-3 py-1 text-[8px] font-bold text-slate-800 uppercase tracking-wider" style={{ backgroundColor: '#e2e8f0', color: '#1e293b' }}>
               {text?.ledgerTitle || 'RINGKASAN STATUS KEUANGAN & SALDO KONFIRMASI'}
             </div>
             <table className="w-full text-center border-collapse" style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
@@ -994,7 +994,7 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
           </div>
 
           {/* Print Footer */}
-          <div className="pt-4 border-t border-slate-200 flex justify-between items-center text-[8.5px] text-slate-500">
+          <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-500">
             <div>
               <span className="font-bold text-slate-700">{text.verifiedTitle}</span> · {text.verifiedSub}
             </div>
