@@ -74,9 +74,9 @@ interface Props {
 
 type ReceiptLang = 'en' | 'id' | 'ar';
 
-const formatDisplayPrice = (amount: number, currency: string = 'SAR'): string => {
+const formatDisplayPrice = (amount: number | string | undefined | null, currency: string = 'SAR'): string => {
   const code = (currency || 'SAR').toUpperCase().trim();
-  const num = parseFloat(String(amount)) || 0;
+  const num = typeof amount === 'number' ? (isNaN(amount) ? 0 : amount) : (parseFloat(String(amount ?? 0)) || 0);
 
   if (code === 'IDR' || code === 'RP') {
     return `Rp ${num.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
