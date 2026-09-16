@@ -549,18 +549,24 @@ const Invoices: React.FC = () => {
     }
   };
 
-  const handleDeleteStandalone = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this deposit receipt?')) return;
-    setDeletingStandaloneId(id);
-    try {
-      await deleteStandaloneReceipt(id);
-      setStandaloneReceiptsList(prev => prev.filter((r: any) => r.id !== id && r.paymentId !== id));
-    } catch (err) {
-      console.error('Failed to delete receipt:', err);
-      alert('Failed to delete receipt.');
-    } finally {
-      setDeletingStandaloneId(null);
-    }
+  const handleDeleteStandalone = (id: string) => {
+    triggerConfirm(
+      'Hapus Kuitansi Deposit',
+      'Apakah Anda yakin ingin menghapus kuitansi deposit ini secara permanen?',
+      async () => {
+        setDeletingStandaloneId(id);
+        try {
+          await deleteStandaloneReceipt(id);
+          setStandaloneReceiptsList(prev => prev.filter((r: any) => r.id !== id && r.paymentId !== id));
+          triggerAlert('Sukses', 'Kuitansi deposit berhasil dihapus.', 'success');
+        } catch (err) {
+          console.error('Failed to delete receipt:', err);
+          triggerAlert('Gagal', 'Gagal menghapus kuitansi deposit.', 'info');
+        } finally {
+          setDeletingStandaloneId(null);
+        }
+      }
+    );
   };
 
   // Single Action Handlers

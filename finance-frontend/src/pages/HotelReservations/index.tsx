@@ -13,6 +13,7 @@ import { getCompanySetting, getExchangeRates, getTaxSetting } from '../../servic
 import NewReservationModal from '../../components/ui/NewReservationModal';
 import ReservationDetailsModal from '../../components/ui/ReservationDetailsModal';
 import AlertModal from '../../components/ui/AlertModal';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { formatLocalizedDate } from '../../i18n';
@@ -314,26 +315,79 @@ const HotelReservations: React.FC = () => {
     setSelectedBookingIds([]);
   }, [searchQuery, statusFilter, requestStatusFilter, currentPage, activeTab]);
 
+  // State Confirm Modal Custom
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    type?: 'danger' | 'warning' | 'info';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    type: 'danger',
+    onConfirm: () => {}
+  });
+
+  const triggerConfirm = ({
+    title,
+    message,
+    confirmText = 'Hapus',
+    cancelText = 'Batal',
+    type = 'danger',
+    onConfirm
+  }: {
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    type?: 'danger' | 'warning' | 'info';
+    onConfirm: () => void;
+  }) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      confirmText,
+      cancelText,
+      type,
+      onConfirm
+    });
+  };
+
   // Bulk Delete
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedBookingIds.length === 0) return;
 
     if (user?.role === 'Viewer') {
-      triggerAlert('Access Denied', 'Viewer role cannot delete reservations.', 'error');
+      triggerAlert('Akses Ditolak', 'Role Viewer tidak dapat menghapus reservasi.', 'error');
       return;
     }
 
-    if (window.confirm(`Are you sure you want to permanently delete the ${selectedBookingIds.length} selected reservation(s)? This action cannot be undone.`)) {
-      try {
-        await Promise.all(selectedBookingIds.map(id => deleteHotelReservation(id)));
-        setBookings(prev => prev.filter(b => !selectedBookingIds.includes(b.id)));
-        setSelectedBookingIds([]);
-        triggerAlert('Success', `Successfully deleted ${selectedBookingIds.length} reservation(s).`, 'success');
-      } catch (err) {
-        console.error('Failed to delete selected reservations:', err);
-        triggerAlert('Error', 'Failed to delete selected reservations.', 'error');
+    triggerConfirm({
+      title: t('hotelReservations.deleteSelectedTitle') || 'Hapus Reservasi Terpilih',
+      message: t('hotelReservations.deleteSelectedConfirm', { count: selectedBookingIds.length }) || `Apakah Anda yakin ingin menghapus ${selectedBookingIds.length} reservasi yang dipilih secara permanen? Tindakan ini tidak dapat dibatalkan.`,
+      confirmText: t('common.delete') || 'Hapus Permanen',
+      cancelText: t('common.cancel') || 'Batal',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await Promise.all(selectedBookingIds.map(id => deleteHotelReservation(id)));
+          setBookings(prev => prev.filter(b => !selectedBookingIds.includes(b.id)));
+          const deletedCount = selectedBookingIds.length;
+          setSelectedBookingIds([]);
+          triggerAlert(t('common.success') || 'Sukses', `${deletedCount} reservasi berhasil dihapus permanen.`, 'success');
+        } catch (err) {
+          console.error('Failed to delete selected reservations:', err);
+          triggerAlert(t('common.error') || 'Gagal', 'Gagal menghapus reservasi terpilih.', 'error');
+        }
       }
-    }
+    });
   };
 
   // Bulk Export CSV
@@ -589,19 +643,26 @@ const HotelReservations: React.FC = () => {
   };
 
   // Handler hapus pemesanan
-  const handleDeleteBooking = async (id: string) => {
-    if (confirm('Are you sure you want to delete this reservation permanently?')) {
-      try {
-        await deleteHotelReservation(id);
-        setBookings(prev => prev.filter(b => b.id !== id));
-        setIsDetailOpen(false);
-        setSelectedBooking(null);
-        triggerAlert('Success', 'Reservation deleted successfully.', 'success');
-      } catch (err) {
-        console.error('Error deleting hotel reservation:', err);
-        triggerAlert('Failed', 'Failed to delete reservation.', 'error');
+  const handleDeleteBooking = (id: string) => {
+    triggerConfirm({
+      title: t('hotelReservations.deleteTitle') || 'Hapus Reservasi',
+      message: t('hotelReservations.deleteConfirm') || 'Apakah Anda yakin ingin menghapus reservasi ini secara permanen? Tindakan ini tidak dapat dibatalkan.',
+      confirmText: t('common.delete') || 'Hapus Permanen',
+      cancelText: t('common.cancel') || 'Batal',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteHotelReservation(id);
+          setBookings(prev => prev.filter(b => b.id !== id));
+          setIsDetailOpen(false);
+          setSelectedBooking(null);
+          triggerAlert(t('common.success') || 'Sukses', 'Reservasi berhasil dihapus permanen.', 'success');
+        } catch (err) {
+          console.error('Error deleting hotel reservation:', err);
+          triggerAlert(t('common.error') || 'Gagal', 'Gagal menghapus reservasi.', 'error');
+        }
       }
-    }
+    });
   };
 
   // Statistik sesuai dengan database
@@ -1274,20 +1335,26 @@ const HotelReservations: React.FC = () => {
                               triggerAlert('Access Denied', 'Only Mr. Karim Gharba (Madinah Accountant) can reject this request.', 'error');
                               return;
                             }
-                            if (confirm('Are you sure you want to reject this request?')) {
-                              updateHotelReservationStatus(selectedBooking.id, { status: 'Cancelled' })
-                                .then((updated) => {
+                            triggerConfirm({
+                              title: t('hotelReservations.rejectRequest') || 'Tolak Permintaan Reservasi',
+                              message: 'Apakah Anda yakin ingin menolak permintaan reservasi hotel ini?',
+                              confirmText: t('common.reject') || 'Tolak Permintaan',
+                              cancelText: t('common.cancel') || 'Batal',
+                              type: 'danger',
+                              onConfirm: async () => {
+                                try {
+                                  const updated = await updateHotelReservationStatus(selectedBooking.id, { status: 'Cancelled' });
                                   if (updated) {
                                     setBookings(prev => prev.map(b => b.id === selectedBooking.id ? updated : b));
                                     setSelectedBooking(null);
-                                    triggerAlert('Rejected', 'Hotel reservation request has been rejected.', 'error');
+                                    triggerAlert('Rejected', 'Permintaan reservasi hotel berhasil ditolak.', 'error');
                                   }
-                                })
-                                .catch((err) => {
+                                } catch (err) {
                                   console.error('Error rejecting hotel request:', err);
-                                  triggerAlert('Failed', 'Failed to reject request.', 'error');
-                                });
-                            }
+                                  triggerAlert('Failed', 'Gagal menolak permintaan.', 'error');
+                                }
+                              }
+                            });
                           }}
                           className="py-2.5 border border-red-200 hover:border-red-300 text-red-600 font-bold rounded-lg text-xs transition-all bg-white cursor-pointer border-solid text-center"
                         >
@@ -2214,6 +2281,18 @@ const HotelReservations: React.FC = () => {
         title={alertModal.title}
         message={alertModal.message}
         type={alertModal.type}
+      />
+
+      {/* MODAL 4: CONFIRM MODAL KUSTOM */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        type={confirmModal.type}
       />
     </div>
   );
