@@ -160,10 +160,10 @@ const initializeDatabase = async () => {
       console.error('Failed checking columns for dst_hotel_reservations:', alterRatesErr.message);
     }
 
-    // Permanently remove any legacy dummy hotel reservations
+    // Permanently remove any legacy dummy/test hotel reservations
     try {
       await pool.query(
-        "DELETE FROM dst_hotel_reservations WHERE id IN ('hr-001', 'hr-002', 'hr-003', 'hr-004', 'hr-005', 'hr-006', 'hr-007', 'hr-008') OR reservationNo LIKE 'HR-2024-%' OR guestName = 'PT. Arie Tour'"
+        "DELETE FROM dst_hotel_reservations WHERE id IN ('hr-001', 'hr-002', 'hr-003', 'hr-004', 'hr-005', 'hr-006', 'hr-007', 'hr-008') OR reservationNo LIKE 'HR-2024-%' OR guestName = 'PT. Arie Tour' OR referenceNo = 'BIW-0915-001' OR reservationNo = 'BIW-0915-001' OR guestName LIKE '%Biota Wisata%' OR companyName LIKE '%Biota Wisata%'"
       );
       console.log("Verified/Cleaned legacy dummy hotel reservations from 'dst_hotel_reservations'");
     } catch (cleanErr) {
