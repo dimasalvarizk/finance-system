@@ -1029,7 +1029,7 @@ export const exportFullDatabaseBackup = async (req, res, next) => {
 
     const tableKey = Object.keys(tables[0])[0];
     const databaseDump = {
-      system: 'ODST Group / Manazil AL.Mukhtara Finance System',
+      system: 'ODST Group Finance System',
       exportDate: new Date().toISOString(),
       databaseEngine: 'MySQL Cloud (Aiven)',
       tableCount: tables.length,

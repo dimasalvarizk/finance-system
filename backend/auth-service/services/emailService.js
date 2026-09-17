@@ -249,7 +249,7 @@ export const sendNotificationEmail = async (toEmail, toName, title, message) => 
               <div class="footer">
                 <p class="footer-text">
                   This is an automated notification from the ODST Finance Portal.<br>
-                  © 2026 Manazil Al Mukhtara Group. All rights reserved.
+                  © 2026 ODST Group. All rights reserved.
                 </p>
               </div>
             </div>
@@ -394,7 +394,7 @@ export const sendResetPasswordEmail = async (toEmail, toName, resetUrl) => {
               <div class="footer">
                 <p class="footer-text">
                   This is an automated notification from the ODST Finance Portal.<br>
-                  © 2026 Manazil Al Mukhtara Group. All rights reserved.
+                  © 2026 ODST Group. All rights reserved.
                 </p>
               </div>
             </div>

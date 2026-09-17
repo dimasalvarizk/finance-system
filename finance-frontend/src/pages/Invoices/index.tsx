@@ -526,7 +526,7 @@ const Invoices: React.FC = () => {
         createdBy: pay.createdBy || 'Finance System',
         createdAt: pay.createdAt,
       },
-      issuedBy: 'Manazil AL.Mukhtara Group / PT. ODST AIRLINES INDO',
+      issuedBy: 'ODST Group / PT. ODST AIRLINES INDO',
       issuedAt: new Date().toISOString(),
     };
 

@@ -243,7 +243,7 @@ const SystemBackupTab: React.FC = () => {
         ]);
 
         backupPayload = {
-          system: 'ODST Group / Manazil AL.Mukhtara Finance System',
+          system: 'ODST Group Finance System',
           exportDate: new Date().toISOString(),
           exportedBy: `${user?.name || 'Administrator'} (${user?.email || 'N/A'})`,
           authorizedRole: user?.role,

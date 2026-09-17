@@ -1,4 +1,4 @@
-# 💼 Manazil AL.Mukhtara Group - Finance System
+# 💼 ODST Group - Finance System
 
 [![System Architecture](https://img.shields.io/badge/Architecture-Microservices-blue.svg)](https://github.com/dimasalvarizk/finance-system)
 [![Node.js Version](https://img.shields.io/badge/Node.js-v18%2B%20%2F%20ESM-green.svg)](https://nodejs.org/)
@@ -7,7 +7,7 @@
 [![Deployment](https://img.shields.io/badge/Deploy-Docker%20%7C%20Coolify%20VPS-purple.svg)](https://coolify.io/)
 [![Internationalization](https://img.shields.io/badge/i18n-ID%20%7C%20EN%20%7C%20AR%20(RTL)-red.svg)](https://react.i18next.com/)
 
-**Sistem Keuangan Terintegrasi (Finance System) Manazil AL.Mukhtara Group** adalah platform enterprise berbasis web modern yang dirancang khusus untuk mengelola operasional finansial global, penerbitan konfirmasi transaksi resmi (*Confirmations*), rekonsiliasi multi-valuta otomatis (*Multi-Currency Engine*), saldo kredit klien (*Client Credit Balance*), reservasi hotel & akomodasi umrah/haji, katalog layanan pariwisata, laporan keuangan cabang & perusahaan berstandar A4 PDF, sistem izin dinamis (*Dynamic Permissions*), notifikasi otomatis (*In-App & Email*), alur persetujuan konfirmasi 4-tahap (*Confirmation 4-Level Approval*), serta modul operasional internal (*Internal Expenses, 3-Tier Executive Authorization & Host-to-Host Bank BNI SNAP BI Disbursement*).
+**Sistem Keuangan Terintegrasi (Finance System) ODST Group** adalah platform enterprise berbasis web modern yang dirancang khusus untuk mengelola operasional finansial global, penerbitan konfirmasi transaksi resmi (*Confirmations*), rekonsiliasi multi-valuta otomatis (*Multi-Currency Engine*), saldo kredit klien (*Client Credit Balance*), reservasi hotel & akomodasi umrah/haji, katalog layanan pariwisata, laporan keuangan cabang & perusahaan berstandar A4 PDF, sistem izin dinamis (*Dynamic Permissions*), notifikasi otomatis (*In-App & Email*), alur persetujuan konfirmasi 4-tahap (*Confirmation 4-Level Approval*), serta modul operasional internal (*Internal Expenses, 3-Tier Executive Authorization & Host-to-Host Bank BNI SNAP BI Disbursement*).
 
 Aplikasi ini menggunakan arsitektur **Microservices** di sisi backend untuk modularitas, ketahanan tinggi, dan skalabilitas optimal, serta **Single Page Application (SPA)** di sisi frontend untuk antarmuka pengguna yang dinamis, interaktif, responsif, berkinerja tinggi, dan berstandar internasional.
 
@@ -142,7 +142,7 @@ Aplikasi antarmuka pengguna dirancang untuk memberikan pengalaman navigasi insta
 * **Branch Financial Report**: Ringkasan performa finansial kantor cabang (Jakarta, Madinah, Surabaya, dll.) yang dapat dicetak dan ditinjau oleh pimpinan eksekutif.
 
 ### 4. Kuitansi Deposit Resmi & Micro-Interactions
-* **Official Deposit Receipt Generator**: Cetak dan unduh kuitansi bukti pembayaran uang muka (*deposit*) atau cicilan bertahap (*installment*) dengan stempel & tanda tangan resmi Manazil AL.Mukhtara.
+* **Official Deposit Receipt Generator**: Cetak dan unduh kuitansi bukti pembayaran uang muka (*deposit*) atau cicilan bertahap (*installment*) dengan stempel & tanda tangan resmi ODST Group.
 * **One-Click Copy Confirmation**: Interaksi mikro penyalinan nomor konfirmasi ke clipboard dengan feedback visual instan (*toast tooltip*).
 
 ### 5. Master Pengaturan Rekening Bank (CIF, SWIFT & Branch)
@@ -332,7 +332,7 @@ FinanceSystem/
 ├── finance-frontend/                   # Antarmuka Pengguna React 19 SPA
 │   ├── public/                         # Aset publik, favicon, font
 │   ├── src/
-│   │   ├── assets/                     # Gambar, logo Manazil AL.Mukhtara, stempel resmi
+│   │   ├── assets/                     # Gambar, logo ODST Group, stempel resmi
 │   │   ├── components/                 # Komponen modular (Confirmations, Modals, Reports, UI)
 │   │   ├── context/                    # AuthContext, MaintenanceContext, LanguageContext
 │   │   ├── hooks/                      # Custom React Hooks
@@ -404,9 +404,9 @@ FRONTEND_URL=http://localhost:5173
 SMTP_HOST=smtp.titan.email
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USER=finance-notifications@manazil.com
+SMTP_USER=finance-notifications@odst.id
 SMTP_PASS=your_smtp_password
-SMTP_FROM="Manazil Finance System" <finance-notifications@manazil.com>
+SMTP_FROM="ODST Finance System" <finance-notifications@odst.id>
 ```
 
 ### 2. API Gateway (`backend/api-gateway/.env`)
@@ -448,8 +448,8 @@ docker compose up --build -d
 Arsitektur `docker-compose.yml` telah dioptimalkan khusus untuk lingkungan **Coolify**:
 * Menggunakan direktif `expose` internal tanpa mengunci host port `80` atau `5000` secara kaku untuk mencegah bentrok port antar container.
 * Traefik secara otomatis merutekan domain:
-  * Frontend SPA: `https://odstfin.io` atau `https://finance.manazil.com`
-  * API Gateway: `https://api.odstfin.io` atau `https://api-finance.manazil.com`
+  * Frontend SPA: `https://odstfin.io`
+  * API Gateway: `https://api.odstfin.io`
 * **Pengaturan Lingkungan Coolify**:
   * **Testing / Staging**: Tambahkan `VITE_ENABLE_INTERNAL=true` di menu *Environment Variables*.
   * **Production**: Biarkan tanpa `VITE_ENABLE_INTERNAL` (default `false`) agar menu internal tertutup aman dengan label *Coming Soon*.
@@ -464,4 +464,4 @@ Arsitektur `docker-compose.yml` telah dioptimalkan khusus untuk lingkungan **Coo
 
 ---
 
-*Dokumentasi ini dikelola secara berkala untuk mencerminkan pembaruan fitur, keamanan, dan standar operasional Manazil AL.Mukhtara Group.*
+*Dokumentasi ini dikelola secara berkala untuk mencerminkan pembaruan fitur, keamanan, dan standar operasional ODST Group.*

@@ -37,7 +37,7 @@ const PageLoader = () => (
 const routeSeoMap: Record<string, { title: string; desc: string }> = {
   '/': {
     title: 'Login - ODST Finance System | PT. ODST AIRLINES INDO',
-    desc: 'Secure login portal for ODST Group & Manazil AL.Mukhtara Group Finance System.'
+    desc: 'Secure login portal for ODST Group Finance System.'
   },
   '/reset-password': {
     title: 'Reset Password - ODST Finance System',

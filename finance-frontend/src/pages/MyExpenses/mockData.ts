@@ -117,7 +117,7 @@ export const INITIAL_EXPENSES: ExpenseClaim[] = [
     submittedBy: 'Emad Moustafa',
     receiptsCount: 2,
     receiptName: 'Toll_Tickets.pdf',
-    notes: 'Highway toll gate receipts for visiting Manazil branch hotels in Madinah.',
+    notes: 'Highway toll gate receipts for visiting ODST branch hotels in Madinah.',
     approvalTimeline: [
       { step: 'Claim Submitted', approver: 'Emad Moustafa', status: 'completed', date: 'Oct 02, 2026 14:00' },
       { step: 'Direct Manager Review', approver: 'Mr. Khalid Al-Otaibi', status: 'completed', date: 'Oct 02, 2026 17:00' },

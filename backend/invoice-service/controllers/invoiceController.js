@@ -938,7 +938,7 @@ export const getPaymentReceipt = async (req, res, next) => {
         createdBy: targetPayment.createdBy || 'Finance System',
         createdAt: targetPayment.createdAt
       },
-      issuedBy: 'Manazil AL.Mukhtara Group / PT. ODST AIRLINES INDO',
+      issuedBy: 'ODST Group / PT. ODST AIRLINES INDO',
       issuedAt: new Date().toISOString(),
       language: 'en-US'
     };

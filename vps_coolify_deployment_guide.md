@@ -1,6 +1,6 @@
 # 🌐 Panduan Deployment VPS Hostinger & Coolify (Domain: odstfin.io)
 
-Dokumen ini menjelaskan langkah demi langkah untuk melakukan deployment sistem keuangan **Manazil AL.Mukhtara Group** pada VPS Hostinger menggunakan **Coolify Panel** dengan domain **odstfin.io**.
+Dokumen ini menjelaskan langkah demi langkah untuk melakukan deployment sistem keuangan **ODST Group** pada VPS Hostinger menggunakan **Coolify Panel** dengan domain **odstfin.io**.
 
 ---
 

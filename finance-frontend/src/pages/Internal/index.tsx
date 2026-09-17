@@ -136,7 +136,7 @@ const InternalPlaceholderPage: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t border-slate-100 w-full max-w-sm flex items-center justify-center space-x-2 text-[12px] text-slate-400 font-medium">
-              <span>Manazil AL.Mukhtara & ODST Group Finance</span>
+              <span>ODST Group Finance</span>
             </div>
           </div>
         </div>
