@@ -483,6 +483,16 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
                   {details.subtotal}
                 </span>
               </div>
+              {details.hasDeposit && (
+                <div className="flex justify-between items-center text-amber-700 bg-amber-50/70 px-2.5 py-1.5 rounded-lg border border-amber-200/80">
+                  <span className="font-semibold font-sans">
+                    {t('invoices.advancePayment') || 'Deposit'}
+                  </span>
+                  <span className="font-bold font-roboto">
+                    -{details.deposit}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-[#64748b] font-semibold font-sans">
                   {t('invoices.taxVat')} ({details.taxRate || 0}%)

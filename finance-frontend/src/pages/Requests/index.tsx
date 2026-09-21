@@ -51,6 +51,16 @@ export interface InvoiceRequest {
   agent?: string;
   currency?: string;
   paymentAttachment?: string;
+  advancePayment?: number;
+  remainingBalance?: number;
+  custom_company_name?: string | null;
+  custom_company_email?: string | null;
+  custom_agent?: string | null;
+  custom_address?: string | null;
+  custom_tax_number?: string | null;
+  group_number?: string | null;
+  groupNumber?: string | null;
+  nationality?: string | null;
 }
 
 // Mock requests are not needed since we fetch from database.
@@ -299,7 +309,16 @@ const Requests: React.FC = () => {
       branch: selectedRequest.branch,
       taxRate: selectedRequest.taxRate,
       agent: selectedRequest.agent,
-      currency: selectedRequest?.currency || 'USD'
+      currency: selectedRequest?.currency || 'USD',
+      advancePayment: selectedRequest.advancePayment ?? (selectedRequest as any).advance_payment ?? (selectedRequest as any).deposit ?? 0,
+      remainingBalance: selectedRequest.remainingBalance,
+      custom_company_name: (selectedRequest as any).custom_company_name,
+      custom_company_email: (selectedRequest as any).custom_company_email,
+      custom_tax_number: (selectedRequest as any).custom_tax_number,
+      custom_address: (selectedRequest as any).custom_address,
+      custom_agent: (selectedRequest as any).custom_agent,
+      group_number: (selectedRequest as any).group_number || (selectedRequest as any).groupNumber,
+      nationality: (selectedRequest as any).nationality
     };
   }, [selectedRequest]);
 
@@ -950,6 +969,12 @@ const Requests: React.FC = () => {
                           <span>{t('invoices.subtotal')}</span>
                           <span className="font-bold text-[#1e293b] font-mono">{selectedDetails?.subtotal}</span>
                         </div>
+                        {selectedDetails?.hasDeposit && (
+                          <div className="flex justify-between text-amber-700 bg-amber-50/70 px-2 py-1 rounded border border-amber-200/60">
+                            <span>{t('invoices.advancePayment') || 'Deposit'}</span>
+                            <span className="font-bold font-mono">-{selectedDetails?.deposit}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between text-slate-500 pb-2 border-b border-[#cbd5e1]/40">
                           <span>{t('invoices.taxVat')} ({selectedDetails?.taxRate || 0}%)</span>
                           <span className="font-bold text-[#1e293b] font-mono">{selectedDetails?.tax}</span>

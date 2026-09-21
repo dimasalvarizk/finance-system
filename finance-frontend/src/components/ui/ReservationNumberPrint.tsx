@@ -349,7 +349,15 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                     {details.subtotal}
                   </span>
                 </div>
-                 <div className="flex items-center justify-between text-[9.5px]">
+                {details.hasDeposit && (
+                  <div className="flex items-center justify-between text-[9.5px] text-amber-700 font-medium">
+                    <span className="font-sans">Deposit</span>
+                    <span className="font-bold font-sans">
+                      -{details.deposit}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-[9.5px]">
                   <span className="text-slate-400 font-sans">Tax / VAT ({details.taxRate || 0}%)</span>
                   <span className="font-bold text-slate-900 font-sans">
                     {details.tax}

@@ -63,6 +63,10 @@ export interface InvoiceDetail {
     total: string;
   }[];
   subtotal: string;
+  subtotalAmount?: number;
+  deposit?: string;
+  depositAmount?: number;
+  hasDeposit?: boolean;
   tax: string;
   total: string;
   totalAmount: number;

@@ -350,15 +350,29 @@ export const OfficialDepositReceiptModal: React.FC<Props> = ({
   const totalBilled = receiptData.ledgerSummary?.totalConfirmationAmount ?? rawRec?.totalConfirmationAmount ?? rawRec?.totalBilled ?? numericAmount;
   const thisPayment = receiptData.ledgerSummary?.paymentAmountInThisReceipt ?? numericAmount;
 
-  // Guard against unnormalized totalPaidToDate where raw IDR was passed instead of base currency
+  const isInitialDepositReceipt =
+    receiptData.sequence === 0 ||
+    receiptData.paymentId === 'dp-initial' ||
+    String(receiptData.paymentId || '').toLowerCase().includes('initial') ||
+    receiptNo?.endsWith('-00') ||
+    receiptData.forPaymentOf?.toLowerCase().includes('deposit for confirmation');
+
+  // Guard against unnormalized totalPaidToDate or double-counted initial deposit
   let rawTotalPaid = receiptData.ledgerSummary?.totalPaidToDate ?? rawRec?.totalPaidToDate ?? rawRec?.totalPaid ?? numericAmount;
   if (isDifferentCurrency && rawTotalPaid > (totalBilled * 50) && (paymentCurrency === 'IDR' || paymentCurrency === 'RP')) {
     rawTotalPaid = rawTotalPaid / exchangeRate;
   }
+
+  // If this receipt is explicitly for the Initial Deposit (DP), total paid to date at this milestone is exactly this deposit amount
+  if (isInitialDepositReceipt) {
+    rawTotalPaid = baseEquivalentAmount;
+  }
   const totalPaid = rawTotalPaid;
 
-  let rawRemaining = receiptData.ledgerSummary?.remainingBalance ?? rawRec?.remainingBalance ?? 0;
-  if (rawRemaining < 0 || (totalPaid >= (totalBilled - 0.01) && totalBilled > 0)) {
+  let rawRemaining = receiptData.ledgerSummary?.remainingBalance ?? rawRec?.remainingBalance ?? Math.max(0, totalBilled - totalPaid);
+  if (isInitialDepositReceipt) {
+    rawRemaining = Math.max(0, totalBilled - baseEquivalentAmount);
+  } else if (rawRemaining < 0 || (totalPaid >= (totalBilled - 0.01) && totalBilled > 0)) {
     rawRemaining = 0;
   }
   const remainingBalance = rawRemaining;

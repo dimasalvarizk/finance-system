@@ -1007,6 +1007,14 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                     {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0), formCurrency)}
                   </span>
                 </div>
+                {formHasAdvancePayment && parseFloat(formAdvancePayment) > 0 && (
+                  <div className="flex justify-between items-center text-amber-700 bg-amber-50/70 px-2.5 py-1.5 rounded-lg border border-amber-200/80">
+                    <span className="font-semibold">{t('invoices.advancePayment') || 'Deposit'}</span>
+                    <span className="font-bold">
+                      -{formatPrice(parseFloat(formAdvancePayment) || 0, formCurrency)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-[#64748b] font-semibold">{t('invoices.taxVat')} ({globalTaxRate}%)</span>
                   <span className="font-bold text-[#0c0d0f]">
@@ -1017,7 +1025,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 <div className="flex justify-between items-center text-[14px]">
                   <span className="text-[#0c0d0f] font-bold">{t('invoices.totalDue')}</span>
                   <span className="font-extrabold text-[#2563eb] text-[16px]">
-                    {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * (1 + (globalTaxRate / 100)), formCurrency)}
+                    {formatPrice(Math.max(0, (formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) - (formHasAdvancePayment ? (parseFloat(formAdvancePayment) || 0) : 0)) + (formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * (globalTaxRate / 100))), formCurrency)}
                   </span>
                 </div>
 
@@ -1089,7 +1097,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               </div>
               {(() => {
                 const subtotal = formItems.reduce((acc, item) => acc + (item.qty * item.price), 0);
-                const currentTotalAmount = subtotal * (1 + (globalTaxRate / 100));
+                const currentAdvAmt = formHasAdvancePayment && formAdvancePayment ? parseFloat(formAdvancePayment) || 0 : 0;
+                const currentTotalAmount = Math.max(0, (subtotal - currentAdvAmt) + (subtotal * (globalTaxRate / 100)));
                 const converted = calculateConvertedTotals(
                   currentTotalAmount,
                   formCurrency,

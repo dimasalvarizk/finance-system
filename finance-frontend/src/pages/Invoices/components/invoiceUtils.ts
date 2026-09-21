@@ -197,9 +197,29 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     billTo,
     items: formattedItems,
     subtotal: subtotalFormatted,
+    subtotalAmount: calculatedSubtotal,
+    deposit: formatPrice((() => {
+      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
+      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
+    })(), currency),
+    depositAmount: (() => {
+      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
+      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
+    })(),
+    hasDeposit: (() => {
+      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
+      const num = typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
+      return num > 0;
+    })(),
     tax: formatPrice(calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100), currency),
-    total: formatPrice(calculatedSubtotal * (1 + ((safeInvoice.taxRate || 0) / 100)), currency),
-    totalAmount: calculatedSubtotal * (1 + ((safeInvoice.taxRate || 0) / 100)),
+    total: formatPrice(Math.max(0, (calculatedSubtotal - (() => {
+      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
+      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
+    })()) + (calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100))), currency),
+    totalAmount: Math.max(0, (calculatedSubtotal - (() => {
+      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
+      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
+    })()) + (calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100))),
     usdToIdrRate: safeInvoice.usdToIdrRate || 18025,
     sarToIdrRate: safeInvoice.sarToIdrRate || 4800,
     taxRate: safeInvoice.taxRate || 0,
