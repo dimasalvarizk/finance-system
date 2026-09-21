@@ -462,9 +462,15 @@ const Invoices: React.FC = () => {
     const advPayment = parseFloat(String(inv.advancePayment || 0));
     const payAmt = parseFloat(pay.amount) || 0;
     const payCurr = (pay.currency || baseCurrency).toUpperCase();
-    const seqNumber = pIndex !== undefined ? pIndex + 1 : 1;
+
+    const isInitialDp = String(pay?.id || '').toLowerCase().includes('dp-initial') ||
+                        String(pay?.id || '').toLowerCase().includes('initial') ||
+                        (pay?.note && pay.note.includes('Initial Advance Payment')) ||
+                        (pIndex === 0 && payAmt === advPayment && (!pay.id || pay.id === 'dp-initial'));
+
+    const seqNumber = pIndex !== undefined ? (isInitialDp ? 0 : pIndex) : (isInitialDp ? 0 : 1);
     const seqStr = String(seqNumber).padStart(2, '0');
-    const receiptNo = `REC-${inv.invoiceNo}-${seqStr}`;
+    const receiptNo = isInitialDp ? `REC-${inv.invoiceNo}-00` : `REC-${inv.invoiceNo}-${seqStr}`;
 
     const rawUsdRate = parseFloat(String(inv.usdToIdrRate || ''));
     const rawSarRate = parseFloat(String(inv.sarToIdrRate || ''));
@@ -485,6 +491,14 @@ const Invoices: React.FC = () => {
       (payCurr === 'USD' && baseCurrency === 'SAR') ? payAmt * effPayRate :
       payAmt / effPayRate
     ) : payAmt;
+
+    const calculatedTotalPaid = isInitialDp
+      ? payAmtInBase
+      : parseFloat((advPayment + payAmtInBase).toFixed(2));
+
+    const calculatedRemaining = isInitialDp
+      ? parseFloat(Math.max(0, rawAmt - payAmtInBase).toFixed(2))
+      : parseFloat(Math.max(0, rawAmt - (advPayment + payAmtInBase)).toFixed(2));
 
     const clientReceiptData: ReceiptData = {
       receiptNo,
@@ -510,18 +524,20 @@ const Invoices: React.FC = () => {
         exchangeRate: effPayRate,
         baseCurrency: baseCurrency,
       },
-      forPaymentOf: `Deposit for Confirmation Ref # ${inv.invoiceNo}`,
+      forPaymentOf: isInitialDp
+        ? `Deposit for Confirmation Ref # ${inv.invoiceNo}`
+        : `Installment Payment for Confirmation Ref # ${inv.invoiceNo}`,
       ledgerSummary: {
         totalConfirmationAmount: rawAmt,
         advancePayment: advPayment,
         paymentAmountInThisReceipt: payAmt,
-        totalPaidToDate: parseFloat((advPayment + payAmtInBase).toFixed(2)),
-        remainingBalance: parseFloat(Math.max(0, rawAmt - (advPayment + payAmtInBase)).toFixed(2)),
+        totalPaidToDate: calculatedTotalPaid,
+        remainingBalance: calculatedRemaining,
         currency: baseCurrency,
       },
       paymentDetails: {
         paymentDate: pay.paymentDate,
-        note: pay.note || '',
+        note: pay.note || (isInitialDp ? 'Initial Advance Payment / Deposit' : ''),
         proofUrl: pay.proofUrl || null,
         createdBy: pay.createdBy || 'Finance System',
         createdAt: pay.createdAt,

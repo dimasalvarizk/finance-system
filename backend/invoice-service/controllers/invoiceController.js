@@ -831,24 +831,18 @@ export const getPaymentReceipt = async (req, res, next) => {
       [invoice.invoiceNo, invoice.id]
     );
 
-    const targetPayment = allPayments.find(p => String(p.id) === String(paymentId));
-    if (!targetPayment) {
-      return res.status(404).json({
-        success: false,
-        message: `Payment record '${paymentId}' not found for invoice '${invoiceNo}'.`
-      });
-    }
-
-    const seqIndex = allPayments.findIndex(p => String(p.id) === String(paymentId));
-    const seqStr = String(seqIndex >= 0 ? seqIndex + 1 : 1).padStart(2, '0');
-    const receiptNo = `REC-${invoice.invoiceNo}-${seqStr}`;
+    const isInitialDp = String(paymentId).toLowerCase().includes('dp-initial') ||
+                        String(paymentId).toLowerCase().includes('initial') ||
+                        String(paymentId).toLowerCase() === 'dp' ||
+                        String(paymentId).toLowerCase() === '0';
 
     const rawAmt = parseFloat(String(invoice.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
     const baseCurrency = (invoice.currency || 'SAR').toUpperCase();
     const advPayment = parseFloat(invoice.advancePayment || 0);
 
-    const paymentAmount = parseFloat(targetPayment.amount) || 0;
-    const paymentCurrency = (targetPayment.currency || baseCurrency).toUpperCase();
+    let targetPayment;
+    let seqIndex = 0;
+    let receiptNo = '';
 
     // Calculate total paid up to this payment with live settings rates
     const rawUsdRate = parseFloat(invoice.usdToIdrRate);
@@ -871,14 +865,46 @@ export const getPaymentReceipt = async (req, res, next) => {
       }
     } catch (e) { }
 
-    let totalPaidUpToThisInBase = advPayment;
-    for (let i = 0; i <= seqIndex; i++) {
-      const p = allPayments[i];
-      const pAmt = parseFloat(p.amount) || 0;
-      const pCurr = (p.currency || baseCurrency).toUpperCase();
-      const pRate = parseFloat(p.exchange_rate) || undefined;
-      totalPaidUpToThisInBase += convertCurrency(pAmt, pCurr, baseCurrency, { ...rates, exchangeRate: pRate });
+    let totalPaidUpToThisInBase = 0;
+
+    if (isInitialDp) {
+      targetPayment = {
+        id: 'dp-initial',
+        amount: advPayment,
+        currency: baseCurrency,
+        paymentDate: invoice.date,
+        note: 'Initial Advance Payment / Deposit',
+        createdBy: invoice.createdBy || 'Finance System',
+        createdAt: invoice.createdAt || new Date().toISOString(),
+        exchange_rate: 1.0
+      };
+      seqIndex = 0;
+      receiptNo = `REC-${invoice.invoiceNo}-00`;
+      totalPaidUpToThisInBase = advPayment;
+    } else {
+      targetPayment = allPayments.find(p => String(p.id) === String(paymentId));
+      if (!targetPayment) {
+        return res.status(404).json({
+          success: false,
+          message: `Payment record '${paymentId}' not found for invoice '${invoiceNo}'.`
+        });
+      }
+      seqIndex = allPayments.findIndex(p => String(p.id) === String(paymentId));
+      const seqStr = String(advPayment > 0 ? seqIndex + 1 : seqIndex + 1).padStart(2, '0');
+      receiptNo = `REC-${invoice.invoiceNo}-${seqStr}`;
+
+      totalPaidUpToThisInBase = advPayment;
+      for (let i = 0; i <= seqIndex; i++) {
+        const p = allPayments[i];
+        const pAmt = parseFloat(p.amount) || 0;
+        const pCurr = (p.currency || baseCurrency).toUpperCase();
+        const pRate = parseFloat(p.exchange_rate) || undefined;
+        totalPaidUpToThisInBase += convertCurrency(pAmt, pCurr, baseCurrency, { ...rates, exchangeRate: pRate });
+      }
     }
+
+    const paymentAmount = parseFloat(targetPayment.amount) || 0;
+    const paymentCurrency = (targetPayment.currency || baseCurrency).toUpperCase();
 
     const remainingAfterThis = Math.max(0, rawAmt - totalPaidUpToThisInBase);
     const amountInWords = amountToEnglishWords(paymentAmount, paymentCurrency);
@@ -901,7 +927,7 @@ export const getPaymentReceipt = async (req, res, next) => {
 
     const receiptData = {
       receiptNo,
-      sequence: seqIndex + 1,
+      sequence: isInitialDp ? 0 : seqIndex + 1,
       paymentId: targetPayment.id,
       invoiceNo: invoice.invoiceNo,
       referenceNo: invoice.referenceNo || '-',
@@ -922,7 +948,9 @@ export const getPaymentReceipt = async (req, res, next) => {
         exchangeRate: targetExchangeRate,
         baseCurrency: baseCurrency
       },
-      forPaymentOf: `Deposit for Confirmation Ref # ${invoice.invoiceNo}`,
+      forPaymentOf: isInitialDp 
+        ? `Deposit for Confirmation Ref # ${invoice.invoiceNo}`
+        : `Installment Payment for Confirmation Ref # ${invoice.invoiceNo}`,
       ledgerSummary: {
         totalConfirmationAmount: rawAmt,
         advancePayment: advPayment,
