@@ -700,15 +700,18 @@ const Invoices: React.FC = () => {
   };
 
   const handleBulkSendForApproval = async () => {
-    const selectedDraftInvoices = invoices.filter(inv => selectedInvoiceIds.includes(inv.invoiceNo) && inv.status.toLowerCase() === 'draft');
-    if (selectedDraftInvoices.length === 0) {
-      triggerAlert('Info', 'None of the selected invoices are in Draft status.', 'info');
+    const selectedEligibleInvoices = invoices.filter(inv => 
+      selectedInvoiceIds.includes(inv.invoiceNo) && 
+      (inv.status.toLowerCase() === 'draft' || inv.status.toLowerCase().includes('pending'))
+    );
+    if (selectedEligibleInvoices.length === 0) {
+      triggerAlert('Info', 'None of the selected invoices are eligible to send for approval.', 'info');
       return;
     }
 
     try {
       await Promise.all(
-        selectedDraftInvoices.map(async (inv) => {
+        selectedEligibleInvoices.map(async (inv) => {
           await createRequest({
             invoiceNo: inv.invoiceNo,
             company: inv.company,
@@ -720,7 +723,7 @@ const Invoices: React.FC = () => {
           await updateInvoiceStatus(inv.invoiceNo, '0/4 Pending');
         })
       );
-      triggerAlert('Success', `Sent ${selectedDraftInvoices.length} invoice(s) for approval.`, 'success');
+      triggerAlert('Success', `Sent ${selectedEligibleInvoices.length} invoice(s) for approval.`, 'success');
       setSelectedInvoiceIds([]);
       await fetchInvoices();
     } catch (err) {

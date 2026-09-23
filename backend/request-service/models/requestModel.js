@@ -31,6 +31,54 @@ const formatApprovalDate = () => {
 // Fetch all requests
 export const getAllRequestsDB = async () => {
   const pool = getPool();
+
+  // Auto-sync: If there are invoices with approval status in dst_invoices missing in dst_requests, automatically register them
+  try {
+    const [missingInvoices] = await pool.query(`
+      SELECT i.* 
+      FROM dst_invoices i
+      LEFT JOIN dst_requests r ON i.invoiceNo = r.invoiceNo
+      WHERE r.invoiceNo IS NULL 
+        AND i.status IS NOT NULL 
+        AND LOWER(i.status) NOT IN ('draft', 'tentative', 'cancelled')
+    `);
+
+    for (const inv of missingInvoices) {
+      const isAutoApproved = inv.status === 'Approved' || inv.status === '4/4 Approved';
+      const reqStatus = isAutoApproved ? '4/4 Approved' : (inv.status || '0/4 Pending');
+      const reqId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      const reqNo = `REQ-2026-${Date.now().toString().slice(-4)}`;
+
+      await pool.query(`
+        INSERT INTO dst_requests (
+          id, reqNo, invoiceNo, company, companyCode, amount, requestedBy, submittedDate, status,
+          level1ApprovedAt, level2ApprovedAt, level3ApprovedAt, level4ApprovedAt,
+          level1Note, level2Note, level3Note, level4Note
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        reqId,
+        reqNo,
+        inv.invoiceNo,
+        inv.custom_company_name || inv.company,
+        inv.companyCode || 'RCN',
+        inv.amount,
+        inv.createdBy || 'System',
+        inv.date || new Date().toISOString().split('T')[0],
+        reqStatus,
+        isAutoApproved ? formatApprovalDate() : null,
+        isAutoApproved ? formatApprovalDate() : null,
+        isAutoApproved ? formatApprovalDate() : null,
+        isAutoApproved ? formatApprovalDate() : null,
+        isAutoApproved ? 'Auto-Approved' : null,
+        isAutoApproved ? 'Auto-Approved' : null,
+        isAutoApproved ? 'Auto-Approved' : null,
+        isAutoApproved ? 'Auto-Approved' : null
+      ]);
+    }
+  } catch (syncErr) {
+    console.error('Failed to auto-sync missing requests:', syncErr.message);
+  }
+
   const [requests] = await pool.query('SELECT * FROM dst_requests ORDER BY createdAt DESC');
   
   // Enrich requests with details from dst_invoices and dst_invoice_items
