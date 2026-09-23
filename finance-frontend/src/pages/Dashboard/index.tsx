@@ -181,12 +181,58 @@ const Dashboard: React.FC = () => {
     return parts[0];
   };
 
-  const parseAmount = (amtStr: any): number => {
-    if (!amtStr) return 0;
+  const parseAmount = (amtStr: any, currency?: string): number => {
+    if (amtStr === undefined || amtStr === null || amtStr === '') return 0;
     if (typeof amtStr === 'number') return isNaN(amtStr) ? 0 : amtStr;
-    const str = String(amtStr);
-    const val = parseFloat(str.replace(/[^0-9.-]+/g, ""));
-    return isNaN(val) ? 0 : val;
+    let str = String(amtStr).trim();
+    if (!str || str === 'null' || str === 'undefined') return 0;
+
+    // 1. Pure standard numeric strings (e.g. "9000", "9000.00", "10000.50", "-500")
+    if (/^-?\d+(\.\d+)?$/.test(str)) {
+      const isIdr = (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR'));
+      if (isIdr && /^-?\d{1,3}\.\d{3}$/.test(str)) {
+        return parseFloat(str.replace(/\./g, '')) || 0;
+      }
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    }
+
+    const isIdr =
+      (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR')) ||
+      /^(rp|idr)/i.test(str) ||
+      /(\.|\s)(rp|idr)/i.test(str);
+
+    if (isIdr) {
+      str = str.replace(/[^0-9.,-]/g, '');
+      if (str.includes('.') && str.includes(',')) {
+        str = str.replace(/\./g, '').replace(',', '.');
+      } else if (str.includes('.')) {
+        if (/\.\d{1,2}$/.test(str)) {
+          // Decimal from float
+        } else {
+          str = str.replace(/\./g, '');
+        }
+      } else if (str.includes(',')) {
+        if (/,\d{3}/.test(str)) {
+          str = str.replace(/,/g, '');
+        } else {
+          str = str.replace(',', '.');
+        }
+      }
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    }
+
+    const dotCount = (str.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      str = str.replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    }
+
+    str = str.replace(/,/g, '').replace(/[^0-9.-]/g, '');
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
   };
 
   const convertCurrencyToUsd = (amountVal: number, inv: any): number => {

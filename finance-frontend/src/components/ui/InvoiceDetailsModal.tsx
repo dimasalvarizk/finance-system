@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, FileText, Printer, Download, Lock, Eye } from 'lucide-react';
-import { type Invoice, getInvoiceDetails, calculateConvertedTotals, getExchangeRatesToShow, getLocalCompanySettings } from '../../pages/Invoices';
+import { type Invoice, getInvoiceDetails, calculateConvertedTotals, getExchangeRatesToShow, getLocalCompanySettings, parseAmount } from '../../pages/Invoices';
 import { checkDownloadPermission } from '../../services/requestService';
 import { uploadPaymentProof } from '../../services/invoiceService';
 import { useAuth } from '../../context/AuthContext';
@@ -583,7 +583,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ selectedInvoice, onClose }) => {
               </div>
               {(() => {
                 const currentCurrency = details?.currency || 'USD';
-                const amountVal = details?.totalAmount !== undefined ? details.totalAmount : (parseFloat((details?.total || '').replace(/[^0-9.]/g, '')) || 0);
+                const amountVal = details?.totalAmount !== undefined ? details.totalAmount : parseAmount(details?.total, currentCurrency);
                 const converted = calculateConvertedTotals(
                   amountVal,
                   currentCurrency,

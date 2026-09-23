@@ -1,5 +1,5 @@
 
-import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB, updatePaymentHistoryDB, deletePaymentHistoryDB, insertAuditLogDB, getAuditLogsDB } from '../models/invoiceModel.js';
+import { getAllInvoicesDB, createInvoiceDB, updateInvoiceStatusDB, deleteInvoicesDB, cancelInvoiceDB, updateInvoiceDB, getInvoiceByIdDB, savePaymentProofDB, addPaymentHistoryDB, getPaymentHistoryDB, updatePaymentHistoryDB, deletePaymentHistoryDB, insertAuditLogDB, getAuditLogsDB, parseAmount } from '../models/invoiceModel.js';
 import { getPool } from '../config/db.js';
 import { amountToEnglishWords } from '../utils/numberToWordsEnglish.js';
 
@@ -53,8 +53,8 @@ export const createInvoice = async (req, res, next) => {
       });
     }
 
-    const rawAmt = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/[^0-9.-]/g, '')) || 0;
-    const advAmt = parseFloat(advancePayment || 0);
+    const rawAmt = parseAmount(amount, currency);
+    const advAmt = parseAmount(advancePayment, currency);
     const initialRemaining = Math.max(0, rawAmt - advAmt);
 
     // Check if user has CAN_BYPASS_APPROVAL permission
@@ -157,7 +157,7 @@ export const createInvoice = async (req, res, next) => {
     } else {
       // Trigger notification internally to auth-service for normal flow
       try {
-        const cleanAmount = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/[^0-9.-]/g, ''));
+        const cleanAmount = parseAmount(amount, currency);
         const amountDisplay = isNaN(cleanAmount) ? String(amount) : cleanAmount.toLocaleString('en-US');
 
         fetch(`${getAuthBaseUrl(req)}/api/auth/notifications`, {
@@ -512,8 +512,8 @@ export const reconcileInvoicePayments = async (invoiceNo, saveOverpaymentCredit 
 
     const inv = invRows[0];
     const baseCurrency = (inv.currency || 'SAR').toUpperCase();
-    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
-    const advPayment = parseFloat(inv.advancePayment || 0);
+    const rawAmt = parseAmount(inv.amount, baseCurrency);
+    const advPayment = parseAmount(inv.advancePayment, baseCurrency);
     
     // Query live daily exchange rates from Settings (dst_exchange_rates)
     let rates = {
@@ -793,7 +793,7 @@ export const getInvoiceStatus = async (req, res, next) => {
     const isPaid = ['paid', 'paid and closed', 'paid & closed', 'fully paid', 'fully_paid'].includes(st);
     const isPartial = st.includes('partial') || st.includes('deposit');
 
-    const totalAmount = parseFloat(String(invoice.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+    const totalAmount = parseAmount(invoice.amount, invoice.currency);
     const totalPaid = invoice.totalPaid || 0;
     const remainingBalance = invoice.remainingBalance ?? Math.max(0, totalAmount - totalPaid);
 
@@ -847,9 +847,9 @@ export const getPaymentReceipt = async (req, res, next) => {
                         String(paymentId).toLowerCase() === 'dp' ||
                         String(paymentId).toLowerCase() === '0';
 
-    const rawAmt = parseFloat(String(invoice.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
     const baseCurrency = (invoice.currency || 'SAR').toUpperCase();
-    const advPayment = parseFloat(invoice.advancePayment || 0);
+    const rawAmt = parseAmount(invoice.amount, baseCurrency);
+    const advPayment = parseAmount(invoice.advancePayment, baseCurrency);
 
     let targetPayment;
     let seqIndex = 0;

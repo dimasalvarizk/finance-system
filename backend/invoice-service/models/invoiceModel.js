@@ -12,6 +12,61 @@ const cleanAgentName = (agent) => {
   return agent;
 };
 
+export const parseAmount = (val, currency) => {
+  if (val === undefined || val === null || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+
+  let str = String(val).trim();
+  if (!str || str === 'null' || str === 'undefined') return 0;
+
+  // 1. Pure standard numeric strings (e.g. "9000", "9000.00", "10000.50", "-500")
+  if (/^-?\d+(\.\d+)?$/.test(str)) {
+    const isIdr = (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR'));
+    if (isIdr && /^-?\d{1,3}\.\d{3}$/.test(str)) {
+      return parseFloat(str.replace(/\./g, '')) || 0;
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  const isIdr =
+    (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR')) ||
+    /^(rp|idr)/i.test(str) ||
+    /(\.|\s)(rp|idr)/i.test(str);
+
+  if (isIdr) {
+    str = str.replace(/[^0-9.,-]/g, '');
+    if (str.includes('.') && str.includes(',')) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else if (str.includes('.')) {
+      if (/\.\d{1,2}$/.test(str)) {
+        // Decimal from float
+      } else {
+        str = str.replace(/\./g, '');
+      }
+    } else if (str.includes(',')) {
+      if (/,\d{3}/.test(str)) {
+        str = str.replace(/,/g, '');
+      } else {
+        str = str.replace(',', '.');
+      }
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  const dotCount = (str.match(/\./g) || []).length;
+  if (dotCount > 1) {
+    str = str.replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  str = str.replace(/,/g, '').replace(/[^0-9.-]/g, '');
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+};
+
 // Convert payment amount from payment currency to base currency
 export const convertPaymentToBase = (amount, payCurrency, baseCurrency, rates = {}) => {
   const payCurr = (payCurrency || 'SAR').toUpperCase();
@@ -142,9 +197,9 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
   // Fetch items and enforce strict multi-currency payment/remaining calculations
   for (const inv of invoices) {
     inv.agent = cleanAgentName(inv.agent);
-    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
     const baseCurrency = (inv.currency || 'USD').toUpperCase();
-    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const rawAmt = parseAmount(inv.amount, baseCurrency);
+    const advAmt = parseAmount(inv.advancePayment, baseCurrency);
 
     const invPayments = paymentsByRef[inv.invoiceNo] || paymentsByRef[inv.id] || [];
     let totalInstInBase = 0;
@@ -409,9 +464,9 @@ export const getInvoiceByIdDB = async (id) => {
   if (rows.length > 0) {
     const inv = rows[0];
     inv.agent = cleanAgentName(inv.agent);
-    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
     const baseCurrency = (inv.currency || 'USD').toUpperCase();
-    const advAmt = parseFloat(String(inv.advancePayment || 0));
+    const rawAmt = parseAmount(inv.amount, baseCurrency);
+    const advAmt = parseAmount(inv.advancePayment, baseCurrency);
 
     const [payments] = await pool.query(
       "SELECT * FROM dst_payment_history WHERE (referenceId = ? OR referenceId = ?) AND moduleType = 'CONFIRMATION' ORDER BY paymentDate DESC, createdAt DESC",
@@ -521,9 +576,9 @@ export const recalculateInvoiceBalance = async (connection, referenceId) => {
   const [invoiceRows] = await connection.query('SELECT * FROM dst_invoices WHERE invoiceNo = ? OR id = ?', [referenceId, referenceId]);
   if (invoiceRows.length > 0) {
     const inv = invoiceRows[0];
-    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
     const baseCurrency = (inv.currency || 'USD').toUpperCase();
-    const advPayment = parseFloat(inv.advancePayment || 0);
+    const rawAmt = parseAmount(inv.amount, baseCurrency);
+    const advPayment = parseAmount(inv.advancePayment, baseCurrency);
 
     let rates = {
       usdToIdr: inv.usdToIdrRate || 18025,

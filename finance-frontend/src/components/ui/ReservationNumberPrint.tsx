@@ -1,5 +1,5 @@
 import React from "react";
-import { type Invoice, type InvoiceDetail, calculateConvertedTotals, getExchangeRatesToShow, getLocalCompanySettings } from "../../pages/Invoices";
+import { type Invoice, type InvoiceDetail, calculateConvertedTotals, getExchangeRatesToShow, getLocalCompanySettings, parseAmount } from "../../pages/Invoices";
 import odstLogo from "../../assets/odstlogo.png";
 
 interface Props {
@@ -397,7 +397,7 @@ const ReservationConfirmationPrint: React.FC<Props> = ({ invoice, details }) => 
                 ))}
               </div>
               {(() => {
-                const amount = details.totalAmount !== undefined ? details.totalAmount : (parseFloat(details.total.replace(/[^0-9.]/g, '')) || 0);
+                const amount = details.totalAmount !== undefined ? details.totalAmount : parseAmount(details.total, details.currency);
                 const converted = calculateConvertedTotals(
                   amount,
                   details.currency || 'USD',

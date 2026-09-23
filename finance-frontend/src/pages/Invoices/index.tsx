@@ -8,7 +8,7 @@ import OfficialDepositReceiptModal, { type ReceiptData } from '../../components/
 import CreateStandaloneReceiptModal from '../../components/ui/CreateStandaloneReceiptModal';
 
 import { type Invoice, type CompanyOption } from './components/types';
-import { getLocalCompanySettings, getInvoiceDetails, calculateConvertedTotals, parseExchangeRate, compareDates } from './components/invoiceUtils';
+import { getLocalCompanySettings, getInvoiceDetails, calculateConvertedTotals, parseExchangeRate, compareDates, parseAmount } from './components/invoiceUtils';
 import { InvoicesStats } from './components/InvoicesStats';
 import { InvoicesTable } from './components/InvoicesTable';
 import { CreateInvoiceModal } from './components/CreateInvoiceModal';
@@ -49,6 +49,7 @@ export {
   convertPrice,
   splitAddress,
   parseExchangeRate,
+  parseAmount,
   convertToISODate,
   compareDates,
 } from './components/invoiceUtils';
@@ -362,10 +363,10 @@ const Invoices: React.FC = () => {
       let matchesStatus = true;
       if (filterStatus) {
         const invStatus = inv.status || '';
-        const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
-        const advAmt = parseFloat(String(inv.advancePayment || 0));
-        const totalInst = parseFloat(String(inv.totalInstallments || 0));
-        const totalPaid = inv.totalPaid !== undefined ? parseFloat(String(inv.totalPaid)) : advAmt + totalInst;
+        const rawAmt = parseAmount(inv.amount, inv.currency);
+        const advAmt = parseAmount(inv.advancePayment, inv.currency);
+        const totalInst = parseAmount(inv.totalInstallments, inv.currency);
+        const totalPaid = inv.totalPaid !== undefined ? parseAmount(inv.totalPaid, inv.currency) : advAmt + totalInst;
 
         if (filterStatus === 'Pending') {
           matchesStatus =
@@ -484,11 +485,11 @@ const Invoices: React.FC = () => {
       console.warn('Fallback to client-side receipt construct:', err);
     }
 
-    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
     const baseCurrency = (inv.currency || 'SAR').toUpperCase();
-    const advPayment = parseFloat(String(inv.advancePayment || 0));
-    const payAmt = parseFloat(pay.amount) || 0;
+    const rawAmt = parseAmount(inv.amount, baseCurrency);
+    const advPayment = parseAmount(inv.advancePayment, baseCurrency);
     const payCurr = (pay.currency || baseCurrency).toUpperCase();
+    const payAmt = parseAmount(pay.amount, payCurr);
 
     const isInitialDp = String(pay?.id || '').toLowerCase().includes('dp-initial') ||
                         String(pay?.id || '').toLowerCase().includes('initial') ||

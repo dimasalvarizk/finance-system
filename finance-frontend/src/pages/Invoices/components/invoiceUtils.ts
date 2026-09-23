@@ -40,6 +40,64 @@ export const getLocalCompanySettings = () => {
   return defaults;
 };
 
+export const parseAmount = (val: any, currency?: string): number => {
+  if (val === undefined || val === null || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+
+  let str = String(val).trim();
+  if (!str || str === 'null' || str === 'undefined') return 0;
+
+  // 1. Pure standard numeric strings (e.g. "9000", "9000.00", "10000.50", "-500")
+  if (/^-?\d+(\.\d+)?$/.test(str)) {
+    const isIdr = (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR'));
+    if (isIdr && /^-?\d{1,3}\.\d{3}$/.test(str)) {
+      return parseFloat(str.replace(/\./g, '')) || 0;
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  const isIdr =
+    (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR')) ||
+    /^(rp|idr)/i.test(str) ||
+    /(\.|\s)(rp|idr)/i.test(str);
+
+  if (isIdr) {
+    // IDR format: dot '.' is thousands separator, comma ',' is decimal
+    // e.g. "Rp 10.000", "Rp 1.000.000", "Rp 10.000,50", "10.000"
+    str = str.replace(/[^0-9.,-]/g, '');
+    if (str.includes('.') && str.includes(',')) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else if (str.includes('.')) {
+      if (/\.\d{1,2}$/.test(str)) {
+        // Decimal from float
+      } else {
+        str = str.replace(/\./g, '');
+      }
+    } else if (str.includes(',')) {
+      if (/,\d{3}/.test(str)) {
+        str = str.replace(/,/g, '');
+      } else {
+        str = str.replace(',', '.');
+      }
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  // Standard USD/SAR format: comma ',' is thousands separator, dot '.' is decimal
+  const dotCount = (str.match(/\./g) || []).length;
+  if (dotCount > 1) {
+    str = str.replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  str = str.replace(/,/g, '').replace(/[^0-9.-]/g, '');
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+};
+
 export const formatPrice = (price: number, currency: string = 'USD'): string => {
   if (price === undefined || price === null || isNaN(price)) return '0';
   const cleanCurrency = String(currency).toUpperCase();
@@ -114,11 +172,11 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
   const formattedItems = items.map(item => ({
     description: item?.description || '',
     qty: item?.qty || 0,
-    price: formatPrice(item?.price || 0, currency),
-    total: formatPrice((item?.qty || 0) * (item?.price || 0), currency),
+    price: formatPrice(parseAmount(item?.price || 0, currency), currency),
+    total: formatPrice((item?.qty || 0) * parseAmount(item?.price || 0, currency), currency),
   }));
 
-  const calculatedSubtotal = items.reduce((acc, item) => acc + ((item?.qty || 0) * (item?.price || 0)), 0);
+  const calculatedSubtotal = items.reduce((acc, item) => acc + ((item?.qty || 0) * parseAmount(item?.price || 0, currency)), 0);
   const subtotalFormatted = formatPrice(calculatedSubtotal, currency);
 
   const savedCompStr = localStorage.getItem('finance_companies');
@@ -166,6 +224,9 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     agent: cleanAgentName(safeInvoice.custom_agent || safeInvoice.agent),
   };
 
+  const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
+  const parsedDeposit = parseAmount(rawAdv, currency);
+
   return {
     dueDate: (() => {
       if (safeInvoice.dueDate) {
@@ -198,28 +259,12 @@ export const getInvoiceDetails = (invoice: Invoice): InvoiceDetail => {
     items: formattedItems,
     subtotal: subtotalFormatted,
     subtotalAmount: calculatedSubtotal,
-    deposit: formatPrice((() => {
-      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
-      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
-    })(), currency),
-    depositAmount: (() => {
-      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
-      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
-    })(),
-    hasDeposit: (() => {
-      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
-      const num = typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
-      return num > 0;
-    })(),
+    deposit: formatPrice(parsedDeposit, currency),
+    depositAmount: parsedDeposit,
+    hasDeposit: parsedDeposit > 0,
     tax: formatPrice(calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100), currency),
-    total: formatPrice(Math.max(0, (calculatedSubtotal - (() => {
-      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
-      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
-    })()) + (calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100))), currency),
-    totalAmount: Math.max(0, (calculatedSubtotal - (() => {
-      const rawAdv = safeInvoice.advancePayment ?? (safeInvoice as any).advance_payment ?? (safeInvoice as any).deposit ?? 0;
-      return typeof rawAdv === 'number' ? rawAdv : (parseFloat(String(rawAdv).replace(/[^0-9.-]/g, '')) || 0);
-    })()) + (calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100))),
+    total: formatPrice(Math.max(0, (calculatedSubtotal - parsedDeposit) + (calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100))), currency),
+    totalAmount: Math.max(0, (calculatedSubtotal - parsedDeposit) + (calculatedSubtotal * ((safeInvoice.taxRate || 0) / 100))),
     usdToIdrRate: safeInvoice.usdToIdrRate || 18025,
     sarToIdrRate: safeInvoice.sarToIdrRate || 4800,
     taxRate: safeInvoice.taxRate || 0,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit3, Trash2, Receipt, Upload, Eye } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatPrice, convertPrice } from './invoiceUtils';
+import { formatPrice, convertPrice, parseAmount } from './invoiceUtils';
 import { type Invoice } from './types';
 import {
   getInvoicePayments,
@@ -74,9 +74,9 @@ export const PaymentHistoryModal: React.FC<Props> = ({
 
   if (!isOpen || !invoice) return null;
 
-  const rawAmt = parseFloat(String(invoice.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
   const baseCurrency = (invoice.currency || 'USD').toUpperCase();
-  const advAmt = parseFloat(String(invoice.advancePayment || 0));
+  const rawAmt = parseAmount(invoice.amount, baseCurrency);
+  const advAmt = parseAmount(invoice.advancePayment, baseCurrency);
 
   const rates = {
     usdToIdr: invoice.usdToIdrRate || configuredRates.usdToIdr || 18025,
@@ -87,7 +87,7 @@ export const PaymentHistoryModal: React.FC<Props> = ({
   let totalInstallmentsInBase = 0;
   paymentHistoryList.forEach(item => {
     const payCurr = (item.currency || baseCurrency).toUpperCase();
-    const payAmt = parseFloat(item.amount) || 0;
+    const payAmt = parseAmount(item.amount, payCurr);
     totalInstallmentsInBase += convertPrice(payAmt, payCurr, baseCurrency, rates);
   });
 
@@ -131,7 +131,7 @@ export const PaymentHistoryModal: React.FC<Props> = ({
 
   const handleSubmitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const numAmount = parseFloat(formAmount);
+    const numAmount = parseAmount(formAmount, formCurrency);
     if (isNaN(numAmount) || numAmount <= 0) return;
 
     const rawUsdRate = parseFloat(String(invoice.usdToIdrRate || ''));

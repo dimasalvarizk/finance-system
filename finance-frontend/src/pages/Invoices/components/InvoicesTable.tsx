@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, FileText, Check, Copy, Receipt, Upload, Edit3, XCircle, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { type Invoice, type CompanyOption } from './types';
+import { parseAmount } from './invoiceUtils';
 import { formatLocalizedDate } from '../../../i18n';
 import NetworkErrorState from '../../../components/ui/NetworkErrorState';
 
@@ -118,10 +119,10 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
   };
 
   const renderStatusBadge = (inv: Invoice) => {
-    const rawAmt = parseFloat(String(inv.amount || '0').replace(/[^0-9.-]/g, '')) || 0;
-    const advAmt = parseFloat(String(inv.advancePayment || 0));
-    const totalInst = parseFloat(String(inv.totalInstallments || 0));
-    const totalPaid = inv.totalPaid !== undefined ? parseFloat(String(inv.totalPaid)) : (advAmt + totalInst);
+    const rawAmt = parseAmount(inv.amount, inv.currency);
+    const advAmt = parseAmount(inv.advancePayment, inv.currency);
+    const totalInst = parseAmount(inv.totalInstallments, inv.currency);
+    const totalPaid = inv.totalPaid !== undefined ? parseAmount(inv.totalPaid, inv.currency) : (advAmt + totalInst);
     const isOverdue = inv.dueDate && new Date(inv.dueDate) < new Date(new Date().toISOString().split('T')[0]);
 
     if ((totalPaid >= rawAmt && rawAmt > 0) || inv.status === 'FULLY_PAID' || inv.status === 'Paid') {

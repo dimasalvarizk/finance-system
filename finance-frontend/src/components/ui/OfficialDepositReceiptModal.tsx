@@ -3,6 +3,7 @@ import { X, Printer, ShieldCheck, FileCheck, Paperclip } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import odstLogo from '../../assets/odstlogo.png';
 import { amountToLocalizedWords } from '../../utils/numberToWords';
+import { parseAmount } from '../../pages/Invoices';
 
 export interface ReceiptData {
   isStandalone?: boolean;
@@ -76,13 +77,7 @@ type ReceiptLang = 'en' | 'id' | 'ar';
 
 const formatDisplayPrice = (amount: any, currency: string = 'SAR'): string => {
   const code = (currency || 'SAR').toUpperCase().trim();
-  let num = 0;
-  if (typeof amount === 'number') {
-    num = isNaN(amount) ? 0 : amount;
-  } else if (amount !== null && amount !== undefined) {
-    const parsed = parseFloat(String(amount).replace(/[^0-9.-]/g, ''));
-    num = isNaN(parsed) ? 0 : parsed;
-  }
+  const num = parseAmount(amount, code);
 
   if (code === 'IDR' || code === 'RP') {
     return `Rp ${num.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;

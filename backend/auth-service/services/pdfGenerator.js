@@ -2,6 +2,61 @@ import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer-core';
 
+const parseAmount = (val, currency) => {
+  if (val === undefined || val === null || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+
+  let str = String(val).trim();
+  if (!str || str === 'null' || str === 'undefined') return 0;
+
+  // 1. Pure standard numeric strings (e.g. "9000", "9000.00", "10000.50", "-500")
+  if (/^-?\d+(\.\d+)?$/.test(str)) {
+    const isIdr = (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR'));
+    if (isIdr && /^-?\d{1,3}\.\d{3}$/.test(str)) {
+      return parseFloat(str.replace(/\./g, '')) || 0;
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  const isIdr =
+    (currency && (currency.toUpperCase() === 'RP' || currency.toUpperCase() === 'IDR')) ||
+    /^(rp|idr)/i.test(str) ||
+    /(\.|\s)(rp|idr)/i.test(str);
+
+  if (isIdr) {
+    str = str.replace(/[^0-9.,-]/g, '');
+    if (str.includes('.') && str.includes(',')) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else if (str.includes('.')) {
+      if (/\.\d{1,2}$/.test(str)) {
+        // Decimal from float
+      } else {
+        str = str.replace(/\./g, '');
+      }
+    } else if (str.includes(',')) {
+      if (/,\d{3}/.test(str)) {
+        str = str.replace(/,/g, '');
+      } else {
+        str = str.replace(',', '.');
+      }
+    }
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  const dotCount = (str.match(/\./g) || []).length;
+  if (dotCount > 1) {
+    str = str.replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
+
+  str = str.replace(/,/g, '').replace(/[^0-9.-]/g, '');
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+};
+
 const getBrowserPath = () => {
   if (process.env.PUPPETEER_EXECUTABLE_PATH && fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
     return process.env.PUPPETEER_EXECUTABLE_PATH;
@@ -87,7 +142,7 @@ const generateGeneralConfirmationHtml = (details, companySettings, logoBase64) =
   if (items && Array.isArray(items) && items.length > 0) {
     subtotalNum = items.reduce((acc, it) => acc + (Number(it.qty) || 1) * (Number(it.price) || 0), 0);
   } else {
-    const rawParsed = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+    const rawParsed = parseAmount(amount, currency);
     subtotalNum = isNaN(rawParsed) ? 0 : rawParsed;
   }
   const taxNum = subtotalNum * (rate / 100);
@@ -685,7 +740,7 @@ const generateHotelReservationHtml = (details, companySettings, logoBase64) => {
   if (items && Array.isArray(items) && items.length > 0) {
     subtotalNum = items.reduce((acc, it) => acc + (Number(it.qty) || 1) * (Number(it.price) || 0), 0);
   } else {
-    const rawParsed = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+    const rawParsed = parseAmount(amount, currency);
     subtotalNum = isNaN(rawParsed) ? 2200 : rawParsed;
   }
   const taxNum = subtotalNum * (rate / 100);

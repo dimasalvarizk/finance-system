@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, AlertCircle, FileText, ChevronDown, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { type Invoice, type CompanyOption } from './types';
-import { formatPrice, convertPrice, splitAddress, getExchangeRatesToShow, calculateConvertedTotals } from './invoiceUtils';
+import { formatPrice, convertPrice, splitAddress, getExchangeRatesToShow, calculateConvertedTotals, parseAmount } from './invoiceUtils';
 import { createInvoice as createInvoiceAPI, updateInvoice as updateInvoiceAPI } from '../../../services/invoiceService';
 
 interface CreateInvoiceModalProps {
@@ -337,7 +337,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       return;
     }
 
-    const calculatedSubtotal = formItems.reduce((acc, item) => acc + (item.qty * item.price), 0);
+    const calculatedSubtotal = formItems.reduce((acc, item) => acc + ((Number(item.qty) || 0) * parseAmount(item.price, formCurrency)), 0);
     const calculatedTotal = calculatedSubtotal * (1 + (globalTaxRate / 100));
     const formattedAmount = formatPrice(calculatedTotal, formCurrency);
 
@@ -373,7 +373,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       compAgent = selectedCompany.agent || formAgent;
     }
 
-    const parsedAdv = formHasAdvancePayment ? (parseFloat(formAdvancePayment) || 0) : 0;
+    const parsedAdv = formHasAdvancePayment ? parseAmount(formAdvancePayment, formCurrency) : 0;
     const initialRemaining = Math.max(0, calculatedTotal - parsedAdv);
     const combinedCustomAddress = [customCompanyAddress.trim(), customCompanyCityCountry.trim()].filter(Boolean).join(', ');
 
@@ -389,7 +389,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       usdToIdrRate: configuredRates.usdToIdr,
       sarToIdrRate: configuredRates.sarToIdr,
       dueDate: formDate,
-      items: formItems.map(item => ({ ...item })),
+      items: formItems.map(item => ({ ...item, price: parseAmount(item.price, formCurrency) })),
       taxRate: globalTaxRate,
       agent: compAgent || undefined,
       currency: formCurrency,
@@ -897,7 +897,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                           value={
                             activeFocusIndex?.index === idx && activeFocusIndex?.field === 'price' && !item.isService
                               ? item.price
-                              : formatPrice(Number(item.price) || 0, formCurrency)
+                              : formatPrice(parseAmount(item.price, formCurrency), formCurrency)
                           }
                           onFocus={() => {
                             if (!item.isService) {
@@ -907,15 +907,13 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                           onBlur={() => {
                             setActiveFocusIndex(null);
                             if (!item.isService) {
-                              handleUpdateItem(idx, 'price', parseFloat(String(item.price)) || 0);
+                              handleUpdateItem(idx, 'price', parseAmount(item.price, formCurrency));
                             }
                           }}
                           onChange={(e) => {
                             if (!item.isService) {
-                              const cleanVal = e.target.value.replace(/[^0-9.]/g, '');
-                              const dots = cleanVal.split('.');
-                              const formattedVal = dots.length > 2 ? `${dots[0]}.${dots.slice(1).join('')}` : cleanVal;
-                              handleUpdateItem(idx, 'price', formattedVal);
+                              const cleanVal = e.target.value.replace(/[^0-9.,]/g, '');
+                              handleUpdateItem(idx, 'price', cleanVal);
                             }
                           }}
                           className={`w-full px-2.5 py-2 border rounded-lg text-[13px] font-medium text-right focus:outline-none ${
@@ -926,7 +924,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                         />
                       </td>
                       <td className="p-2 w-32 text-right font-bold text-[#0c0d0f]">
-                        {formatPrice(item.qty * item.price, formCurrency)}
+                        {formatPrice((Number(item.qty) || 0) * parseAmount(item.price, formCurrency), formCurrency)}
                       </td>
                       <td className="p-2 w-16 text-center">
                         <button
@@ -1004,28 +1002,32 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 <div className="flex justify-between items-center">
                   <span className="text-[#64748b] font-semibold">{t('invoices.subtotal')}</span>
                   <span className="font-bold text-[#0c0d0f]">
-                    {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0), formCurrency)}
+                    {formatPrice(formItems.reduce((acc, item) => acc + ((Number(item.qty) || 0) * parseAmount(item.price, formCurrency)), 0), formCurrency)}
                   </span>
                 </div>
-                {formHasAdvancePayment && parseFloat(formAdvancePayment) > 0 && (
+                {formHasAdvancePayment && parseAmount(formAdvancePayment, formCurrency) > 0 && (
                   <div className="flex justify-between items-center text-amber-700 bg-amber-50/70 px-2.5 py-1.5 rounded-lg border border-amber-200/80">
                     <span className="font-semibold">{t('invoices.advancePayment') || 'Deposit'}</span>
                     <span className="font-bold">
-                      -{formatPrice(parseFloat(formAdvancePayment) || 0, formCurrency)}
+                      -{formatPrice(parseAmount(formAdvancePayment, formCurrency), formCurrency)}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
                   <span className="text-[#64748b] font-semibold">{t('invoices.taxVat')} ({globalTaxRate}%)</span>
                   <span className="font-bold text-[#0c0d0f]">
-                    {formatPrice(formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * (globalTaxRate / 100), formCurrency)}
+                    {formatPrice(formItems.reduce((acc, item) => acc + ((Number(item.qty) || 0) * parseAmount(item.price, formCurrency)), 0) * (globalTaxRate / 100), formCurrency)}
                   </span>
                 </div>
                 <div className="h-px bg-[#e2e8f0] my-2" />
                 <div className="flex justify-between items-center text-[14px]">
                   <span className="text-[#0c0d0f] font-bold">{t('invoices.totalDue')}</span>
                   <span className="font-extrabold text-[#2563eb] text-[16px]">
-                    {formatPrice(Math.max(0, (formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) - (formHasAdvancePayment ? (parseFloat(formAdvancePayment) || 0) : 0)) + (formItems.reduce((acc, item) => acc + (item.qty * item.price), 0) * (globalTaxRate / 100))), formCurrency)}
+                    {(() => {
+                      const subtotal = formItems.reduce((acc, item) => acc + ((Number(item.qty) || 0) * parseAmount(item.price, formCurrency)), 0);
+                      const adv = formHasAdvancePayment ? parseAmount(formAdvancePayment, formCurrency) : 0;
+                      return formatPrice(Math.max(0, (subtotal - adv) + (subtotal * (globalTaxRate / 100))), formCurrency);
+                    })()}
                   </span>
                 </div>
 
@@ -1066,12 +1068,10 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                         {t('invoices.advancePaymentAmount')} ({formCurrency})
                       </label>
                       <input
-                        type="number"
-                        min="0"
-                        step="any"
+                        type="text"
                         placeholder="Enter DP / Deposit amount..."
                         value={formAdvancePayment}
-                        onChange={(e) => setFormAdvancePayment(e.target.value)}
+                        onChange={(e) => setFormAdvancePayment(e.target.value.replace(/[^0-9.,]/g, ''))}
                         className="w-full px-3 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-bold text-[#0c0d0f] bg-white focus:outline-none focus:border-[#2563eb]"
                       />
                     </div>
@@ -1096,8 +1096,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 ))}
               </div>
               {(() => {
-                const subtotal = formItems.reduce((acc, item) => acc + (item.qty * item.price), 0);
-                const currentAdvAmt = formHasAdvancePayment && formAdvancePayment ? parseFloat(formAdvancePayment) || 0 : 0;
+                const subtotal = formItems.reduce((acc, item) => acc + ((Number(item.qty) || 0) * parseAmount(item.price, formCurrency)), 0);
+                const currentAdvAmt = formHasAdvancePayment && formAdvancePayment ? parseAmount(formAdvancePayment, formCurrency) : 0;
                 const currentTotalAmount = Math.max(0, (subtotal - currentAdvAmt) + (subtotal * (globalTaxRate / 100)));
                 const converted = calculateConvertedTotals(
                   currentTotalAmount,
