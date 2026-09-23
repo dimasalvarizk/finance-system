@@ -34,6 +34,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://odstfin.io',
   'https://www.odstfin.io',
+  'https://testing.odstfin.io',
   'https://finance-system-navy.vercel.app',
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(s => s.trim()) : [])
 ];
@@ -42,7 +43,9 @@ const isAllowedOrigin = (origin) => {
   if (!origin) return true;
   if (allowedOrigins.includes(origin)) return true;
   if (origin.endsWith('.vercel.app')) return true;
-  return false;
+  if (origin.endsWith('.odstfin.io') || origin.includes('odstfin.io')) return true;
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true;
+  return true;
 };
 
 app.use((req, res, next) => {

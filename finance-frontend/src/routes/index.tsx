@@ -530,6 +530,14 @@ const AppRoutes: React.FC = () => {
             element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}
           />
           <Route
+            path="/super_admin"
+            element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
+            path="/super_admin/dashboard"
+            element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
             path="/system-audit-hidden"
             element={isDimasOrAli ? <SuperAdminDashboard /> : <Navigate to="/dashboard" replace />}
           />

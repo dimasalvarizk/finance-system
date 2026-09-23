@@ -17,8 +17,18 @@ import HBManagementTab from './components/HBManagementTab';
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const isSuperAdmin = user?.role === 'Super Admin';
-  const isAdminOrDirector = ['Super Admin', 'Chief Accountant', 'Division Director'].includes(user?.role || '');
+  const hasAddMembersPerm = Boolean(
+    user?.role === 'Super Admin' ||
+    (user?.permissions && (
+      Array.isArray(user.permissions)
+        ? (user.permissions as string[]).includes('CAN_ADD_MEMBERS')
+        : typeof user.permissions === 'object'
+        ? Boolean((user.permissions as Record<string, boolean>)?.CAN_ADD_MEMBERS)
+        : String(user.permissions).includes('CAN_ADD_MEMBERS')
+    ))
+  );
+  const isSuperAdmin = user?.role === 'Super Admin' || hasAddMembersPerm;
+  const isAdminOrDirector = ['Super Admin', 'Chief Accountant', 'Division Director'].includes(user?.role || '') || hasAddMembersPerm;
 
   const [activeTab, setActiveTab] = useState(
     isSuperAdmin ? 'Manage Team' :

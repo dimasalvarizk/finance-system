@@ -46,20 +46,34 @@ export const createRequest = async (req, res, next) => {
 
     // Check if user has CAN_BYPASS_APPROVAL permission
     let hasBypassApproval = false;
-    if (req.user && req.user.permissions) {
-      try {
-        const p = typeof req.user.permissions === 'string' ? JSON.parse(req.user.permissions) : req.user.permissions;
-        if (p.CAN_BYPASS_APPROVAL === true || (Array.isArray(p) && p.includes('CAN_BYPASS_APPROVAL'))) {
-          hasBypassApproval = true;
-        }
-      } catch (e) {
-        if (typeof req.user.permissions === 'string' && req.user.permissions.includes('CAN_BYPASS_APPROVAL')) {
-          hasBypassApproval = true;
+    if (req.user) {
+      let parsedPerms = null;
+      if (req.user.permissions) {
+        if (typeof req.user.permissions === 'object' && !Array.isArray(req.user.permissions)) {
+          parsedPerms = req.user.permissions;
+        } else if (typeof req.user.permissions === 'string') {
+          try {
+            parsedPerms = JSON.parse(req.user.permissions);
+          } catch (e) {}
         }
       }
-    }
-    if (req.user && (req.user.role === 'Super Admin' || req.user.name?.includes('Dimas') || req.user.name?.includes('Ali'))) {
-      hasBypassApproval = true;
+
+      if (parsedPerms && parsedPerms.CAN_BYPASS_APPROVAL !== undefined) {
+        hasBypassApproval = Boolean(parsedPerms.CAN_BYPASS_APPROVAL);
+      } else if (Array.isArray(req.user.permissions)) {
+        hasBypassApproval = req.user.permissions.includes('CAN_BYPASS_APPROVAL');
+      } else {
+        // Fallback only if CAN_BYPASS_APPROVAL has never been configured
+        const cleanEmail = (req.user.email || '').toLowerCase().trim();
+        const cleanName = (req.user.name || '').toLowerCase().trim();
+        hasBypassApproval = Boolean(
+          req.user.role === 'Super Admin' ||
+          cleanEmail === 'alvarizkidimas@gmail.com' ||
+          cleanEmail === 'ali@odst.id' ||
+          cleanName.includes('dimas') ||
+          cleanName.includes('ali warshan')
+        );
+      }
     }
 
     const payload = {

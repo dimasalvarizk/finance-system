@@ -58,12 +58,39 @@ const Invoices: React.FC = () => {
   const { t, i18n } = useTranslation();
   const companySettings = useMemo(() => getLocalCompanySettings(), []);
 
-  const hasBypassPermission = Boolean(
-    user?.role === 'Super Admin' ||
-    user?.name?.includes('Dimas') ||
-    user?.name?.includes('Ali') ||
-    (user?.permissions && (Array.isArray(user.permissions) ? user.permissions.includes('CAN_BYPASS_APPROVAL') : (user.permissions as any).CAN_BYPASS_APPROVAL === true))
-  );
+  const hasBypassPermission = useMemo(() => {
+    if (!user) return false;
+
+    let parsedPerms: Record<string, boolean> | null = null;
+    if (user.permissions) {
+      if (typeof user.permissions === 'object' && !Array.isArray(user.permissions)) {
+        parsedPerms = user.permissions as Record<string, boolean>;
+      } else if (Array.isArray(user.permissions)) {
+        return (user.permissions as string[]).includes('CAN_BYPASS_APPROVAL');
+      } else if (typeof user.permissions === 'string') {
+        try {
+          parsedPerms = JSON.parse(user.permissions);
+        } catch (e) {
+          return String(user.permissions).includes('CAN_BYPASS_APPROVAL');
+        }
+      }
+    }
+
+    if (parsedPerms && parsedPerms.CAN_BYPASS_APPROVAL !== undefined) {
+      return Boolean(parsedPerms.CAN_BYPASS_APPROVAL);
+    }
+
+    // Default fallback ONLY if CAN_BYPASS_APPROVAL has never been configured:
+    const cleanEmail = (user.email || '').toLowerCase().trim();
+    const cleanName = (user.name || '').toLowerCase().trim();
+    return Boolean(
+      user.role === 'Super Admin' ||
+      cleanEmail === 'alvarizkidimas@gmail.com' ||
+      cleanEmail === 'ali@odst.id' ||
+      cleanName.includes('dimas') ||
+      cleanName.includes('ali warshan')
+    );
+  }, [user]);
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchQuery, setSearchQuery] = useState('');

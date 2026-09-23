@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { updateUserPermissions } from '../../../services/settingService';
 import { isSuperAdminUser as checkIsSuperAdmin } from '../../../utils/superAdminAuth';
-
+import { useAuth } from '../../../context/AuthContext';
 
 interface UserItem {
   id: string;
@@ -27,6 +27,7 @@ interface PermissionMatrixTabProps {
 
 export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users, onRefresh }) => {
   const { t } = useTranslation();
+  const { user: authUser, refreshUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
@@ -41,9 +42,41 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
     return initial;
   });
 
+  // Keep localPermissions synchronized whenever users prop updates
+  useEffect(() => {
+    const initial: Record<string, Record<string, boolean>> = {};
+    users.forEach((u) => {
+      initial[u.id] = { ...(u.permissions || {}) };
+    });
+    setLocalPermissions(initial);
+  }, [users]);
+
+  // Helper to read the current effective permission for a user
+  const getPermissionValue = (userItem: UserItem, permissionKey: string): boolean => {
+    const userPerms = localPermissions[userItem.id] !== undefined
+      ? localPermissions[userItem.id]
+      : (userItem.permissions || {});
+
+    if (userPerms && userPerms[permissionKey] !== undefined) {
+      return Boolean(userPerms[permissionKey]);
+    }
+
+    // Default for Super Admin (Dimas & Ali) is true if not explicitly set
+    if (checkIsSuperAdmin(userItem)) {
+      return true;
+    }
+
+    return false;
+  };
+
   const handleToggle = async (user: UserItem, permissionKey: string) => {
-    const currentPerms = localPermissions[user.id] || { ...(user.permissions || {}) };
-    const newStatus = !currentPerms[permissionKey];
+    const currentStatus = getPermissionValue(user, permissionKey);
+    const newStatus = !currentStatus;
+
+    const currentPerms = localPermissions[user.id] !== undefined
+      ? { ...localPermissions[user.id] }
+      : { ...(user.permissions || {}) };
+
     const updatedPerms = {
       ...currentPerms,
       [permissionKey]: newStatus
@@ -67,6 +100,10 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
           status: newStatus ? t('superAdmin.table.enabled') : t('superAdmin.table.disabled')
         })
       });
+      // Refresh context if updating self
+      if (authUser && (authUser.id === user.id || authUser.email?.toLowerCase().trim() === user.email?.toLowerCase().trim())) {
+        await refreshUser();
+      }
       // Silent refresh
       await onRefresh();
     } catch (err: any) {
@@ -93,16 +130,16 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
       u.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    if (roleFilter === 'ALL') return matchesSearch;
+    if (!matchesSearch) return false;
+    if (roleFilter === 'ALL') return true;
     if (roleFilter === 'BYPASS') {
-      const perms = localPermissions[u.id] || u.permissions || {};
-      return matchesSearch && (perms.CAN_BYPASS_APPROVAL || checkIsSuperAdmin(u));
+      return getPermissionValue(u, 'CAN_BYPASS_APPROVAL');
     }
     if (roleFilter === 'SUPER_ADMIN') {
-      return matchesSearch && checkIsSuperAdmin(u);
+      return checkIsSuperAdmin(u) || u.role === 'Super Admin';
     }
 
-    return matchesSearch && u.role === roleFilter;
+    return u.role === roleFilter;
   });
 
   const getInitials = (name: string) => {
@@ -111,39 +148,31 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
     return name.slice(0, 2).toUpperCase();
   };
 
-  // Stats calculation (synchronized with table switch states)
-  const totalBypass = users.filter((u) => {
-    const p = localPermissions[u.id] || u.permissions || {};
-    return p.CAN_BYPASS_APPROVAL || checkIsSuperAdmin(u);
-  }).length;
-
-  const totalMembersMgr = users.filter((u) => {
-    const p = localPermissions[u.id] || u.permissions || {};
-    return p.CAN_ADD_MEMBERS || checkIsSuperAdmin(u);
-  }).length;
-
-  const totalSuperAdmins = users.filter((u) => checkIsSuperAdmin(u)).length;
+  // Stats calculation (synchronized with reactive permission states)
+  const totalBypass = users.filter((u) => getPermissionValue(u, 'CAN_BYPASS_APPROVAL')).length;
+  const totalMembersMgr = users.filter((u) => getPermissionValue(u, 'CAN_ADD_MEMBERS')).length;
+  const totalSuperAdmins = users.filter((u) => checkIsSuperAdmin(u) || u.role === 'Super Admin').length;
 
   return (
     <div className="space-y-6 font-inter">
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <div className="text-xl font-bold text-slate-900">{users.length}</div>
           <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.totalUsers')}</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <div className="text-xl font-bold text-amber-700">{totalBypass}</div>
           <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.bypassApproved')}</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <div className="text-xl font-bold text-emerald-700">{totalMembersMgr}</div>
           <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.canAddMembers')}</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <div className="text-xl font-bold text-purple-700">{totalSuperAdmins}</div>
           <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t('superAdmin.stats.superAdmins')}</div>
         </div>
@@ -236,10 +265,13 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                 </tr>
               ) : (
                 filteredUsers.map((user) => {
-                  const perms = localPermissions[user.id] || user.permissions || {};
                   const isSuperAdminUser = checkIsSuperAdmin(user);
                   const isSaving = savingUserId === user.id;
 
+                  const isBypass = getPermissionValue(user, 'CAN_BYPASS_APPROVAL');
+                  const isAddMembers = getPermissionValue(user, 'CAN_ADD_MEMBERS');
+                  const isEditLogs = getPermissionValue(user, 'CAN_EDIT_SYSTEM_LOGS');
+                  const isViewReports = getPermissionValue(user, 'CAN_VIEW_ALL_REPORTS');
 
                   return (
                     <tr key={user.id} className="hover:bg-slate-50/70 transition-colors">
@@ -288,24 +320,24 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                       </td>
 
                       {/* CAN_BYPASS_APPROVAL Toggle */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center bg-amber-50/20">
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex flex-col items-center justify-center">
                           <button
                             type="button"
                             disabled={isSaving}
                             onClick={() => handleToggle(user, 'CAN_BYPASS_APPROVAL')}
                             className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
-                              perms.CAN_BYPASS_APPROVAL || isSuperAdminUser ? 'bg-amber-500' : 'bg-slate-300'
+                              isBypass ? 'bg-amber-500' : 'bg-slate-300'
                             } ${isSaving ? 'opacity-50 cursor-wait' : ''}`}
                           >
                             <span
                               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                perms.CAN_BYPASS_APPROVAL || isSuperAdminUser ? 'translate-x-5' : 'translate-x-0'
+                                isBypass ? 'translate-x-5' : 'translate-x-0'
                               }`}
                             />
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
-                            {perms.CAN_BYPASS_APPROVAL || isSuperAdminUser ? (
+                            {isBypass ? (
                               <span className="text-amber-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
                               <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
@@ -321,19 +353,19 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                             type="button"
                             disabled={isSaving}
                             onClick={() => handleToggle(user, 'CAN_ADD_MEMBERS')}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-                              perms.CAN_ADD_MEMBERS || isSuperAdminUser ? 'bg-emerald-500' : 'bg-slate-300'
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                              isAddMembers ? 'bg-amber-500' : 'bg-slate-300'
                             } ${isSaving ? 'opacity-50 cursor-wait' : ''}`}
                           >
                             <span
                               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                perms.CAN_ADD_MEMBERS || isSuperAdminUser ? 'translate-x-5' : 'translate-x-0'
+                                isAddMembers ? 'translate-x-5' : 'translate-x-0'
                               }`}
                             />
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
-                            {perms.CAN_ADD_MEMBERS || isSuperAdminUser ? (
-                              <span className="text-emerald-700">{t('superAdmin.table.enabled')}</span>
+                            {isAddMembers ? (
+                              <span className="text-amber-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
                               <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
                             )}
@@ -348,19 +380,19 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                             type="button"
                             disabled={isSaving}
                             onClick={() => handleToggle(user, 'CAN_EDIT_SYSTEM_LOGS')}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
-                              perms.CAN_EDIT_SYSTEM_LOGS || isSuperAdminUser ? 'bg-purple-600' : 'bg-slate-300'
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                              isEditLogs ? 'bg-amber-500' : 'bg-slate-300'
                             } ${isSaving ? 'opacity-50 cursor-wait' : ''}`}
                           >
                             <span
                               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                perms.CAN_EDIT_SYSTEM_LOGS || isSuperAdminUser ? 'translate-x-5' : 'translate-x-0'
+                                isEditLogs ? 'translate-x-5' : 'translate-x-0'
                               }`}
                             />
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
-                            {perms.CAN_EDIT_SYSTEM_LOGS || isSuperAdminUser ? (
-                              <span className="text-purple-700">{t('superAdmin.table.enabled')}</span>
+                            {isEditLogs ? (
+                              <span className="text-amber-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
                               <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
                             )}
@@ -375,19 +407,19 @@ export const PermissionMatrixTab: React.FC<PermissionMatrixTabProps> = ({ users,
                             type="button"
                             disabled={isSaving}
                             onClick={() => handleToggle(user, 'CAN_VIEW_ALL_REPORTS')}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                              perms.CAN_VIEW_ALL_REPORTS || isSuperAdminUser ? 'bg-blue-600' : 'bg-slate-300'
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                              isViewReports ? 'bg-amber-500' : 'bg-slate-300'
                             } ${isSaving ? 'opacity-50 cursor-wait' : ''}`}
                           >
                             <span
                               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                perms.CAN_VIEW_ALL_REPORTS || isSuperAdminUser ? 'translate-x-5' : 'translate-x-0'
+                                isViewReports ? 'translate-x-5' : 'translate-x-0'
                               }`}
                             />
                           </button>
                           <span className="text-[10px] font-bold mt-1 text-slate-600">
-                            {perms.CAN_VIEW_ALL_REPORTS || isSuperAdminUser ? (
-                              <span className="text-blue-700">{t('superAdmin.table.enabled')}</span>
+                            {isViewReports ? (
+                              <span className="text-amber-700">{t('superAdmin.table.enabled')}</span>
                             ) : (
                               <span className="text-slate-400">{t('superAdmin.table.disabled')}</span>
                             )}

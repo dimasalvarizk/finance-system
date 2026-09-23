@@ -44,6 +44,20 @@ export const protect = async (req, res, next) => {
       });
     }
 
+    // Parse permissions if available
+    let parsedPermissions = {};
+    if (user.permissions) {
+      try {
+        parsedPermissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+      } catch (e) {
+        if (typeof user.permissions === 'string') {
+          user.permissions.split(',').forEach(p => {
+            if (p.trim()) parsedPermissions[p.trim()] = true;
+          });
+        }
+      }
+    }
+
     // Attach user to request
     req.user = {
       id: user.id,
@@ -59,7 +73,7 @@ export const protect = async (req, res, next) => {
       sessionId: decoded.sessionId || null,
       status: user.status,
       lastActive: user.lastActive,
-      permissions: user.permissions,
+      permissions: parsedPermissions,
     };
 
     next();

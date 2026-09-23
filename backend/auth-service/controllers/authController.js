@@ -124,6 +124,20 @@ export const login = async (req, res, next) => {
     // Send Token in cookie
     sendTokenCookie(res, token);
 
+    // Parse permissions if available
+    let parsedPermissions = {};
+    if (user.permissions) {
+      try {
+        parsedPermissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+      } catch (e) {
+        if (typeof user.permissions === 'string') {
+          user.permissions.split(',').forEach(p => {
+            if (p.trim()) parsedPermissions[p.trim()] = true;
+          });
+        }
+      }
+    }
+
     // Respond with user details (excluding passwordHash)
     res.status(200).json({
       success: true,
@@ -143,6 +157,7 @@ export const login = async (req, res, next) => {
         sessionId: sessionId,
         status: user.status,
         lastActive: user.lastActive,
+        permissions: parsedPermissions,
       },
     });
   } catch (error) {

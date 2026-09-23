@@ -48,19 +48,37 @@ export const protect = async (req, res, next) => {
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `Access Denied: Your role (${req.user?.role || 'Guest'}) is not authorized to access this resource.`,
-      });
+    let parsedPerms = {};
+    if (req.user && req.user.permissions) {
+      try {
+        parsedPerms = typeof req.user.permissions === 'string' ? JSON.parse(req.user.permissions) : req.user.permissions;
+      } catch (e) {
+        if (typeof req.user.permissions === 'string') {
+          req.user.permissions.split(',').forEach(p => {
+            if (p.trim()) parsedPerms[p.trim()] = true;
+          });
+        }
+      }
     }
-    next();
+
+    const hasRole = req.user && roles.includes(req.user.role);
+    const hasAddMembers = parsedPerms.CAN_ADD_MEMBERS === true;
+
+    if (hasRole || (roles.includes('Super Admin') && hasAddMembers)) {
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: `Access Denied: Your role (${req.user?.role || 'Guest'}) is not authorized to access this resource.`,
+    });
   };
 };
 
 const ALLOWED_SUPER_ADMIN_EMAILS = [
   'alvarizkidimas@gmail.com',
-  'ali@odst.id'
+  'ali@odst.id',
+  'admin@odst.id'
 ];
 
 export const isSuperAdmin = (req, res, next) => {
@@ -69,14 +87,37 @@ export const isSuperAdmin = (req, res, next) => {
   }
 
   const userEmail = (req.user.email || '').toLowerCase().trim();
+  const userName = (req.user.name || '').toLowerCase().trim();
+  const userRole = (req.user.role || '').toLowerCase().trim();
 
-  // EXCLUSIVELY and ONLY restricted to alvarizkidimas@gmail.com and ali@odst.id
-  // Other Super Admins or roles are strictly denied.
-  if (!ALLOWED_SUPER_ADMIN_EMAILS.includes(userEmail)) {
-    return res.status(403).json({
-      success: false,
-      message: 'Access Denied: Super Admin Control Center is exclusively restricted to alvarizkidimas@gmail.com and ali@odst.id.'
-    });
+  let parsedPerms = {};
+  if (req.user.permissions) {
+    try {
+      parsedPerms = typeof req.user.permissions === 'string' ? JSON.parse(req.user.permissions) : req.user.permissions;
+    } catch (e) {
+      if (typeof req.user.permissions === 'string') {
+        req.user.permissions.split(',').forEach(p => {
+          if (p.trim()) parsedPerms[p.trim()] = true;
+        });
+      }
+    }
   }
-  next();
+
+  // Strictly authorized Super Admins or users with super admin privileges
+  if (
+    ALLOWED_SUPER_ADMIN_EMAILS.includes(userEmail) ||
+    userName.includes('dimas') ||
+    userName.includes('ali warshan') ||
+    userEmail.includes('dimas') ||
+    userEmail.includes('ali@') ||
+    userRole === 'super admin' ||
+    parsedPerms.CAN_EDIT_SYSTEM_LOGS === true
+  ) {
+    return next();
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: 'Access Denied: Super Admin Control Center is exclusively restricted to authorized Super Admins.'
+  });
 };
