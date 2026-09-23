@@ -40,6 +40,7 @@
     "corporate": "Corporate",
     "current": "Current",
     "statusApproved": "Approved",
+    "statusDraft": "Draft",
     "statusPending": "Pending",
     "statusOverdue": "Overdue",
     "statusPaid": "Fully Paid",

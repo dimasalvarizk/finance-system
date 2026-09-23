@@ -89,6 +89,8 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
+      case 'Draft':
+        return 'bg-slate-100 text-slate-700 border border-slate-300';
       case 'Approved':
       case '3/3 Approved':
       case '4/4 Approved':
@@ -158,12 +160,13 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
       );
     }
 
-    let displayStatus = inv.status;
-    if (!displayStatus || ['PARTIAL', 'Partial', 'Partial Payment', 'DEPOSIT_PAID', 'FULLY_PAID'].includes(displayStatus)) {
-      displayStatus = '0/4 Pending';
+    let displayStatus = inv.status || 'Draft';
+    if (['PARTIAL', 'Partial', 'Partial Payment', 'DEPOSIT_PAID', 'FULLY_PAID'].includes(displayStatus)) {
+      displayStatus = inv.requestStatus === '4/4 Approved' ? 'Approved' : (inv.requestStatus || 'Draft');
     }
 
     const statusMap: Record<string, string> = {
+      'Draft': t('common.statusDraft', 'Draft'),
       'Pending': t('common.statusPending'),
       'Approved': t('common.statusApproved'),
       'Rejected': t('common.statusRejected'),
@@ -307,6 +310,7 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({
               className="w-full sm:w-auto flex-1 sm:flex-initial border border-[#cbd5e1] rounded-lg text-[12px] font-medium text-[#1e293b] px-3 py-1.5 focus:outline-none focus:border-[#f59e0b] bg-white transition-all cursor-pointer"
             >
               <option value="">{t('invoices.allStatuses')}</option>
+              <option value="Draft">{t('common.statusDraft', 'Draft')}</option>
               <option value="Pending">{t('common.statusPending')}</option>
               <option value="Approved">{t('common.statusApproved')}</option>
               <option value="Partial Payment">{t('common.statusPartial')}</option>

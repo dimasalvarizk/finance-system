@@ -7,6 +7,7 @@ export interface Invoice {
   amount: string;
   date: string;
   status: string;
+  requestStatus?: string | null;
   usdToIdrRate?: number;
   sarToIdrRate?: number;
   dueDate?: string;

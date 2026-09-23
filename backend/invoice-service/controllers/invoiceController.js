@@ -89,7 +89,7 @@ export const createInvoice = async (req, res, next) => {
       }
     }
 
-    const initialStatus = hasBypassApproval ? 'Approved' : (status || 'Pending');
+    const initialStatus = hasBypassApproval ? 'Approved' : (status || 'Draft');
 
     const newInvoiceData = {
       id: `inv_${Date.now()}`,

@@ -148,7 +148,11 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
         GROUP BY referenceId
       ) p ON (i.invoiceNo = p.referenceId OR i.id = p.referenceId)
       LEFT JOIN dst_requests r ON (i.invoiceNo = r.invoiceNo)
-      SET i.status = COALESCE(NULLIF(r.status, '4/4 Approved'), 'Approved', '0/4 Pending'),
+      SET i.status = CASE 
+            WHEN r.status = '4/4 Approved' THEN 'Approved'
+            WHEN r.status IS NOT NULL AND r.status != '' THEN r.status
+            ELSE COALESCE(NULLIF(i.status, '0/4 Pending'), 'Draft')
+          END,
           i.remainingBalance = CAST(REPLACE(REPLACE(i.amount, '$', ''), ',', '') AS DECIMAL(15,2))
       WHERE LOWER(i.status) IN ('partial', 'partial payment', 'deposit_paid', 'deposit paid', 'fully_paid')
         AND (p.totalInstallments IS NULL OR p.totalInstallments = 0)
@@ -219,7 +223,7 @@ export const getAllInvoicesDB = async (createdByFilter = null) => {
     // Strict status correction if totalPaid is 0
     const stLower = String(inv.status || '').toLowerCase();
     if (totalPaid === 0 && (stLower.includes('partial') || stLower === 'deposit_paid' || stLower === 'fully_paid')) {
-      inv.status = inv.requestStatus === '4/4 Approved' ? 'Approved' : (inv.requestStatus || '0/4 Pending');
+      inv.status = inv.requestStatus === '4/4 Approved' ? 'Approved' : (inv.requestStatus || 'Draft');
     }
 
     const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);
@@ -388,10 +392,23 @@ export const updateInvoiceDB = async (id, data) => {
   try {
     await connection.beginTransaction();
 
-    // 1. Update invoice in dst_invoices
+    // 1. Fetch existing invoice
+    const [invoices] = await connection.query('SELECT id, invoiceNo, status FROM dst_invoices WHERE id = ? OR invoiceNo = ?', [id, id]);
+    if (invoices.length === 0) {
+      throw new Error('Invoice not found');
+    }
+    const realInvoiceId = invoices[0].id;
+    const invoiceNo = invoices[0].invoiceNo;
+
+    // Check if an associated approval request already exists in dst_requests
+    const [existingReqs] = await connection.query('SELECT reqNo, status FROM dst_requests WHERE invoiceNo = ?', [invoiceNo]);
+    const hasExistingReq = existingReqs.length > 0;
+    const targetStatus = hasExistingReq ? '0/4 Pending' : (data.status || invoices[0].status || 'Draft');
+
+    // 2. Update invoice in dst_invoices
     const updateQuery = `
       UPDATE dst_invoices 
-      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = '0/4 Pending', usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?, currency = ?, group_number = ?, nationality = ?
+      SET company = ?, companyCode = ?, referenceNo = ?, serialNo = ?, amount = ?, date = ?, status = ?, usdToIdrRate = ?, sarToIdrRate = ?, dueDate = ?, taxRate = ?, currency = ?, group_number = ?, nationality = ?
       WHERE id = ? OR invoiceNo = ?
     `;
     await connection.query(updateQuery, [
@@ -401,6 +418,7 @@ export const updateInvoiceDB = async (id, data) => {
       data.serialNo,
       data.amount,
       data.date,
+      targetStatus,
       data.usdToIdrRate || 18025.00,
       data.sarToIdrRate || 4800.00,
       data.dueDate,
@@ -412,14 +430,7 @@ export const updateInvoiceDB = async (id, data) => {
       id
     ]);
 
-    // 2. Refresh items (Delete old ones and insert new ones)
-    const [invoices] = await connection.query('SELECT id, invoiceNo FROM dst_invoices WHERE id = ? OR invoiceNo = ?', [id, id]);
-    if (invoices.length === 0) {
-      throw new Error('Invoice not found');
-    }
-    const realInvoiceId = invoices[0].id;
-    const invoiceNo = invoices[0].invoiceNo;
-
+    // 3. Refresh items (Delete old ones and insert new ones)
     await connection.query('DELETE FROM dst_invoice_items WHERE invoiceId = ?', [realInvoiceId]);
 
     if (data.items && data.items.length > 0) {
@@ -432,13 +443,15 @@ export const updateInvoiceDB = async (id, data) => {
       }
     }
 
-    // 3. Reset associated request in dst_requests
-    const resetRequestQuery = `
-      UPDATE dst_requests 
-      SET status = '0/4 Pending', amount = ?, company = ?, companyCode = ?, level1ApprovedAt = NULL, level2ApprovedAt = NULL, level3ApprovedAt = NULL, level4ApprovedAt = NULL, level1Note = NULL, level2Note = NULL, level3Note = NULL, level4Note = NULL, rejectionReason = NULL
-      WHERE invoiceNo = ?
-    `;
-    await connection.query(resetRequestQuery, [data.amount, data.company, data.companyCode, invoiceNo]);
+    // 4. Reset associated request in dst_requests only if request exists
+    if (hasExistingReq) {
+      const resetRequestQuery = `
+        UPDATE dst_requests 
+        SET status = '0/4 Pending', amount = ?, company = ?, companyCode = ?, level1ApprovedAt = NULL, level2ApprovedAt = NULL, level3ApprovedAt = NULL, level4ApprovedAt = NULL, level1Note = NULL, level2Note = NULL, level3Note = NULL, level4Note = NULL, rejectionReason = NULL
+        WHERE invoiceNo = ?
+      `;
+      await connection.query(resetRequestQuery, [data.amount, data.company, data.companyCode, invoiceNo]);
+    }
 
     await connection.commit();
     return true;
@@ -490,7 +503,7 @@ export const getInvoiceByIdDB = async (id) => {
     // Strict status correction if totalPaid is 0
     const stLower = String(inv.status || '').toLowerCase();
     if (totalPaid === 0 && (stLower.includes('partial') || stLower === 'deposit_paid' || stLower === 'fully_paid')) {
-      inv.status = inv.requestStatus === '4/4 Approved' ? 'Approved' : (inv.requestStatus || '0/4 Pending');
+      inv.status = inv.requestStatus === '4/4 Approved' ? 'Approved' : (inv.requestStatus || 'Draft');
     }
 
     const [items] = await pool.query('SELECT description, qty, price FROM dst_invoice_items WHERE invoiceId = ?', [inv.id]);

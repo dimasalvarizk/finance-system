@@ -368,9 +368,12 @@ const Invoices: React.FC = () => {
         const totalInst = parseAmount(inv.totalInstallments, inv.currency);
         const totalPaid = inv.totalPaid !== undefined ? parseAmount(inv.totalPaid, inv.currency) : advAmt + totalInst;
 
-        if (filterStatus === 'Pending') {
+        if (filterStatus === 'Draft') {
+          matchesStatus = invStatus.toLowerCase() === 'draft';
+        } else if (filterStatus === 'Pending') {
           matchesStatus =
             (invStatus.includes('Pending') || invStatus === 'Pending Review' || invStatus.includes('1/4') || invStatus.includes('2/4') || invStatus.includes('3/4')) &&
+            invStatus.toLowerCase() !== 'draft' &&
             totalPaid === 0;
         } else if (filterStatus === 'Approved') {
           matchesStatus = (invStatus === 'Approved' || invStatus === '4/4 Approved') && totalPaid < rawAmt;

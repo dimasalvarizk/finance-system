@@ -40,6 +40,7 @@
     "corporate": "شركات",
     "current": "الحالي",
     "statusApproved": "معتمد",
+    "statusDraft": "مسودة",
     "statusPending": "قيد الانتظار",
     "statusOverdue": "متأخر السداد",
     "statusPaid": "مدفوع بالكامل",
